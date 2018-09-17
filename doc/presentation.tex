@@ -1,0 +1,330 @@
+\documentclass[fleqn]{beamer}
+
+\mode<presentation>
+ {
+ \usetheme[compress]{Dresden}
+ \definecolor{beamer@header}{HTML}{666666}
+ \definecolor{beamer@blendedblue}{HTML}{015580}
+ \definecolor{beamer@line}{HTML}{b5c55c}
+ \definecolor{beamer@zed}{HTML}{0172ac}
+ \setbeamercolor*{palette primary}{fg=white,bg=beamer@header}
+ \setbeamercolor*{palette secondary}{fg=white,bg=beamer@line}
+
+ \setbeamercolor{frametitle}{fg=beamer@blendedblue,bg=gray!10!white}
+ \setbeamercolor{structure}{fg=beamer@header}
+ \setbeamercolor{titlelike}{parent=palette primary,bg=white,fg=beamer@blendedblue}
+\setbeamercolor{navigation symbols}{fg=red, bg=green}
+ }
+
+
+\usepackage{amsmath}
+\usepackage[color]{circusPP}
+\usepackage[british]{babel}
+\usepackage{stmaryrd}
+\usepackage{amscd}
+\usepackage[capitalise,noabbrev]{cleveref}
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{pdfcomment}
+\newcommand{\pdfnote}[1]{\marginnote{\pdfcomment[hoffset=20em,icon=none]{#1}}}
+%\setlength{\mathindent}{1.5em}
+%\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage[labelformat=simple]{subcaption}
+\renewcommand\thesubfigure{(\alph{subfigure})}
+\captionsetup{compatibility=false}
+%\usetheme[compress]{Dresden}
+\setbeamertemplate{footline}[frame number]
+%\setbeamertemplate{footline}{
+%  \leavevmode%
+%  \hbox{%
+%  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+%    \usebeamerfont{author in head/foot}\insertshortauthor~~(\insertshortinstitute)
+%  \end{beamercolorbox}%
+%  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+%    \usebeamerfont{title in head/foot}\insertshorttitle
+%  \end{beamercolorbox}%
+%  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+%    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+%    \insertframenumber{} \hspace*{2ex} % hier hat's sich ge�ndert
+%  \end{beamercolorbox}}%
+%  }
+%  \vskip0pt%
+%}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{mini frames}{}
+\renewcommand*{\slideentry}[6]{}
+\newcommand{\beginbackup}{
+   \newcounter{framenumbervorappendix}
+   \setcounter{framenumbervorappendix}{\value{framenumber}}
+}
+\newcommand{\backupend}{
+   \addtocounter{framenumbervorappendix}{-\value{framenumber}}
+   \addtocounter{framenumber}{\value{framenumbervorappendix}} 
+}
+
+
+%\setbeamertemplate{headline}
+%{%
+%  \begin{beamercolorbox}[ht=3.5ex,dp=1.125ex,%
+%      leftskip=.3cm,rightskip=.3cm plus1fil]{section in head/foot}
+%    \usebeamerfont{section in head/foot}\usebeamercolor[fg]{section in head/foot}%
+%  \insertsectionhead
+% \end{beamercolorbox}%
+%  \begin{beamercolorbox}[colsep=1.5pt]{middle separation line head}
+%  \end{beamercolorbox}
+%  \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%
+%    leftskip=.3cm,rightskip=.3cm plus1fil]{subsection in head/foot}
+%    \usebeamerfont{subsection in head/foot}\insertsubsectionhead
+%  \end{beamercolorbox}%
+%  \begin{beamercolorbox}[colsep=1.5pt]{lower separation line head}
+%  \end{beamercolorbox}
+%}
+%{}%remove navigation symbols
+%\useoutertheme[subsection=false]{miniframes}
+
+\usepackage{verbatim}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{amsmath,listings}
+% verbose-note
+\usepackage[style=numeric-comp,sorting=none,sortcites=true,isbn=false,url=false,doi=false,block=space,defernumbers=true,citecounter=context,backend=bibtex]{biblatex}
+%\usepackage[color]{circusPP}
+%\usepackage{oz}
+\definecolor{darkblue}{rgb}{0,0,0.5}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\lstset{language=[LaTeX]TeX,
+  basicstyle={\color{red}},
+  morekeywords={%
+    part,chapter,subsection,subsubsection,%
+    paragraph,subparagraph,%
+    appendix}}
+
+\usecolortheme{rose}
+\definecolor{unicolor}{RGB}{43,53,58}
+
+\title[Modelling and Verification of Timed Robotic Controllers]{$tock$-CSP}
+
+\author[pfr]{Pedro Ribeiro and James Baxter}
+\date{\tiny Sheffield, 18th September 2018}
+
+\institute[University of York]
+{
+  \vspace{1em}\\
+  \includegraphics[scale=0.057]{UoY-Logo.eps}\\
+  \vspace{0.6em}
+  \inst{1}\textcolor{unicolor}{Department of Computer Science}\\
+  \vspace{1em}
+  \url{www.cs.york.ac.uk/circus/RoboCalc/}
+  \vspace{1em}
+}
+
+\providecommand{\Circus}{\emph{Circus}}
+\renewcommand{\footnotesize}{\tiny}
+\renewcommand{\printbibheading}{}
+\defbibheading{bibliography}{}
+
+\setbeamertemplate{bibliography item}[text]
+\setbeamerfont{bibliography entry author}{shape=\scshape,size=\tiny}
+\setbeamerfont{bibliography entry title}{shape=\scshape,size=\tiny}
+\setbeamerfont{bibliography entry journal}{shape=\scshape,size=\tiny}
+\setbeamerfont{bibliography entry note}{shape=\scshape,size=\tiny}
+\setbeamerfont{bibliography item}{shape=\scshape,size=\tiny}
+\renewcommand{\bibfont}{\tiny}
+
+\setbeamertemplate{footnote}{\insertfootnotetext}
+
+\setlength{\abovecaptionskip}{-2ex} 
+\setlength{\belowcaptionskip}{-2ex} 
+\newcommand{\tab}{\hspace*{2em}}
+%\bibliographystyle{apalike}  
+\bibliography{reading,espfor,publications} 
+%\setbeamertemplate{footline}[frame number]
+
+%\newenvironment{slide}[1]%
+%{\begin{refsegment}
+%\begin{frame}[fragile,environment=slide]
+%\frametitle{#1}
+%}%
+%{
+%\footnotetext{\printbibliography[segment=1]}
+%\end{frame}
+%\end{refsegment}
+%}
+\usepackage{xifthen}% provides \isempty test
+\newcommand{\footmake}[1]{
+\ifthenelse{\equal{#1}{}}%
+	{}%
+	{\footnotetext{#1}}%
+}
+
+%\defbibenvironment{bibliography}
+%{\begin{minipage}[b]{\linewidth}}
+%{\end{minipage}}
+%{}
+
+\defbibenvironment{bibliography}
+{
+ \list{\printtext[labelnumberwidth]{%
+    \printfield{prefixnumber}%
+    \printfield{labelnumber}}}
+{\setlength{\bibhang}{0pt}%
+\setlength{\leftmargin}{\bibhang}%
+\setlength{\itemindent}{-\leftmargin}%
+\setlength{\itemsep}{\bibitemsep}%
+\setlength{\parsep}{\bibparsep}}}
+{\endlist}
+{\item}
+
+\newsavebox{\ptbib}
+
+\newenvironment{slide}[1]
+{\begin{frame}[fragile,environment=slide]
+	\frametitle{#1}\begin{refsegment}}
+{\footnotetext{\printbibliography[segment=\therefsegment]}\end{refsegment}\end{frame}}
+
+\newenvironment{slide-nocite}[1]
+{\begin{frame}[fragile,environment=slide-nocite]
+\frametitle{#1}\begin{refsegment}}
+{\end{refsegment}\end{frame}}% \footnotetext{\printbibliography[segment=\therefsegment]}
+
+%\newtheorem{lemma}{Lemma}[section]
+\newtheorem{define}{Definition}
+\newcommand{\ptext}[1]{\tag*{\normalfont\{\text{#1}\}}} % Proof text %
+\newcommand{\CircusTime}{{\sf\slshape Circus Time}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Definitions taken from circusac.tex %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\IINew{\hbox{\texttt{\slshape I \kern -9.5pt I}}}
+\newcommand{\dseq}{\ensuremath{\mathbin{\varodot}}}
+\def\Limplies{\mathrel{\Leftarrow}}
+\def\seqA{\mathrel{\Semi_{\mathcal{A}}}}
+\def\seqD{\mathrel{\Semi_{\mathcal{D}}}}
+\def\seqR{\mathrel{\Semi_{\mathcal{R}}}}
+\def\seqRac{\mathrel{\Semi_{\mathcal{R}ac}}}
+
+%% Auxiliary shortcuts %%
+
+\def\refines{\mathrel{\sqsupseteq}}
+\newcommand{\IIrea}{\IINew_{rea}}
+\newcommand{\IIrel}{\IINew_{rel}}
+
+%% Theory of reactive designs with angelic nondeterminism %%
+
+\newcommand{\IIRac}{\IINew_{\mathcal{R}ac}}
+\newcommand{\IIac}{\IINew_{ac}}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+  \node[shape=circle,draw,inner sep=1pt] (char) {#1};}}
+\newcommand\circledIn[2]{\circled{$\in$}^{#1}_{#2}}
+
+%% UTP-DESIGNS %%
+
+\newcommand{\IIA}{\IINew_{\mathcal{A}}}
+\newcommand{\IID}{\IINew_{\mathcal{D}}}
+\newcommand{\IIR}{\IINew_{\mathcal{R}}}
+\newcommand{\botD}{\bot_{\mathcal{D}}}
+\newcommand{\topD}{\top_{\mathcal{D}}}
+\def\seqD{\mathrel{\mathbf{\circseq_{\mathcal{D}}}}}
+
+%% UTP-DESIGNS with angelic nondeterminism %%
+
+\newcommand{\IIDac}{\mathbf{\IINew_{\mathcal{D}ac}}}
+\newcommand{\botDac}{\mathbf{\bot_{\mathcal{D}ac}}}
+\newcommand{\topDac}{\mathbf{\top_{\mathcal{D}ac}}}
+\def\seqDac{\mathrel{\mathbf{\Semi_{\mathcal{D}ac}}}}
+\def\seqAC{\mathrel{\mathbf{\Semi_{\mathcal{AC}}}}}
+\def\refinedbyDac{\mathrel{\sqsubseteq_{\mathcal{D}}}}
+\def\assignDac{\mathrel{:=_{\mathcal{D}ac}}}
+\def\sqcupDac{\mathrel{\mathbf{\sqcup_{\mathcal{D}ac}}}}
+\def\sqcapDac{\mathrel{\mathbf{\sqcap_{\mathcal{D}ac}}}}
+
+\def\vdashA{\mathrel{\mathbf{\vdash_{\mathcal{A}}}}}
+\def\vdashDN{\mathrel{\mathbf{\vdash_{\mathcal{DN}}}}}
+\def\vdashAC{\mathrel{\mathbf{\vdash_{\mathcal{AC}}}}}
+
+%% Binary Multirelations (original theory) %%
+
+\def\sqcupBM{\mathrel{\sqcup_{BM}}} 
+\def\sqcapBM{\mathrel{\sqcap_{BM}}}
+\def\seqBM{\mathrel{\circseq_{BM}}}
+\def\topBM{\top_{BM}}
+\def\botBM{\bot_{BM}}
+\def\refinedbyBM{\mathrel{\sqsubseteq_{BM}}}
+
+%% New Binary Multirelations with bot (new theory) %%
+
+\def\sqcupBMbot{\mathrel{\sqcup_{{BM}_\bot}}} 
+\def\sqcapBMbot{\mathrel{\sqcap_{{BM}_\bot}}}
+\def\seqBMbot{\mathrel{\circseq_{{BM}_\bot}}}
+\def\topBMbot{\top_{{BM}_\bot}}
+\def\botBMbot{\bot_{{BM}_\bot}}
+\def\refinedbyBMbot{\mathrel{\sqsubseteq_{{BM}_\bot}}}
+\def\LrefinedbyBMbot{\mathrel{\sqsupseteq_{{BM}_\bot}}}
+
+%% Beamer blocks %%
+
+\newenvironment{counter-example}[0]{%
+  \setbeamercolor{block body}{fg=black,bg=yellow!20!orange!10}
+  \setbeamercolor{block title}{fg=orange!70!black,bg=yellow!30!orange!20}
+  \begin{block}{Counter-example}}{\end{block}}
+
+%\addtobeamertemplate{block begin}{
+%\setlength\abovedisplayskip{0pt}
+%\setlength\belowdisplayskip{0pt}
+%\setlength\abovedisplayshortskip{0pt}
+%\setlength\belowdisplayshortskip{0pt}
+%\nointerlineskip}
+
+\renewcommand\footnoterule{}
+\urlstyle{sf}
+\newcommand{\RC}[1]{{\sf #1}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\mathindent}{0pt}
+\begin{document}
+
+%\frame{\setbeamertemplate{footline}{} \titlepage}
+{
+\setbeamertemplate{footline}{} 
+\begin{frame}
+  \titlepage
+\end{frame}
+}
+\addtocounter{framenumber}{-1}
+
+\begin{frame}[fragile]
+\frametitle{Outline}
+\tableofcontents[hideallsubsections]
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NEW STRUCTURE %
+%
+% 1. tock-CSP
+%    - Model
+%    - Healthiness Conditions
+%    - Operators
+%
+% 2. tock-CSP and inputs/outputs
+%    - Current results
+%
+% 3. tock-CSP and FL model
+%    - Current results
+%
+% 4. Plans
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{$tock$-CSP}
+
+\begin{slide-nocite}{Model}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Healthiness Conditions}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators}
+\end{slide-nocite}
+
+
+\end{document}
