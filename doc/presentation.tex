@@ -328,7 +328,6 @@
           \end{array}$
   \item So $\tick$ may only occur last, and any refusal not at the end must be followed by $tock$.
   \end{itemize}
-  
 \end{slide-nocite}
 
 \begin{slide-nocite}{Healthiness Conditions (1)}
@@ -366,6 +365,124 @@
 \end{slide-nocite}
 
 \begin{slide-nocite}{Operators}
+  We have definitions for: divergence, deadlock, termination, delays,
+  event prefixing, internal choice, external choice, and sequential
+  composition.
+
+  \vfill
+
+  Since several operators allow $tock$ events to occur before the
+  operator, we define a set of sequences of $tock$ events, possibly
+  with refusals that are subsets of a set $X$ before them.
+  This set also includes the empty sequence.
+  \begin{displaymath}
+    tocks(X) == \{\langle\rangle\} \cup {} \\
+    \t1 \{ \rho : TockTrace | \\
+    \t2 \# \rho > 0 \land \rho~(\# \rho) = tock \land \\
+    \t2 (\forall i : \dom \rho @ \rho~i \in \{tock\} \cup \power X) \}
+  \end{displaymath}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators: Divergence}
+  The empty trace is the only trace we can observe for divergence:
+  \begin{displaymath}
+    div == \{\langle\rangle\}    
+  \end{displaymath}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators: Deadlock}
+  For a deadlock, $tock$ is the only event that is accepted, and
+  everything else is refused. 
+  We can thus observe a trace of $tock$ events and refusals, ending in
+  a tock, possibly followed by a refusal. 
+  None of the refusals may contain $tock$.
+  \begin{displaymath}
+    STOP == \\
+    \t1 \{ \rho : tocks(\Sigma^{t\tick} \setminus \{tock\}); X : \power (\Sigma^{t\tick} \setminus \{tock\}) @ \\
+    \t2 \rho, \rho \cat \langle X \rangle \}
+  \end{displaymath}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators: Termination}
+  Termination happens immediately, so we refuse everything but $\tick$.
+  \begin{displaymath}
+    SKIP == \{X : \power \Sigma^{t\tick} | \tick \notin X @ \langle\rangle, \langle X \rangle, \langle \tick \rangle \}
+  \end{displaymath}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators: Delay}
+  Delay consists of refusing everything but $tock$, until a given
+  number of $tock$ events have passed, after which $\tick$ is offered
+  and no further $tock$ events may occur.
+  \begin{displaymath}
+    wait(n) == \\
+    \t1 \{ \rho : tocks(\Sigma^{t\tick} \setminus \{tock\}); X : \power (\Sigma^{t\tick} \setminus \{tock\}) | \\
+    \t2 \# (\rho \filter \{tock\}) < n @ \rho, \rho \cat \langle X \rangle \}  \\
+    \t1 {} \cup \{ \rho : tocks(\Sigma^{t\tick} \setminus \{tock\}); X : \power (\Sigma^{t\tick} \setminus \{tick\}) | \\
+    \t2 \# (\rho \filter \{tock\}) = n @ \rho, \rho \cat \langle X \rangle, \rho \cat \langle \tick \rangle \} \\
+  \end{displaymath}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators: Event Prefixing}
+  Event prefixing offers both $tock$ and the given event. 
+  When the given event is performed (possibly after a sequence of
+  $tock$ events), the prefixing behaves like the given process.
+  \begin{displaymath}
+    e \then P == \\
+    \t1 \{ \rho : tocks(\Sigma^{t\tick}); X : \power (\Sigma^{t\tick} \setminus \{tock, e\}) @ \rho, \rho \cat \langle X \rangle\} \\
+    \t2 {} \cup \{ \rho : tocks(\Sigma^{t\tick}); \sigma : P @ \rho \cat \langle e \rangle \sigma \}
+  \end{displaymath}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators: Internal Choice}
+  Internal choice may give the observations of either of its operands,
+  so the are unioned together.
+  \begin{displaymath}
+    P \intchoice Q == P \cup Q
+  \end{displaymath}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators: External Choice (without handling termination)}
+  The occurrence of $tock$ events does not resolve an external choice,
+  so we take all the traces from each operand whose longest prefix of
+  $tock$ events is the same as for a sequence from the other operand,
+  to ensure synchronisation on $tock$.
+  If the rest of the trace after the $tock$ events is a refusal, then
+  we require that the trace is in both operands, since we offer the
+  events of both.
+  \begin{displaymath}
+    P \extchoice Q == \\
+    \t1 \{ \rho : tocks(\Sigma^{t\tick}); \sigma, \tau : TockTrace | \\
+    \t2 \rho \cat \sigma \in P \land \rho \cat \tau \in Q \land \\
+    \t2 (\forall \rho' : tocks(\Sigma^{t\tick}) | \rho' \leq \rho \cat \sigma @ \rho' \leq \rho) \land \\
+    \t2 (\forall \rho' : tocks(\Sigma^{t\tick}) | \rho' \leq \rho \cat \tau @ \rho' \leq \rho)\\
+    \t2 ((\exists X : \power \Sigma^{t\tick} @ \sigma = \langle X \rangle) \implies \rho \cat \sigma \in P \cap Q) \land \\
+    \t2 ((\exists X : \power \Sigma^{t\tick} @ \tau = \langle X \rangle) \implies \rho \cat \tau \in P \cap Q) @ \\
+    \t1 \rho \cat \sigma, \rho \cat \tau \}  
+  \end{displaymath}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators: External Choice (with termination)}
+  Since $\tick$ takes priority over all other events, any external
+  choice that (possibly after some number of $tock$ events) can
+  perform $\tick$ and has at least one refusal (i.e.\ it doesn't
+  diverge), can refuse everything but $\tick$.
+  \begin{displaymath}
+    P \extchoice^\tick Q == (P \extchoice Q) \cup {} \\
+    \t1 \{ \rho : tocks(\Sigma^{t\tick}); X : \power (\Sigma^{t\tick} \setminus \{\tick\}) | \\
+    \t2 \rho \cat \langle \tick \rangle \in P \extchoice Q \land (\exists Y : \power \Sigma^{t\tick} @ \rho \cat \langle Y \rangle \in P \extchoice Q) @ \\
+    \t3 \rho \cat \langle X \rangle \}  
+  \end{displaymath}
+\end{slide-nocite}
+
+\begin{slide-nocite}{Operators: Sequential Composition}
+  The sequential composition of $P$ and $Q$ consists of all the
+  non-terminating traces in $P$ and all the terminating traces in $P$
+  followed by traces of $Q$.
+  \begin{displaymath}
+    P \circseq Q == \{ \rho : P | \rho = \langle\rangle \lor last~rho \neq \tick\} \\
+    \t1 {} \cup \{ \rho : P; \sigma : Q | \rho \neq \langle\rangle \lor last~rho = \tick @ (front~\rho) \cat \sigma \}
+  \end{displaymath}
 \end{slide-nocite}
 
 \begin{slide-nocite}{FDR refinement encoding (1)}
