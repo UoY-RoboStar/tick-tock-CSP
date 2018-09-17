@@ -331,11 +331,44 @@
   
 \end{slide-nocite}
 
-\begin{slide-nocite}{Healthiness Conditions}
+\begin{slide-nocite}{Healthiness Conditions (1)}
+  \begin{itemize}
+    \item $TockProcess == \power TockTrace$\\
+    \item Prefix relation where $X, Y : \power \Sigma^{t\tick}$ and $e : \Sigma^{t\tick}$.\\
+      $\begin{aligned}
+          \lseq\rseq                   &\le  \sigma
+        \\\lseq X \rseq \cat \rho      &\le  \lseq Y \rseq \cat \sigma &\iff&~ X \subseteq Y \land \rho \le \sigma
+        \\\lseq tock \rseq \cat \rho   &\le  \lseq Y \rseq \cat \sigma &\iff&~ \rho \le \sigma
+        \\\lseq e \rseq \cat \rho      &\le  \lseq e \rseq \cat \sigma &\iff&~ \rho \le \sigma
+      \end{aligned}$
+  \end{itemize}
+  \begin{itemize}
+    \item Non-empty:\\
+    $CT0(P) \circdef P \neq \emptyset$
+    \item Prefix closure:\\
+    $CT1(P) \circdef \forall \rho, \sigma : TockTrace @ (\rho \le \sigma \land \sigma \in P) \implies \rho \in P$
+  \end{itemize}
 \end{slide-nocite}
+
+\begin{slide-nocite}{Healthiness Conditions (2)}
+  \begin{itemize}
+    \item Refusals of impossible events:\\
+    $\begin{array}{l}
+      CT2(P) \circdef \\
+        \forall \rho, \sigma : TockTrace; X, Y: \Sigma^{t\tick} @ \\
+        \left(\begin{array}{l}
+          \rho \cat \lseq X \rseq \in P \land Y \cap \{e : \Sigma^{t\tick} | \rho \cat \lseq e \rseq \in P\} = \emptyset
+          \\ \implies \\
+          \rho \cat \lseq X \cup Y \rseq \in P
+        \end{array}\right)
+      \end{array}$
+  \end{itemize}
+\end{slide-nocite}
+
 
 \begin{slide-nocite}{Operators}
 \end{slide-nocite}
+
 
 
 \end{document}
