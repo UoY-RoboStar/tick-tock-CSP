@@ -318,6 +318,17 @@
 \section{$tock$-CSP}
 
 \begin{slide-nocite}{Model}
+  \begin{itemize}
+  \item We extend our event set with tick and tock events: $\Sigma^{t\tick} = \Sigma \cup \{ tock, \tick \}$
+  \item  $\begin{array}[t]{l}
+            TockTrace == \{ \rho : \seq (\Sigma^{t\tick} \cup \power \Sigma^{t\tick}) | \\
+            \t1 (\forall i : \dom \rho | i < \# \rho @ \rho~i \neq \tick) \land \\
+            \t1 (\forall i : \dom \rho | i < \# \rho \land \rho~i \in \power \Sigma^{t\tick} @ \rho~(i+1) = tock) \\
+            \}
+          \end{array}$
+  \item So $\tick$ may only occur last, and any refusal not at the end must be followed by $tock$.
+  \end{itemize}
+  
 \end{slide-nocite}
 
 \begin{slide-nocite}{Healthiness Conditions}
