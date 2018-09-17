@@ -365,10 +365,43 @@
   \end{itemize}
 \end{slide-nocite}
 
-
 \begin{slide-nocite}{Operators}
 \end{slide-nocite}
 
+\begin{slide-nocite}{FDR refinement encoding (1)}
+Following Mestel and Roscoe's approach we can check refinement of $tock$-CSP processes
+in FDR using the following construction.
+\begin{enumerate}
+  \item For each CSP event $e$ define an event $ref(e)$ (of type $\Sigma^{t}_{ref}$), that encodes the refusal of $e$.
+        %In FDR this can be achieved, for example, by using a channel of name $ref$ and type
+        %$\Sigma^{t\tick}$.
+  \item Define a priority order $\leq$, where $ref(e) < e$ for all $e : \Sigma^{t}$.
+  \item Define a context $C1(P)$ for a process $P$, where $ref(e)$ is only possible
+        when $e$ is not being offered:\\
+        $C1(P) \circdef \mathbf{Pri}(P ||| RUN(\lchan ref\rchan))_{\leq}$
+  \item Define a context $C2(P)$ where following a $ref(e)$ event other $ref(x)$ events are
+        allowed, and only after a $tock$ can $P$ perform events other than $ref(x)$.
+\end{enumerate}
+\end{slide-nocite}
 
+\begin{slide-nocite}{FDR refinement encoding (1)}
+Context $C2$ is defined as follows.
+\begin{itemize}
+  \item $C2(P) \circdef C1(P) \lpar \Sigma^{t} \cup \Sigma^{t}_{ref} \rpar Control$
+  \item The process $Control$ ensures that refusals appear sequentially.
+   \begin{align*}
+      Control \circdef \left(\begin{array}{l}
+        \Extchoice e : \Sigma^{t} @ e \then Control
+        \\ \extchoice \\
+        \Extchoice r : \Sigma^{t}_{ref} @ r \then Refusals
+      \end{array}\right)
+    \end{align*}
+  \item The process $Refusals$ ensures that no events other than $tock$ can follow
+    a refusal.
+    \begin{align*}
+      Refusals \circdef (\Extchoice r : \Sigma^{t}_{ref} @ r \then Refusals) \extchoice tock \then Control
+    \end{align*}
+\end{itemize}
+\end{slide-nocite}
 
 \end{document}
