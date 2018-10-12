@@ -3075,8 +3075,197 @@ termination by (lexicographic_order)
 lemma merge_traces_comm: "(x \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C y) = (y \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C x)"
   by (induct x Z y rule:merge_traces.induct, simp_all, blast+)
 
+lemma merge_traces_wf: "cttWF x \<Longrightarrow> cttWF y \<Longrightarrow> \<forall> z\<in>(x \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C y). cttWF z"
+proof (auto, induct x A y rule:merge_traces.induct, simp+, (safe, simp+), (safe, simp+), (safe, simp+), (safe, simp))
+  fix Z Y \<sigma> z
+  assume assm1: "\<And>x xa xb z. cttWF [[Tick]\<^sub>E] \<Longrightarrow> cttWF \<sigma> \<Longrightarrow> z \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> cttWF z"
+  assume assm2: "cttWF ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>)"
+  assume assm3: "cttWF [[Tick]\<^sub>E]"
+  have \<sigma>_wf: "cttWF \<sigma>"
+    using assm2 by auto
+  assume "z \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>"
+  then obtain W s where s_assms: "s \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>" "z = [W]\<^sub>R # [Tock]\<^sub>E # s"
+    by auto
+  then have "cttWF s"
+    using assm1 \<sigma>_wf assm3 by auto
+  then show "cttWF z"
+    using s_assms by auto
+next
+  fix e \<sigma> Z z
+  assume assm1: "\<And>x xa z. cttWF [] \<Longrightarrow> cttWF \<sigma> \<Longrightarrow> z \<in> [] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> cttWF z"
+  assume assm2: "cttWF ([Event e]\<^sub>E # \<sigma>)"
+  assume assm3: "z \<in> [Event e]\<^sub>E # \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C []"
+  then obtain s where "s \<in> ([] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>) \<and> z = [Event e]\<^sub>E # s"
+    by auto
+  also have "cttWF \<sigma>"
+    using assm2 by auto
+  then show "cttWF z"
+    using assm1 calculation by auto
+next
+  fix e \<sigma> Z Y z
+  assume assm1: "\<And>x xa z. cttWF \<sigma> \<Longrightarrow> cttWF [[Y]\<^sub>R] \<Longrightarrow> z \<in> \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Y]\<^sub>R] \<Longrightarrow> cttWF z"
+  assume assm2: "cttWF ([Event e]\<^sub>E # \<sigma>)"
+  assume assm3: "z \<in> [Event e]\<^sub>E # \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Y]\<^sub>R]"
+  then obtain s where "s \<in> (\<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Y]\<^sub>R]) \<and> z = [Event e]\<^sub>E # s"
+    by auto
+  also have "cttWF \<sigma>"
+    using assm2 by auto
+  then show "cttWF z"
+    using assm1 calculation by auto
+next
+  fix e \<sigma> Z z
+  assume assm1: "\<And>x xa z. cttWF \<sigma> \<Longrightarrow> cttWF [[Tick]\<^sub>E] \<Longrightarrow> z \<in> \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E] \<Longrightarrow> cttWF z"
+  assume assm2: "cttWF ([Event e]\<^sub>E # \<sigma>)"
+  assume assm3: "z \<in> [Event e]\<^sub>E # \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+  then obtain s where "s \<in> (\<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]) \<and> z = [Event e]\<^sub>E # s"
+    by auto
+  also have "cttWF \<sigma>"
+    using assm2 by auto
+  then show "cttWF z"
+    using assm1 calculation by auto
+next
+  fix e Z f
+  fix \<rho> \<sigma> z :: "'a cttobs list"
+  assume assm1: "cttWF ([Event e]\<^sub>E # \<rho>)"
+  assume assm2: "cttWF ([Event f]\<^sub>E # \<sigma>)"
+  assume assm3: "\<And>x xa z. cttWF ([Event e]\<^sub>E # \<rho>) \<Longrightarrow> cttWF \<sigma> \<Longrightarrow> z \<in> [Event e]\<^sub>E # \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> cttWF z"
+  assume assm4: "\<And>x xa z. cttWF \<rho> \<Longrightarrow> cttWF ([Event f]\<^sub>E # \<sigma>) \<Longrightarrow> z \<in> \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Event f]\<^sub>E # \<sigma> \<Longrightarrow> cttWF z"
+  assume assm5: "\<And>x xa z. cttWF \<rho> \<Longrightarrow> cttWF \<sigma> \<Longrightarrow> z \<in> \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> cttWF z"
+  assume "z \<in> [Event e]\<^sub>E # \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Event f]\<^sub>E # \<sigma>"
+  then obtain s where s_assms: "z = [Event f]\<^sub>E # s \<or> z = [Event e]\<^sub>E # s"
+    "s \<in> ([Event e]\<^sub>E # \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>) \<or> s \<in> (\<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Event f]\<^sub>E # \<sigma>) \<or> s \<in> (\<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>)"
+    by auto
+  have \<rho>_wf: "cttWF \<rho>"
+    using assm1 by auto
+  have \<sigma>_wf: "cttWF \<sigma>"
+    using assm2 by auto
+  have "cttWF s"
+    using s_assms assm1 assm2 assm3 assm4 assm5 \<rho>_wf \<sigma>_wf by auto
+  then show "cttWF z"
+    using s_assms by auto
+next
+  fix e Z Y 
+  fix \<rho> \<sigma> z :: "'a cttobs list"
+  assume assm1: "cttWF ([Event e]\<^sub>E # \<rho>)"
+  then have \<rho>_wf: "cttWF \<rho>"
+    by auto
+  assume assm2: "cttWF ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>)"
+  assume assm3: "\<And>x xa z. cttWF \<rho> \<Longrightarrow> cttWF ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) \<Longrightarrow> z \<in> \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<Longrightarrow> cttWF z"
+  assume "z \<in> [Event e]\<^sub>E # \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>"
+  then obtain s where "s \<in> \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>" "z = [Event e]\<^sub>E # s"
+    by auto
+  then show "cttWF z"
+    using \<rho>_wf assm2 assm3 by auto
+next
+  fix X \<sigma> Z z
+  show "z \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [] \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix X \<sigma> Z Y z
+  show "z \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Y]\<^sub>R] \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix X \<sigma> Z z
+  assume assm1: "cttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>)"
+  then have \<sigma>_wf: "cttWF \<sigma>"
+    by auto
+  assume assm2: "\<And>x xa xb z. cttWF [[Tick]\<^sub>E] \<Longrightarrow> cttWF \<sigma> \<Longrightarrow> z \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> cttWF z"
+  assume "z \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+  then obtain s W where "s \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>" "z = [W]\<^sub>R # [Tock]\<^sub>E # s"
+    by auto
+  then show "cttWF z"
+    using \<sigma>_wf assm2 by auto
+next
+  fix X Z f
+  fix \<rho> \<sigma> z :: "'a cttobs list"
+  assume assm1: "cttWF ([Event f]\<^sub>E # \<sigma>)"
+  then have \<sigma>_wf: "cttWF \<sigma>"
+    by auto
+  assume assm2: "cttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>)"
+  assume assm3: "\<And>x xa z. cttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) \<Longrightarrow> cttWF \<sigma> \<Longrightarrow> z \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> cttWF z"
+  assume "z \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Event f]\<^sub>E # \<sigma>"
+  then obtain s where "s \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>" "z = [Event f]\<^sub>E # s"
+    by auto
+  then show "cttWF z"
+    using \<sigma>_wf assm2 assm3 by auto
+next
+  fix X Z Y
+  fix \<rho> \<sigma> z :: "'a cttobs list"
+  assume assm1: "cttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>)"
+  then have \<rho>_wf: "cttWF \<rho>"
+    by auto
+  assume assm2: "cttWF ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>)"
+  then have \<sigma>_wf: "cttWF \<sigma>"
+    by auto
+  assume assm3: "\<And>x xa xb z. cttWF \<rho> \<Longrightarrow> cttWF \<sigma> \<Longrightarrow> z \<in> \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> cttWF z"
+  assume "z \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>"
+  then obtain s W where "s \<in> \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>" "z = [W]\<^sub>R # [Tock]\<^sub>E # s"
+    by auto
+  then show "cttWF z"
+    using \<rho>_wf \<sigma>_wf assm3 by auto
+next
+  fix X \<rho> Z \<sigma> z
+  show "cttWF ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix X e \<rho> Z \<sigma> z
+  show "cttWF ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix X Y \<rho> Z \<sigma> z
+  show "cttWF ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix \<rho> Z X \<sigma> z
+  show "cttWF ([X]\<^sub>R # [Tick]\<^sub>E # \<sigma>) \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix \<rho> Z X e \<sigma> z
+  show "cttWF ([X]\<^sub>R # [Event e]\<^sub>E # \<sigma>) \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix \<rho> Z X Y \<sigma> z
+  show "cttWF ([X]\<^sub>R # [Y]\<^sub>R # \<sigma>) \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix x \<rho> Z \<sigma> z
+  show "cttWF ([Tick]\<^sub>E # x # \<rho>) \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix \<rho> Z y \<sigma> z
+  show "cttWF ([Tick]\<^sub>E # y # \<sigma>) \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix \<rho> Z \<sigma> z
+  show "cttWF ([Tock]\<^sub>E # \<rho>) \<Longrightarrow> cttWF z"
+    by auto
+next
+  fix \<rho> Z \<sigma> z
+  show "cttWF ([Tock]\<^sub>E # \<sigma>) \<Longrightarrow> cttWF z"
+    by auto
+qed
+
+  thm merge_traces.simps 
+
+
 definition ParCompCTT :: "'e cttobs list set \<Rightarrow> 'e set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<lbrakk>_\<rbrakk>\<^sub>C" 51) where
   "ParCompCTT P A Q = \<Union> {t. \<exists> p \<in> P. \<exists> q \<in> Q. t = merge_traces p A q}"
+
+lemma ParCompCTT_wf: 
+  assumes "\<forall>t\<in>P. cttWF t" "\<forall>t\<in>Q. cttWF t"
+  shows "\<forall>t\<in>(P \<lbrakk>A\<rbrakk>\<^sub>C Q). cttWF t"
+  unfolding ParCompCTT_def
+proof auto
+  fix p q x
+  assume "p \<in> P"
+  then have p_wf: "cttWF p"
+    using assms(1) by auto
+  assume "q \<in> Q"
+  then have q_wf: "cttWF q"
+    using assms(2) by auto
+  show "x \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> cttWF x"
+    using p_wf q_wf merge_traces_wf by auto
+qed
 
 section {* Refinement *}
 
