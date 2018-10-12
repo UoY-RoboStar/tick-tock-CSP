@@ -15,6 +15,7 @@ fun cttWF :: "'e cttobs list \<Rightarrow> bool" where
   "cttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = cttWF \<sigma>" | (* a tock event on its own is okay *)
   "cttWF \<sigma> = False" (* everything else is not allowed *)  
 
+(* not necessary as a function but very useful for its induction rule *)
 function cttWF2 :: "'e cttobs list \<Rightarrow> 'e cttobs list \<Rightarrow> bool" where
   "cttWF2 [] [] = True" | 
   "cttWF2 [] [[Y]\<^sub>R] = True" | 
@@ -51,7 +52,7 @@ function cttWF2 :: "'e cttobs list \<Rightarrow> 'e cttobs list \<Rightarrow> bo
   "cttWF2 \<rho> ([Tick]\<^sub>E # y # \<sigma>) = False" |
   "cttWF2 ([Tock]\<^sub>E # \<rho>) \<sigma> = False" |
   "cttWF2 \<rho> ([Tock]\<^sub>E # \<sigma>) = False"
-  by (simp_all, case_tac x, simp, case_tac a rule:cttWF.cases, (case_tac b rule:cttWF.cases, simp_all)+)
+  by (pat_completeness, simp_all)
 termination by lexicographic_order
 
 print_theorems
@@ -2890,6 +2891,192 @@ lemma CT_SeqComp:
   apply (simp add: CT2_SeqComp assms(1) assms(2))
   apply (simp add: CT3_SeqComp assms(1) assms(2))
   done
+
+subsection {* Parallel Composition *}
+
+(*
+[] []
+[] [e]
+[] [Tock]
+[] [Tick]
+[] [X]
+[] (e # \<sigma>)
+[] ()
+
+*)
+thm cttWF.simps
+(*function traces_cases :: "'e cttobs list \<Rightarrow> 'e cttobs list \<Rightarrow> bool" where
+  "traces_cases [] [] = True" |
+  "traces_cases [] [[X]\<^sub>R] = True" |
+  "traces_cases [] [[Tick]\<^sub>E] = True" | 
+  "traces_cases [] ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases [] ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases [] ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases [] ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases [] ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases [] ([va]\<^sub>R # [Event vd]\<^sub>E # vc) = False" | 
+  "traces_cases [] ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases [] ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases [[X]\<^sub>R] [[X]\<^sub>R] = True" |
+  "traces_cases [[X]\<^sub>R] [[X]\<^sub>R] = True" |
+  "traces_cases [[X]\<^sub>R] [[Tick]\<^sub>E] = True" | 
+  "traces_cases [[X]\<^sub>R] ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases [[X]\<^sub>R] ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases [[X]\<^sub>R] ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases [[X]\<^sub>R] ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases [[X]\<^sub>R] ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases [[X]\<^sub>R] ([va]\<^sub>R # [Event vd]\<^sub>E # vc) = False" | 
+  "traces_cases [[X]\<^sub>R] ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases [[X]\<^sub>R] ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases [[Tick]\<^sub>E] [[Tick]\<^sub>E] = True" |
+  "traces_cases [[Tick]\<^sub>E] [[X]\<^sub>R] = True" |
+  "traces_cases [[Tick]\<^sub>E] [[Tick]\<^sub>E] = True" | 
+  "traces_cases [[Tick]\<^sub>E] ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases [[Tick]\<^sub>E] ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases [[Tick]\<^sub>E] ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases [[Tick]\<^sub>E] ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases [[Tick]\<^sub>E] ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases [[Tick]\<^sub>E] ([va]\<^sub>R # [Event vd]\<^sub>E # vc) = False" | 
+  "traces_cases [[Tick]\<^sub>E] ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases [[Tick]\<^sub>E] ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases ([Event f]\<^sub>E # \<rho>) ([Event f]\<^sub>E # \<rho>) = True" |
+  "traces_cases ([Event f]\<^sub>E # \<rho>) [[X]\<^sub>R] = True" |
+  "traces_cases ([Event f]\<^sub>E # \<rho>) [[Tick]\<^sub>E] = True" | 
+  "traces_cases ([Event f]\<^sub>E # \<rho>) ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases ([Event f]\<^sub>E # \<rho>) ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases ([Event f]\<^sub>E # \<rho>) ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases ([Event f]\<^sub>E # \<rho>) ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([Event f]\<^sub>E # \<rho>) ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([Event f]\<^sub>E # \<rho>) ([va]\<^sub>R # [Event vd]\<^sub>E # vc) = False" | 
+  "traces_cases ([Event f]\<^sub>E # \<rho>) ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases ([Event f]\<^sub>E # \<rho>) ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) = True" |
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) [[X]\<^sub>R] = True" |
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) [[Tick]\<^sub>E] = True" | 
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([va]\<^sub>R # [Event vd]\<^sub>E # vc) = False" | 
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases ([Y]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases [[Tock]\<^sub>E] [[Tock]\<^sub>E] = True" |
+  "traces_cases [[Tock]\<^sub>E] [[X]\<^sub>R] = True" |
+  "traces_cases [[Tock]\<^sub>E] [[Tick]\<^sub>E] = True" | 
+  "traces_cases [[Tock]\<^sub>E] ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases [[Tock]\<^sub>E] ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases [[Tock]\<^sub>E] ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases [[Tock]\<^sub>E] ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases [[Tock]\<^sub>E] ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases [[Tock]\<^sub>E] ([va]\<^sub>R # [Event vd]\<^sub>E # vc) = False" | 
+  "traces_cases [[Tock]\<^sub>E] ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases [[Tock]\<^sub>E] ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases ([Tock]\<^sub>E # vd # ve) ([Tock]\<^sub>E # vd # ve) = True" |
+  "traces_cases ([Tock]\<^sub>E # vd # ve) [[X]\<^sub>R] = True" |
+  "traces_cases ([Tock]\<^sub>E # vd # ve) [[Tick]\<^sub>E] = True" | 
+  "traces_cases ([Tock]\<^sub>E # vd # ve) ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases ([Tock]\<^sub>E # vd # ve) ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases ([Tock]\<^sub>E # vd # ve) ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases ([Tock]\<^sub>E # vd # ve) ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([Tock]\<^sub>E # vd # ve) ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([Tock]\<^sub>E # vd # ve) ([va]\<^sub>R # [Event e]\<^sub>E # vc) = False" | 
+  "traces_cases ([Tock]\<^sub>E # vd # ve) ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases ([Tock]\<^sub>E # vd # ve) ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases ([Tick]\<^sub>E # vd # ve) ([Tick]\<^sub>E # vd # ve) = True" |
+  "traces_cases ([Tick]\<^sub>E # vd # ve) [[X]\<^sub>R] = True" |
+  "traces_cases ([Tick]\<^sub>E # vd # ve) [[Tick]\<^sub>E] = True" | 
+  "traces_cases ([Tick]\<^sub>E # vd # ve) ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases ([Tick]\<^sub>E # vd # ve) ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases ([Tick]\<^sub>E # vd # ve) ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases ([Tick]\<^sub>E # vd # ve) ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([Tick]\<^sub>E # vd # ve) ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([Tick]\<^sub>E # vd # ve) ([va]\<^sub>R # [Event e]\<^sub>E # vc) = False" | 
+  "traces_cases ([Tick]\<^sub>E # vd # ve) ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases ([Tick]\<^sub>E # vd # ve) ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) = True" |
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) [[X]\<^sub>R] = True" |
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) [[Tick]\<^sub>E] = True" | 
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) ([va]\<^sub>R # [Event vd]\<^sub>E # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) = True" |
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) [[X]\<^sub>R] = True" |
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) [[Tick]\<^sub>E] = True" | 
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) ([va]\<^sub>R # [Event vd]\<^sub>E # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) ([va]\<^sub>R # [v]\<^sub>R # vc) = False" |
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) = True" |
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) [[X]\<^sub>R] = True" |
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) [[Tick]\<^sub>E] = True" | 
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) ([Event e]\<^sub>E # \<sigma>) = True" | 
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = True" |
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) ([[Tock]\<^sub>E]) = False" | 
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) ([Tock]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) ([Tick]\<^sub>E # v # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) ([va]\<^sub>R # [Event vd]\<^sub>E # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) ([va]\<^sub>R # [Tick]\<^sub>E # vc) = False" | 
+  "traces_cases ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) ([va]\<^sub>R # [v]\<^sub>R # vc) = False"  *)
+
+function merge_traces :: "'e cttobs list \<Rightarrow> 'e set \<Rightarrow> 'e cttobs list \<Rightarrow> 'e cttobs list set" (infixl "\<lbrakk>_\<rbrakk>\<^sup>T\<^sub>C" 51) where
+  "merge_traces [] Z [] = {[]}" | 
+  "merge_traces [] Z [[Y]\<^sub>R] = {[]}" | (* if one side lacks a refusal, the composition lacks a refusal *) 
+  "merge_traces [] Z [[Tick]\<^sub>E] = {}" | (* both must terminate together *)
+  "merge_traces [] Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces [] Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* the event from one side is performed *) 
+  "merge_traces [] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {}" | (* Tock must always synchronise *)
+  "merge_traces [[X]\<^sub>R] Z [] = {[]}" | (* if one side lacks a refusal, the composition lacks a refusal *) 
+  "merge_traces [[X]\<^sub>R] Z [[Y]\<^sub>R] = {t. \<exists> W. W \<subseteq> X \<union> Y \<and> {e. e \<in> Y \<and> e \<notin> ((Event ` Z) \<union> {Tock, Tick})} = {e. e \<in> X \<and> e \<notin> ((Event ` Z) \<union> {Tock, Tick})} \<and> t = [[W]\<^sub>R]}" | (* intersect the refusals for non-synchronised events, union for synchronised events *) 
+  "merge_traces [[X]\<^sub>R] Z [[Tick]\<^sub>E] = {}" | (* both must terminate together *) 
+  "merge_traces [[X]\<^sub>R] Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces [[X]\<^sub>R] Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* the event from one side is performed *)  
+  "merge_traces [[X]\<^sub>R] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {}" | (* Tock must always synchronise*)  
+  "merge_traces [[Tick]\<^sub>E] Z [] = {}" | (* both must terminate together *)
+  "merge_traces [[Tick]\<^sub>E] Z [[Y]\<^sub>R] = {}" | (* both must terminate together *)
+  "merge_traces [[Tick]\<^sub>E] Z [[Tick]\<^sub>E] = {[[Tick]\<^sub>E]}" | (* both terminate together *)
+  "merge_traces [[Tick]\<^sub>E] Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces [[Tick]\<^sub>E] Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* the event from one side is performed *) 
+  "merge_traces [[Tick]\<^sub>E] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces [[UNIV]\<^sub>R] Z [[Y]\<^sub>R] \<and> s \<in> merge_traces [[Tick]\<^sub>E] Z \<sigma> \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* Tock must synchronize, but there are implicit tocks allowed after termination, the refusal set after Tick is everything *)
+  "merge_traces ([Event e]\<^sub>E # \<sigma>) Z [] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces [] Z \<sigma> \<and> t = [Event e]\<^sub>E # s)}" | (* the event from one side is performed *)
+  "merge_traces ([Event e]\<^sub>E # \<sigma>) Z [[Y]\<^sub>R] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces \<sigma> Z [[Y]\<^sub>R] \<and> t = [Event e]\<^sub>E # s)}" | (* *) 
+  "merge_traces ([Event e]\<^sub>E # \<sigma>) Z [[Tick]\<^sub>E] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces \<sigma> Z [[Tick]\<^sub>E] \<and> t = [Event e]\<^sub>E # s)}" | (* *)  
+  "merge_traces ([Event e]\<^sub>E # \<rho>) Z ([Event f]\<^sub>E # \<sigma>) = 
+    {t. (e \<notin> Z \<and> f \<notin> Z \<and> ((\<exists> s. s \<in> merge_traces ([Event e]\<^sub>E # \<rho>) Z \<sigma> \<and> t = [Event f]\<^sub>E # s) \<or> (\<exists> s. s \<in> merge_traces \<rho> Z ([Event f]\<^sub>E # \<sigma>) \<and> t = [Event e]\<^sub>E # s)))
+      \<or> (e \<in> Z \<and> f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces ([Event e]\<^sub>E # \<rho>) Z \<sigma> \<and> t = [Event f]\<^sub>E # s))
+      \<or> (e \<notin> Z \<and> f \<in> Z \<and> (\<exists> s. s \<in> merge_traces \<rho> Z ([Event f]\<^sub>E # \<sigma>) \<and> t = [Event e]\<^sub>E # s))
+      \<or> (e \<in> Z \<and> f \<in> Z \<and> e = f \<and> (\<exists> s. s \<in> merge_traces \<rho> Z \<sigma> \<and> t = [Event e]\<^sub>E # s))}" | (* *) 
+  "merge_traces ([Event e]\<^sub>E # \<rho>) Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces \<rho> Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) \<and> t = [Event e]\<^sub>E # s)}" | (* *)  
+  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [] = {}" | (* Tock must always synchronise*) 
+  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [[Y]\<^sub>R] = {}" | (* Tock must always synchronise*)  
+  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [[Tick]\<^sub>E] = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces [[X]\<^sub>R] Z [[UNIV]\<^sub>R] \<and> s \<in> merge_traces [[Tick]\<^sub>E] Z \<sigma> \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* Tock must synchronize, but there are implicit tocks allowed after termination, the refusal set after Tick is everything *)
+  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* *)  
+  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces [[X]\<^sub>R] Z [[Y]\<^sub>R] \<and> s \<in> merge_traces \<rho> Z \<sigma> \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* *) 
+  (* non-well-formed traces produce empty sets *)
+  "merge_traces ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) Z \<sigma> = {}" |
+  "merge_traces ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) Z \<sigma> = {}" |
+  "merge_traces ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) Z \<sigma> = {}" |
+  "merge_traces \<rho> Z ([X]\<^sub>R # [Tick]\<^sub>E # \<sigma>) = {}" |
+  "merge_traces \<rho> Z ([X]\<^sub>R # [Event e]\<^sub>E # \<sigma>) = {}" |
+  "merge_traces \<rho> Z ([X]\<^sub>R # [Y]\<^sub>R # \<sigma>) = {}" |
+  "merge_traces ([Tick]\<^sub>E # x # \<rho>) Z \<sigma> = {}" |
+  "merge_traces \<rho> Z ([Tick]\<^sub>E # y # \<sigma>) = {}" |
+  "merge_traces ([Tock]\<^sub>E # \<rho>) Z \<sigma> = {}" |
+  "merge_traces \<rho> Z ([Tock]\<^sub>E # \<sigma>) = {}"
+  by (pat_completeness, simp_all)
+termination by (lexicographic_order)
+
+lemma merge_traces_comm: "(x \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C y) = (y \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C x)"
+  by (induct x Z y rule:merge_traces.induct, simp_all, blast+)
+
+definition ParCompCTT :: "'e cttobs list set \<Rightarrow> 'e set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<lbrakk>_\<rbrakk>\<^sub>C" 51) where
+  "ParCompCTT P A Q = \<Union> {t. \<exists> p \<in> P. \<exists> q \<in> Q. t = merge_traces p A q}"
 
 section {* Refinement *}
 
