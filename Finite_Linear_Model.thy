@@ -85,6 +85,21 @@ fun aunion :: "'a acceptance \<Rightarrow> 'a acceptance \<Rightarrow> 'a accept
 "aunion X \<bullet> = \<bullet>" |
 "aunion [S]\<^sub>\<F>\<^sub>\<L> [R]\<^sub>\<F>\<^sub>\<L> = [S \<union> R]\<^sub>\<F>\<^sub>\<L>"
 
+lemma aunion_idem: "a \<union>\<^sub>\<F>\<^sub>\<L> a = a"
+  by (cases a, auto)
+
+lemma aunion_assoc: "(a \<union>\<^sub>\<F>\<^sub>\<L> b) \<union>\<^sub>\<F>\<^sub>\<L> c = a \<union>\<^sub>\<F>\<^sub>\<L> (b \<union>\<^sub>\<F>\<^sub>\<L> c)"
+  by (cases a, auto, cases b, auto, cases c, auto)
+
+lemma aunion_comm: "a \<union>\<^sub>\<F>\<^sub>\<L> b = b \<union>\<^sub>\<F>\<^sub>\<L> a"
+  by (cases a, auto, cases b, auto, cases b, auto)
+
+interpretation aunion_comm_monoid: comm_monoid "aunion" "[{}]\<^sub>\<F>\<^sub>\<L>"
+  apply (unfold_locales)
+  using aunion_assoc apply blast
+  using aunion_comm apply blast
+  by (case_tac a, auto)+
+
 subsection \<open> Acceptance Events \<close>
 
 text \<open> Here we define the type for an acceptance followed by an event as
@@ -996,11 +1011,16 @@ definition Hiding :: "'e fltraces \<Rightarrow> 'e set \<Rightarrow> 'e fltraces
 
 (*{t. \<exists>A B \<alpha> \<B>. (t = (\<langle>A \<union>\<^sub>\<F>\<^sub>\<L> B\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> \<alpha>) \<or> t = (\<langle>A \<union>\<^sub>\<F>\<^sub>\<L> B\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> \<B>)) \<and> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> \<alpha> \<in> P \<and> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> \<B> \<in> Q}" *)
 
-lemma FL0_FL1_bullet_in:
+lemma FL0_FL1_bullet_in [simp]:
   assumes "FL0 A" "FL1 A"
   shows "\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> A"
   using assms unfolding FL0_def FL1_def apply simp
   by (metis all_not_in_conv fltrace.exhaust less_eq_acceptance.simps(1) less_eq_fltrace.simps(1) less_eq_fltrace.simps(2))
+
+lemma FL0_FL1_bullet_in_so [simp]:
+  assumes "FL1 P" "x \<in> P"
+  shows "\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P"
+  using FL0_FL1_bullet_in FL0_def assms(1) assms(2) by blast
 
 lemma FL_cons_acceptance:
   assumes "FL1 A" "Aa #\<^sub>\<F>\<^sub>\<L> fl \<in> A"
@@ -1008,7 +1028,7 @@ lemma FL_cons_acceptance:
   using assms unfolding FL1_def apply auto
   by (meson dual_order.refl less_eq_fltrace.simps(2))
 
-lemma x_le_concat2_FL1:
+lemma x_le_concat2_FL1 [simp]:
   assumes "x &\<^sub>\<F>\<^sub>\<L> y \<in> P" "FL1 P"
   shows "x \<in> P"
   using assms x_le_x_concat2 
@@ -1041,8 +1061,7 @@ lemma aevent_less_eq_FL1:
 lemma fltrace_acceptance_FL1:
   assumes "A #\<^sub>\<F>\<^sub>\<L> xs \<in> P" "FL1 P" 
   shows "\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P"
-  using assms apply (induct xs, auto, case_tac x, auto)
-  by (metis FL_concat_equiv x_le_concat2_FL1)+
+  using assms by (induct xs, auto)
 
 lemma fltrace_acceptance_FL1_less_eq:
   assumes "A #\<^sub>\<F>\<^sub>\<L> xs \<in> P" "FL1 P" 
@@ -1063,19 +1082,16 @@ lemma ExtChoiceH_bullet:
   assumes "ExtChoiceH \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> B x" "B \<in> P" "FL1 P"
   shows "x \<in> P"
   using assms apply (cases B, auto)
-  using FL0_FL1_bullet_in FL0_def apply blast
-  using FL0_FL1_bullet_in FL0_def apply blast
   using acceptance_bullet_event_FL1 by blast
 
 lemma ExtChoiceH_emptyset:
   assumes "ExtChoiceH \<langle>[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> B x" "B \<in> P" "FL1 P"
   shows "x \<in> P"
-  using assms apply (cases B, auto, case_tac x1, auto, case_tac x21, auto, case_tac a, auto)
+  using assms apply (cases B, auto, case_tac x21, auto)
+    apply (case_tac a, auto)
     apply (simp add: aevent_less_eq_FL1)
-  using FL_cons_acceptance apply fastforce
-  by (case_tac x21, auto, case_tac a, auto)
-(*  by (metis Rep_aevent_inverse Un_empty acceptance.distinct(1) acceptance.inject acceptance.rep_eq aunion.elims event.rep_eq prod.collapse)
-*)
+  by (case_tac x21, auto)
+
 (*
 lemma ExtChoice_Div_zero:
   assumes "FL0 P" "FL1 P"
@@ -1141,6 +1157,205 @@ lemma unionA_sym [simp]: "A \<union>\<^sub>\<F>\<^sub>\<L> B = B \<union>\<^sub>
 
 lemma ExtChoiceH_sym: "ExtChoiceH A B x = ExtChoiceH B A x"
   by (induct A B x rule:ExtChoiceH.induct, auto)
+
+lemma acceptance_of_aevent_aunion_acceptances_1 [simp]:
+ "acceptance (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B,event A)\<^sub>\<F>\<^sub>\<L> = acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B"
+ by (cases A, auto, cases B, auto, case_tac a, auto, case_tac aa, auto, case_tac a, auto)
+
+lemma acceptance_of_aevent_aunion_acceptances_2 [simp]:
+ "acceptance (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B,event B)\<^sub>\<F>\<^sub>\<L> = acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B"
+  by (cases A, auto)
+
+lemma fl_cons_never_fixpoint [simp]: "\<not> aa = x #\<^sub>\<F>\<^sub>\<L> aa"
+  by (induct aa, auto)
+
+lemma prefix_aevent_acceptance_not_bullet:
+  assumes "s \<le> (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> X,event A)\<^sub>\<F>\<^sub>\<L>"
+          "acceptance(s) \<noteq> \<bullet>"
+    shows "event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance(s)"
+  using assms 
+  apply (simp add: less_eq_aevent_def)
+  apply (cases A, auto, cases X, auto)
+  apply (cases s, auto, case_tac a, auto)
+  by (cases s, auto, case_tac a, auto)
+
+lemma aevent_less_eq_iff_components:
+  assumes "e \<in>\<^sub>\<F>\<^sub>\<L> A \<or> A = \<bullet>"
+  shows "x \<le> (A,e)\<^sub>\<F>\<^sub>\<L> \<longleftrightarrow> x = (A,e)\<^sub>\<F>\<^sub>\<L> \<or> x = (\<bullet>,e)\<^sub>\<F>\<^sub>\<L>"
+  using assms 
+  apply (simp add: less_eq_aevent_def)
+  apply auto
+    apply (cases A, auto, cases x, auto, case_tac a, auto)
+   apply presburger
+  by (cases A, auto, cases x, auto, case_tac a, auto)
+
+(*
+lemma
+  assumes "s \<le> t" "FL1 P" "FL1 Q"
+          "ExtChoiceH A B t" "A \<in> P" "B \<in> Q"
+    shows "\<exists>A B. ExtChoiceH A B s \<and> A \<in> P \<and> B \<in> Q"
+  using assms 
+proof (induct A B t arbitrary:s rule:ExtChoiceH.induct)
+  case (1 A B X)
+  then show ?case 
+    apply auto
+    apply (cases s, auto, case_tac x1, auto)
+     apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+     apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+    apply (cases A, auto, cases B, auto, cases B, auto)
+    by (metis "1.prems"(4))
+next
+  case ExtChoiceH2:(2 A aa B bb X)
+  then show ?case
+  proof (induct s X rule:less_eq_fltrace.induct)
+    case (1 x y)
+    then show ?case using ExtChoiceH2 by auto
+  next
+    case (2 x y ys)
+    then have "x \<le> acceptance(y)"
+      using less_eq_fltrace.simps(2) by blast
+    then show ?case using 2
+       apply (cases x, auto)
+        apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"],rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+        apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"],rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+       apply (rule exI[where x="\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+       apply (rule exI[where x="\<langle>acceptance(B)\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+       apply auto
+      using less_eq_acceptance.elims(2) apply force
+      using FL_cons_acceptance apply blast
+      using FL_cons_acceptance apply blast
+       apply (rule exI[where x="\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+       apply (rule exI[where x="\<langle>acceptance(B)\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+       apply auto
+      using less_eq_acceptance.elims(2) apply force
+      using FL_cons_acceptance apply blast
+      using FL_cons_acceptance by blast
+  next
+    case (3 x xs y ys)
+    have "event A \<in>\<^sub>\<F>\<^sub>\<L> (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B) \<or> acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B = \<bullet>"
+      by (cases A, auto, cases B, auto, case_tac a, auto, case_tac aa, auto, case_tac a, auto)
+    then have "x = (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B,event A)\<^sub>\<F>\<^sub>\<L> \<or> x = (\<bullet>,event A)\<^sub>\<F>\<^sub>\<L>"
+      using 3 apply auto
+       apply (cases x, auto)      
+      apply (metis acceptance_set amember.simps(1) dual_order.antisym less_eq_acceptance.elims(2) less_eq_aevent_def)
+      apply (metis Un_iff acceptance.distinct(1) acceptance_event amember.simps(2) aunion.elims event_in_acceptance less_eq_aevent_def)
+       apply (cases x, auto)      
+      sledgehammer[debug=true]
+
+      then obtain pA pB xA where pAB:
+            "xA \<le> xs \<and> pA \<le> (acceptance A,event A)\<^sub>\<F>\<^sub>\<L> \<and> pB \<le> (acceptance B,event A)\<^sub>\<F>\<^sub>\<L>"
+      by auto
+(*    then have "x = (acceptance pA \<union>\<^sub>\<F>\<^sub>\<L> acceptance pB,event pA)\<^sub>\<F>\<^sub>\<L>"
+      using 3 
+      apply auto
+      apply (cases x, auto, case_tac a, auto, cases A, cases B, auto) *)
+    then show ?case using 3
+      apply auto
+       apply (rule exI[where x="pA #\<^sub>\<F>\<^sub>\<L> xA"])
+       apply (rule exI[where x="pB #\<^sub>\<F>\<^sub>\<L> xA"], auto)
+      next
+    case (4 x xs y)
+    then show ?case sorry
+  qed
+next
+  case (3 A B bb X)
+  then obtain sA where sA: "sA \<le> A" by auto
+  then show ?case using 3
+    apply (cases X, auto)
+     apply (rule exI[where x="\<langle>sA\<rangle>\<^sub>\<F>\<^sub>\<L>"], cases A, auto, cases sA, auto)
+      apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], cases s, auto, case_tac x1, auto)
+    apply (cases B, auto)
+    apply (cases sA, auto, cases s, auto)
+
+  proof (induct s X rule:less_eq_fltrace.induct)
+    case (1 x y)
+    then show ?case
+      apply auto
+      apply (cases x, auto)
+       apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+       apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+      apply (cases A, auto, cases B, auto, case_tac a, auto)
+      by (metis "1.prems"(4))
+  next
+    case (2 x y ys)
+    then show ?case 
+      apply auto
+      apply (cases x, auto)
+      apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+       apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+      apply (cases A, auto, cases B, auto, case_tac a, auto)
+      by (metis ExtChoiceH.simps(3) acceptance_set amember.simps(2) aunion.simps(3))
+  next
+    case (3 x xs y ys)
+    then show ?case
+      apply auto
+      apply (cases "bb = \<langle>A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B\<rangle>\<^sub>\<F>\<^sub>\<L>", auto)
+       apply (rule exI[where x="\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+       apply (rule exI[where x="\<langle>B,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+      apply (cases xs, auto, case_tac x1, auto)
+      apply (cases x, auto)
+       apply (cases A, auto, case_tac a, auto)
+        apply (simp add: less_eq_aevent_def)+
+      apply (cases B, auto)
+  next
+    case (4 x xs y)
+    then show ?case sorry
+  qed
+    case (Acceptance x)
+    then show ?case
+      apply auto
+      apply (cases x, auto)
+      apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+     apply (cases A, cases B, auto, cases B, auto, case_tac a, auto)
+     apply (metis "3.prems"(4))
+    apply (cases x, auto)
+      apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+    apply (cases A, cases B, auto, cases B, auto, case_tac a, auto)
+    by (metis ExtChoiceH.simps(3) acceptance_set amember.simps(2) aunion.simps(3))
+  next
+    case (AEvent x1a s)
+    then show ?case 
+    proof (cases s)
+      case (Acceptance x1)
+      then show ?thesis using AEvent
+        apply auto
+        apply (cases x1a, auto)
+        apply (rule exI[where x="\<langle>A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+        apply (rule exI[where x="\<langle>B,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+            apply (cases B, auto, cases A, auto, case_tac a, auto)
+        apply (case_tac aa, auto)
+        apply (simp add: less_eq_aevent_def)
+             apply (case_tac aa, auto, case_tac a, auto)
+        sledgehammer[debug=true]
+             apply (metis Un_iff acceptance_event acceptance_set amember.elims(2) amember.simps(2) less_eq_acceptance.simps(3) less_eq_aevent_def less_eq_fltrace.simps(1) sup.idem sup_left_commute)
+        apply (cases A, auto, case_tac a, auto)
+             apply (metis Un_commute Un_left_absorb acceptance.distinct(1) acceptance_event acceptance_set amember.elims(2) aunion.simps(3) eq_iff first.simps(2) less_eq_acceptance.elims(2) less_eq_acceptance.simps(2) less_eq_aevent_def unionA_sym)
+        apply (case_tac a, auto)
+            apply (metis Un_commute Un_left_absorb acceptance.distinct(1) acceptance_event acceptance_set amember.elims(2) aunion.simps(3) eq_iff first.simps(2) less_eq_acceptance.elims(2) less_eq_acceptance.simps(2) less_eq_aevent_def unionA_sym)
+
+    next
+      case (AEvent x21 x22)
+      then show ?thesis sorry
+    qed
+      apply auto
+      apply (cases x1a, auto, case_tac a, auto, cases A, auto)
+        apply (simp_all add: less_eq_aevent_def)
+       apply (cases B, auto, case_tac a, auto)
+       apply (cases s, auto)
+      apply (case_tac x1, auto)
+    qed
+next
+case (4 A aa B X)
+  then show ?case sorry
+qed
+        apply (cases s, auto)
+
+lemma 
+  assumes "FL1 P" "FL1 Q"
+  shows "FL1 (P \<box>\<^sub>\<F>\<^sub>\<L> Q)"
+  using assms unfolding FL1_def ExtChoice_def apply auto
+*)
+  
 
 subsection \<open> Refinement \<close>
 
@@ -1232,21 +1447,15 @@ lemma Hiding_a_then_P:
   assumes "FL1 P"
   shows "(PrefixAlt a P) \\\<^sub>\<F>\<^sub>\<L> {a} = P \\\<^sub>\<F>\<^sub>\<L> {a}"
   using assms unfolding PrefixAlt_def Hiding_def Stop_def prefixH_def apply auto
-  apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  using FL0_FL1_bullet_in FL0_def apply blast
-  apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  using FL0_FL1_bullet_in FL0_def apply blast
-  by (metis HideFL.simps(2) acceptance_event dual_order.refl eq_iff event.rep_eq order_refl singleton_iff)
+   apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+  by (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s" in exI, auto)
 
 lemma Hiding_a_then_P_event_in_set:
   assumes "FL1 P" "a \<in> X"
   shows "(PrefixAlt a P) \\\<^sub>\<F>\<^sub>\<L> X = P \\\<^sub>\<F>\<^sub>\<L> X"
   using assms unfolding PrefixAlt_def Hiding_def Stop_def prefixH_def apply auto
-  apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  using FL0_FL1_bullet_in FL0_def apply blast
-  apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  using FL0_FL1_bullet_in FL0_def apply blast
-  by (metis HideFL.simps(2) acceptance_event assms(2) dual_order.refl eq_iff event.rep_eq order_refl)
+   apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+  by (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s" in exI, auto)
 
 lemma Hiding_a_then_P_event_not_in_set:
   assumes "FL1 P" "a \<notin> X"

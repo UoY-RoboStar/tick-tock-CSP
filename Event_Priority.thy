@@ -12,7 +12,7 @@ abbreviation less :: "('e \<Rightarrow> 'e \<Rightarrow> bool) \<Rightarrow> 'e 
 typedef 'e partialorder = "{x :: 'e \<Rightarrow> 'e \<Rightarrow> bool. class.order x (less x)}"
   morphisms porder2f f2porder
   apply (simp add:class.order_def class.preorder_def class.order_axioms_def)
-  apply (rule exI[where x="op ="])
+  apply (rule exI[where x="(=)"])
   by simp
 
 thm porder2f_induct
@@ -65,6 +65,13 @@ translations
 
 definition maximal :: "'a partialorder \<Rightarrow> 'a \<Rightarrow> bool" ("maximal'(_,_')" 65) where
 "maximal(p,a) = (\<forall>x. (x \<le>\<^sup>*p a))"
+
+lemma some_higher_not_maximal:
+  assumes "z <\<^sup>*p b"
+  shows "\<not>maximal(p,z)"
+  using assms unfolding maximal_def apply auto
+  by (meson partialorder.less_le_not_le)
+
 
 (* Is this useful to endow a type with such an operator? *)
 (*
