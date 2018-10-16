@@ -2887,20 +2887,20 @@ subsection {* Parallel Composition *}
 function merge_traces :: "'e cttobs list \<Rightarrow> 'e set \<Rightarrow> 'e cttobs list \<Rightarrow> 'e cttobs list set" (infixl "\<lbrakk>_\<rbrakk>\<^sup>T\<^sub>C" 55) where
   "merge_traces [] Z [] = {[]}" | 
   "merge_traces [] Z [[Y]\<^sub>R] = {[]}" | (* if one side lacks a refusal, the composition lacks a refusal *) 
-  "merge_traces [] Z [[Tick]\<^sub>E] = {}" | (* both must terminate together *)
+  "merge_traces [] Z [[Tick]\<^sub>E] = {[]}" | (* both must terminate together *)
   "merge_traces [] Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces [] Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* the event from one side is performed *) 
-  "merge_traces [] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {}" | (* Tock must always synchronise *)
+  "merge_traces [] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {[]}" | (* Tock must always synchronise *)
   "merge_traces [[X]\<^sub>R] Z [] = {[]}" | (* if one side lacks a refusal, the composition lacks a refusal *) 
   "merge_traces [[X]\<^sub>R] Z [[Y]\<^sub>R] = {t. \<exists> W. W \<subseteq> X \<union> Y \<and> {e. e \<in> Y \<and> e \<notin> ((Event ` Z) \<union> {Tock, Tick})} = {e. e \<in> X \<and> e \<notin> ((Event ` Z) \<union> {Tock, Tick})} \<and> t = [[W]\<^sub>R]}" | (* intersect the refusals for non-synchronised events, union for synchronised events *) 
-  "merge_traces [[X]\<^sub>R] Z [[Tick]\<^sub>E] = {}" | (* both must terminate together *) 
+  "merge_traces [[X]\<^sub>R] Z [[Tick]\<^sub>E] = {t. t \<in> merge_traces [[X]\<^sub>R] Z [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R]}" | (* treat Tick as refusing everything but Tock *) 
   "merge_traces [[X]\<^sub>R] Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces [[X]\<^sub>R] Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* the event from one side is performed *)  
-  "merge_traces [[X]\<^sub>R] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {}" | (* Tock must always synchronise*)  
-  "merge_traces [[Tick]\<^sub>E] Z [] = {}" | (* both must terminate together *)
-  "merge_traces [[Tick]\<^sub>E] Z [[Y]\<^sub>R] = {}" | (* both must terminate together *)
+  "merge_traces [[X]\<^sub>R] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {[]}" | (* Tock must always synchronise*)  
+  "merge_traces [[Tick]\<^sub>E] Z [] = {[]}" | (* both must terminate together *)
+  "merge_traces [[Tick]\<^sub>E] Z [[Y]\<^sub>R] = {t. t \<in> merge_traces [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R] Z [[Y]\<^sub>R]}" | (* treat Tick as refusing everything but Tock *)
   "merge_traces [[Tick]\<^sub>E] Z [[Tick]\<^sub>E] = {[[Tick]\<^sub>E]}" | (* both terminate together *)
   "merge_traces [[Tick]\<^sub>E] Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces [[Tick]\<^sub>E] Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* the event from one side is performed *) 
-  "merge_traces [[Tick]\<^sub>E] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces [[UNIV]\<^sub>R] Z [[Y]\<^sub>R] \<and> s \<in> merge_traces [[Tick]\<^sub>E] Z \<sigma> \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* Tock must synchronize, but there are implicit tocks allowed after termination, the refusal set after Tick is everything *)
-  "merge_traces ([Event e]\<^sub>E # \<sigma>) Z [] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces [] Z \<sigma> \<and> t = [Event e]\<^sub>E # s)}" | (* the event from one side is performed *)
+  "merge_traces [[Tick]\<^sub>E] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R] Z [[Y]\<^sub>R] \<and> s \<in> merge_traces [[Tick]\<^sub>E] Z \<sigma> \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* Tock must synchronize, but there are implicit tocks allowed after termination, the refusal set after Tick is everything *)
+  "merge_traces ([Event e]\<^sub>E # \<sigma>) Z [] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces \<sigma> Z [] \<and> t = [Event e]\<^sub>E # s)}" | (* the event from one side is performed *)
   "merge_traces ([Event e]\<^sub>E # \<sigma>) Z [[Y]\<^sub>R] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces \<sigma> Z [[Y]\<^sub>R] \<and> t = [Event e]\<^sub>E # s)}" | (* *) 
   "merge_traces ([Event e]\<^sub>E # \<sigma>) Z [[Tick]\<^sub>E] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces \<sigma> Z [[Tick]\<^sub>E] \<and> t = [Event e]\<^sub>E # s)}" | (* *)  
   "merge_traces ([Event e]\<^sub>E # \<rho>) Z ([Event f]\<^sub>E # \<sigma>) = 
@@ -2909,9 +2909,9 @@ function merge_traces :: "'e cttobs list \<Rightarrow> 'e set \<Rightarrow> 'e c
       \<or> (e \<notin> Z \<and> f \<in> Z \<and> (\<exists> s. s \<in> merge_traces \<rho> Z ([Event f]\<^sub>E # \<sigma>) \<and> t = [Event e]\<^sub>E # s))
       \<or> (e \<in> Z \<and> f \<in> Z \<and> e = f \<and> (\<exists> s. s \<in> merge_traces \<rho> Z \<sigma> \<and> t = [Event e]\<^sub>E # s))}" | (* *) 
   "merge_traces ([Event e]\<^sub>E # \<rho>) Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces \<rho> Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) \<and> t = [Event e]\<^sub>E # s)}" | (* *)  
-  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [] = {}" | (* Tock must always synchronise*) 
-  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [[Y]\<^sub>R] = {}" | (* Tock must always synchronise*)  
-  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [[Tick]\<^sub>E] = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces [[X]\<^sub>R] Z [[UNIV]\<^sub>R] \<and> s \<in> merge_traces [[Tick]\<^sub>E] Z \<sigma> \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* Tock must synchronize, but there are implicit tocks allowed after termination, the refusal set after Tick is everything *)
+  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [] = {[]}" | (* Tock must always synchronise*) 
+  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [[Y]\<^sub>R] = {[]}" | (* Tock must always synchronise*)  
+  "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [[Tick]\<^sub>E] = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces [[X]\<^sub>R] Z [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R] \<and> s \<in> merge_traces \<sigma> Z [[Tick]\<^sub>E] \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* Tock must synchronize, but there are implicit tocks allowed after termination, the refusal set after Tick is everything *)
   "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* *)  
   "merge_traces ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces [[X]\<^sub>R] Z [[Y]\<^sub>R] \<and> s \<in> merge_traces \<rho> Z \<sigma> \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* *) 
   (* non-well-formed traces produce empty sets *)
@@ -2948,10 +2948,10 @@ proof (auto, induct x A y rule:merge_traces.induct, simp+, (safe, simp+), (safe,
     using s_assms by auto
 next
   fix e \<sigma> Z z
-  assume assm1: "\<And>x xa z. cttWF [] \<Longrightarrow> cttWF \<sigma> \<Longrightarrow> z \<in> [] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> cttWF z"
+  assume assm1: "\<And>x xa z. cttWF \<sigma> \<Longrightarrow> cttWF [] \<Longrightarrow> z \<in> \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [] \<Longrightarrow> cttWF z"
   assume assm2: "cttWF ([Event e]\<^sub>E # \<sigma>)"
   assume assm3: "z \<in> [Event e]\<^sub>E # \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C []"
-  then obtain s where "s \<in> ([] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>) \<and> z = [Event e]\<^sub>E # s"
+  then obtain s where "s \<in> (\<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C []) \<and> z = [Event e]\<^sub>E # s"
     by auto
   also have "cttWF \<sigma>"
     using assm2 by auto
@@ -3025,9 +3025,9 @@ next
   assume assm1: "cttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>)"
   then have \<sigma>_wf: "cttWF \<sigma>"
     by auto
-  assume assm2: "\<And>x xa xb z. cttWF [[Tick]\<^sub>E] \<Longrightarrow> cttWF \<sigma> \<Longrightarrow> z \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> cttWF z"
+  assume assm2: "\<And>x xa xb z. cttWF \<sigma> \<Longrightarrow> cttWF [[Tick]\<^sub>E] \<Longrightarrow> z \<in> \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E] \<Longrightarrow> cttWF z"
   assume "z \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
-  then obtain s W where "s \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>" "z = [W]\<^sub>R # [Tock]\<^sub>E # s"
+  then obtain s W where "s \<in> \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" "z = [W]\<^sub>R # [Tock]\<^sub>E # s"
     by auto
   then show "cttWF z"
     using \<sigma>_wf assm2 by auto
@@ -3101,6 +3101,22 @@ next
     by auto
 qed
 
+lemma merge_traces_left_empty_ctt_prefix_subset: "x \<in> merge_traces [] A q \<Longrightarrow> x \<lesssim>\<^sub>C q"
+proof -
+  have "\<And> x. x \<in> merge_traces [] A q \<Longrightarrow> x \<lesssim>\<^sub>C q"
+    by(induct q rule:cttWF.induct, auto)
+  then show "x \<in> [] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> x \<lesssim>\<^sub>C q"
+    by auto
+qed
+
+lemma merge_traces_right_empty_ctt_prefix_subset: "x \<in> merge_traces p A [] \<Longrightarrow> x \<lesssim>\<^sub>C p"
+proof -
+  have "\<And> x. x \<in> merge_traces p A [] \<Longrightarrow> x \<lesssim>\<^sub>C p"
+    by (induct p rule:cttWF.induct, auto)
+  then show "x \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [] \<Longrightarrow> x \<lesssim>\<^sub>C p"
+    by auto
+qed
+
 definition ParCompCTT :: "'e cttobs list set \<Rightarrow> 'e set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infix "\<lbrakk>_\<rbrakk>\<^sub>C" 55) where
   "ParCompCTT P A Q = \<Union> {t. \<exists> p \<in> P. \<exists> q \<in> Q. t = merge_traces p A q}"
 
@@ -3119,6 +3135,365 @@ proof auto
   show "x \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> cttWF x"
     using p_wf q_wf merge_traces_wf by auto
 qed
+
+lemma CT0_ParComp:
+  assumes "CT P" "CT Q"
+  shows "CT0 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding CT0_def ParCompCTT_def
+proof auto
+  have "[] \<in> P \<and> [] \<in> Q"
+    using assms CT_empty by auto
+  then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> x \<noteq> {}"
+    apply (rule_tac x="{[]}" in exI, auto)
+    apply (rule_tac x="[]" in bexI, auto)
+    apply (rule_tac x="[]" in bexI, auto)
+    done
+qed
+
+lemma merge_traces_empty_merge_traces_tick:
+  "r \<in> (s \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C []) \<Longrightarrow> \<exists> t. t \<lesssim>\<^sub>C s \<and> r \<in> (t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E])"
+proof (induct r s rule:cttWF2.induct, auto)
+  show "\<exists>t. t \<lesssim>\<^sub>C [] \<and> [] \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    by (rule_tac x="[]" in exI, auto)
+next
+  fix Y
+  show "\<exists>t. t \<lesssim>\<^sub>C [[Y]\<^sub>R] \<and> [] \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    by (rule_tac x="[]" in exI, auto)
+next
+  show "\<exists>t. t \<lesssim>\<^sub>C [[Tick]\<^sub>E] \<and> [] \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    by (rule_tac x="[]" in exI, auto)
+next
+  fix Y \<sigma>
+  show "\<exists>t. t \<lesssim>\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<and> [] \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    by (rule_tac x="[]" in exI, auto)
+next
+  fix \<rho> f \<sigma> t
+  assume assm1: "f \<notin> A"
+  assume assm2: "\<rho> \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+  assume assm3: "t \<lesssim>\<^sub>C \<sigma>"
+  show "\<exists>t. t \<lesssim>\<^sub>C [Event f]\<^sub>E # \<sigma> \<and> [Event f]\<^sub>E # \<rho> \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    using assm1 assm2 assm3 by (rule_tac x="[Event f]\<^sub>E # t" in exI, auto)
+next
+  fix X \<rho> \<sigma>
+  assume "[X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<in> \<sigma> \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C []"
+  then show "\<exists>t. t \<lesssim>\<^sub>C \<sigma> \<and> [X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    by (induct \<sigma> rule:cttWF.induct, auto)
+next
+  fix X e \<rho> \<sigma>
+  assume "[X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<in> \<sigma> \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C []"
+  then show "\<exists>t. t \<lesssim>\<^sub>C \<sigma> \<and> [X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    by (induct \<sigma> rule:cttWF.induct, auto)
+next
+  fix X Y \<rho> \<sigma>
+  assume "[X]\<^sub>R # [Y]\<^sub>R # \<rho> \<in> \<sigma> \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C []"
+  then show "\<exists>t. t \<lesssim>\<^sub>C \<sigma> \<and> [X]\<^sub>R # [Y]\<^sub>R # \<rho> \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    by (induct \<sigma> rule:cttWF.induct, auto)
+next
+  fix x \<rho> \<sigma>
+  assume "[Tick]\<^sub>E # x # \<rho> \<in> \<sigma> \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C []"
+  then show "\<exists>t. t \<lesssim>\<^sub>C \<sigma> \<and> [Tick]\<^sub>E # x # \<rho> \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    by (induct \<sigma> rule:cttWF.induct, auto)
+next
+  fix \<rho> \<sigma>
+  assume "[Tock]\<^sub>E # \<rho> \<in> \<sigma> \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C []"
+  then show "\<exists>t. t \<lesssim>\<^sub>C \<sigma> \<and> [Tock]\<^sub>E # \<rho> \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+    by (induct \<sigma> rule:cttWF.induct, auto)
+qed
+
+  thm merge_traces.simps
+
+lemma CT1_ParComp:
+  assumes "CT P" "CT Q"
+  shows "CT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding CT1_def ParCompCTT_def
+proof (auto)
+  fix \<rho> \<sigma> p q :: "'a cttobs list"
+  have 1: "\<And> p q. \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. \<exists>q'. p' \<lesssim>\<^sub>C p \<and> q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> (p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+  proof (induct \<rho> \<sigma> rule:cttWF2.induct, auto)
+    fix p q :: "'a cttobs list"
+    have "[] \<lesssim>\<^sub>C p \<and> ([] \<lesssim>\<^sub>C q \<and> [] \<in> [] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [])"
+      by auto
+    then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by blast
+  next
+    fix p q :: "'a cttobs list"
+    have "[] \<lesssim>\<^sub>C p \<and> ([] \<lesssim>\<^sub>C q \<and> [] \<in> [] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [])"
+      by auto
+    then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by blast
+  next
+    fix p q :: "'a cttobs list"
+    have "[] \<lesssim>\<^sub>C p \<and> ([] \<lesssim>\<^sub>C q \<and> [] \<in> [] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [])"
+      by auto
+    then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by blast
+  next
+    fix p q :: "'a cttobs list"
+    have "[] \<lesssim>\<^sub>C p \<and> ([] \<lesssim>\<^sub>C q \<and> [] \<in> [] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [])"
+      by auto
+    then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by blast
+  next
+    fix p q :: "'a cttobs list"
+    have "[] \<lesssim>\<^sub>C p \<and> ([] \<lesssim>\<^sub>C q \<and> [] \<in> [] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [])"
+      by auto
+    then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by blast
+  next
+    fix p q :: "'a cttobs list"
+    fix X Y
+    assume assm1: "[[Y]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    assume assm2: "X \<subseteq> Y"
+    then obtain Y1 Y2 where "(p = [[Y1]\<^sub>R] \<and> q = [[Y2]\<^sub>R]) \<or> (p = [[Tick]\<^sub>E] \<and> q = [[Y2]\<^sub>R]) \<or> (p = [[Y1]\<^sub>R] \<and> q = [[Tick]\<^sub>E]) "
+      using assm1 by (induct p A q rule:merge_traces.induct, auto)
+    then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [[X]\<^sub>R] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      using assm1 assm2 by (rule_tac x="p" in exI, auto, (rule_tac x="q" in exI, simp)+)
+  next
+    fix p q \<sigma> :: "'a cttobs list"
+    fix X Y
+    assume assm1: "[Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    assume assm2: "X \<subseteq> Y"
+    assume assm3: "\<And>p q. \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+    have "(\<exists> Y1 Y2 p' q'. p = [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [Y2]\<^sub>R # [Tock]\<^sub>E # q')
+      \<or> (\<exists> Y1 Y2 p' q'. p = [[Tick]\<^sub>E] \<and> q = [Y2]\<^sub>R # [Tock]\<^sub>E # q')
+      \<or> (\<exists> Y1 Y2 p' q'. p = [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [[Tick]\<^sub>E])"
+      using assm1 by (induct p A q rule:merge_traces.induct, simp_all)
+    then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [[X]\<^sub>R] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+    proof auto
+      fix Y1 Y2 p' q' 
+      assume case_assm: "p = [Y1]\<^sub>R # [Tock]\<^sub>E # p'" "q = [Y2]\<^sub>R # [Tock]\<^sub>E # q'"
+      then have "X \<subseteq> Y1 \<union> Y2"
+        using assm1 assm2 by auto
+      then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Y2]\<^sub>R # [Tock]\<^sub>E # q' \<and> [[X]\<^sub>R] \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+        using assm1 case_assm by (rule_tac x="[[Y1]\<^sub>R]" in exI, simp, rule_tac x="[[Y2]\<^sub>R]" in exI, simp)
+    next
+      fix Y2 q'
+      assume case_assm: "p = [[Tick]\<^sub>E]" "q = [Y2]\<^sub>R # [Tock]\<^sub>E # q'"
+      then have "X \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> Y2"
+        using assm1 assm2 by auto
+      then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [[Tick]\<^sub>E] \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Y2]\<^sub>R # [Tock]\<^sub>E # q' \<and> [[X]\<^sub>R] \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+        using assm1 case_assm by (rule_tac x="[[Tick]\<^sub>E]" in exI, simp, rule_tac x="[[Y2]\<^sub>R]" in exI, simp)
+    next
+      fix Y1 p'
+      assume case_assm: "p = [Y1]\<^sub>R # [Tock]\<^sub>E # p'" "q = [[Tick]\<^sub>E]"
+      then have "X \<subseteq> Y1 \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick}"
+        using assm1 assm2 by auto
+      then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> (\<exists>q'. q' \<lesssim>\<^sub>C [[Tick]\<^sub>E] \<and> [[X]\<^sub>R] \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+        using assm1 case_assm by (rule_tac x="[[Y1]\<^sub>R]" in exI, simp, rule_tac x="[[Tick]\<^sub>E]" in exI, simp)
+    qed
+  next
+    fix p q
+    assume "[[Tick]\<^sub>E] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then have "p = [[Tick]\<^sub>E] \<and> q = [[Tick]\<^sub>E]"
+      by (induct p A q rule:merge_traces.induct, auto)
+    then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [[Tick]\<^sub>E] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (rule_tac x="[[Tick]\<^sub>E]" in exI, simp, rule_tac x="[[Tick]\<^sub>E]" in exI, simp)
+  next
+    fix \<rho> f \<sigma> p q
+    assume assm1: "[Event f]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    assume assm2: "\<rho> \<lesssim>\<^sub>C \<sigma>"
+    assume assm3: "\<And>p q. \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+    show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [Event f]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+    proof (cases "f \<in> A")
+      assume case_assm: "f \<in> A"
+      then obtain p' q' where 1: "p = [Event f]\<^sub>E # p'" "q = [Event f]\<^sub>E # q'"
+        using assm1 by (induct p A q rule:merge_traces.induct, auto)
+      then obtain p'' q'' where "p'' \<lesssim>\<^sub>C p'" "q'' \<lesssim>\<^sub>C q'" "\<rho> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using case_assm assm1 assm3 by (auto, blast)
+      then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [Event f]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+        using 1 case_assm by (rule_tac x="[Event f]\<^sub>E # p''" in exI, simp, rule_tac x="[Event f]\<^sub>E # q''" in exI, simp)
+    next
+      assume case_assm: "f \<notin> A"
+      then obtain p' q' Y1 Y2 e where 1: "(p = [Event f]\<^sub>E # p' \<and> q = [Event e]\<^sub>E # q' \<and> \<sigma> \<in> (p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [Event e]\<^sub>E # q')) 
+        \<or> (p = [Event e]\<^sub>E # p' \<and> q = [Event f]\<^sub>E # q' \<and> \<sigma> \<in> ([Event e]\<^sub>E # p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'))
+        \<or> (p = [] \<and> q = [Event f]\<^sub>E # q')
+        \<or> (p = [Event f]\<^sub>E # p' \<and> q = [])
+        \<or> (p = [[Y1]\<^sub>R] \<and> q = [Event f]\<^sub>E # q')
+        \<or> (p = [Event f]\<^sub>E # p' \<and> q = [[Y2]\<^sub>R])
+        \<or> (p = [Event f]\<^sub>E # p' \<and> q = [[Tick]\<^sub>E]) 
+        \<or> (p = [[Tick]\<^sub>E] \<and> q = [Event f]\<^sub>E # q')
+        \<or> (p = [Event f]\<^sub>E # p' \<and> q = [Y2]\<^sub>R # [Tock]\<^sub>E # q') 
+        \<or> (p = [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [Event f]\<^sub>E # q')"
+        using assm1 by (cases "(p, q)" rule:cttWF2.cases, auto)
+      then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [Event f]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      proof auto
+        assume case_assm2: "q = [Event e]\<^sub>E # q'" "p = [Event f]\<^sub>E # p'" "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [Event e]\<^sub>E # q'"
+        then obtain p'' q'' where "p'' \<lesssim>\<^sub>C p'" "q'' \<lesssim>\<^sub>C [Event e]\<^sub>E # q'" "\<rho> \<in> (p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'')"
+          using assm3 by blast
+        then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Event f]\<^sub>E # p' \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Event e]\<^sub>E # q' \<and> [Event f]\<^sub>E # \<rho> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+          using case_assm assm1 by (rule_tac x="[Event f]\<^sub>E # p''" in exI, simp, rule_tac x="q''" in exI, cases q'' rule:cttWF.cases, auto)
+      next
+        assume case_assm2: "q = [Event f]\<^sub>E # q'" "p = [Event e]\<^sub>E # p'" "\<sigma> \<in> [Event e]\<^sub>E # p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+        then obtain p'' q'' where "p'' \<lesssim>\<^sub>C [Event e]\<^sub>E # p'" "q'' \<lesssim>\<^sub>C q'" "\<rho> \<in> (p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'')"
+          using assm3 by blast
+        then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Event e]\<^sub>E # p' \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Event f]\<^sub>E # q' \<and> [Event f]\<^sub>E # \<rho> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+          using case_assm assm1 by (rule_tac x=" p''" in exI, simp, rule_tac x="[Event f]\<^sub>E # q''" in exI, cases p'' rule:cttWF.cases, auto)
+      next
+        assume case_assm2: "q = [Event f]\<^sub>E # q'" "p = []"
+        then have "\<sigma> \<in> [] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+          using assm1 by auto
+        then obtain q'' where "q'' \<lesssim>\<^sub>C q'" "\<rho> \<in> ([] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'')"
+          using assm3 ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym by blast
+        then show "\<exists>p'. p' \<lesssim>\<^sub>C [] \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Event f]\<^sub>E # q' \<and> [Event f]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+          using case_assm assm1 by (rule_tac x="[]" in exI, simp, rule_tac x="[Event f]\<^sub>E # q''" in exI, auto)
+      next
+        assume case_assm2: "p = [Event f]\<^sub>E # p'" "q = []"
+        then have "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C []"
+          using assm1 by auto
+        then obtain p'' where "p'' \<lesssim>\<^sub>C p'" "\<rho> \<in> (p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [])"
+          using assm3 ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym by blast
+        then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Event f]\<^sub>E # p' \<and> (\<exists>q'. q' \<lesssim>\<^sub>C [] \<and> [Event f]\<^sub>E # \<rho> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+          using case_assm assm1 by (rule_tac x="[Event f]\<^sub>E # p''" in exI, simp, rule_tac x="[]" in exI, auto)
+      next
+        assume case_assm2: "p = [Event f]\<^sub>E # p'" "q = [[Y2]\<^sub>R]"
+        then have 1: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Y2]\<^sub>R]"
+          using assm1 by auto
+        then obtain p'' q'' where "p'' \<lesssim>\<^sub>C p'" "q'' \<lesssim>\<^sub>C [[Y2]\<^sub>R]" "\<rho> \<in> (p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'')"
+          using assm3 ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym by blast
+        then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Event f]\<^sub>E # p' \<and> (\<exists>q'. q' \<lesssim>\<^sub>C [[Y2]\<^sub>R] \<and> [Event f]\<^sub>E # \<rho> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+          using case_assm assm1 by (rule_tac x="[Event f]\<^sub>E # p''" in exI, simp, rule_tac x="q''" in exI, cases q'' rule:cttWF.cases, auto)
+      next
+        assume case_assm2: "q = [Event f]\<^sub>E # q'" "p = [[Y1]\<^sub>R]"
+        then have 1: "\<sigma> \<in> [[Y1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+          using assm1 by auto
+        then obtain p'' q'' where "p'' \<lesssim>\<^sub>C [[Y1]\<^sub>R]" "q'' \<lesssim>\<^sub>C q'" "\<rho> \<in> (p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'')"
+          using assm3 ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym by blast
+        then show "\<exists>p'. p' \<lesssim>\<^sub>C [[Y1]\<^sub>R] \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Event f]\<^sub>E # q' \<and> [Event f]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+          using case_assm assm1 by (rule_tac x="p''" in exI, simp, rule_tac x="[Event f]\<^sub>E # q''" in exI, cases p'' rule:cttWF.cases, auto)
+      next
+        assume case_assm2: "q = [Event f]\<^sub>E # q'" "p = [[Tick]\<^sub>E]"
+        then have 1: "\<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+          using assm1 by auto
+        then obtain p'' q'' where "p'' \<lesssim>\<^sub>C [[Tick]\<^sub>E]" "q'' \<lesssim>\<^sub>C q'" "\<rho> \<in> (p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'')"
+          using assm3 ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym by blast
+        then show "\<exists>p'. p' \<lesssim>\<^sub>C [[Tick]\<^sub>E] \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Event f]\<^sub>E # q' \<and> [Event f]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+          using case_assm assm1 by (rule_tac x="p''" in exI, simp, rule_tac x="[Event f]\<^sub>E # q''" in exI, cases p'' rule:cttWF.cases, auto)
+      next
+        assume case_assm2: "p = [Event f]\<^sub>E # p'" "q = [[Tick]\<^sub>E]"
+        then have 1: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+          using assm1 by auto
+        then obtain p'' q'' where "q'' \<lesssim>\<^sub>C [[Tick]\<^sub>E]" "p'' \<lesssim>\<^sub>C p'" "\<rho> \<in> (p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'')"
+          using assm3 ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym by blast
+        then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Event f]\<^sub>E # p' \<and> (\<exists>q'. q' \<lesssim>\<^sub>C [[Tick]\<^sub>E] \<and> [Event f]\<^sub>E # \<rho> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+          using case_assm assm1 by (rule_tac x="[Event f]\<^sub>E # p''" in exI, simp, rule_tac x="q''" in exI, cases q'' rule:cttWF.cases, auto)
+      next
+        assume case_assm2: "q = [Event f]\<^sub>E # q'" "p = [Y1]\<^sub>R # [Tock]\<^sub>E # p'"
+        then have 1: "\<sigma> \<in> [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+          using assm1 by auto
+        then obtain p'' q'' where "p'' \<lesssim>\<^sub>C [Y1]\<^sub>R # [Tock]\<^sub>E # p'" "q'' \<lesssim>\<^sub>C q'" "\<rho> \<in> (p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'')"
+          using assm3 ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym by blast
+        then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Event f]\<^sub>E # q' \<and> [Event f]\<^sub>E # \<rho> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+          using case_assm assm1 by (rule_tac x="p''" in exI, simp, rule_tac x="[Event f]\<^sub>E # q''" in exI, cases p'' rule:cttWF.cases, auto)
+      next
+        assume case_assm2: "p = [Event f]\<^sub>E # p'" "q = [Y2]\<^sub>R # [Tock]\<^sub>E # q'"
+        then have 1: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [Y2]\<^sub>R # [Tock]\<^sub>E # q'"
+          using assm1 by auto
+        then obtain p'' q'' where "q'' \<lesssim>\<^sub>C [Y2]\<^sub>R # [Tock]\<^sub>E # q'" "p'' \<lesssim>\<^sub>C p'" "\<rho> \<in> (p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'')"
+          using assm3 ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym by blast
+        then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Event f]\<^sub>E # p' \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Y2]\<^sub>R # [Tock]\<^sub>E # q' \<and> [Event f]\<^sub>E # \<rho> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+          using case_assm assm1 by (rule_tac x="[Event f]\<^sub>E # p''" in exI, simp, rule_tac x="q''" in exI, cases q'' rule:cttWF.cases, auto)
+      qed
+    qed
+  next
+    fix X \<rho> Y \<sigma> p q
+    assume assm1: "[Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    assume assm2: "X \<subseteq> Y"
+    assume assm3: "\<rho> \<lesssim>\<^sub>C \<sigma>"
+    assume assm4: "\<And>p q. \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+    obtain Y1 Y2 p' q' where "(p = [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [Y2]\<^sub>R # [Tock]\<^sub>E # q')
+      \<or> (p = [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [[Tick]\<^sub>E])
+      \<or> (p = [[Tick]\<^sub>E] \<and> q = [Y2]\<^sub>R # [Tock]\<^sub>E # q')"
+      using assm1 by (induct p A q rule:merge_traces.induct, simp_all)
+    then show "\<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+    proof auto
+      assume case_assm: "q = [Y2]\<^sub>R # [Tock]\<^sub>E # q'" "p = [Y1]\<^sub>R # [Tock]\<^sub>E # p'"
+      then have "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+        using assm1 by auto
+      then obtain p'' q'' where "p'' \<lesssim>\<^sub>C p'" "q'' \<lesssim>\<^sub>C q'" "\<rho> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using assm4 by blast
+      then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Y2]\<^sub>R # [Tock]\<^sub>E # q' \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+        using assm1 assm2 case_assm by (rule_tac x="[Y1]\<^sub>R # [Tock]\<^sub>E # p''" in exI, simp, rule_tac x="[Y2]\<^sub>R # [Tock]\<^sub>E # q''" in exI, auto)
+    next
+      assume case_assm: "q = [[Tick]\<^sub>E]" "p = [Y1]\<^sub>R # [Tock]\<^sub>E # p'"
+      then have 1: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+        using assm1 by auto
+      then obtain p'' q'' where 1: "p'' \<lesssim>\<^sub>C p'" "q'' \<lesssim>\<^sub>C [[Tick]\<^sub>E]" "\<rho> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using assm4 by blast
+      then have "q'' = [] \<or> q'' = [[Tick]\<^sub>E]"
+        by (cases q'' rule:cttWF.cases, auto)
+      then obtain p''' where "p''' \<lesssim>\<^sub>C p'" "\<rho> \<in> p''' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+        using 1 apply auto
+        using ctt_prefix_subset_trans merge_traces_empty_merge_traces_tick by blast
+      then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [Y1]\<^sub>R # [Tock]\<^sub>E # p' \<and> (\<exists>q'. q' \<lesssim>\<^sub>C [[Tick]\<^sub>E] \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+        using assm1 assm2 case_assm by (rule_tac x="[Y1]\<^sub>R # [Tock]\<^sub>E # p'''" in exI, simp, rule_tac x="[[Tick]\<^sub>E]" in exI, auto)
+    next
+      assume case_assm: "p = [[Tick]\<^sub>E]" "q = [Y2]\<^sub>R # [Tock]\<^sub>E # q'"
+      then have 1: "\<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+        using assm1 by auto
+      then obtain p'' q'' where 1: "q'' \<lesssim>\<^sub>C q'" "p'' \<lesssim>\<^sub>C [[Tick]\<^sub>E]" "\<rho> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using assm4 by blast
+      then have "p'' = [] \<or> p'' = [[Tick]\<^sub>E]"
+        by (cases p'' rule:cttWF.cases, auto)
+      then obtain q''' where "q''' \<lesssim>\<^sub>C q'" "\<rho> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'''"
+        using 1 apply auto
+        using ctt_prefix_subset_trans merge_traces_comm merge_traces_empty_merge_traces_tick by blast
+      then show "\<exists>p'. p' \<lesssim>\<^sub>C [[Tick]\<^sub>E] \<and> (\<exists>q'a. q'a \<lesssim>\<^sub>C [Y2]\<^sub>R # [Tock]\<^sub>E # q' \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a)"
+        using assm1 assm2 case_assm by (rule_tac x="[[Tick]\<^sub>E]" in exI, simp, rule_tac x="[Y2]\<^sub>R # [Tock]\<^sub>E # q'''" in exI, auto)
+    qed
+  next
+    fix X \<rho> \<sigma> p q
+    show "[X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (induct \<sigma> rule:cttWF.induct, auto, induct p q rule:cttWF2.induct, auto)
+  next
+    fix X e \<rho> \<sigma> p q
+    show "[X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (induct \<sigma> rule:cttWF.induct, auto, induct p q rule:cttWF2.induct, auto)
+  next
+    fix X Y \<rho> \<sigma> p q
+    show "[X]\<^sub>R # [Y]\<^sub>R # \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [X]\<^sub>R # [Y]\<^sub>R # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (induct \<sigma> rule:cttWF.induct, auto, induct p q rule:cttWF2.induct, auto)
+  next
+    fix \<rho> X \<sigma> p q
+    show "[X]\<^sub>R # [Tick]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (induct p q rule:cttWF2.induct, auto)
+  next
+    fix \<rho> X e \<sigma> p q
+    show "[X]\<^sub>R # [Event e]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (induct p q rule:cttWF2.induct, auto)
+  next
+    fix \<rho> X Y \<sigma> p q
+    show "[X]\<^sub>R # [Y]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (induct p q rule:cttWF2.induct, auto)
+  next
+    fix x \<rho> \<sigma> p q
+    show "[Tick]\<^sub>E # x # \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [Tick]\<^sub>E # x # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (cases x, auto, (induct \<sigma> rule:cttWF.induct, auto, induct p q rule:cttWF2.induct, auto, induct p q rule:cttWF2.induct, auto)+)
+  next
+    fix \<rho> y \<sigma> p q
+    show "[Tick]\<^sub>E # y # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (induct p q rule:cttWF2.induct, auto)
+  next
+    fix \<rho> \<sigma> p q
+    show "[Tock]\<^sub>E # \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> [Tock]\<^sub>E # \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (induct \<sigma> rule:cttWF.induct, auto, (induct p q rule:cttWF2.induct, auto)+)
+  next
+    fix \<rho> \<sigma> p q
+    show "[Tock]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. p' \<lesssim>\<^sub>C p \<and> (\<exists>q'. q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (induct p q rule:cttWF2.induct, auto)
+  qed
+  thm 1
+  assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
+  assume assm2: "\<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+  assume assm3: "p \<in> P"
+  assume assm4: "q \<in> Q"
+  obtain p' q' where 2: "p' \<lesssim>\<^sub>C p \<and> q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"  
+    using 1 assm1 assm2 by blast
+  then have "p' \<in> P \<and> q' \<in> Q"
+    using CT1_def CT_CT1 assm3 assm4 assms(1) assms(2) by blast
+  then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<rho> \<in> x"
+    using 2 by auto
+qed
+
 
 section {* Refinement *}
 
