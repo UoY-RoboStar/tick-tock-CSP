@@ -545,7 +545,7 @@ lemma FL1_prirel:
 lemma pri_FL1:
   assumes "FL1 P"
   shows "FL1 (pri p P)"
-  using assms unfolding FL1_def pri_def apply auto
+  using assms unfolding FL1_def pri_def apply safe
   using FL1_prirel assms by blast
 
 (*
@@ -710,8 +710,7 @@ lemma FL1_some_prirelAlt:
   assumes "s \<in> P" "FL1 P"
   shows "\<exists>Z s. prirelAlt p s Z \<and> Z \<in> P"
   using assms apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI)
-  apply (simp add: prirelAlt_bullet_refl_iff)
-  using FL0_FL1_bullet_in FL0_def by blast
+  by (simp add: prirelAlt_bullet_refl_iff)
 
 lemma prirel_rhs_singleton_iff:
   "prirel p x \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (x = \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> x = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
@@ -895,10 +894,12 @@ lemma pri_IntChoice_dist:
 lemma
   "pri p (pri p P) = pri p P"
   unfolding pri_def apply auto
+  oops
 
 lemma
   assumes "prirel p x Z" "prirel p Z Za" "Za \<in> P" 
   shows "\<exists>Z. prirel p x Z \<and> Z \<in> P"
+  oops
 
 lemma
   assumes "\<not>a <\<^sup>*p b" "\<not>b <\<^sup>*p a"
@@ -906,7 +907,6 @@ lemma
         =
         pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> pri p (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
   using assms unfolding ExtChoice_def pri_def apply auto
-  sledgehammer[debug=true]
   oops
 
 end

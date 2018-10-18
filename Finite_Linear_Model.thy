@@ -192,13 +192,6 @@ translations
   "\<langle>x,xs,y\<rangle>\<^sub>\<F>\<^sub>\<L>" == "(x#\<^sub>\<F>\<^sub>\<L>\<langle>xs,y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
   "\<langle>x,y\<rangle>\<^sub>\<F>\<^sub>\<L>" == "x#\<^sub>\<F>\<^sub>\<L>\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
 
-
-fun strict_less_eq_fltrace :: "'a fltrace \<Rightarrow> 'a fltrace \<Rightarrow> bool" where
-"strict_less_eq_fltrace \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L> = (x = y)" |
-"strict_less_eq_fltrace \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> (y#\<^sub>\<F>\<^sub>\<L>ys) = (x = acceptance y)" |
-"strict_less_eq_fltrace (x#\<^sub>\<F>\<^sub>\<L>xs) (y#\<^sub>\<F>\<^sub>\<L>ys) = (x = y \<and> strict_less_eq_fltrace xs ys)" |
-"strict_less_eq_fltrace (x#\<^sub>\<F>\<^sub>\<L>xs) \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L> = False"
-
 subsubsection \<open> Partial order \<close>
 
 text \<open> We can define the partial order on fltraces by defining the order over acceptances
@@ -279,17 +272,6 @@ instance
   by (simp add:acceptance_assoc)
 end
 
-fun weak_less_eq_fltrace :: "'a fltrace \<Rightarrow> 'a fltrace \<Rightarrow> bool" where
-"weak_less_eq_fltrace \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L> = (x \<le> y)" |
-"weak_less_eq_fltrace \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> (y#\<^sub>\<F>\<^sub>\<L>ys) = False" |
-"weak_less_eq_fltrace (x#\<^sub>\<F>\<^sub>\<L>xs) (y#\<^sub>\<F>\<^sub>\<L>ys) = (x \<le> y \<and> weak_less_eq_fltrace xs ys)" |
-"weak_less_eq_fltrace (x#\<^sub>\<F>\<^sub>\<L>xs) \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L> = False"
-
-lemma weak_less_eq_fltrace_is_less_eq:
-  assumes "weak_less_eq_fltrace x y"
-  shows "x \<le> y"
-  using assms by(induct x y rule:less_eq_fltrace.induct, auto)
-
 lemma acceptance_right_zero[simp]:
   fixes a :: "'a acceptance"
   shows "a + \<bullet> = a"
@@ -368,6 +350,40 @@ next
   apply (case_tac a, auto)
   sledgehammer[debug=true]
 *)
+
+subsection \<open>Strong order\<close>
+
+fun strong_less_eq_fltrace :: "'a fltrace \<Rightarrow> 'a fltrace \<Rightarrow> bool" (infix "\<le>\<^sub>\<F>\<^sub>\<L>" 50) where
+"strong_less_eq_fltrace \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L> = (x \<le> y)" |
+"strong_less_eq_fltrace \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> (y#\<^sub>\<F>\<^sub>\<L>ys) = (False)" |
+"strong_less_eq_fltrace (x#\<^sub>\<F>\<^sub>\<L>xs) (y#\<^sub>\<F>\<^sub>\<L>ys) = (x \<le> y \<and> strong_less_eq_fltrace xs ys)" |
+"strong_less_eq_fltrace (x#\<^sub>\<F>\<^sub>\<L>xs) \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L> = False"
+
+lemma strong_less_eq_fltrace_refl:
+  fixes x :: "'a fltrace"
+  shows "x \<le>\<^sub>\<F>\<^sub>\<L> x"
+  apply (induct x rule:fltrace.induct)
+  by auto
+
+lemma strong_less_eq_fltrace_trans:
+  fixes x y z :: "'a fltrace"
+  shows "x \<le>\<^sub>\<F>\<^sub>\<L> y \<Longrightarrow> y \<le>\<^sub>\<F>\<^sub>\<L> z \<Longrightarrow> x \<le>\<^sub>\<F>\<^sub>\<L> z"
+  apply (induct x z arbitrary:y rule:strong_less_eq_fltrace.induct)
+     apply (case_tac ya, auto, case_tac x, auto, case_tac ya, auto, case_tac ya, auto)
+  apply (metis (no_types, hide_lams) dual_order.trans fltrace.exhaust strong_less_eq_fltrace.simps(3) strong_less_eq_fltrace.simps(4))
+  apply (metis (no_types, hide_lams) fltrace.exhaust  strong_less_eq_fltrace.simps(3) strong_less_eq_fltrace.simps(4))
+  by (case_tac y, auto, case_tac ya, auto, case_tac ya, auto)
+
+lemma strong_less_eq_fltrace_antisym:
+  fixes x y z :: "'a fltrace"
+  shows "x \<le>\<^sub>\<F>\<^sub>\<L> y \<Longrightarrow> y \<le>\<^sub>\<F>\<^sub>\<L> x \<Longrightarrow> x = y"
+  apply (induct x y rule:strong_less_eq_fltrace.induct)
+  by auto
+
+lemma strongFL_imp_less_eq [simp]:
+  assumes "x \<le>\<^sub>\<F>\<^sub>\<L> y"
+  shows "x \<le> y"
+  using assms by(induct x y rule:less_eq_fltrace.induct, auto)
 
 subsubsection \<open> Operators \<close>
 
@@ -896,7 +912,92 @@ lemma fltrace_induct6:
     (\<And>y xs. P (\<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<Longrightarrow> P (y #\<^sub>\<F>\<^sub>\<L> xs))\<rbrakk> \<Longrightarrow> P xs"
   by (induct xs, auto)
 
+lemma last_not_bullet_then_last_cons [simp]:
+  assumes "last(xs) \<noteq> \<bullet>"
+  shows "last (xs &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) = last (xs)"
+  using assms apply (induct xs, auto)
+  by (case_tac x, auto, case_tac y, auto)
+
+lemma last_bullet_then_last_cons [simp]:
+  assumes "last(xs) = \<bullet>"
+  shows "last (xs &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) = last (\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms by (induct xs, auto)
+
+lemma last_bullet_concatmix:
+  assumes "last xs = \<bullet>"
+  shows "(xs &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) @\<^sub>\<F>\<^sub>\<L> \<langle>z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = (xs &\<^sub>\<F>\<^sub>\<L> (\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L> @\<^sub>\<F>\<^sub>\<L> \<langle>z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+  using assms by (induct xs, auto)
+
+lemma xs_less_eq_z_two_only:
+  assumes "xs &\<^sub>\<F>\<^sub>\<L> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<le> z" "z \<le> xs &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+  shows "z = xs &\<^sub>\<F>\<^sub>\<L> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> z = xs &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+  using assms 
+  apply (auto)
+  apply (induct xs z rule:less_eq_fltrace.induct, auto)  
+  apply (metis acceptance_set fltrace_concat2.simps(3) less_eq_acceptance.elims(2) less_eq_fltrace.simps(2))
+  apply (case_tac x, auto)
+  apply (simp add: eq_iff less_eq_aevent_def)
+  by (metis fltrace_antisym fltrace_trans order_refl prefixFL_induct2)
+
 section \<open> Finite Linear Traces \<close>
+
+lemma last_cons_acceptance_not_bullet[simp]:
+  "last (ys &\<^sub>\<F>\<^sub>\<L> \<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<noteq> \<bullet>"
+  apply (induct ys, auto)
+  by (case_tac x, auto)
+
+lemma last_cons_bullet_iff:
+  "last (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = \<bullet> \<longleftrightarrow> last(xs) = \<bullet>"
+  apply (induct xs, auto)
+  by (case_tac xa, auto)
+
+lemma fl_cons_acceptance_consFL:
+  "fl @\<^sub>\<F>\<^sub>\<L> \<langle>e,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = butlast fl &\<^sub>\<F>\<^sub>\<L> \<langle>e,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+  by (induct fl, auto)
+
+lemma strong_less_eq_fltrace_cons_imp_lhs:
+  assumes "(xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) \<le>\<^sub>\<F>\<^sub>\<L> t"
+  shows "xs \<le>\<^sub>\<F>\<^sub>\<L> t"
+  using assms apply (induct xs t rule:strong_less_eq_fltrace.induct, auto)
+  apply (cases x, auto)
+  by (case_tac xa, auto)
+
+lemma strong_less_eq_fltrace_eq_length:
+  assumes "s \<le>\<^sub>\<F>\<^sub>\<L> t"
+  shows "length s = length t"
+  using assms 
+  by (induct s t rule:strong_less_eq_fltrace.induct, auto)
+
+lemma strong_less_eq_fltrace_cons_last_less_eq:
+  assumes "last xs = \<bullet>" "last ys = \<bullet>"
+          "(xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<le>\<^sub>\<F>\<^sub>\<L> (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+    shows "x \<le> y"
+  using assms apply(induct xs ys rule:strong_less_eq_fltrace.induct, auto)
+  apply (metis fltrace.distinct(1) rev3.simps(1) rev3_little_more strong_less_eq_fltrace.elims(2))
+  by (metis fltrace.distinct(1) rev3.simps(1) rev3_little_more strong_less_eq_fltrace.elims(2))
+
+lemma strong_less_eq_fltrace_cons_iff_lhs_bullet:
+  assumes "x \<le> y"
+  shows "(xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<le>\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<longleftrightarrow> xs = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+  using assms apply (induct xs, auto)
+   apply (case_tac xa, auto)
+  apply (case_tac xs, auto)
+  by (case_tac x1, auto)
+
+lemma concat_FL_last_not_bullet_absorb:
+  assumes "last xs \<noteq> \<bullet>"
+  shows "xs &\<^sub>\<F>\<^sub>\<L> ys = xs"
+  using assms
+  by (metis Finite_Linear_Model.last.simps(1)  butlast_last_cons2_FL fltrace_concat2.simps(2) fltrace_concat2.simps(4) fltrace_concat2_assoc plus_acceptance.elims)
+
+lemma strong_less_eq_fltrace_last_cons_bullet_imp_le:
+  assumes "(xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<le>\<^sub>\<F>\<^sub>\<L> (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+          "last (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = \<bullet>"
+  shows "x \<le> y"
+  using assms apply(induct xs ys rule:strong_less_eq_fltrace.induct, auto)
+  apply (metis Finite_Linear_Model.last.simps(1) concat_FL_last_not_bullet_absorb fltrace_concat2.simps(3)  strong_less_eq_fltrace.simps(2) strong_less_eq_fltrace.simps(3))
+  apply (metis (no_types, lifting) FL_concat_equiv  concat_FL_last_not_bullet_absorb fltrace_concat2_assoc last_cons_bullet_iff last_rev3_cons2_is_last_cons rev3.simps(1) rev_little_cons2 strong_less_eq_fltrace.simps(2) strong_less_eq_fltrace_cons_last_less_eq)
+  by (metis (no_types, lifting) Finite_Linear_Model.last.simps(1) antisym_conv fltrace.distinct(1) fltrace.inject(2) fltrace_concat2.simps(3) last_cons_bullet_iff rev3.simps(1) rev3_little_more rev3_rev3_const2_last strong_less_eq_fltrace.elims(2) strongFL_imp_less_eq x_le_x_concat2)
 
 text \<open> The set of finite linear traces is fltraces. \<close>
 
@@ -942,6 +1043,11 @@ definition Div :: "'e fltraces" where
 
 definition Stop :: "'e fltraces" where
 "Stop = {\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>} \<union> {\<langle>[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}"
+
+lemma Stop_is_FL2: "FL2 Stop"
+  unfolding FL2_def Stop_def apply auto
+  apply (metis Finite_Linear_Model.last.simps(1) acceptance.inject amember.elims(2) concat_FL_last_not_bullet_absorb empty_iff last_bullet_then_last_cons)
+  by (metis Finite_Linear_Model.last.simps(1) amember.simps(1) concat_FL_last_not_bullet_absorb last_bullet_then_last_cons)
 
 definition prefixH :: "'e \<Rightarrow> 'e fltrace \<Rightarrow> 'e fltrace \<Rightarrow> bool" where
 "prefixH a aa X = (X = \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> X = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> X = ([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa \<or> X = (\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"

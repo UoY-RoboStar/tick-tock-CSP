@@ -307,6 +307,9 @@ lemma ctt_prefix_subset_same_front: "s \<lesssim>\<^sub>C t = (r @ s \<lesssim>\
 lemma ctt_prefix_subset_concat: "r \<lesssim>\<^sub>C s @ t \<Longrightarrow> r \<lesssim>\<^sub>C s \<or> (\<exists> t'. t' \<lesssim>\<^sub>C t \<and> r \<subseteq>\<^sub>C s @ t')"
   by (induct r s rule:ctt_prefix_subset.induct, auto, rule_tac x="x # xa" in exI, auto simp add: ctt_subset_refl)
 
+lemma cttWF_prefix_is_cttWF: "cttWF (s @ t) \<Longrightarrow> cttWF s"
+  using ctt_prefix_concat ctt_prefix_imp_prefix_subset ctt_prefix_subset_cttWF by blast
+
 section {* Healthiness Conditions *}
 
 definition CT0 :: "'e cttobs list set \<Rightarrow> bool" where
