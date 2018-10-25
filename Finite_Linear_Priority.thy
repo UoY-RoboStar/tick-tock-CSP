@@ -909,4 +909,58 @@ lemma
   using assms unfolding ExtChoice_def pri_def apply auto
   oops
 
+lemma prirel_cons_eq_length_imp:
+  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "length xs = length ys"
+  shows "prirel p xs ys"
+  using assms apply(induct xs ys rule:prirel.induct, auto)
+  apply (case_tac A, auto)
+  by (case_tac Z, auto)
+
+lemma prirel_cons_eq_length_imp_prirel_acceptances:
+  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "length xs = length ys" "last xs = \<bullet>"
+  shows "prirel p \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+  using assms apply(induct xs ys rule:prirel.induct, auto)
+     apply (case_tac Z, auto)
+    apply (case_tac Z, auto)
+     apply (case_tac Z, auto)
+  by (case_tac Z, auto)
+
+lemma prirel_cons_eq_length_imp_prirel_acceptances_last_bullet:
+  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "length xs = length ys" "last xs = \<bullet>"
+  shows "last ys = \<bullet>"
+  using assms apply(induct xs ys rule:prirel.induct, auto)
+  by (case_tac Z, auto)
+
+lemma prirel_cons_eq_length_imp_prirel_acceptances_last_bullet_eq:
+  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "length xs = length ys" 
+  shows "last xs = \<bullet> \<longleftrightarrow> last ys = \<bullet>"
+  using assms apply(induct xs ys rule:prirel.induct, auto)
+   apply (case_tac Z, auto)
+  by (case_tac A, auto)
+
+lemma prirel_cons_eq_length_imp_prirel_acceptances_last_not_bullet:
+  assumes "length xs = length ys" "last xs \<noteq> \<bullet>"
+  shows "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = prirel p (xs) (ys)"
+  using assms apply(induct xs ys rule:prirel.induct, auto)
+  apply (case_tac A, auto, case_tac Z, auto)
+  by (case_tac A, auto, case_tac Z, auto)
+
+lemma prirel_cons_eq_length_imp_prirel_acceptances_eq:
+  assumes "length xs = length ys" "last xs = \<bullet>" "last ys = \<bullet>" "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  shows  "prirel p (\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms by(induct xs ys rule:prirel.induct, auto)
+
+lemma prirel_cons_eq_length_imp_prirel_eq_prefix:
+  assumes "length xs = length ys" "last xs = \<bullet>" "last ys = \<bullet>" "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  shows  "prirel p xs ys"
+  using assms by(induct xs ys rule:prirel.induct, auto)
+
+lemma prirel_last_bullets_cons_imp:
+  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)" "last xs = \<bullet>" "last ys = \<bullet>"
+  shows "(x = \<bullet>) \<or> (\<exists>xA yA. x = [xA]\<^sub>\<F>\<^sub>\<L> \<and> y = [yA]\<^sub>\<F>\<^sub>\<L>)"
+  using assms apply (induct p xs ys rule:prirel.induct, auto)
+   apply (induct x y rule:prirelacc.induct, auto)
+  by (induct x y rule:prirelacc.induct, auto)
+
+
 end

@@ -406,7 +406,7 @@ lemma CTwf_1c_3_imp_flt2cttobs_FL1:
       and CT1c_healthy: "CT1c P"
       and CT3_healthy:  "CT3 P"
   shows "\<exists>fl. x = flt2cttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FL1 x \<and> {flt2cttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
-  using assms 
+  using assms
 proof(induct x rule:rev_induct)
   case Nil
   then show ?case 
