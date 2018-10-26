@@ -232,11 +232,15 @@ lemma prirelRef_extend_rhs_cttWF:
 
 
 lemma prirelRef_extend_both_refusal_cttWF:
-  assumes "prirelRef p xs ys s P" "cttWF (ys @ [[S]\<^sub>R])" "prirelref p S = R"
+  assumes "prirelRef p xs ys s P" "cttWF (xs @ [[R]\<^sub>R])" "cttWF (ys @ [[S]\<^sub>R])" "prirelref p S = R" "xs \<noteq> []"
   shows "prirelRef p (xs @ [[R]\<^sub>R]) (ys @ [[S]\<^sub>R]) s P"
-  using assms  apply (induct p xs ys s P rule:prirelRef.induct)
-  apply (auto)
-  by (smt Nil_is_append_conv cttWF.elims(2) cttobs.distinct(1) list.discI list.inject)+
+  using assms nitpick  apply (induct p xs ys s P rule:prirelRef.induct)
+                      apply (simp)
+                      apply (simp)
+                      apply (simp)
+                      apply (auto)
+  sledgehammer[debug=true]
+  by (metis cttWF.simps(10) cttWF.simps(4) cttWF.simps(6) cttevent.exhaust neq_Nil_conv snoc_eq_iff_butlast)+
 
 lemma
   assumes "prirelRef p [] zz s Q" "cttWF (zz @ [[S]\<^sub>R])" "cttWF s"
@@ -247,34 +251,35 @@ lemma prirelRef_extend_both_tock_refusal_cttWF:
   assumes "prirelRef p xs ys s P" "cttWF (ys @ [[S]\<^sub>R,[Tock]\<^sub>E])" "prirelref p S = R"
   shows "prirelRef p (xs @ [[R]\<^sub>R,[Tock]\<^sub>E]) (ys @ [[S]\<^sub>R,[Tock]\<^sub>E]) s P"
   using assms apply (induct p xs ys s P rule:prirelRef.induct, auto)
-  by (smt Nil_is_append_conv cttWF.elims(2) cttobs.distinct(1) list.discI list.inject)+
-
+  apply (metis append.assoc append_Cons append_Nil cttWF.simps(1) cttWF.simps(5) cttWF_prefix_is_cttWF prirelRef.simps(3) prirelRef.simps(34) prirelRef_extend_both_refusal_cttWF)
+  apply (metis append.assoc append_Cons append_Nil cttWF.simps(1) cttWF.simps(5) cttWF_prefix_is_cttWF prirelRef.simps(3) prirelRef.simps(34) prirelRef_extend_both_refusal_cttWF)
+  apply (metis append.assoc append_Cons append_Nil cttWF.simps(5) cttWF_prefix_is_cttWF prirelRef.simps(3) prirelRef.simps(34) prirelRef_extend_both_refusal_cttWF)
+  by (metis append_Cons append_Nil cttWF.simps(10) cttWF.simps(4) cttWF.simps(6) cttevent.exhaust neq_Nil_conv)+
+ 
 lemma prirelRef_extend_both_events_eq_size_maximal_cttWF:
   assumes "prirelRef p xs ys s P" "cttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)" "size xs = size ys"
   shows "prirelRef p (xs @ [[e\<^sub>1]\<^sub>E]) (ys @ [[e\<^sub>1]\<^sub>E]) s P"
   using assms apply (induct p xs ys s P rule:prirelRef.induct, auto)
-  apply (smt cttWF.elims(2) cttobs.distinct(1) list.discI list.inject prirelRef.simps(1) prirelRef.simps(5))
-  apply (smt Nil_is_append_conv cttWF.elims(2) cttobs.distinct(1) list.discI list.inject)
-  apply (smt cttWF.elims(2) cttobs.distinct(1) list.discI list.inject prirelRef.simps(1) prirelRef.simps(4))
-  by (smt Nil_is_append_conv cttWF.elims(2) cttobs.distinct(1) list.discI list.inject)+
- 
+  apply (metis cttWF.simps(11) cttWF.simps(12) cttevent.exhaust prirelRef.simps(1) prirelRef.simps(5))
+  by (metis cttWF.simps(10) cttWF.simps(4) cttWF.simps(6) cttevent.exhaust neq_Nil_conv snoc_eq_iff_butlast)+
+  
 lemma prirelRef_extend_both_events_maximal_cttWF:
   assumes "prirelRef p xs ys s P" "cttWF (xs @ [[e\<^sub>1]\<^sub>E])" "cttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)"
   shows "prirelRef p (xs @ [[e\<^sub>1]\<^sub>E]) (ys @ [[e\<^sub>1]\<^sub>E]) s P"
   using assms apply (induct p xs ys s P rule:prirelRef.induct, auto)
   apply (metis cttWF.elims(2) cttWF.simps(11) cttWF.simps(12) cttWF.simps(13) list.discI)
-  apply (smt cttWF.elims(2) cttobs.distinct(1) list.discI list.inject prirelRef.simps(1) prirelRef.simps(4))
-  by (smt Nil_is_append_conv cttWF.elims(2) cttobs.distinct(1) list.discI list.inject)+
-  
+  apply (metis cttWF.simps(11) cttWF.simps(12) cttevent.exhaust prirelRef.simps(1) prirelRef.simps(4))
+  by (metis cttWF.simps(10) cttWF.simps(4) cttWF.simps(6) cttevent.exhaust neq_Nil_conv snoc_eq_iff_butlast)+
+ 
 lemma prirelRef_extend_both_events_non_maximal_cttWF:
   assumes "prirelRef p xs ys s P" "cttWF (xs @ [[e\<^sub>1]\<^sub>E])" "cttWF (ys @ [[e\<^sub>1]\<^sub>E])" 
           "(\<exists>Z. s @ ys @ [[Z]\<^sub>R] \<in> P \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>1 <\<^sup>*p b))" 
   shows "prirelRef p (xs @ [[e\<^sub>1]\<^sub>E]) (ys @ [[e\<^sub>1]\<^sub>E]) s P"
   using assms apply (induct p xs ys s P rule:prirelRef.induct, auto)
   apply (metis cttWF.elims(2) cttWF.simps(11) cttWF.simps(12) cttWF.simps(13) list.discI)
-  apply (smt cttWF.elims(2) cttobs.distinct(1) list.discI list.inject prirelRef.simps(1) prirelRef.simps(4))
-  by (smt Nil_is_append_conv cttWF.elims(2) cttobs.distinct(1) list.discI list.inject)+
-  
+  apply (metis cttWF.simps(11) cttWF.simps(12) cttevent.exhaust prirelRef.simps(1) prirelRef.simps(4))
+  by (metis cttWF.simps(10) cttWF.simps(4) cttWF.simps(6) cttevent.exhaust neq_Nil_conv snoc_eq_iff_butlast)+
+ 
 lemma tt:
   assumes "prirel p fl Y" "FL1 fl\<^sub>0" "FLTick0 Tick fl\<^sub>0"
           "Y \<in> fl\<^sub>0"
@@ -486,7 +491,58 @@ next
              (* A few things to worry about here, namely that if event(y) = Tock, then if 
                 acceptance(y) = \<bullet> we have that flt2cttobs(\<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = []. Similar problem arises
                 on the x side. *)
-             then show ?thesis sorry
+             then obtain yA yEvent where 
+               yAE:"y = (yA,yEvent)\<^sub>\<F>\<^sub>\<L> \<and> (yA = \<bullet> \<or> yEvent \<in>\<^sub>\<F>\<^sub>\<L> yA)"
+               by (cases y, auto)
+             then obtain xA where 
+               xAE:"x = (xA,yEvent)\<^sub>\<F>\<^sub>\<L> \<and> (xA = \<bullet> \<or> yEvent \<in>\<^sub>\<F>\<^sub>\<L> xA)"
+               apply (cases x, auto)
+               using \<open>prirel p \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>\<close> by auto
+
+             then show ?thesis
+             proof (cases "yEvent = Tock")
+               case True 
+               then show ?thesis 
+                  proof (cases "yA")
+                    case acnil
+                    then have x_eq_y:"x = y"
+                      by (metis \<open>prirel p \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>\<close> fltrace.inject(2) prirel_cons_bullet_iff_exists yAE)
+                    then have flt2cttobs_y: "flt2cttobs(\<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = []"
+                      using acnil by (simp add: True yAE)
+                    then have "flt2cttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = flt2cttobs (xs)"
+                              "flt2cttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = flt2cttobs (ys)"
+                      using flt2cttobs_acceptance_cons_eq_list_cons flt2cttobs_cons_no_extend_not_flt2goodTock last_xs_bullet x_eq_y apply fastforce
+                      using flt2cttobs_y by (simp add: flt2_ys_y)
+                    then show ?thesis using prirelRef by auto
+                  next
+                    case (acset x2)
+                    then obtain yR where yR:"flt2cttobs(\<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[yR]\<^sub>R,[Tock]\<^sub>E]"
+                      using True yAE by auto
+                    then show ?thesis
+                      proof (cases "xA")
+                        case acnil
+                        then have "flt2cttobs(\<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = []"
+                          using xAE True by auto 
+                        then have "flt2cttobs(ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = flt2cttobs(ys) @ [[yR]\<^sub>R,[Tock]\<^sub>E]"
+                         using flt2_ys_y yR by auto
+                       then have "prirelRef p (flt2cttobs xs) (flt2cttobs(ys) @ [[yR]\<^sub>R,[Tock]\<^sub>E]) [] P"
+                         sledgehammer[debug=true]
+                        then show ?thesis 
+                      next
+                        case (acset x2)
+                        then show ?thesis sorry
+                      qed
+                    then obtain xR where yR:"flt2cttobs(\<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[xR]\<^sub>R,[Tock]\<^sub>E]"
+                      sledgehammer
+                    then have "prirelref p S = R
+                    then show ?thesis
+                    
+               qed
+             next
+               case False
+               then show ?thesis sorry
+             qed
+             
            next
              case False
              then show ?thesis sorry
