@@ -698,7 +698,7 @@ definition after :: "('e cttobs) list \<Rightarrow> ('e cttobs) list set \<Right
 fun prirelRef :: "('e cttevent) partialorder \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list set \<Rightarrow> bool" where
 "prirelRef p [] [] s Q = True" |
 "prirelRef p [] [[R]\<^sub>R] s Q = True" |
-"prirelRef p [] ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q = ((\<forall>b. (Tock <\<^sup>*p b) \<longrightarrow> b \<in> S) \<and> prirelRef p [] zz (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) Q)" |
+(*"prirelRef p [] ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q = ((\<forall>b. (Tock <\<^sup>*p b) \<longrightarrow> b \<in> S) \<and> prirelRef p [] zz (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) Q)" |*)
 "prirelRef p [[R]\<^sub>R] [[S]\<^sub>R] s Q = (prirelref p S = R)" |
 "prirelRef p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q = ((R = prirelref p S) \<and> prirelRef p aa zz (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) Q)" |
 "prirelRef p ([e\<^sub>1]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) s Q
