@@ -307,6 +307,9 @@ lemma ctt_prefix_subset_same_front: "s \<lesssim>\<^sub>C t = (r @ s \<lesssim>\
 lemma ctt_prefix_subset_concat: "r \<lesssim>\<^sub>C s @ t \<Longrightarrow> r \<lesssim>\<^sub>C s \<or> (\<exists> t'. t' \<lesssim>\<^sub>C t \<and> r \<subseteq>\<^sub>C s @ t')"
   by (induct r s rule:ctt_prefix_subset.induct, auto, rule_tac x="x # xa" in exI, auto simp add: ctt_subset_refl)
 
+lemma cttWF_prefix_is_cttWF: "cttWF (s @ t) \<Longrightarrow> cttWF s"
+  using ctt_prefix_concat ctt_prefix_imp_prefix_subset ctt_prefix_subset_cttWF by blast
+
 section {* Healthiness Conditions *}
 
 definition CT0 :: "'e cttobs list set \<Rightarrow> bool" where
@@ -344,6 +347,30 @@ proof -
     unfolding CT3_def by auto 
   then show "CT3_trace (\<rho>) \<Longrightarrow> Tock \<notin> X"
     by (auto, induct \<rho> rule:CT3_trace.induct, auto, case_tac x, auto)
+qed
+
+lemma CT3_trace_cons_left:
+  "CT3_trace (xs @ ys) \<Longrightarrow> CT3_trace xs"
+  by (induct xs rule:CT3_trace.induct, auto)
+
+lemma CT3_trace_cons_right:
+  "CT3_trace (xs @ ys) \<Longrightarrow> CT3_trace ys"
+  apply (induct xs rule:CT3_trace.induct, auto)
+  apply (case_tac x, auto)
+   apply (case_tac x1, auto)
+  apply (metis CT3_trace.elims(3) CT3_trace.simps(4))
+  apply (metis CT3_trace.elims(3) CT3_trace.simps(4))
+  apply (metis CT3_trace.elims(3) CT3_trace.simps(4))
+  using CT3_trace.elims(2) CT3_trace.elims(3) list.discI by auto
+
+lemma CT3_any_cons_end_tock:
+  assumes "CT3 P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+  shows "Tock \<notin> X"
+proof -
+  have "CT3_trace ([[X]\<^sub>R, [Tock]\<^sub>E])"
+    using assms CT3_def CT3_trace_cons_right by blast
+  then show ?thesis
+    by simp
 qed
 
 (*definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
@@ -5475,3 +5502,4 @@ lemma SeqComp_compositional1:
 lemma SeqComp_compositional2: 
   "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> R ;\<^sub>C P \<sqsubseteq>\<^sub>C R ;\<^sub>C Q"
   unfolding RefinesCTT_def SeqCompCTT_def by auto
+end
