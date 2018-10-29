@@ -5216,6 +5216,231 @@ next
     by (meson cttWF.simps merge_traces_wf)
 qed
 
+lemma CT3_ParComp:
+  shows "\<And> P Q. CT P \<Longrightarrow> CT Q \<Longrightarrow> CT3 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding ParCompCTT_def CT3_def
+proof auto
+  fix x
+  show "\<And>P Q p q. CT P \<Longrightarrow> CT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> x \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> CT3_trace x"
+  proof (induct x rule:cttWF.induct, auto)
+    fix e \<sigma> P Q p q
+    assume "[Event e]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then have p_q_cases: "(\<exists> p' q'. p = [Event e]\<^sub>E # p' \<and> q = [Event e]\<^sub>E # q' \<and> e \<in> A \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')
+      \<or> (\<exists> p'. p = [Event e]\<^sub>E # p' \<and> e \<notin> A \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q)
+      \<or> (\<exists> q'. q = [Event e]\<^sub>E # q' \<and> e \<notin> A \<and> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+    assume induction_hypothesis: "\<And>P Q p q. CT P \<Longrightarrow> CT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> CT3_trace \<sigma>"
+    assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
+    assume CT_P: "CT P" and CT_Q: "CT Q"
+    show "CT3_trace ([Event e]\<^sub>E # \<sigma>)"
+      using p_q_cases
+    proof auto
+      fix p' q' 
+      assume p_def: "p = [Event e]\<^sub>E # p'"
+      assume q_def: "q = [Event e]\<^sub>E # q'"
+      assume in_p'_parcomp_q': "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+      have 1: "CT {t. [Event e]\<^sub>E # t \<in> P}"
+        using CT_P CT_init_event p_P p_def by force
+      have 2: "CT {t. [Event e]\<^sub>E # t \<in> Q}"
+        using CT_Q CT_init_event q_Q q_def by force
+      have 3: "p' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
+        using p_def p_P by force
+      have 4: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
+        using q_def q_Q by force
+      have "CT3_trace \<sigma>"
+        using induction_hypothesis 1 2 3 4 in_p'_parcomp_q' by auto
+      then show "CT3_trace ([Event e]\<^sub>E # \<sigma>)"
+        by (cases \<sigma>, auto)
+    next
+      fix p' 
+      assume p_def: "p = [Event e]\<^sub>E # p'"
+      assume in_p'_parcomp_q: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+      have 1: "CT {t. [Event e]\<^sub>E # t \<in> P}"
+        using CT_P CT_init_event p_P p_def by force
+      have 2: "p' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
+        using p_def p_P by force
+      have "CT3_trace \<sigma>"
+        using induction_hypothesis 1 2 CT_Q q_Q in_p'_parcomp_q by auto
+      then show "CT3_trace ([Event e]\<^sub>E # \<sigma>)"
+        by (cases \<sigma>, auto)
+    next
+      fix q' 
+      assume q_def: "q = [Event e]\<^sub>E # q'"
+      assume in_p_parcomp_q': "\<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+      have 1: "CT {t. [Event e]\<^sub>E # t \<in> Q}"
+        using CT_Q CT_init_event q_Q q_def by force
+      have 2: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
+        using q_def q_Q by force
+      have "CT3_trace \<sigma>"
+        using induction_hypothesis 1 2 CT_P p_P in_p_parcomp_q' by auto
+      then show "CT3_trace ([Event e]\<^sub>E # \<sigma>)"
+        by (cases \<sigma>, auto)
+    qed
+  next
+    fix X \<sigma> P Q p q
+    assume "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then have p_q_cases: "(\<exists> p' q' X1 X2. p = [X1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [X2]\<^sub>R # [Tock]\<^sub>E # q' \<and> [[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R])
+      \<or> (\<exists> p' X1. p = [X1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [[Tick]\<^sub>E] \<and> [[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[{e. e \<noteq> Tick \<and> e \<noteq> Tock}]\<^sub>R])
+      \<or> (\<exists> q' X2. q = [X2]\<^sub>R # [Tock]\<^sub>E # q' \<and> p = [[Tick]\<^sub>E] \<and> [[X]\<^sub>R] \<in> [[{e. e \<noteq> Tick \<and> e \<noteq> Tock}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R])"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+    assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
+    assume CT_P: "CT P" and CT_Q: "CT Q"
+    show "Tock \<in> X \<Longrightarrow> False"
+      using p_q_cases
+    proof safe
+      fix p' q' X1 X2
+      assume "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
+      then have Tock_notin_X1: "Tock \<notin> X1"
+        using CT3_def CT3_trace.simps(3) CT_CT3 CT_P p_P by blast
+      assume "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
+      then have Tock_notin_X2: "Tock \<notin> X2"
+        using CT3_def CT3_trace.simps(3) CT_CT3 CT_Q q_Q by blast
+      assume "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]"
+      then have "Tock \<notin> X"
+        using Tock_notin_X1 Tock_notin_X2 by auto
+      then show "Tock \<in> X \<Longrightarrow> False"
+        by auto
+    next
+      fix p' X1
+      assume "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
+      then have Tock_notin_X1: "Tock \<notin> X1"
+        using CT3_def CT3_trace.simps(3) CT_CT3 CT_P p_P by blast
+      assume "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[{e. e \<noteq> Tick \<and> e \<noteq> Tock}]\<^sub>R]"
+      then have "Tock \<notin> X"
+        using Tock_notin_X1 by auto
+      then show "Tock \<in> X \<Longrightarrow> False"
+        by auto
+    next
+      fix p' q' X1 X2
+      assume "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
+      then have Tock_notin_X2: "Tock \<notin> X2"
+        using CT3_def CT3_trace.simps(3) CT_CT3 CT_Q q_Q by blast
+      assume "[[X]\<^sub>R] \<in> [[{e. e \<noteq> Tick \<and> e \<noteq> Tock}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]"
+      then have "Tock \<notin> X"
+        using Tock_notin_X2 by auto
+      then show "Tock \<in> X \<Longrightarrow> False"
+        by auto
+    qed
+  next
+    fix X \<sigma> P Q p q
+    assume "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then have p_q_cases: "(\<exists> p' q' X1 X2. p = [X1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [X2]\<^sub>R # [Tock]\<^sub>E # q' \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')
+      \<or> (\<exists> p' X1. p = [X1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [[Tick]\<^sub>E] \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E])
+      \<or> (\<exists> q' X2. q = [X2]\<^sub>R # [Tock]\<^sub>E # q' \<and> p = [[Tick]\<^sub>E] \<and> \<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+    assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
+    assume CT_P: "CT P" and CT_Q: "CT Q"
+    assume induction_hypothesis: "\<And>P Q p q. CT P \<Longrightarrow> CT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> CT3_trace \<sigma>"
+    show "CT3_trace \<sigma>"
+      using p_q_cases
+    proof safe
+      fix p' q' X1 X2
+      assume p_def: "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
+      assume q_def: "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
+      have 1: "CT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using CT_P CT_init_tock p_P p_def by blast
+      have 2: "CT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using CT_Q CT_init_tock q_Q q_def by blast
+      have 3: "p' \<in> {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using p_P p_def by blast
+      have 4: "q' \<in> {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using q_Q q_def by blast
+      assume "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+      then show "CT3_trace \<sigma>"
+        using induction_hypothesis 1 2 3 4 by auto
+    next
+      fix p' X1
+      assume p_def: "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
+      assume q_def: "q = [[Tick]\<^sub>E]"
+      have 1: "CT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using CT_P CT_init_tock p_P p_def by blast
+      have 2: "p' \<in> {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using p_P p_def by blast
+      assume "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+      then show "CT3_trace \<sigma>"
+        using induction_hypothesis 1 2 q_def q_Q CT_Q by auto
+    next
+      fix q' X2
+      assume q_def: "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
+      assume p_def: "p = [[Tick]\<^sub>E]"
+      have 1: "CT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using CT_Q CT_init_tock q_Q q_def by blast
+      have 2: "q' \<in> {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using q_Q q_def by blast
+      assume "\<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+      then show "CT3_trace \<sigma>"
+        using induction_hypothesis 1 2 p_def p_P CT_P by auto
+    qed
+  next
+    fix va P Q p q
+    assume "[Tock]\<^sub>E # va \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    then have "cttWF ([Tock]\<^sub>E # va)"
+      using CT_wf merge_traces_wf by blast
+    then show "CT3_trace ([Tock]\<^sub>E # va)"
+      by auto
+  next
+    fix v vc P Q p q
+    assume "[Tock]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    then have "cttWF ([Tock]\<^sub>E # v # vc)"
+      using CT_wf merge_traces_wf by blast
+    then show "CT3_trace (v # vc)"
+      by auto
+  next
+    fix v vc P Q p q
+    assume "[Tock]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    then have "cttWF ([Tock]\<^sub>E # v # vc)"
+      using CT_wf merge_traces_wf by blast
+    then show "CT3_trace (v # vc)"
+      by auto
+  next
+    fix v vc P Q p q
+    assume "[Tick]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    then have "cttWF ([Tick]\<^sub>E # v # vc)"
+      using CT_wf merge_traces_wf by blast
+    then show "CT3_trace (v # vc)"
+      by auto
+  next
+    fix vb vc P Q p q
+    assume "[Tick]\<^sub>E # vb # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    then have "cttWF ([Tick]\<^sub>E # vb # vc)"
+      using CT_wf merge_traces_wf by blast
+    then show "CT3_trace (vb # vc)"
+      by auto
+  next
+    fix va vd vc P Q p q
+    assume "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    then have "cttWF ([va]\<^sub>R # [Event vd]\<^sub>E # vc)"
+      using CT_wf merge_traces_wf by blast
+    then show "CT3_trace ([Event vd]\<^sub>E # vc)"
+      by auto
+  next
+    fix va vc P Q p q
+    assume "[va]\<^sub>R # [Tick]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    then have "cttWF ([va]\<^sub>R # [Tick]\<^sub>E # vc)"
+      using CT_wf merge_traces_wf by blast
+    then show "CT3_trace ([Tick]\<^sub>E # vc)"
+      by auto
+  next
+    fix va v vc P Q p q
+    assume "[va]\<^sub>R # [v]\<^sub>R # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    then have "cttWF ([va]\<^sub>R # [v]\<^sub>R # vc)"
+      using CT_wf merge_traces_wf by blast
+    then show "CT3_trace ([v]\<^sub>R # vc)"
+      by auto
+  qed
+qed
+
+lemma CT_ParComp:
+  assumes "CT P" "CT Q"
+  shows "CT (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  using assms unfolding CT_def apply (safe)
+  using ParCompCTT_wf apply blast
+  using CT0_ParComp unfolding CT_def apply blast
+  using CT1_ParComp unfolding CT_def apply blast
+  using CT2_ParComp unfolding CT_def apply blast
+  using CT3_ParComp unfolding CT_def apply blast
+  done
+
 section {* Refinement *}
 
 definition RefinesCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
