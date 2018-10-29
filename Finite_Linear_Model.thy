@@ -794,7 +794,7 @@ lemma length_rev3_eq:
 lemma ftrace_cons_induct_both_butlast_rev4:
   assumes "length x = length y"
           "(\<And>x y. P \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
   shows "P (butlast(rev4(x))) (butlast(rev4(y)))"
   using assms proof (induct x y rule:ftrace_cons_induct_both)
     case 1
@@ -830,16 +830,19 @@ lemma ftrace_cons_induct_both_butlast_rev4:
     also have "... = P (rev3(x) &\<^sub>\<F>\<^sub>\<L> \<langle>x1a,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (rev3(y) &\<^sub>\<F>\<^sub>\<L> \<langle>y1a,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
       by (simp add: last_bullet_butlast last_rev3_is_bullet)
     also have "... = True"
-      using assms rev3 3
-      using eq_length by blast
+      using assms rev3 3 
+      using eq_length
+      by (simp add: last_rev3_is_bullet)
     then show ?case
       using calculation by blast
   qed
 
+
+
 lemma ftrace_cons_induct_both_butlast:
   assumes "length x = length y"
           "(\<And>x y. P \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
     shows "P (butlast(x)) (butlast(y))"
 proof -
   have "P (butlast(x)) (butlast(y))
@@ -847,14 +850,14 @@ proof -
         P (butlast(rev4(rev4(x)))) (butlast(rev4(rev4(y))))"
     by (auto simp add:rev4_rev4)
   then show ?thesis
-    by (metis (no_types, lifting) assms(1) assms(2) assms(3) ftrace_cons_induct_both_butlast_rev4 last_rev3_is_bullet length.simps(1) length_cons length_rev3_eq rev4_def)
+    by (metis assms(1) assms(2) assms(3) ftrace_cons_induct_both_butlast_rev4 last_bullet_butlast_last last_rev3_is_bullet length_rev3_eq rev3_rev3_const2_last rev4_def)
 qed
 
 lemma ftrace_cons_induct_both_butlast_eq_length:
   assumes "length x = length y"
           "(\<And>x y. P \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))"
-          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
           "P (butlast(x)) (butlast(y))"
         shows "P x y"
   by (metis assms(1) assms(3) assms(5) bullet_right_zero2 butlast_last_cons2_FL last_butlast_cons_bullet length.simps(1) length_cons)
@@ -862,21 +865,93 @@ lemma ftrace_cons_induct_both_butlast_eq_length:
 lemma ftrace_cons_induct_both_eq_length:
   assumes "length x = length y"
           "(\<And>x y. P \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))"
-          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
         shows "P x y"
   by (simp add: assms(1) assms(2) assms(3) assms(4) ftrace_cons_induct_both_butlast ftrace_cons_induct_both_butlast_eq_length)
+
+(*
+lemma ftrace_cons_induct_both_eq_length2:
+  assumes "length x = length y"
+          "(\<And>x y. P \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+        shows "P x y"
+  by (smt assms(1) assms(2) assms(3) assms(4) ftrace_cons_induct_both_butlast last_bullet_butlast_last last_rev3_is_bullet length_rev3_eq rev3_rev3_const2_last)
 
 lemma ftrace_cons_induct_both_eq_length2:
   assumes "length x = length y"
           "(\<And>x y. P \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs \<noteq> \<bullet> \<Longrightarrow> last ys \<noteq> \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))"
           "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))"
-          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
+          "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
         shows "P x y"
-  by (smt assms(1) assms(2) assms(4) assms(5) bullet_right_zero2 ftrace_cons_induct_both_butlast last_bullet_butlast_last last_rev3_is_bullet length_rev3_eq rev3_rev3_const2_last)
+*)
 
-(* Possibly true as well.. which would give considerable strengthening
+(* TODO: Reprove these..
+lemma fltrace_eq_length_imp_eq_length_cons_acceptance:
+  assumes "length xs = length ys" "last xs = \<bullet>" "last ys = \<bullet>"
+  shows "length (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) = length (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms apply (induct xs ys rule:ftrace_cons_induct_both_eq_length2, auto)
+  by (simp add: length_cons)+
+
+lemma fltrace_eq_length_imp_eq_length_cons_acceptance2:
+  assumes "length xs = length ys" "last xs \<noteq> \<bullet>" "last ys \<noteq> \<bullet>"
+  shows "length (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) = length (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms apply (induct xs ys rule:ftrace_cons_induct_both_eq_length2, auto)
+  apply (metis acceptance.exhaust butlast_last_cons2_FL fltrace_concat2.simps(2) fltrace_concat2.simps(4) fltrace_concat2_assoc)
+  by (metis fltrace_concat2.simps(1) fltrace_concat2_assoc last_rev3_is_bullet length.simps(1) length_cons rev3_rev3_const2_last)
+
+lemma fltrace_eq_length_imp_neq_length:
+  assumes "length xs = length ys" "last xs \<noteq> \<bullet>" "last ys = \<bullet>"
+  shows "length (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<noteq> length (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms apply (induct xs ys rule:ftrace_cons_induct_both_eq_length2, auto)
+     apply (case_tac xa, auto)
+    apply (case_tac xa, auto)
+ 
+  apply (simp add: fltrace_concat2_assoc length_cons)
+   apply (simp add: last_dist_plus)
+apply (case_tac xa, auto, case_tac ya, auto)
+  
+  apply (metis FL_concat_equiv Finite_Linear_Model.last.simps(1) One_nat_def acceptance.exhaust add_cancel_right_right bullet_right_zero2 butlast_last_cons2_FL fltrace_concat2.simps(2) fltrace_concat2.simps(4) fltrace_concat2_assoc last_butlast_cons_bullet last_dist_plus last_fltrace_acceptance length.simps(1) length.simps(2) length_cons nat.simps(3))
+  apply (case_tac a, auto) 
+
+  apply (metis Finite_Linear_Model.last.simps(1) One_nat_def acceptance.exhaust add_cancel_right_right bullet_left_zero2 bullet_right_zero2 butlast_last_cons2_FL fltrace_concat2.simps(2) fltrace_concat2.simps(4) fltrace_concat2_assoc last_dist_plus last_fltrace_acceptance last_rev3_is_bullet length.simps(1) length.simps(2) length_cons nat.simps(3) rev3.simps(1) rev3_little_bullet)
+  apply (case_tac ya, auto)
+   apply (metis Finite_Linear_Model.last.simps(1) Finite_Linear_Model.last.simps(2) acceptance.exhaust add_cancel_right_right add_eq_self_zero bullet_left_zero2 bullet_right_zero2 butlast_last_cons2_FL fltrace_concat2.simps(2) fltrace_concat2.simps(4) fltrace_concat2_assoc last_dist_plus last_rev3_is_bullet length.simps(1) length.simps(2) length_cons rev3.simps(1) rev3_little_bullet zero_neq_one)
+
+(* Possibly true as well.. which would give considerable strengthening *)
+  by (metis Finite_Linear_Model.last.simps(1) acceptance.exhaust add_cancel_right_right add_eq_self_zero bullet_left_zero2 bullet_right_zero2 butlast_last_cons2_FL fltrace_concat2.simps(2) fltrace_concat2.simps(4) fltrace_concat2_assoc last_dist_plus last_fltrace_acceptance last_rev3_is_bullet length.simps(1) length.simps(2) length_cons rev3.simps(1) rev3_little_bullet zero_neq_one)
+
+lemma fltrace_eq_length_imp_eq_length:
+  assumes "length xs = length ys" "last xs = \<bullet>" "last ys = \<bullet>"
+  shows "length (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = length (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms apply (induct xs ys rule:ftrace_cons_induct_both_eq_length2, auto)
+  by (simp add: length_cons)+
+
+lemma fltrace_cons_eq_length_imp_eq_length:
+  assumes "length (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = length (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "last xs = \<bullet>" "last ys = \<bullet>"
+  shows "length xs = length ys"
+  using assms apply (induct xs ys rule:ftrace_cons_induct_both_eq_length2, auto)
+  by (simp add: length_cons)+
+
+lemma fltrace_eq_length_imp_eq_length2:
+  assumes "length xs = length ys" "last xs \<noteq> \<bullet>" "last ys \<noteq> \<bullet>"
+  shows "length (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = length (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms apply (induct xs ys rule:ftrace_cons_induct_both_eq_length2, auto)
+  apply (metis acceptance.exhaust fltrace_concat2.simps(4) length.simps(1))
+  apply (metis (no_types, hide_lams) Finite_Linear_Model.last.simps(1) acceptance.exhaust bullet_left_zero2 butlast_last_cons2_FL fltrace_concat2.simps(2) fltrace_concat2.simps(4) fltrace_concat2_assoc last_bullet_butlast_last last_dist_plus last_fltrace_acceptance last_rev3_is_bullet rev3.simps(1))
+  apply (metis Finite_Linear_Model.last.simps(1) acceptance.exhaust acceptance_left_zero fltrace_concat2.simps(4) fltrace_concat2_assoc last_dist_plus)
+  by (smt acceptance.exhaust butlast_last_cons2_FL fltrace_concat2.simps(4) fltrace_concat2_assoc)
+
+lemma fltrace_cons_eq_length_imp_eq_length2:
+  assumes "length (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = length (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "last xs \<noteq> \<bullet>" "last ys \<noteq> \<bullet>"
+  shows "length xs = length ys"
+  using assms apply (induct xs ys rule:ftrace_cons_induct_both_eq_length2, auto)
+  apply (metis Finite_Linear_Model.last.simps(1) acceptance.exhaust assms(1) assms(2) assms(3) butlast_last_cons2_FL fltrace_concat2.simps(2) fltrace_concat2.simps(4) fltrace_concat2_assoc)
+  apply (metis butlast_last_cons2_FL fltrace_concat2.simps(1) fltrace_concat2_assoc plus_acceptance.elims)
+  apply (simp add: length_cons)
+  by (simp add: fltrace_eq_length_imp_eq_length2 last_dist_plus)
+
 lemma ftrace_cons_induct_both_eq_length2:
   assumes "length x = length y"
           "(\<And>x y. P \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
@@ -884,8 +959,30 @@ lemma ftrace_cons_induct_both_eq_length2:
           "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))"
           "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs \<noteq> \<bullet> \<Longrightarrow> last ys \<noteq> \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
           "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
-        shows "P x y"
-  using assms(1) assms(2) assms(4) assms(5) bullet_right_zero2 ftrace_cons_induct_both_butlast last_bullet_butlast_last last_rev3_is_bullet length_rev3_eq rev3_rev3_const2_last sledgehammer[timeout=50,debug=true]
+    shows "P x y"
+ nitpick
+  apply (induct x y rule: ftrace_cons_induct_both_eq_length2)
+  using assms(1) assms(2) assms(4) assms(5) bullet_right_zero2 ftrace_cons_induct_both_butlast last_bullet_butlast_last last_rev3_is_bullet length_rev3_eq rev3_rev3_const2_last 
+ 
+  apply linarith
+ 
+     apply (simp add: assms(2))
+    apply (simp add: assms(3))
+
+  
+  apply (simp add: fltrace_eq_length_imp_eq_length_cons_acceptance2)
+   apply (simp add: assms(4)) 
+  apply (simp add: fltrace_eq_length_imp_eq_length_cons_acceptance)  apply (case_tac "last xs \<noteq> \<bullet> \<and> last ys \<noteq> \<bullet>")
+   apply (simp add: assms(5)) 
+  apply (simp add: fltrace_eq_length_imp_eq_length2) sledgehammer
+ apply (case_tac "last xs = \<bullet> \<and> last ys = \<bullet>")
+  apply auto
+  
+  apply (simp add: assms(6)) sledgehammer
+  using fltrace_eq_length_imp_eq_length apply blast
+  apply (simp add: fltrace_eq_length_imp_eq_length2)
+  apply (simp add: fltrace_eq_length_imp_eq_length_cons_acceptance2)
+  apply (simp add: assms(3))
 *)
 
 lemma fltrace_induct1:
