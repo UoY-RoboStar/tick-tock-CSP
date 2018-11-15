@@ -46,7 +46,8 @@ fun prirel :: "'a partialorder \<Rightarrow> 'a fltrace \<Rightarrow> 'a fltrace
     than event(A).\<close>
 "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
   = 
-  ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+  ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+    \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or> 
       (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
@@ -110,7 +111,7 @@ text \<open> We now show that the definition of prirel for the recursive case is
 lemma
   "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
   = 
-  ((prirel p aa zz) \<and> event(A) = event(Z) \<and>
+  ((prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
     ((maximal(p,event(A)) \<and> acceptance(A) = \<bullet>)
     \<or>
     (\<not>maximal(p,event(A)) \<and> acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
@@ -120,7 +121,7 @@ lemma
   "
 proof -
   have "
-    ((prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
     ((maximal(p,event(A)) \<and> acceptance(A) = \<bullet>)
     \<or>
     (\<not>maximal(p,event(A)) \<and> acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
@@ -128,7 +129,7 @@ proof -
     (acceptance(A) \<noteq> \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> acceptance(A) = [{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>)
     ))
   =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
     (acceptance(A) = \<bullet> \<and>
        (maximal(p,event(A))
         \<or>
@@ -137,19 +138,19 @@ proof -
      (acceptance(A) \<noteq> \<bullet> \<and> acceptance(Z) \<noteq> \<bullet>)))"
     using prirelacc_acceptances_eq by auto
   also have "... =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (acceptance(A) = \<bullet> \<and> (maximal(p,event(A)) \<or> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
      \<or>
      (acceptance(A) \<noteq> \<bullet>)))"
     using acceptance_not_bullet_imp_prirelacc by auto
   also have "... =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((maximal(p,event(A)) \<or> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
      \<or>
      (acceptance(A) \<noteq> \<bullet>)))"
     by auto
   also have "... =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or> 
       (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
@@ -157,7 +158,7 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
     using maximal_not_exists_higher by auto
   also have "... =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z)
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>)
        \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b) \<and>
       (maximal(p,event(A)) 
        \<or> 
@@ -166,7 +167,10 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
     apply auto
     using maximal_not_exists_higher apply blast
-    using prirelacc_acceptance_not_bullet_imp by fastforce
+     apply (case_tac A, auto, case_tac a, auto)
+    apply (metis acceptance.distinct(1) acceptance_event acceptance_set amember.simps(2) prirelacc_acceptance_not_bullet_imp)
+    apply (case_tac A, auto)
+  by (simp add: some_higher_not_maximal)
   then show ?thesis
     using calculation by auto
 qed
@@ -194,7 +198,7 @@ fun prirelAlt :: "'a partialorder \<Rightarrow> 'a fltrace \<Rightarrow> 'a fltr
 "prirelAlt p (A #\<^sub>\<F>\<^sub>\<L> aa) \<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L> = False" |
 "prirelAlt p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
   = ((prirelaccAlt p (acceptance A) (acceptance Z)) \<and> (prirelAlt p aa zz) \<and> event(A) = event(Z)
-      \<and> (acceptance(Z) = \<bullet> \<longrightarrow> maximal(p,event(A))))"
+      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (acceptance(Z) = \<bullet> \<longrightarrow> maximal(p,event(A))))"
 
 text \<open>Observe, that, in general, the recursive case for the relation is not equivalent. \<close>
 
@@ -395,6 +399,7 @@ next
       apply auto
           apply (intro exI[where x="(acceptance(Z),event(Z))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> C"], auto)
       using C apply blast
+      apply (cases A, auto)
        apply (simp add: less_eq_aevent_def)
     using C by blast
   qed
@@ -613,8 +618,9 @@ lemma prirel_less_eq_imp:
      apply (metis less_eq_acceptance.elims(2) prirelacc.simps(1))
     apply (metis less_eq_acceptance.elims(2) prirelacc.simps(1))
    apply (cases Z, auto, cases A, auto, cases B, auto, case_tac a, auto)
-  by (cases Z, auto, cases A, auto, cases B, auto, case_tac a, auto, case_tac aa, auto)
-
+  apply (cases Z, auto, cases A, auto, cases B, auto, case_tac a, auto, case_tac aa, auto)
+   apply (cases B, auto, cases A, auto, case_tac a, auto)
+  by (cases B, auto, cases Z, auto, cases A, auto, case_tac a, auto, case_tac aa, auto)
 (*
 lemma prirel_refl_if_any_acceptance:
   assumes "prirel p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
@@ -774,7 +780,8 @@ lemma prirel_cons_bullet_iff_exists:
    apply (cases x, auto)
   apply (case_tac x21, auto, case_tac aa, auto)
    apply (case_tac x21, auto, case_tac aa, auto)
-  by (case_tac x21, auto, case_tac aa, auto)
+   apply (case_tac x21, auto, case_tac aa, auto)
+  by (case_tac x21, auto)
 
 lemma priAlt_PrefixAlt_eq_PrefixAlt_priAlt:
   assumes "FL1 P"
