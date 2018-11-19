@@ -35,7 +35,7 @@ text \<open> Pri is defined by the relation prirel below. The recursive case has
 
 fun prirel :: "'a partialorder \<Rightarrow> 'a fltrace \<Rightarrow> 'a fltrace \<Rightarrow> bool" where
 \<comment> \<open>The base case of this relation is given by prirelacc. \<close>
-"prirel p \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L> = (prirelacc p A Z)" |
+"prirel p \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L> = (prirelacc p A Z \<and> (A = \<bullet> \<longrightarrow> Z = \<bullet>))" |
 \<comment> \<open>The relation is defined for sequences of the same length. Observe, however,
     that this would not preclude the definition of a weaker relation whereby a
     longer sequence is related to a shorter sequence (see definition commented out). \<close>
@@ -46,7 +46,8 @@ fun prirel :: "'a partialorder \<Rightarrow> 'a fltrace \<Rightarrow> 'a fltrace
     than event(A).\<close>
 "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
   = 
-  ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+  ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+    \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or> 
       (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
@@ -110,7 +111,7 @@ text \<open> We now show that the definition of prirel for the recursive case is
 lemma
   "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
   = 
-  ((prirel p aa zz) \<and> event(A) = event(Z) \<and>
+  ((prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
     ((maximal(p,event(A)) \<and> acceptance(A) = \<bullet>)
     \<or>
     (\<not>maximal(p,event(A)) \<and> acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
@@ -120,7 +121,7 @@ lemma
   "
 proof -
   have "
-    ((prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
     ((maximal(p,event(A)) \<and> acceptance(A) = \<bullet>)
     \<or>
     (\<not>maximal(p,event(A)) \<and> acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
@@ -128,7 +129,7 @@ proof -
     (acceptance(A) \<noteq> \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> acceptance(A) = [{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>)
     ))
   =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
     (acceptance(A) = \<bullet> \<and>
        (maximal(p,event(A))
         \<or>
@@ -137,19 +138,19 @@ proof -
      (acceptance(A) \<noteq> \<bullet> \<and> acceptance(Z) \<noteq> \<bullet>)))"
     using prirelacc_acceptances_eq by auto
   also have "... =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (acceptance(A) = \<bullet> \<and> (maximal(p,event(A)) \<or> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
      \<or>
      (acceptance(A) \<noteq> \<bullet>)))"
     using acceptance_not_bullet_imp_prirelacc by auto
   also have "... =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((maximal(p,event(A)) \<or> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
      \<or>
      (acceptance(A) \<noteq> \<bullet>)))"
     by auto
   also have "... =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or> 
       (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
@@ -157,7 +158,7 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
     using maximal_not_exists_higher by auto
   also have "... =
-    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z)
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>)
        \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b) \<and>
       (maximal(p,event(A)) 
        \<or> 
@@ -166,7 +167,10 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
     apply auto
     using maximal_not_exists_higher apply blast
-    using prirelacc_acceptance_not_bullet_imp by fastforce
+     apply (case_tac A, auto, case_tac a, auto)
+    apply (metis acceptance.distinct(1) acceptance_event acceptance_set amember.simps(2) prirelacc_acceptance_not_bullet_imp)
+    apply (case_tac A, auto)
+  by (simp add: some_higher_not_maximal)
   then show ?thesis
     using calculation by auto
 qed
@@ -194,7 +198,7 @@ fun prirelAlt :: "'a partialorder \<Rightarrow> 'a fltrace \<Rightarrow> 'a fltr
 "prirelAlt p (A #\<^sub>\<F>\<^sub>\<L> aa) \<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L> = False" |
 "prirelAlt p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
   = ((prirelaccAlt p (acceptance A) (acceptance Z)) \<and> (prirelAlt p aa zz) \<and> event(A) = event(Z)
-      \<and> (acceptance(Z) = \<bullet> \<longrightarrow> maximal(p,event(A))))"
+      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (acceptance(Z) = \<bullet> \<longrightarrow> maximal(p,event(A))))"
 
 text \<open>Observe, that, in general, the recursive case for the relation is not equivalent. \<close>
 
@@ -213,7 +217,9 @@ lemma prirel_concatFL_acceptance1:
   shows "prirel p x (xs &\<^sub>\<F>\<^sub>\<L> \<langle>xa\<rangle>\<^sub>\<F>\<^sub>\<L>)"
   using assms apply (induct p x xs rule:prirel.induct, auto)
   apply (case_tac xa, auto)
-  by (case_tac Z, auto, case_tac A, auto)
+    apply (case_tac Z, auto, case_tac A, auto)
+   apply (case_tac A, auto)
+  oops
 
 (*
 lemma prirel_concatFL_acceptance2:
@@ -234,6 +240,7 @@ lemma prirelAlt_imp_prirel:
   shows "prirel p x Z"
   using assms apply (induct p x Z rule:prirel.induct, auto)
   using prirelaccAlt_imp_prirelacc apply auto
+  apply (case_tac Za, auto)
   by (smt amember.elims(2) prirelaccAlt.simps(4) prirelaccAlt_imp_prirelacc prirelacc_acceptance_not_bullet_imp)
 
 lemma prirelaccAlt_eq_event_imp_priority_choice:
@@ -285,9 +292,10 @@ proof (induct p t Z arbitrary:s rule:prirel.induct)
   then show ?case 
     apply (cases s, auto)
     apply (cases A, auto, cases Z, auto)
-    using "1.prems"(2) less_eq_acceptance.elims(2) apply blast
-    using "1.prems"(2) dual_order.antisym less_eq_acceptance.simps(1) apply blast
-    by (metis less_eq_acceptance.elims(2) order_refl prirel.simps(1) prirelacc.simps(1))
+    using "1.prems"(2) less_eq_acceptance.elims(2) 
+    apply (metis bullet_left_zero2 order_refl prirel.simps(1) prirelacc.simps(1) x_le_x_concat2)
+    using "1.prems"(2) dual_order.antisym less_eq_acceptance.simps(1) 
+    by (metis "1.prems"(1) prirelacc.elims(2) prirelacc.simps(3))
 next
   case (2 p A Z zz)
   then show ?case by auto
@@ -351,10 +359,8 @@ proof (induct p x Z rule:prirel.induct)
   case (1 p A Z)
   then show ?case
     apply auto
-    apply (case_tac A, auto, case_tac Z, auto)
-      apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], simp)
-     apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], simp)
-    by (rule exI[where x="\<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L>"], simp)
+     apply (case_tac A, auto, case_tac Z, auto)
+  using "1.prems" by blast+
 next
   case (2 p A Z zz)
   then show ?case 
@@ -393,6 +399,7 @@ next
       apply auto
           apply (intro exI[where x="(acceptance(Z),event(Z))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> C"], auto)
       using C apply blast
+      apply (cases A, auto)
        apply (simp add: less_eq_aevent_def)
     using C by blast
   qed
@@ -611,8 +618,9 @@ lemma prirel_less_eq_imp:
      apply (metis less_eq_acceptance.elims(2) prirelacc.simps(1))
     apply (metis less_eq_acceptance.elims(2) prirelacc.simps(1))
    apply (cases Z, auto, cases A, auto, cases B, auto, case_tac a, auto)
-  by (cases Z, auto, cases A, auto, cases B, auto, case_tac a, auto, case_tac aa, auto)
-
+  apply (cases Z, auto, cases A, auto, cases B, auto, case_tac a, auto, case_tac aa, auto)
+   apply (cases B, auto, cases A, auto, case_tac a, auto)
+  by (cases B, auto, cases Z, auto, cases A, auto, case_tac a, auto, case_tac aa, auto)
 (*
 lemma prirel_refl_if_any_acceptance:
   assumes "prirel p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
@@ -713,7 +721,7 @@ lemma FL1_some_prirelAlt:
   by (simp add: prirelAlt_bullet_refl_iff)
 
 lemma prirel_rhs_singleton_iff:
-  "prirel p x \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (x = \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> x = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  "prirel p x \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (x = \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
   by (cases x, auto, case_tac x1, auto)
 
 lemma prirel_cons_imp_exists:
@@ -736,18 +744,24 @@ next
          apply (metis acceptance.distinct(1) amember.elims(2) fltrace.exhaust fltrace.inject(1) prirel.simps(1) prirel.simps(2) prirel_rhs_singleton_iff prirelacc.simps(1))
          apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], case_tac x1, auto)
          apply (metis acceptance.distinct(1) amember.elims(2) fltrace.exhaust fltrace.inject(1) prirel.simps(1) prirel.simps(2) prirel_rhs_singleton_iff prirelacc.simps(1))
-    apply (cases aa, auto, case_tac x1, auto)
-         apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+      apply (cases aa, auto, case_tac x1, auto)
+    
+    apply (metis "3.prems" acceptance.simps(3) amember.elims(2) fltrace.inject(1) prirel.simps(1) prirel_cons_imp2 prirel_rhs_singleton_iff)
+   
+     apply (metis Finite_Linear_Model.last.simps(1) prirel.simps(1) prirel_rhs_singleton_iff)
+   
+   by (metis Finite_Linear_Model.last.simps(1) prirel.simps(1) prirel_rhs_singleton_iff)
+(*     apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
          apply (metis acceptance.distinct(1) amember.elims(2) fltrace.exhaust fltrace.inject(1) prirel.simps(1) prirel.simps(2) prirel_rhs_singleton_iff prirelacc.simps(1))
       apply (rule_tac x="\<langle>[{a \<in> x2. \<forall>b. b \<in> x2 \<longrightarrow> \<not> a <\<^sup>*p b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
          apply (metis acceptance.distinct(1) amember.elims(2) fltrace.exhaust fltrace.inject(1) prirel.simps(1) prirel.simps(2) prirel_rhs_singleton_iff prirelacc.simps(1))
     apply (metis acceptance.distinct(1) amember.elims(2) fltrace.inject(1) prirel.simps(1) prirel_rhs_singleton_iff)
-    by (metis fltrace.inject(1) prirel.simps(1) prirel_rhs_singleton_iff)
+    by (metis fltrace.inject(1) prirel.simps(1) prirel_rhs_singleton_iff)*)
 next
   case (4 p A aa Z zz)
   then show ?case
     apply (cases A, cases Z, auto)
-    by (metis (no_types, lifting) prirelacc.elims(2) prirelacc.simps(2) prirelacc_singleton)+
+    by (metis Finite_Linear_Model.last.simps(1) prirel.simps(1) prirel_rhs_singleton_iff)+
 qed
 
 lemma prirel_cons_iff_exists:
@@ -766,25 +780,28 @@ lemma prirel_cons_bullet_iff_exists:
    apply (cases x, auto)
   apply (case_tac x21, auto, case_tac aa, auto)
    apply (case_tac x21, auto, case_tac aa, auto)
-  by (case_tac x21, auto, case_tac aa, auto)
+   apply (case_tac x21, auto, case_tac aa, auto)
+  by (case_tac x21, auto)
 
 lemma priAlt_PrefixAlt_eq_PrefixAlt_priAlt:
   assumes "FL1 P"
   shows "pri p (PrefixAlt a P) = (PrefixAlt a (pri p P))"
   unfolding PrefixAlt_def pri_def prefixH_def apply auto
   apply (auto simp add:prirel_rhs_singleton_iff)
-  apply (metis FL0_FL1_bullet_in FL0_def assms empty_iff prirel.simps(1) prirelacc.simps(1))
-         apply (metis FL0_FL1_bullet_in FL0_def assms empty_iff prirel.simps(1) prirelacc.simps(1))
-  apply (metis FL0_FL1_bullet_in FL0_def assms empty_iff prirel_concatFL_acceptance1 prirel_rhs_singleton_iff rev3.simps(1) rev3_rev3_const2_last)
-       apply (meson prirel_cons_imp_exists)
-      apply (auto simp add: prirel_cons_bullet_iff_exists)
+         apply (metis FL0_FL1_bullet_in FL0_def assms empty_iff prirel.simps(1) prirelacc.simps(1)) 
+  apply (metis FL0_FL1_bullet_in_so acceptance.exhaust assms fltrace.exhaust prirel.simps(1) prirel.simps(3) prirelacc.simps(3))
+   apply (meson prirel_cons_imp_exists)
+      apply (meson prirel_cons_bullet_iff_exists)
+  apply (meson prirel_rhs_singleton_iff)
+  using prirel.simps(1) prirelacc.simps(1) apply blast
+     apply (metis prirel_cons_iff_exists)
   by force+
 
 lemma pri_Prefix_eq_Prefix_pri:
   shows "pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) = (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> (pri p P))"
   unfolding Prefix_def pri_def prefixH_def apply auto
-  apply (simp add: prirel_rhs_singleton_iff)
-  using prirel_concatFL_acceptance1 prirel_rhs_singleton_iff apply fastforce
+         apply (simp add: prirel_rhs_singleton_iff)
+  apply (metis acceptance.exhaust fltrace.exhaust prirel.simps(1) prirel.simps(3) prirelacc.simps(3))
   apply (meson prirel_cons_imp_exists)
   apply (meson prirel_cons_bullet_iff_exists)
   apply force
@@ -793,7 +810,7 @@ lemma pri_Prefix_eq_Prefix_pri:
   by (metis prirel_cons_iff_exists)
 
 lemma prirel_singleton_set_iff:
-  "prirel p A \<langle>[X]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (A = \<langle>[{a. a \<in> X \<and> \<not>(\<exists>b. b \<in> X \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> A = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  "prirel p A \<langle>[X]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (A = \<langle>[{a. a \<in> X \<and> \<not>(\<exists>b. b \<in> X \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
   apply auto
   by (cases A, auto, case_tac x1, auto)
 
@@ -804,7 +821,7 @@ lemma prirel_singleton_set_iff_diff:
   by blast
 
 lemma prirel_singleton_set_iff_diff2:
-  "prirel p A \<langle>[X]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (A = \<langle>[X - {a. a \<in> X \<and> (\<exists>b. b \<in> X \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> A = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  "prirel p A \<langle>[X]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (A = \<langle>[X - {a. a \<in> X \<and> (\<exists>b. b \<in> X \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
   apply (cases A, auto)
   by (case_tac x1, auto)
 
@@ -842,17 +859,49 @@ lemma prirel_cons_iff_exists_less_eq_twoset:
 lemma prirel_ExtChoice_extends:
   assumes "b <\<^sup>*p a"
   shows "(\<exists>A B X. prirel p R X \<and> ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)) = (\<exists>A. prirel p R A \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P))"
-  using assms unfolding Prefix_def apply auto
-  apply auto
-                  apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+  using assms unfolding Prefix_def apply (safe, simp_all)
+                     apply auto[4]
+                  apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
   apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-  apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-  apply (simp_all add: prirel_cons_bullet_iff_exists some_higher_not_maximal)
-                 apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+                 apply (metis prirel_cons_bullet_iff_exists some_higher_not_maximal)   
+                apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+                 apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
+               apply (simp_all add: prirel_cons_bullet_iff_exists some_higher_not_maximal)
+ apply blast apply safe
+                 apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
              apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-            apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
+            apply (metis prirel_rel_less_eq_twoset)
+   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
             apply (simp add: prirel_rel_less_eq_twoset)
   using prirel_rel_less_eq_twoset apply fastforce
+                   apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+                  apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+  apply (simp_all add: prirel_cons_bullet_iff_exists some_higher_not_maximal)
+             apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+            apply (metis prirel_cons_also_prirel)
+  apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+  
+          apply (metis prirel_cons_also_prirel)+
+     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+    apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+  apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+  apply (metis acceptance.simps(3) partialorder.less_imp_le preirelacc_a_removed prirel.simps(1) prirel_rhs_singleton_iff)
+    apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
+    apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
+    apply (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
+   apply (simp_all add: prirel_cons_iff_exists_less_eq_twoset prirel_cons_imp_exists)
+  by (metis ExtChoiceH.simps(3) ExtChoiceH_sym acceptance_event acceptance_set aunion.simps(2) prirel_cons_bullet_iff_exists)
+(*apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto, rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+  apply (rule_tac x="(\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
+apply (rule_tac x="(\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
+  apply (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
+  apply (simp add: prirel_cons_iff_exists_less_eq_twoset prirel_cons_imp_exists)
+   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
+   apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+by (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)   apply (metis (full_types) insert_commute partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel.simps(1) prirel_rhs_singleton_iff prirel_singleton_set_iff)
+   
+apply (simp add: prirel_cons_iff_exists_less_eq_twoset prirel_cons_imp_exists)
       apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto, rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, rule_tac x="\<langle>[{a,b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
   apply (metis (full_types) insert_commute partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel.simps(1) prirel_rhs_singleton_iff prirel_singleton_set_iff)
     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto, rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
@@ -863,7 +912,7 @@ apply (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^s
    apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
    apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
 by (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
-
+*)
 lemma pri_ExtChoice_two_prefixes:
   assumes "b <\<^sup>*p a" "FL1 P"
   shows "pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
@@ -914,7 +963,7 @@ lemma prirel_cons_eq_length_imp:
   shows "prirel p xs ys"
   using assms apply(induct xs ys rule:prirel.induct, auto)
   apply (case_tac A, auto)
-  by (case_tac Z, auto)
+  by (case_tac Z, auto)+
 
 lemma prirel_cons_eq_length_imp_prirel_acceptances:
   assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "length xs = length ys" "last xs = \<bullet>"
@@ -960,7 +1009,7 @@ lemma prirel_last_bullets_cons_imp:
   shows "(x = \<bullet>) \<or> (\<exists>xA yA. x = [xA]\<^sub>\<F>\<^sub>\<L> \<and> y = [yA]\<^sub>\<F>\<^sub>\<L>)"
   using assms apply (induct p xs ys rule:prirel.induct, auto)
    apply (induct x y rule:prirelacc.induct, auto)
-  by (induct x y rule:prirelacc.induct, auto)
-
+  apply (induct x y rule:prirelacc.induct, auto)
+  by (cases x, auto)+
 
 end

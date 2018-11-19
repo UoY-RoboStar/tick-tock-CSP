@@ -252,7 +252,8 @@ proof -
   then have "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
     =
     (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> 
-      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock 
+      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or> 
       (\<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> [{z. z \<notin> ref}]\<^sub>\<F>\<^sub>\<L> \<and> event(A) <\<^sup>*p b))
@@ -263,7 +264,8 @@ proof -
   also have "...
     =
     (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> 
-      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock
+        \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or> 
       (\<not>(\<exists>b. b \<notin> ref \<and> event(A) <\<^sup>*p b))
@@ -274,7 +276,8 @@ proof -
   also have "...
     =
     (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> 
-      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock
+        \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (acceptance(A) = \<bullet> \<or> acceptance(A) \<noteq> \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or> 
@@ -285,7 +288,8 @@ proof -
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock \<and> 
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((acceptance(A) = \<bullet> \<and> 
         (maximal(p,event(A)) 
         \<or> 
@@ -295,7 +299,8 @@ proof -
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock \<and> 
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+     \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> 
       ((acceptance(A) = \<bullet> \<and> 
         (maximal(p,event(A)) 
         \<or> 
@@ -305,7 +310,8 @@ proof -
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock \<and> 
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> 
       ((acceptance(A) = \<bullet> \<and> 
         (maximal(p,event(A)) 
         \<or> 
@@ -316,7 +322,8 @@ proof -
     by blast
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((acceptance(A) = \<bullet> \<and> 
         (maximal(p,event(A)) 
         \<or> 
@@ -326,7 +333,8 @@ proof -
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((flt2cttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
@@ -336,7 +344,8 @@ proof -
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((flt2cttobs(A #\<^sub>\<F>\<^sub>\<L> aa) = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
@@ -440,7 +449,8 @@ proof -
   then have "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
     =
     (flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [] \<and> 
-      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock 
+      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or>
       acceptance(A) \<noteq> \<bullet>))
@@ -491,7 +501,8 @@ proof -
       using assms(2) by auto
     then have "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
       =
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+        \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A))
        \<or> 
       (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
@@ -499,7 +510,8 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
       by auto
     also have "... =
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+        \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ctA = [event A]\<^sub>E # flt2cttobs(aa) \<and>
       (maximal(p,event(A))
        \<or> 
@@ -508,7 +520,8 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
       using assms by auto
     also have "... =
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+        \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ctA = [event A]\<^sub>E # flt2cttobs(aa) \<and>
        (maximal(p,event(A))
        \<or> 
@@ -517,7 +530,8 @@ proof -
        acceptance(A) \<noteq> \<bullet>))"
       using assms by auto
     also have "... =
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+        \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ctA = [event Z]\<^sub>E # flt2cttobs(aa) \<and>
       (maximal(p,event(Z))
        \<or> 
@@ -526,7 +540,8 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
       by auto
     then have p1:"prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = 
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+        \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ctA = [event Z]\<^sub>E # flt2cttobs(aa) \<and>
       (maximal(p,event(Z))
        \<or> 
@@ -536,7 +551,7 @@ proof -
       using calculation assms by auto
 
     then have "(prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)) =
-      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs(aa) \<and>
+      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs(aa) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ((maximal(p,event(A)) \<and> acceptance(A) = \<bullet> \<and> event(A) = event(Z))
          \<or> 
         (acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b) \<and> event(A) = event(Z))
@@ -544,7 +559,7 @@ proof -
         (prirelacc p (acceptance A) (acceptance Z) \<and> acceptance(A) \<noteq> \<bullet> \<and> event(A) = event(Z))))"
       by auto
     also have "... =
-      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs(aa) \<and>
+      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs(aa) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ((maximal(p,event(A)) \<and> acceptance(A) = \<bullet> \<and> event(A) = event(Z))
          \<or> 
         (acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(Z) <\<^sup>*p b))
@@ -577,7 +592,8 @@ proof -
       by auto
 
     finally show ?thesis
-        using \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>))\<close> \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> (\<exists>R S. prirelref p S = R \<and> flt2cttobs \<langle>acceptance A\<rangle>\<^sub>\<F>\<^sub>\<L> = [[R]\<^sub>R] \<and> flt2cttobs \<langle>acceptance Z\<rangle>\<^sub>\<F>\<^sub>\<L> = [[S]\<^sub>R])))\<close> \<open>prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> by auto
+      using \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>))\<close> \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> (\<exists>R S. prirelref p S = R \<and> flt2cttobs \<langle>acceptance A\<rangle>\<^sub>\<F>\<^sub>\<L> = [[R]\<^sub>R] \<and> flt2cttobs \<langle>acceptance Z\<rangle>\<^sub>\<F>\<^sub>\<L> = [[S]\<^sub>R])))\<close> \<open>prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> by auto
+        
   qed
 
 lemma flt2cttobs_consFL_eq_Nil: "flt2cttobs (A #\<^sub>\<F>\<^sub>\<L> fl) = [] \<longleftrightarrow> event(A) = Tock \<and> acceptance(A) = \<bullet>"
@@ -697,10 +713,11 @@ definition after :: "('e cttobs) list \<Rightarrow> ('e cttobs) list set \<Right
 
 fun prirelRef :: "('e cttevent) partialorder \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list set \<Rightarrow> bool" where
 "prirelRef p [] [] s Q = True" |
-"prirelRef p [] [[R]\<^sub>R] s Q = True" |
-"prirelRef p [] ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q = ((\<forall>b. (Tock <\<^sup>*p b) \<longrightarrow> b \<in> S) \<and> prirelRef p [] zz (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) Q)" |
+(*"prirelRef p [] [[R]\<^sub>R] s Q = True" |*)
+(* Very likely unnecessary case: 
+"prirelRef p [] ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q = ((\<forall>b. (Tock <\<^sup>*p b) \<longrightarrow> b \<in> S) \<and> prirelRef p [] zz (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) Q)" |*)
 "prirelRef p [[R]\<^sub>R] [[S]\<^sub>R] s Q = (prirelref p S = R)" |
-"prirelRef p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q = ((R = prirelref p S) \<and> prirelRef p aa zz (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) Q)" |
+"prirelRef p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q = ((R = prirelref p S) \<and> Tock \<notin> R \<and> prirelRef p aa zz (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) Q)" |
 "prirelRef p ([e\<^sub>1]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) s Q
  = 
  (e\<^sub>1 = e\<^sub>2 \<and> prirelRef p aa zz (s @ [[e\<^sub>1]\<^sub>E]) Q \<and>
