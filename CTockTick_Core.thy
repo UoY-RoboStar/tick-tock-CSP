@@ -307,8 +307,44 @@ lemma ctt_prefix_subset_same_front: "s \<lesssim>\<^sub>C t = (r @ s \<lesssim>\
 lemma ctt_prefix_subset_concat: "r \<lesssim>\<^sub>C s @ t \<Longrightarrow> r \<lesssim>\<^sub>C s \<or> (\<exists> t'. t' \<lesssim>\<^sub>C t \<and> r \<subseteq>\<^sub>C s @ t')"
   by (induct r s rule:ctt_prefix_subset.induct, auto, rule_tac x="x # xa" in exI, auto simp add: ctt_subset_refl)
 
+lemma ctt_prefix_subset_concat2: "r \<lesssim>\<^sub>C s @ t \<Longrightarrow> r \<lesssim>\<^sub>C s \<or> (\<exists> t' s'. s' \<subseteq>\<^sub>C s \<and> t' \<lesssim>\<^sub>C t \<and> r = s' @ t')"
+  apply (induct r s rule:ctt_prefix_subset.induct, auto)
+  apply (erule_tac x="t'" in allE, auto, erule_tac x="[X]\<^sub>R # s'" in allE, auto)
+  apply (erule_tac x="t'" in allE, auto, erule_tac x="[y]\<^sub>E # s'" in allE, auto)
+  apply (rule_tac x="x # xa" in exI, auto simp add: ctt_subset_refl)
+  done
+
 lemma cttWF_prefix_is_cttWF: "cttWF (s @ t) \<Longrightarrow> cttWF s"
   using ctt_prefix_concat ctt_prefix_imp_prefix_subset ctt_prefix_subset_cttWF by blast
+
+lemma cttWF_end_refusal_prefix_subset: "cttWF (s @ [[X]\<^sub>R]) \<Longrightarrow> t \<lesssim>\<^sub>C s @ [[X]\<^sub>R] \<Longrightarrow> 
+  (\<exists> r Y. t = r @ [[Y]\<^sub>R]) \<or> (\<exists> r Y. t = r @ [[Y]\<^sub>R, [Tock]\<^sub>E]) \<or> (\<exists> r e. t = r @ [[Event e]\<^sub>E]) \<or> t = []"
+  apply (induct s t rule:cttWF2.induct, auto)
+  using cttWF.simps(12) ctt_prefix_subset_cttWF apply blast
+  apply (meson cttWF.simps(11) ctt_prefix_subset_cttWF)
+  using cttWF.simps(13) ctt_prefix_subset_cttWF apply blast
+  using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
+  using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
+
+lemma cttWF_end_Event_prefix_subset: "cttWF (s @ [[Event e]\<^sub>E]) \<Longrightarrow> t \<lesssim>\<^sub>C s @ [[Event e]\<^sub>E] \<Longrightarrow> 
+  (\<exists> r Y. t = r @ [[Y]\<^sub>R]) \<or> (\<exists> r Y. t = r @ [[Y]\<^sub>R, [Tock]\<^sub>E]) \<or> (\<exists> r e. t = r @ [[Event e]\<^sub>E]) \<or> t = []"
+  apply (induct s t rule:cttWF2.induct, auto)
+  using ctt_prefix_subset_antisym apply fastforce
+  using cttWF.simps(12) ctt_prefix_subset_cttWF apply blast
+  apply (meson cttWF.simps(11) ctt_prefix_subset_cttWF)
+  using cttWF.simps(13) ctt_prefix_subset_cttWF apply blast
+  using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
+  using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
+
+lemma cttWF_end_Tock_prefix_subset: "cttWF (s @ [[Tock]\<^sub>E]) \<Longrightarrow> t \<lesssim>\<^sub>C s @ [[Tock]\<^sub>E] \<Longrightarrow> 
+  (\<exists> r Y. t = r @ [[Y]\<^sub>R]) \<or> (\<exists> r Y. t = r @ [[Y]\<^sub>R, [Tock]\<^sub>E]) \<or> (\<exists> r e. t = r @ [[Event e]\<^sub>E]) \<or> t = []"
+  apply (induct s t rule:cttWF2.induct, auto)
+  using ctt_prefix_subset_antisym apply fastforce
+  using cttWF.simps(12) ctt_prefix_subset_cttWF apply blast
+  apply (meson cttWF.simps(11) ctt_prefix_subset_cttWF)
+  using cttWF.simps(13) ctt_prefix_subset_cttWF apply blast
+  using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
+  using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
 
 section {* Healthiness Conditions *}
 
