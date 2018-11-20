@@ -79,20 +79,6 @@ lemma flt2cttobs_flt2goodTock_less_eq_exists:
   shows "flt2goodS p fl"
   nitpick
 
-(* FIXME: Move to CTockTick.thy *)
-lemma CT3_trace_cons_imp_cons [simp]:
-  assumes "CT3_trace (a # fl)"
-  shows "CT3_trace fl"
-  using assms apply (cases a, auto)
-  apply(induct fl rule:CT3_trace.induct, auto)
-  apply(induct fl rule:CT3_trace.induct, auto)
-  by (case_tac va, auto)
-
-lemma cttWF_cons_hd_not_Tock_then_cttWF:
-  assumes "cttWF (a # fl)" "hd fl \<noteq> [Tock]\<^sub>E"
-  shows "cttWF fl"
-  by (metis (no_types, lifting) assms(1) assms(2) cttWF.elims(2) cttWF.simps(1) list.discI list.inject list.sel(1))
-
 lemma flt2cttobs_exists_flt2goodS_for_cttWF_CT3_trace:
   assumes "cttWF fl" "CT3_trace fl"
   shows "\<exists>zr. (flt2cttobs zr) = fl \<and> flt2goodS p zr"
@@ -1200,6 +1186,7 @@ next
   fix S sa Q fl zr
   assume assm1:"prirelRef pa (flt2cttobs fl) (flt2cttobs zr) (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
   assume assm2:"prirel pa fl zr"
+  assume assm3:"Tock \<notin> prirelref pa S"
   assume assm4:"Tock \<notin> S"
   show "\<exists>fla zra. prirel pa fla zra 
           \<and> flt2cttobs fla = [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # flt2cttobs fl 
@@ -1207,10 +1194,10 @@ next
   proof -
     have "prirelRef pa ([prirelref pa S]\<^sub>R # [Tock]\<^sub>E # (flt2cttobs fl)) 
                        ([S]\<^sub>R # [Tock]\<^sub>E # (flt2cttobs zr)) sa Q"
-      by (simp add: assm1)
+      by (simp add: assm1 assm3)
     have tocks:"Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> prirelref pa S}]\<^sub>\<F>\<^sub>\<L>"
                "Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> S}]\<^sub>\<F>\<^sub>\<L>"
-      apply (metis CT3_trace.simps(3) CT3_trace_flt2cttobs \<open>prirelRef pa ([prirelref pa S]\<^sub>R # [Tock]\<^sub>E # flt2cttobs fl) ([S]\<^sub>R # [Tock]\<^sub>E # flt2cttobs zr) sa Q\<close> amember.simps(2) mem_Collect_eq xp)
+      apply (metis CT3_trace.simps(3) flt2cttobs_is_CT3_trace \<open>prirelRef pa ([prirelref pa S]\<^sub>R # [Tock]\<^sub>E # flt2cttobs fl) ([S]\<^sub>R # [Tock]\<^sub>E # flt2cttobs zr) sa Q\<close> amember.simps(2) mem_Collect_eq xp)
       by (simp_all add:  assm4)
 
     obtain fla where fla:"fla = \<langle>([{x. x \<notin> prirelref pa S}]\<^sub>\<F>\<^sub>\<L>,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" by auto
@@ -1239,7 +1226,7 @@ next
 next
   fix pa::"'a cttevent partialorder"
   fix aa e\<^sub>2 zz sa Q
-  assume assm0:"(CT3_trace zz \<Longrightarrow> cttWF zz \<Longrightarrow> \<exists>fl zr. prirel pa fl zr \<and> flt2cttobs fl = aa \<and> flt2cttobs zr = zz)"
+  assume assm0:"(cttWF zz \<Longrightarrow> \<exists>fl zr. prirel pa fl zr \<and> flt2cttobs fl = aa \<and> flt2cttobs zr = zz)"
   assume assm1:"prirelRef pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
   assume assm2:"maximal(pa,e\<^sub>2)"
   assume assm4:"CT3_trace ([e\<^sub>2]\<^sub>E # zz)"
@@ -1250,7 +1237,8 @@ next
     using assm0 assm4 CT3_trace_cons_imp_cons by auto
   from assm5 have e2_not_Tock:"e\<^sub>2 \<noteq> Tock"
     by auto
-  then show "\<exists>fl zr. prirel pa fl zr \<and> flt2cttobs fl = [e\<^sub>2]\<^sub>E # aa \<and> flt2cttobs zr = [e\<^sub>2]\<^sub>E # zz"
+  
+  show "\<exists>fl zr. prirel pa fl zr \<and> flt2cttobs fl = [e\<^sub>2]\<^sub>E # aa \<and> flt2cttobs zr = [e\<^sub>2]\<^sub>E # zz"
   proof -
     from assm1 assm2 have "prirelRef pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) sa Q"
       by simp
@@ -1276,7 +1264,7 @@ next
 next
   fix pa::"'a cttevent partialorder"
   fix aa e\<^sub>2 zz sa Q Z
-  assume assm0:"(CT3_trace zz \<Longrightarrow> cttWF zz \<Longrightarrow> \<exists>fl zr. prirel pa fl zr \<and> flt2cttobs fl = aa \<and> flt2cttobs zr = zz)"
+  assume assm0:"(cttWF zz \<Longrightarrow> \<exists>fl zr. prirel pa fl zr \<and> flt2cttobs fl = aa \<and> flt2cttobs zr = zz)"
 
   assume assm2:"CT3_trace ([e\<^sub>2]\<^sub>E # zz)"
   assume assm3:"cttWF ([e\<^sub>2]\<^sub>E # zz)"
@@ -1321,11 +1309,12 @@ next
 qed
 
 lemma
-  assumes "prirelRef p xs ys s P" 
+  assumes "prirelRef p xs ys s P" "CT3_trace ys" "cttWF ys"
           "ys \<in> P" 
     shows "\<exists>Z fl\<^sub>0 fl. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ctt fl\<^sub>0 \<subseteq> P \<and> flt2cttobs Z \<in> P \<and> flt2cttobs fl = xs"
   using pp2 
-  by (smt assms(1) assms(2) fl2ctt_def mem_Collect_eq singletonD singletonI subsetI)
+  by (smt assms(1) assms(2) assms(3) assms(4) fl2ctt_def mem_Collect_eq singletonD singletonI subsetI)
+
 
 lemma prirelRef_of_both_flt2cttobs_cons_acceptance_imp_prirel_acceptances:
   assumes "prirelRef p (flt2cttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P" 

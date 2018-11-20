@@ -346,6 +346,11 @@ lemma cttWF_end_Tock_prefix_subset: "cttWF (s @ [[Tock]\<^sub>E]) \<Longrightarr
   using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
   using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
 
+lemma cttWF_cons_hd_not_Tock_then_cttWF:
+  assumes "cttWF (a # fl)" "hd fl \<noteq> [Tock]\<^sub>E"
+  shows "cttWF fl"
+  by (metis (no_types, lifting) assms(1) assms(2) cttWF.elims(2) cttWF.simps(1) list.discI list.inject list.sel(1))
+
 section {* Healthiness Conditions *}
 
 definition CT0 :: "'e cttobs list set \<Rightarrow> bool" where
@@ -408,6 +413,14 @@ proof -
   then show ?thesis
     by simp
 qed
+
+lemma CT3_trace_cons_imp_cons [simp]:
+  assumes "CT3_trace (a # fl)"
+  shows "CT3_trace fl"
+  using assms apply (cases a, auto)
+  apply(induct fl rule:CT3_trace.induct, auto)
+  apply(induct fl rule:CT3_trace.induct, auto)
+  by (case_tac va, auto)
 
 (*definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
   "CT4 P = (\<forall> \<rho>. \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<nexists> X. \<rho> @ [[X]\<^sub>R] \<in> P))"*)

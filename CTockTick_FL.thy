@@ -1,7 +1,7 @@
 theory CTockTick_FL
   
 imports
-  CTockTick
+  CTockTick_Core
   Finite_Linear_Tick_Param
 begin
   
