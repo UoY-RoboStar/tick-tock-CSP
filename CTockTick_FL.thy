@@ -18,6 +18,30 @@ fun flt2goodTock :: "('e cttevent) fltrace \<Rightarrow> bool" where
 "flt2goodTock (A #\<^sub>\<F>\<^sub>\<L> fl) = (if acceptance(A) \<noteq> \<bullet> then (flt2goodTock fl) else
                             (if event(A) = Tock then False else (flt2goodTock fl)))" 
 
+definition CTRMax :: "('a cttobs) list set \<Rightarrow> bool" where
+"CTRMax P = (\<forall>t X. t @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<not>(\<exists>Y. X \<subset> Y \<and> (t @ [[Y]\<^sub>R]) \<in> P))" 
+
+lemma CTRMax_top_refusal:
+  assumes "CTRMax P" "t @ [[X]\<^sub>R] \<in> P" "X \<subset> Y"
+  shows "\<not> t @ [[Y]\<^sub>R] \<in> P"
+  using assms unfolding CTRMax_def by auto
+
+lemma
+  assumes "CTRMax P" "CT5 P" "t @ [[X]\<^sub>R] \<in> P"
+  shows "Tick \<in> X"
+proof (cases "Tick \<in> X")
+  case True
+  then show ?thesis by auto
+next
+  case False
+  then have "t @ [[X \<union> {Tick}]\<^sub>R] \<in> P"
+    using assms(2,3) unfolding CT5_def by auto
+  then have "t @ [[X \<union> {Tick}]\<^sub>R] \<notin> P"
+    using CTRMax_top_refusal False assms(1) assms(3) insertI1 by blast
+  then show ?thesis
+    using \<open>t @ [[X \<union> {Tick}]\<^sub>R] \<in> P\<close> by blast
+qed
+
 lemma flt2cttobs_is_cttWF:
   assumes "tickWF Tick fltrace"
   shows "cttWF (flt2cttobs fltrace)"
@@ -34,7 +58,7 @@ lemma fl2ctt_univ_disj:
   unfolding fl2ctt_def by auto
 
 definition ctt2fl :: "('e cttobs) list set \<Rightarrow> ('e cttevent) fltrace set" where
-"ctt2fl P = \<Union>{fl. FL1 fl \<and> (fl2ctt fl) \<subseteq> P}"
+"ctt2fl P = \<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ctt fl) \<subseteq> P}"
 
 lemma ctt2fl_mono:
   assumes "P \<subseteq> Q"
@@ -43,12 +67,6 @@ lemma ctt2fl_mono:
 
 lemma fl2ctt_ctt2fl_refines: "fl2ctt(ctt2fl(P)) \<subseteq> P"
   unfolding ctt2fl_def fl2ctt_def by auto
-
-definition CTwf :: "'e cttobs list set \<Rightarrow> bool" where
-  "CTwf P = (\<forall>x\<in>P. cttWF x)"
-
-definition CT1c :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT1c P = (\<forall> \<rho> \<sigma>. (\<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
 
 lemma some_x_then_nil_CT1c [simp]:
   assumes "x \<in> P" "CT1c P"
@@ -405,7 +423,7 @@ lemma CTwf_1c_3_imp_flt2cttobs_FL1:
       and CTwf_healthy: "CTwf P" 
       and CT1c_healthy: "CT1c P"
       and CT3_healthy:  "CT3 P"
-  shows "\<exists>fl. x = flt2cttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FL1 x \<and> {flt2cttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
+  shows "\<exists>fl. x = flt2cttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2cttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
   using assms
 proof(induct x rule:rev_induct)
   case Nil
@@ -413,6 +431,7 @@ proof(induct x rule:rev_induct)
     apply (intro exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
     apply (rule exI[where x="{\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}"], auto)
     unfolding FL1_def apply auto
+    unfolding FLTick0_def apply auto
     by (case_tac s, auto, case_tac x1, auto)
 next
   case (snoc x xs)
@@ -428,10 +447,29 @@ next
     proof (cases x)
       case (Ref x1)
       then show ?thesis
-        apply (intro exI[where x="\<langle>[{x. x \<notin> x1}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-        apply (rule exI[where x="{z. z \<le> \<langle>[{z. z \<notin> x1}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}"], auto)
+      proof (cases "Tick \<in> x1")
+        case True
+        then show ?thesis
+          apply (intro exI[where x="\<langle>[{x. x \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+          using Ref apply auto
+           apply (rule exI[where x="{z. z \<le> \<langle>[{z. z \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}"], auto)
+        unfolding FLTick0_def apply auto
+          apply (case_tac x, auto)
         using FL1_def dual_order.trans apply blast
         using fl_le_CT1c using Nil by auto
+      next
+        case False
+        then show ?thesis
+          using Ref apply (intro exI[where x="\<langle>[{x. x \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+          apply (rule exI[where x="{z. z \<le> \<langle>[{z. z \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}"], auto)
+        unfolding FLTick0_def apply auto
+          apply (case_tac x, auto)
+        apply (case_tac x1a, auto)
+        sledgehammer
+        using FL1_def dual_order.trans apply blast
+        using fl_le_CT1c using Nil by auto
+      qed
+        
     next
       case (ObsEvent x2)
       then show ?thesis
@@ -836,6 +874,121 @@ lemma
   using assms unfolding ctt2fl_def apply auto
   oops
 
+lemma flt2cttobs_flt2goodTock_less_eq_exists:
+  assumes "flt2cttobs fl \<noteq> []"
+  shows "\<exists>fla. flt2cttobs fl = flt2cttobs fla \<and> fla \<le> fl \<and> flt2goodTock fla"
+  using assms
+proof (induct fl rule:flt2goodTock.induct)
+  case (1 A)
+  then show ?case 
+    apply auto
+    by (rule exI[where x="\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+next
+  case (2 A fl)
+  then show ?case
+  proof (cases "flt2cttobs fl \<noteq> []")
+    case flt2cttobs_not_Nil:True
+    then show ?thesis
+      proof (cases "acceptance(A) \<noteq> \<bullet>")
+      case True
+        then have "\<exists>flaa. flt2cttobs fl = flt2cttobs flaa \<and> flaa \<le> fl \<and> flt2goodTock flaa"
+          using flt2cttobs_not_Nil 2 by auto
+        then show ?thesis using 2 True
+          by (metis flt2cttobs.simps(2) flt2goodTock.simps(2) less_eq_fltrace.simps(3) order_refl)
+      next
+        case False
+        then show ?thesis 
+          using flt2cttobs_not_Nil 2 apply auto
+          by (metis flt2cttobs.simps(2) flt2goodTock.simps(2) less_eq_fltrace.simps(3) order_refl)
+      qed
+  next
+    case fl2cttobs_is_Nil:False
+    then show ?thesis
+      proof (cases "acceptance(A) \<noteq> \<bullet>")
+        case True
+        then show ?thesis using fl2cttobs_is_Nil 2 apply auto
+          apply (rule exI[where x="\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+           apply (metis dual_order.refl dual_order.trans prefixFL_induct2)
+          apply (rule exI[where x="\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+          by (metis dual_order.refl dual_order.trans prefixFL_induct2)
+      next
+      case False
+      then show ?thesis using fl2cttobs_is_Nil 2 apply auto
+        apply (rule exI[where x="\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+        by (metis dual_order.refl dual_order.trans prefixFL_induct2)
+      qed
+    qed
+  qed
+
+lemma flt2cttobs_FL1_exists_flt2goodTock:
+  assumes "flt2cttobs fl \<noteq> []" "fl \<in> P" "FL1 P"
+  shows "\<exists>fla. flt2cttobs fl = flt2cttobs fla \<and> fla \<in> P \<and> flt2goodTock fla"
+  using assms
+  by (meson FL1_def flt2cttobs_flt2goodTock_less_eq_exists)
+
+lemma fl2ctt_FL0_FL1_flt2goodTock_non_bullet:
+  assumes "FL0 P" "FL1 P"
+  shows "fl2ctt P = {flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl \<and> fl \<noteq> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>} \<union> {[]}"
+  using assms unfolding fl2ctt_def apply auto
+  using flt2cttobs_FL1_exists_flt2goodTock
+  apply (metis Finite_Linear_Model.butlast.simps(1) Finite_Linear_Model.last.simps(1) acceptance.distinct(1) append_self_conv2 flt2cttobs_last_fl_not_bullet_dist_list_cons flt2goodTock.simps(1))
+  by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+
+lemma fl2ctt_FL0_FL1_flt2goodTock:
+  assumes "FL0 P" "FL1 P"
+  shows "fl2ctt P = {flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]}"
+  using assms unfolding fl2ctt_def apply auto
+  using flt2cttobs_FL1_exists_flt2goodTock
+  apply (metis)
+  by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+
+lemma FL0_ctt2fl:
+  assumes "CT0 P" "CT1c P"
+  shows "FL0 (ctt2fl P)"
+  using assms unfolding ctt2fl_def FL0_def apply auto
+  apply (rule exI[where x="{\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}"], auto)
+  unfolding FL1_def apply auto
+   apply (metis bullet_left_zero2 dual_order.antisym x_le_x_concat2)
+  unfolding fl2ctt_def apply auto
+  using CT0_CT1c_empty by blast
+
+lemma FL1_imp_disj:
+  assumes "FL1(P)" "FL1(Q)"
+  shows "FL1(P \<union> Q)"
+  unfolding FL1_def apply auto
+  using FL1_def assms by blast+
+
+lemma prefix_ctt2fl_FL1:
+  assumes "t \<in> ctt2fl P"
+          "s \<le> t"
+    shows "s \<in> ctt2fl P"
+  using assms unfolding ctt2fl_def apply auto
+  using FL1_def by blast
+
+lemma FL1_ctt2fl:
+  "FL1 (ctt2fl P)"
+  unfolding FL1_def apply safe
+  using prefix_ctt2fl_FL1 by blast
+
+(*
+lemma
+  assumes "tickWF Tick fltrace"
+  shows "CTwf (fl2ctt xa)"
+  using assms unfolding fl2ctt_def CTwf_def apply auto
+  sledgehammer
+*)
+
+lemma
+  assumes "CTwf P" "fl2ctt xa \<subseteq> P" "x \<in> xa"
+  shows "tickWF Tick x"
+  using assms nitpick
+  unfolding fl2ctt_def CTwf_def apply auto
+  oops
+
+lemma
+  assumes "CTwf P"
+  shows "FLTick0 Tick (ctt2fl P)"
+  using assms unfolding ctt2fl_def FLTick0_def CTwf_def apply auto
 (* Not true, of course..
 lemma
   assumes "tickWF tick xs"
