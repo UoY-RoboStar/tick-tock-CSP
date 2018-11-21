@@ -189,98 +189,40 @@ lemma eq_intersect_refusal_trace_same_front:
   "s @ t = intersect_refusal_trace X (s @ t') \<Longrightarrow> t = intersect_refusal_trace X t'"
   by (induct s, auto, case_tac a, auto)
 
-definition UntimedInterruptCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<triangle>\<^sub>U" 58) where
-  "P \<triangle>\<^sub>U Q = {t. \<exists> p X. p @ [[Tick]\<^sub>E] \<in> P (* if something in P ends in tick...*)
-      \<and> ([[X]\<^sub>R] \<in> Q \<or> ((\<forall> Y. [[Y]\<^sub>R] \<notin> Q) \<and> X = UNIV)) \<and> t = intersect_refusal_trace X (p @ [[Tick]\<^sub>E])} (* ...then we just keep the trace, intersecting any refusals *)
-    \<union> {t. \<exists> p X Y q. p @ [[X]\<^sub>R] \<in> P (* if something in P ends in a refusal...*)
-      \<and> ([Y]\<^sub>R # q \<in> Q \<or> ((\<forall> Z q'. [Z]\<^sub>R # q' \<notin> Q) \<and> Y = UNIV \<and> q = [])) \<and> t = intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q} (* ...then we just keep the trace, intersecting the refusals *)
-    \<union> {t. \<exists> p q X. p \<in> P \<and> (\<nexists> p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists> p' Y. p = p' @ [[Y]\<^sub>R]) (* for everything in P that doesn't end in tick or a refusal... *)
-    \<and> ([[X]\<^sub>R] \<in> Q \<or> ((\<forall> Y. [[Y]\<^sub>R] \<notin> Q) \<and> X = UNIV)) (* and there is also an initial refusal Y in Q or we take Y = UNIV *)
-    \<and> q \<in> Q \<and> (\<nexists> q' Y. q = [Y]\<^sub>R # q') (* and there is some trace in Q which doesn't start with a refusal *)
-    \<and> t = intersect_refusal_trace X p @ q} (* ...then we just keep the trace, intersecting any refusals *)"
+fun contains_refusal :: "'e cttobs list \<Rightarrow> bool" where
+  "contains_refusal [] = False" |
+  "contains_refusal ([X]\<^sub>R # s) = True" |
+  "contains_refusal ([e]\<^sub>E # s) = contains_refusal s"
 
-lemma UntimedInterruptCTT_def2:
-  "P \<triangle>\<^sub>U Q = {t. \<exists> p X. p @ [[Tick]\<^sub>E] \<in> P \<and> [[X]\<^sub>R] \<in> Q \<and> t = intersect_refusal_trace X (p @ [[Tick]\<^sub>E])}
-    \<union> {t. \<exists> p. p @ [[Tick]\<^sub>E] \<in> P \<and> (\<forall> Y. [[Y]\<^sub>R] \<notin> Q) \<and> t = p @ [[Tick]\<^sub>E]}
-    \<union> {t. \<exists> p X Y q. p @ [[X]\<^sub>R] \<in> P \<and> [Y]\<^sub>R # q \<in> Q \<and> t = intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q}
-    \<union> {t. \<exists> p X Y q. p @ [[X]\<^sub>R] \<in> P \<and> (\<forall> Z q'. [Z]\<^sub>R # q' \<notin> Q) \<and> t = p @ [[X]\<^sub>R]}
-    \<union> {t. \<exists> p q X. p \<in> P \<and> (\<nexists> p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists> p' Y. p = p' @ [[Y]\<^sub>R]) \<and> [[X]\<^sub>R] \<in> Q
-      \<and> q \<in> Q \<and> (\<nexists> q' Y. q = [Y]\<^sub>R # q') \<and> t = intersect_refusal_trace X p @ q}
-    \<union> {t. \<exists> p q X. p \<in> P \<and> (\<nexists> p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists> p' Y. p = p' @ [[Y]\<^sub>R]) \<and> (\<forall> Y. [[Y]\<^sub>R] \<notin> Q)
-      \<and> q \<in> Q \<and> (\<nexists> q' Y. q = [Y]\<^sub>R # q') \<and> t = p @ q}"
-  unfolding UntimedInterruptCTT_def
-proof (safe, simp_all, blast)
-  fix p
-  assume case_assms: "p @ [[Tick]\<^sub>E] \<in> P" "\<forall>Y. [[Y]\<^sub>R] \<notin> Q"
-  show "\<forall>pa. pa @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> intersect_refusal_trace UNIV (p @ [[Tick]\<^sub>E]) \<noteq> pa @ [[Tick]\<^sub>E] \<Longrightarrow> False"
-    by (erule_tac x="p" in allE, auto simp add: case_assms intersect_refusal_trace_UNIV_identity)
-next
-  fix p X Y q
-  assume case_assms: "p @ [[X]\<^sub>R] \<in> P" "[Y]\<^sub>R # q \<in> Q"
-  then show "\<forall>pa Xa. pa @ [[Xa]\<^sub>R] \<in> P \<longrightarrow>
-      (\<forall>Ya qa. [Ya]\<^sub>R # qa \<in> Q \<longrightarrow> intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q \<noteq> intersect_refusal_trace Ya (pa @ [[Xa]\<^sub>R]) @ qa) \<Longrightarrow>
-    \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>Xa. [[Xa]\<^sub>R] \<in> Q \<and> intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q = intersect_refusal_trace Xa (pa @ [[Tick]\<^sub>E]))"
-    by (erule_tac x="p" in allE, erule_tac x="X" in allE, auto)
-next
-  fix p X
-  assume case_assms: "p @ [[X]\<^sub>R] \<in> P" "\<forall>Z q'. [Z]\<^sub>R # q' \<notin> Q"
-  then show "\<forall>pa Xa. pa @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> intersect_refusal_trace UNIV (p @ [[X]\<^sub>R]) \<noteq> pa @ [[Xa]\<^sub>R] \<Longrightarrow> False"
-    by (erule_tac x="p" in allE, erule_tac x="X" in allE, auto simp add: case_assms intersect_refusal_trace_UNIV_identity)
-next
-  fix p q X
-  assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "q \<in> Q" "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'" "[[X]\<^sub>R] \<in> Q"
-  then show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R])
-      \<or> (\<forall>qa. qa \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. qa = [Y]\<^sub>R # q') \<or> intersect_refusal_trace X p @ q \<noteq> intersect_refusal_trace Xa pa @ qa)) \<Longrightarrow> 
-    \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>Xa. [[Xa]\<^sub>R] \<in> Q \<and> intersect_refusal_trace X p @ q = intersect_refusal_trace Xa (pa @ [[Tick]\<^sub>E]))"
-    by (erule_tac x="p" in allE, auto, erule_tac x="q" in allE, auto)
-next
-  fix p q
-  assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "q \<in> Q" "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'" "\<forall>Y. [[Y]\<^sub>R] \<notin> Q"
-  then show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<or> 
-    (\<forall>qa. qa \<in> Q \<longrightarrow> (\<exists>q' Y. qa = [Y]\<^sub>R # q') \<or> intersect_refusal_trace UNIV p @ q \<noteq> pa @ qa) \<Longrightarrow> False"
-    by (erule_tac x="p" in allE, auto, erule_tac x="q" in allE, auto simp add: intersect_refusal_trace_UNIV_identity)
-next
-  fix p X
-  assume "p @ [[Tick]\<^sub>E] \<in> P" "[[X]\<^sub>R] \<in> Q"
-  then show "\<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>Xa. ([[Xa]\<^sub>R] \<in> Q \<or> (\<forall>Y. [[Y]\<^sub>R] \<notin> Q) \<and> Xa = UNIV) \<and>
-    intersect_refusal_trace X (p @ [[Tick]\<^sub>E]) = intersect_refusal_trace Xa (pa @ [[Tick]\<^sub>E]))"
-    by (rule_tac x="p" in exI, auto)
-next
-  fix p
-  assume "p @ [[Tick]\<^sub>E] \<in> P" "\<forall>Y. [[Y]\<^sub>R] \<notin> Q"
-  then show "\<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> p @ [[Tick]\<^sub>E] = intersect_refusal_trace UNIV (pa @ [[Tick]\<^sub>E])"
-    by (rule_tac x="p" in exI, auto simp add: intersect_refusal_trace_UNIV_identity)
-next
-  fix p X Y q
-  assume "p @ [[X]\<^sub>R] \<in> P" "[Y]\<^sub>R # q \<in> Q"
-  then show "\<forall>pa Xa. pa @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Ya qa. [Ya]\<^sub>R # qa \<notin> Q \<and> (Ya = UNIV \<longrightarrow> (\<exists>Z q'. [Z]\<^sub>R # q' \<in> Q) \<or> qa \<noteq> []) \<or>
-      intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q \<noteq> intersect_refusal_trace Ya (pa @ [[Xa]\<^sub>R]) @ qa) \<Longrightarrow>
-    \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>Xa. ([[Xa]\<^sub>R] \<in> Q \<or> (\<forall>Y. [[Y]\<^sub>R] \<notin> Q) \<and> Xa = UNIV) \<and>
-      intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q = intersect_refusal_trace Xa (pa @ [[Tick]\<^sub>E]))"
-    by (erule_tac x="p" in allE, erule_tac x="X" in allE, auto)
-next
-  fix p X
-  assume "p @ [[X]\<^sub>R] \<in> P" "\<forall>Z q'. [Z]\<^sub>R # q' \<notin> Q"
-  then show "\<forall>pa Xa. pa @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> p @ [[X]\<^sub>R] \<noteq> intersect_refusal_trace UNIV (pa @ [[Xa]\<^sub>R]) \<Longrightarrow>
-    \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> p @ [[X]\<^sub>R] = intersect_refusal_trace UNIV (pa @ [[Tick]\<^sub>E])"
-    by (erule_tac x="p" in allE, auto simp add: intersect_refusal_trace_UNIV_identity)
-next
-  fix p q X
-  assume "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "[[X]\<^sub>R] \<in> Q" "q \<in> Q" "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'"
-  then show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<or>
-      (\<forall>qa. qa \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<notin> Q \<and> ((\<exists>Y. [[Y]\<^sub>R] \<in> Q) \<or> Xa \<noteq> UNIV) \<or>
-        (\<exists>q' Y. qa = [Y]\<^sub>R # q') \<or> intersect_refusal_trace X p @ q \<noteq> intersect_refusal_trace Xa pa @ qa)) \<Longrightarrow>
-      \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>Xa. ([[Xa]\<^sub>R] \<in> Q \<or> (\<forall>Y. [[Y]\<^sub>R] \<notin> Q) \<and> Xa = UNIV)
-        \<and> intersect_refusal_trace X p @ q = intersect_refusal_trace Xa (pa @ [[Tick]\<^sub>E]))"
-    by (erule_tac x="p" in allE, auto, erule_tac x="q" in allE, auto)
-next
-  fix p q
-  assume "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "\<forall>Y. [[Y]\<^sub>R] \<notin> Q" "q \<in> Q" "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'"
-  then show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R])
-      \<or> (\<forall>qa. qa \<in> Q \<longrightarrow> (\<exists>q' Y. qa = [Y]\<^sub>R # q') \<or> p @ q \<noteq> intersect_refusal_trace UNIV pa @ qa) \<Longrightarrow>
-    \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> p @ q = intersect_refusal_trace UNIV (pa @ [[Tick]\<^sub>E])"
-    by (erule_tac x="p" in allE, auto simp add: intersect_refusal_trace_UNIV_identity)    
-qed
+lemma not_contains_refusal_ctt_prefix_subset:
+  "\<not> contains_refusal t \<Longrightarrow> s \<lesssim>\<^sub>C t \<Longrightarrow> \<not> contains_refusal s"
+  by (induct s t rule:ctt_prefix_subset.induct, auto)
+
+lemma not_contains_refusal_intersect_refusal_trace:
+  "\<not> contains_refusal t \<Longrightarrow> intersect_refusal_trace X t = t"
+  by (induct t rule:contains_refusal.induct, auto)
+
+lemma not_contains_refusal_append_event:
+  "\<not> contains_refusal t \<Longrightarrow> \<not> contains_refusal (t @ [[e]\<^sub>E])"
+  by (induct t rule:contains_refusal.induct, auto)
+
+definition UntimedInterruptCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<triangle>\<^sub>U" 58) where
+  "P \<triangle>\<^sub>U Q = {t. \<exists> p X. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p (* if something in P ends in tick and contains a refusal...*)
+      \<and> [[X]\<^sub>R] \<in> Q \<and> t = intersect_refusal_trace X (p @ [[Tick]\<^sub>E])} (* ...then we require a refusal in Q and intersect refusals *)
+    \<union> {t. \<exists> p. p @ [[Tick]\<^sub>E] \<in> P \<and> \<not> contains_refusal p (* if something in P ends in tick and does not contain a refusal...*)
+      \<and> t = p @ [[Tick]\<^sub>E]} (* ...then we just keep the trace, nothing to intersect *)
+    \<union> {t. \<exists> p X Y q. p @ [[X]\<^sub>R] \<in> P (* if something in P ends in a refusal...*)
+      \<and> [Y]\<^sub>R # q \<in> Q (* ...we require something in Q that starts in a refusal... *)
+      \<and> t = intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q} (* ... and we append the traces, intersecting the refusals *)
+    \<union> {t. \<exists> p q X. p \<in> P \<and> (\<nexists> p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists> p' Y. p = p' @ [[Y]\<^sub>R]) (* for everything in P that doesn't end in tick or a refusal... *)
+    \<and> contains_refusal p (* ...but does contain a refusal... *)
+    \<and> [[X]\<^sub>R] \<in> Q (*...then we require a refusal in Q... *)
+    \<and> q \<in> Q \<and> (\<nexists> q' Y. q = [Y]\<^sub>R # q') (* ...and some trace in Q which doesn't start with a refusal... *)
+    \<and> t = intersect_refusal_trace X p @ q} (* ...and we append the traces, intersecting any refusals *)
+    \<union> {t. \<exists> p q. p \<in> P \<and> (\<nexists> p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists> p' Y. p = p' @ [[Y]\<^sub>R]) (* for everything in P that doesn't end in tick or a refusal... *)
+    \<and> \<not> contains_refusal p (* ...and does not contain a refusal... *)
+    \<and> q \<in> Q \<and> (\<nexists> q' Y. q = [Y]\<^sub>R # q') (* ...then we require some trace in Q which doesn't start with a refusal... *)
+    \<and> t = p @ q} (* ...and we append the traces *)"
 
 lemma event_append_wf:
   "\<And>q. \<exists> p' e. p = p' @ [[Event e]\<^sub>E] \<Longrightarrow> cttWF (p) \<Longrightarrow> cttWF (q) \<Longrightarrow> cttWF (p @ q)"
@@ -535,20 +477,10 @@ proof auto
   then show "cttWF (intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
     using intersect_refusal_trace_wf by (blast)
 next
-  fix p 
-  assume "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x" "p @ [[Tick]\<^sub>E] \<in> P" "\<forall>Y. [[Y]\<^sub>R] \<notin> Q"
-  then show "cttWF (intersect_refusal_trace UNIV (p @ [[Tick]\<^sub>E]))"
-    using intersect_refusal_trace_wf by (blast)
-next
   fix p X Y q
   assume "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x" "p @ [[X]\<^sub>R] \<in> P" "[Y]\<^sub>R # q \<in> Q"
   then show "cttWF (intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q)"
     using end_refusal_start_refusal_append_wf intersect_refusal_trace_append_wf by (blast)
-next
-  fix p X
-  assume "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x" "p @ [[X]\<^sub>R] \<in> P" "\<forall>Z q'. [Z]\<^sub>R # q' \<notin> Q"
-  then show "cttWF (intersect_refusal_trace UNIV (p @ [[X]\<^sub>R]))"
-    using intersect_refusal_trace_wf by (blast)
 next
   fix p q X
   assume "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x" "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "q \<in> Q"
@@ -559,10 +491,8 @@ next
 next
   fix p q
   assume "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x" "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "q \<in> Q"
-  then also have "cttWF (p @ q)"
+  then show "cttWF (p @ q)"
     using nontick_event_end_append_wf by blast
-  then show "cttWF (intersect_refusal_trace UNIV p @ q)"
-    using intersect_refusal_trace_append_wf by blast
 qed
 
 lemma CT0_UntimedInterrupt:
@@ -572,22 +502,14 @@ lemma CT0_UntimedInterrupt:
 proof auto
   have empty_in_P_Q: "[] \<in> P" "[] \<in> Q"
     by (simp_all add: CT0_CT1_empty assms)
-  assume "\<forall>x p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
-      (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<notin> Q \<and> ((\<exists>Y. [[Y]\<^sub>R] \<in> Q) \<or> X \<noteq> UNIV) \<or>
-      (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> x \<noteq> intersect_refusal_trace X p @ q))"
-  then have "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
-      (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<notin> Q \<and> ((\<exists>Y. [[Y]\<^sub>R] \<in> Q) \<or> X \<noteq> UNIV) \<or>
-      (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> [] \<noteq> intersect_refusal_trace X p @ q))"
-    by auto
-  then have "(\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<notin> Q \<and> ((\<exists>Y. [[Y]\<^sub>R] \<in> Q) \<or> X \<noteq> UNIV) \<or>
-      (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> [] \<noteq> intersect_refusal_trace X [] @ q))"
-    using empty_in_P_Q by blast
-  then have "\<forall>X. [[X]\<^sub>R] \<notin> Q \<and> ((\<exists>Y. [[Y]\<^sub>R] \<in> Q) \<or> X \<noteq> UNIV)"
-    using empty_in_P_Q by auto
+  assume "\<forall>x p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p
+    \<or> (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> x \<noteq> p @ q)"
   then have "False"
-    by blast
-  then show "\<exists>x p X. p @ [[X]\<^sub>R] \<in> P \<and> (\<exists>Y q. ([Y]\<^sub>R # q \<in> Q \<or> Y = UNIV \<and> (\<forall>Z q'. [Z]\<^sub>R # q' \<notin> Q) \<and> q = []) \<and>
-      x = intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q)"
+    using empty_in_P_Q by (erule_tac x="[]" in allE, auto)
+  then show "\<exists>x p. contains_refusal p \<and>
+          p \<in> P \<and>
+          (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and>
+          (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> (\<exists>q. q \<in> Q \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> x = intersect_refusal_trace X p @ q))"
     by auto
 qed
 
@@ -599,28 +521,15 @@ lemma CT1_UntimedInterrupt:
 proof (auto)
   fix \<rho> \<sigma>
   assume "\<sigma> \<in> P \<triangle>\<^sub>U Q"
-  (*then have "(\<exists>p X. p @ [[Tick]\<^sub>E] \<in> P \<and> [[X]\<^sub>R] \<in> Q \<and> \<rho> = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))
-    \<or> (\<exists>p X Y. p @ [[X]\<^sub>R] \<in> P \<and> [[Y]\<^sub>R] \<in> Q \<and> \<rho> = intersect_refusal_trace Y (p @ [[X]\<^sub>R]))
-    \<or> (\<exists>p X e. p @ [[Event e]\<^sub>E] \<in> P \<and> [[X]\<^sub>R] \<in> Q \<and> \<rho> = intersect_refusal_trace X (p @ [[Event e]\<^sub>E]))
-    \<or> (\<exists>p X e. p @ [[Tock]\<^sub>E] \<in> P \<and> [[X]\<^sub>R] \<in> Q \<and> \<rho> = intersect_refusal_trace X (p @ [[Tock]\<^sub>E]))
-    \<or> (\<exists>p X. p @ [[Tick]\<^sub>E] \<in> P \<and> (\<forall>Y. [[Y]\<^sub>R] \<notin> Q) \<and> \<rho> = intersect_refusal_trace UNIV (p @ [[Tick]\<^sub>E]))
-    \<or> (\<exists>p X Y. p @ [[X]\<^sub>R] \<in> P \<and> (\<forall>Z. [[Z]\<^sub>R] \<notin> Q) \<and> \<rho> = intersect_refusal_trace UNIV (p @ [[X]\<^sub>R]))
-    \<or> (\<exists>p X e. p @ [[Event e]\<^sub>E] \<in> P \<and> (\<forall>Y. [[Y]\<^sub>R] \<notin> Q) \<and> \<rho> = intersect_refusal_trace UNIV (p @ [[Event e]\<^sub>E]))
-    \<or> (\<exists>p X e. p @ [[Tock]\<^sub>E] \<in> P \<and> (\<forall>Y. [[Y]\<^sub>R] \<notin> Q) \<and> \<rho> = intersect_refusal_trace UNIV (p @ [[Tock]\<^sub>E]))
-    \<or> (\<exists>p X Y q. p @ [[X]\<^sub>R] \<in> P \<and> [Y]\<^sub>R # q \<in> Q \<and> \<rho> = intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q)
-    \<or> (\<exists>p X Y. p @ [[X]\<^sub>R] \<in> P \<and> (\<forall>Z q'. [Z]\<^sub>R # q' \<notin> Q) \<and> \<rho> = intersect_refusal_trace UNIV (p @ [[X]\<^sub>R]))
-    \<or> (\<exists>p q X. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]) \<and> [[X]\<^sub>R] \<in> Q \<and>
-            q \<in> Q \<and> (\<nexists>q' Y. q = [Y]\<^sub>R # q') \<and> \<rho> = intersect_refusal_trace X p @ q)
-    \<or> (\<exists>p q X. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]) \<and> (\<forall>Y. [[Y]\<^sub>R] \<notin> Q) \<and>
-            q \<in> Q \<and> (\<nexists>q' Y. q = [Y]\<^sub>R # q') \<and> \<rho> = intersect_refusal_trace UNIV p @ q)"*)
-  thm UntimedInterruptCTT_def
-  then have "(\<exists>p X. p @ [[Tick]\<^sub>E] \<in> P \<and> [[X]\<^sub>R] \<in> Q \<and> \<sigma> = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))
-      \<or> (\<exists>p X. p @ [[Tick]\<^sub>E] \<in> P \<and> (\<forall>Y. [[Y]\<^sub>R] \<notin> Q) \<and> X = UNIV \<and> \<sigma> = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))
+  thm UntimedInterruptCTT_def[where P=P, where Q=Q]
+  then have "(\<exists>p X. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> [[X]\<^sub>R] \<in> Q \<and> \<sigma> = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))
+      \<or> (\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> \<not> contains_refusal p \<and> \<sigma> = p @ [[Tick]\<^sub>E])
       \<or> (\<exists>p X Y q. p @ [[X]\<^sub>R] \<in> P \<and> [Y]\<^sub>R # q \<in> Q \<and> \<sigma> = intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q)
-      \<or> (\<exists>p X Y q. p @ [[X]\<^sub>R] \<in> P \<and> (\<forall>Z q'. [Z]\<^sub>R # q' \<notin> Q) \<and> Y = UNIV \<and> q = [] \<and> \<sigma> = intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q)
-      \<or> (\<exists>p q X. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]) \<and> [[X]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<nexists>q' Y. q = [Y]\<^sub>R # q') \<and> \<sigma> = intersect_refusal_trace X p @ q)
-      \<or> (\<exists>p q X. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]) \<and> (\<forall>Y. [[Y]\<^sub>R] \<notin> Q) \<and> X = UNIV \<and> q \<in> Q \<and> (\<nexists>q' Y. q = [Y]\<^sub>R # q') \<and> \<sigma> = intersect_refusal_trace X p @ q)"
-    unfolding UntimedInterruptCTT_def apply safe by blast+
+      \<or> (\<exists>p q X. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]) \<and>
+            contains_refusal p \<and> [[X]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<nexists>q' Y. q = [Y]\<^sub>R # q') \<and> \<sigma> = intersect_refusal_trace X p @ q)
+      \<or> (\<exists>p q. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]) \<and> 
+            \<not> contains_refusal p \<and> q \<in> Q \<and> (\<nexists>q' Y. q = [Y]\<^sub>R # q') \<and> \<sigma> = p @ q)"
+    unfolding UntimedInterruptCTT_def by safe
   then show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<rho> \<in> P \<triangle>\<^sub>U Q"
   proof auto
     fix p X
@@ -637,10 +546,23 @@ proof (auto)
     show "\<rho> \<in> P \<triangle>\<^sub>U Q"
       using p'_cases p'_in_P Q_assm p'_assms unfolding UntimedInterruptCTT_def
     proof auto
+      fix p''
+      assume case_assms: "p'' @ [[Tick]\<^sub>E] \<in> P" "[[X]\<^sub>R] \<in> Q" 
+      then show "\<forall>p. contains_refusal p \<longrightarrow> p @ [[Tick]\<^sub>E] \<in> P \<longrightarrow>
+          (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> intersect_refusal_trace X (p'' @ [[Tick]\<^sub>E]) \<noteq> intersect_refusal_trace Xa (p @ [[Tick]\<^sub>E])) \<Longrightarrow>
+        \<forall>p. p @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> contains_refusal p \<or> intersect_refusal_trace X (p'' @ [[Tick]\<^sub>E]) \<noteq> p @ [[Tick]\<^sub>E] \<Longrightarrow>
+        \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
+          (\<exists>q Xa. [[Xa]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and>
+            intersect_refusal_trace X (p'' @ [[Tick]\<^sub>E]) = intersect_refusal_trace Xa p @ q)"
+        apply (cases "contains_refusal p''", auto)
+        apply (erule_tac x="p''" in allE, auto)
+        apply (erule_tac x="p''" in allE, auto)
+        using not_contains_refusal_intersect_refusal_trace apply auto
+
       assume case_assms: "p' \<in> P" "[[X]\<^sub>R] \<in> Q" "\<forall>p''. p' \<noteq> p'' @ [[Tick]\<^sub>E]" "\<forall>p'' Y. p' \<noteq> p'' @ [[Y]\<^sub>R]"
-      show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
-        (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<notin> Q \<and> ((\<exists>Y. [[Y]\<^sub>R] \<in> Q) \<or> Xa \<noteq> UNIV) \<or>
-          (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> intersect_refusal_trace X p' \<noteq> intersect_refusal_trace Xa p @ q)) \<Longrightarrow>
+      show "\<forall>p. contains_refusal p \<longrightarrow>  p @ [[Tick]\<^sub>E] \<in> P \<longrightarrow>
+               (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> intersect_refusal_trace X (p'' @ [[Tick]\<^sub>E]) \<noteq> intersect_refusal_trace Xa (p @ [[Tick]\<^sub>E])) \<Longrightarrow>
+           \<forall>p. p @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> contains_refusal p \<or> intersect_refusal_trace X (p'' @ [[Tick]\<^sub>E]) \<noteq> p @ [[Tick]\<^sub>E] \<Longrightarrow>
         \<exists>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<and>
           (\<exists>Y q. ([Y]\<^sub>R # q \<in> Q \<or> (\<forall>Z q'. [Z]\<^sub>R # q' \<notin> Q) \<and> Y = UNIV \<and> q = []) \<and>
             intersect_refusal_trace X p' = intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q)"
