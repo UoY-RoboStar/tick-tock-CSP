@@ -484,7 +484,7 @@ lemma
         (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs(aa) \<and>
          ((maximal(p,event(Z)) \<and> acceptance(A) = \<bullet>)
          \<or> 
-         (acceptance(A) = \<bullet> \<and> (\<exists>S. flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R] \<and> \<not>(\<exists>b. b \<notin> S \<and> event(Z) <\<^sup>*p b)))
+         (acceptance(A) = \<bullet> \<and> (\<exists>S. flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R] \<and> event(Z) \<notin> S \<and> \<not>(\<exists>b. b \<notin> S \<and> event(Z) <\<^sup>*p b)))
          \<or>
          (\<exists>R S. prirelref p S = R \<and> flt2cttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
 proof -
@@ -583,7 +583,22 @@ proof -
          \<or>
          (\<exists>R S. prirelref p S = R \<and> flt2cttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
       by auto
-
+    also have "... =
+      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs(aa) \<and>
+        ((maximal(p,event(Z)) \<and> acceptance(A) = \<bullet>)
+         \<or> 
+         (acceptance(A) = \<bullet> \<and> event(Z) \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> (\<exists>S. flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R] \<and> \<not>(\<exists>b. b \<notin> S \<and> event(Z) <\<^sup>*p b)))
+         \<or>
+         (\<exists>R S. prirelref p S = R \<and> flt2cttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
+      by auto
+    also have "... =
+      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs(aa) \<and>
+        ((maximal(p,event(Z)) \<and> acceptance(A) = \<bullet>)
+         \<or> 
+         (acceptance(A) = \<bullet> \<and> event(Z) \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> (\<exists>S. flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R] \<and> event(Z) \<notin> S \<and> \<not>(\<exists>b. b \<notin> S \<and> event(Z) <\<^sup>*p b)))
+         \<or>
+         (\<exists>R S. prirelref p S = R \<and> flt2cttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> flt2cttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
+      by auto
     finally show ?thesis
       using \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>))\<close> \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> (\<exists>R S. prirelref p S = R \<and> flt2cttobs \<langle>acceptance A\<rangle>\<^sub>\<F>\<^sub>\<L> = [[R]\<^sub>R] \<and> flt2cttobs \<langle>acceptance Z\<rangle>\<^sub>\<F>\<^sub>\<L> = [[S]\<^sub>R])))\<close> \<open>prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # flt2cttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> by auto
         

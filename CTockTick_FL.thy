@@ -21,6 +21,11 @@ fun flt2goodTock :: "('e cttevent) fltrace \<Rightarrow> bool" where
 definition CTRMax :: "('a cttobs) list set \<Rightarrow> bool" where
 "CTRMax P = (\<forall>t X. t @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<not>(\<exists>Y. X \<subset> Y \<and> (t @ [[Y]\<^sub>R]) \<in> P))" 
 
+fun CTTickTrace :: "('a cttobs) list \<Rightarrow> bool" where
+"CTTickTrace [] = True" |
+"CTTickTrace ([e]\<^sub>E # xs) = CTTickTrace xs" |
+"CTTickTrace ([r]\<^sub>R # xs) = (Tick \<in> r \<and> CTTickTrace xs)"
+
 lemma CTRMax_top_refusal:
   assumes "CTRMax P" "t @ [[X]\<^sub>R] \<in> P" "X \<subset> Y"
   shows "\<not> t @ [[Y]\<^sub>R] \<in> P"
@@ -41,6 +46,21 @@ next
   then show ?thesis
     using \<open>t @ [[X \<union> {Tick}]\<^sub>R] \<in> P\<close> by blast
 qed
+
+lemma CTTickTrace_dist_concat:
+  "CTTickTrace (xs @ ys) = (CTTickTrace xs \<and> CTTickTrace ys)"
+  by (induct xs rule:CTTickTrace.induct, auto)
+
+lemma CTRMax_CT5_CT1c_CTTickTrace:
+  assumes "CTRMax P" "CT5 P" "CT1c P" "x \<in> P"
+  shows "CTTickTrace x"
+  using assms apply(induct x rule:rev_induct, auto)
+  apply (simp add:CTTickTrace_dist_concat)
+  apply (case_tac xa, auto)
+  unfolding CT1c_def apply auto
+  using ctt_prefix_concat apply blast
+  using ctt_prefix_concat apply blast
+  using CTRMax_CT5_Tick by blast
 
 lemma flt2cttobs_is_cttWF:
   assumes "tickWF Tick fltrace"
@@ -516,6 +536,17 @@ lemma event_not_in_set_of_flt2cttobs_imp_not_in_events:
   apply (case_tac A, auto)
    apply (case_tac b, auto, case_tac a, auto, case_tac a, auto, case_tac a, auto)
   by (case_tac b, auto)
+
+(* TODO: Specialize the following for (\<exists>ar. prirelRef p ar x [] P \<and> x \<in> P),
+         then can strengthen this to consider fl that is flt2goodAcceptance.
+
+         So effectively, we want to ascertain, even for x \<in> P that we if
+         there is an effective prioritisation, then we can find, for a
+         stable refusal in P related to the event in x. 
+
+         But this cannot be done directly, so flt2goodAcceptance must only
+         require the existence of 'refusals'/'acceptances' for events that
+         are non-maximal in the trace. *)
 
 lemma CTwf_1c_3_imp_flt2cttobs_FL1:
   assumes "x \<in> P" 
@@ -1112,6 +1143,8 @@ lemma fl2ctt_FL0_FL1_flt2goodTock:
   using flt2cttobs_FL1_exists_flt2goodTock
   apply (metis)
   by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+
+(* flt2goodAcceptance sufficient? *)
 
 lemma FL0_ctt2fl:
   assumes "CT0 P" "CT1c P"
