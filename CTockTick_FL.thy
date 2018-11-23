@@ -1187,6 +1187,90 @@ lemma FLTick0_Tick_ctt2fl:
   assumes "CTwf P"
   shows "FLTick0 Tick (ctt2fl P)"
   using assms unfolding ctt2fl_def FLTick0_def CTwf_def by auto
+
+lemma
+  assumes "a \<in>\<^sub>\<F>\<^sub>\<L> A"
+          "FLTick0 Tick x"
+          "FL1 x"
+          "{flt2cttobs fl |fl. fl \<in> x} \<subseteq> P"
+          "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> x"
+        shows "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> x"
+  nitpick
+  oops
+
+lemma tickWF_consFL_notin_prefix:
+  assumes "tickWF Tick (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>)" "a \<in>\<^sub>\<F>\<^sub>\<L> A"
+  shows "Tick \<notin> events(\<beta>)"
+  using assms apply auto
+  apply (cases A, auto)
+  by (metis Finite_Linear_Model.last.simps(1) bullet_right_zero2 concat_FL_last_not_bullet_absorb last_bullet_butlast_last last_cons_acceptance_not_bullet not_in_events_not_in_butlast_twice tickWF_last_x_is_emptyset)
+
+lemma FLTick0_Tick_consFL_acceptance_imp_consFL:
+  assumes "FLTick0 Tick x" "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> x" "a \<in>\<^sub>\<F>\<^sub>\<L> A"
+  shows "FLTick0 Tick (x \<union> {\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
+  using assms unfolding FLTick0_def apply auto
+  using tickWF_consFL_notin_prefix
+  by (metis (no_types, lifting) Finite_Linear_Model.last.simps(1) amember.simps(1) concat_FL_last_not_bullet_absorb fl_cons_acceptance_consFL last_bullet_butlast_last last_bullet_then_last_cons tickWF_concatFL_imp)
+
+lemma FLTick0_dist_union:
+  "FLTick0 Tick (x \<union> y) = (FLTick0 Tick x \<and> FLTick0 Tick y)"
+  unfolding FLTick0_def by auto
+
+lemma FL_prefix_not_in_events:
+  assumes "s \<le> t" "e \<notin> events t"
+  shows "e \<notin> events s"
+  using assms apply (induct s t rule:less_eq_fltrace.induct, auto)
+  using less_eq_aevent_def by blast
+
+lemma tickWF_acceptance_imp_tickWF_consFL:
+  assumes "tickWF tick (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>)" "a \<in>\<^sub>\<F>\<^sub>\<L> A"
+  shows "tickWF tick (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms apply (induct tick \<beta> rule:tickWF.induct, auto)
+   apply (case_tac A, auto)
+   apply (case_tac Aa, auto)
+  apply (case_tac A, auto)
+  by (metis Finite_Linear_Model.last.simps(1) last_cons_acceptance_not_bullet)
+
+lemma tickWF_imp_prefix:
+  assumes "tickWF tick t" "s \<le> t"
+  shows "tickWF tick s"
+  using assms apply (induct s t rule:less_eq_fltrace.induct, auto)
+  apply (metis amember.simps(1) less_eq_acceptance.elims(2))
+      apply (metis amember.simps(1) less_eq_acceptance.elims(2))
+  apply (metis amember.elims(2) event_in_acceptance less_eq_acceptance.simps(2) less_eq_aevent_def)
+  apply (metis bullet_left_zero2 dual_order.antisym less_eq_aevent_def x_le_x_concat2)
+    apply (metis amember.simps(1) less_eq_acceptance.elims(2) less_eq_aevent_def)
+    by (simp add: less_eq_aevent_def)
+  
+lemma FLTick0_Tick_consFL_acceptance_imp_consFL':
+  assumes "FLTick0 Tick x" "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> x" "a \<in>\<^sub>\<F>\<^sub>\<L> A"
+  shows "FLTick0 Tick (x \<union> {s. s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
+proof -
+  have a:"FLTick0 Tick (x \<union> {s. s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})
+        =
+        FLTick0 Tick ({s. s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
+    using assms using FLTick0_dist_union by auto
+  have "tickWF Tick (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+    using assms(1,2)
+    by (simp add: FLTick0_def)
+  then have "tickWF Tick (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+    by (simp add: assms(3) tickWF_acceptance_imp_tickWF_consFL)
+  then have "\<forall>s. s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<longrightarrow> tickWF Tick s"
+    by (meson tickWF_imp_prefix)
+  then have "FLTick0 Tick ({s. s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
+    by (simp add: FLTick0_def)
+  then show ?thesis using a by auto
+qed
+   
+
+lemma FL2_ctt2fl:
+  shows "FL2 (ctt2fl P)"
+  unfolding ctt2fl_def FL2_def fl2ctt_def apply auto
+  apply (rule_tac x="x \<union> {s. s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}" in exI, auto)
+  using FLTick0_Tick_consFL_acceptance_imp_consFL' apply blast
+   apply (smt FL1_def Un_iff fltrace_trans mem_Collect_eq)
+  sledgehammer (* At last what really needs to be proved *)
+  oops
 (* Not true, of course..
 lemma
   assumes "tickWF tick xs"

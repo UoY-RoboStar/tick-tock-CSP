@@ -433,8 +433,8 @@ lemma CT3_trace_cons_imp_cons [simp]:
 (*definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
   "CT4 P = (\<forall> \<rho>. \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<nexists> X. \<rho> @ [[X]\<^sub>R] \<in> P))"*)
 
-definition CT5 :: "'e cttobs list set \<Rightarrow> bool" where
-"CT5 P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
+definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
+"CT4 P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
 
 definition CTwf :: "'e cttobs list set \<Rightarrow> bool" where
   "CTwf P = (\<forall>x\<in>P. cttWF x)"
