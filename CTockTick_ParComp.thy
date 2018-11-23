@@ -1,5 +1,5 @@
 theory CTockTick_ParComp
-  imports CTockTick_Core
+  imports CTockTick_Basic_Ops
 begin
 
 subsection {* Parallel Composition *}
