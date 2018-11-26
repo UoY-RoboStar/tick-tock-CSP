@@ -682,6 +682,11 @@ lemma prirel_same:
   shows "a \<notin> X" 
   using assms by auto
 
+lemma prirel_same_length:
+  assumes "prirel p fl Y"
+  shows "length fl = length Y"
+  using assms by (induct fl Y rule:prirel.induct, auto)
+
 lemma prirelAlt_acceptance_refl:
   "prirelAlt p \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
   by auto

@@ -31,8 +31,8 @@ lemma CTRMax_top_refusal:
   shows "\<not> t @ [[Y]\<^sub>R] \<in> P"
   using assms unfolding CTRMax_def by auto
 
-lemma CTRMax_CT5_Tick:
-  assumes "CTRMax P" "CT5 P" "t @ [[X]\<^sub>R] \<in> P"
+lemma CTRMax_CT4_Tick:
+  assumes "CTRMax P" "CT4 P" "t @ [[X]\<^sub>R] \<in> P"
   shows "Tick \<in> X"
 proof (cases "Tick \<in> X")
   case True
@@ -40,7 +40,7 @@ proof (cases "Tick \<in> X")
 next
   case False
   then have "t @ [[X \<union> {Tick}]\<^sub>R] \<in> P"
-    using assms(2,3) unfolding CT5_def by auto
+    using assms(2,3) unfolding CT4_def by auto
   then have "t @ [[X \<union> {Tick}]\<^sub>R] \<notin> P"
     using CTRMax_top_refusal False assms(1) assms(3) insertI1 by blast
   then show ?thesis
@@ -51,8 +51,8 @@ lemma CTTickTrace_dist_concat:
   "CTTickTrace (xs @ ys) = (CTTickTrace xs \<and> CTTickTrace ys)"
   by (induct xs rule:CTTickTrace.induct, auto)
 
-lemma CTRMax_CT5_CT1c_CTTickTrace:
-  assumes "CTRMax P" "CT5 P" "CT1c P" "x \<in> P"
+lemma CTRMax_CT4_CT1c_CTTickTrace:
+  assumes "CTRMax P" "CT4 P" "CT1c P" "x \<in> P"
   shows "CTTickTrace x"
   using assms apply(induct x rule:rev_induct, auto)
   apply (simp add:CTTickTrace_dist_concat)
@@ -60,7 +60,7 @@ lemma CTRMax_CT5_CT1c_CTTickTrace:
   unfolding CT1c_def apply auto
   using ctt_prefix_concat apply blast
   using ctt_prefix_concat apply blast
-  using CTRMax_CT5_Tick by blast
+  using CTRMax_CT4_Tick by blast
 
 lemma flt2cttobs_is_cttWF:
   assumes "tickWF Tick fltrace"
@@ -554,7 +554,7 @@ lemma CTwf_1c_3_imp_flt2cttobs_FL1:
       and CT1c_healthy: "CT1c P"
       and CT3_healthy:  "CT3 P"
       and CTRMax_healthy: "CTRMax P"
-      and CT5_healthy: "CT5 P"
+      and CT4_healthy: "CT4 P"
   shows "\<exists>fl. x = flt2cttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2cttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
   using assms
 proof(induct x rule:rev_induct)
@@ -579,7 +579,7 @@ next
     proof (cases x)
       case (Ref x1)
       then have "Tick \<in> x1"
-        using CTRMax_CT5_Tick CT5_healthy CTRMax_healthy
+        using CTRMax_CT4_Tick CT4_healthy CTRMax_healthy
         using snoc.prems(1) by blast
       then show ?thesis
           apply (intro exI[where x="\<langle>[{x. x \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
@@ -940,7 +940,7 @@ next
       next
         case (Ref r2)
         have Tick_in_r2:"Tick \<in> r2"
-          using CT5_healthy CTRMax_CT5_Tick CTRMax_healthy Ref snoc.prems(1) by blast
+          using CT4_healthy CTRMax_CT4_Tick CTRMax_healthy Ref snoc.prems(1) by blast
         then have "ys @ [[e1]\<^sub>E] @ [[r2]\<^sub>R] \<in> P"
           using e1 Ref yys.prems(2) by auto
         then have "[Tick]\<^sub>E \<notin> set (ys @ [[e1]\<^sub>E])" 
@@ -1049,7 +1049,7 @@ lemma subset_fl2ctt_ctt2fl:
       and CT1c_healthy: "CT1c P"
       and CT3_healthy:  "CT3 P"
       and CTRMax_healthy: "CTRMax P"
-      and CT5_healthy: "CT5 P"
+      and CT4_healthy: "CT4 P"
   shows "P \<subseteq> fl2ctt(ctt2fl(P))"
   unfolding ctt2fl_def fl2ctt_def apply auto
   using assms CTwf_1c_3_imp_flt2cttobs_FL1 by blast
@@ -1060,7 +1060,7 @@ lemma fl2ctt_ctt2fl_bij:
       and CT1c_healthy: "CT1c P"
       and CT3_healthy:  "CT3 P"
       and CTRMax_healthy: "CTRMax P"
-      and CT5_healthy: "CT5 P"
+      and CT4_healthy: "CT4 P"
     shows "P = fl2ctt(ctt2fl(P))"
   using assms
   by (simp add: fl2ctt_ctt2fl_refines subset_antisym subset_fl2ctt_ctt2fl)
