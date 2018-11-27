@@ -346,10 +346,23 @@ lemma cttWF_end_Tock_prefix_subset: "cttWF (s @ [[Tock]\<^sub>E]) \<Longrightarr
   using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
   using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
 
+lemma cttWF_cons_hd_not_Tock_then_cttWF:
+  assumes "cttWF (a # fl)" "hd fl \<noteq> [Tock]\<^sub>E"
+  shows "cttWF fl"
+  by (metis (no_types, lifting) assms(1) assms(2) cttWF.elims(2) cttWF.simps(1) list.discI list.inject list.sel(1))
+
+lemma cttWF_dist_cons_refusal: 
+  assumes "cttWF (s @ [[S]\<^sub>R,x])"
+  shows "cttWF [[S]\<^sub>R,x]"
+  using assms by(induct s rule:cttWF.induct, auto)
+
 section {* Healthiness Conditions *}
 
 definition CT0 :: "'e cttobs list set \<Rightarrow> bool" where
   "CT0 P = (P \<noteq> {})"
+
+definition CT1c :: "'e cttobs list set \<Rightarrow> bool" where
+  "CT1c P = (\<forall> \<rho> \<sigma>. (\<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
 
 definition CT1 :: "'e cttobs list set \<Rightarrow> bool" where
   "CT1 P = (\<forall> \<rho> \<sigma>. (\<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
@@ -413,8 +426,28 @@ lemma CT3_trace_end_refusal_change:
   "CT3_trace (t @ [[X]\<^sub>R]) \<Longrightarrow> CT3_trace (t @ [[Y]\<^sub>R])"
   by (induct t rule:CT3_trace.induct, auto, case_tac x, auto)
 
+lemma CT3_trace_cons_imp_cons [simp]:
+  assumes "CT3_trace (a # fl)"
+  shows "CT3_trace fl"
+  using assms apply (cases a, auto)
+  apply(induct fl rule:CT3_trace.induct, auto)
+  apply(induct fl rule:CT3_trace.induct, auto)
+  by (case_tac va, auto)
+
 (*definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
   "CT4 P = (\<forall> \<rho>. \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<nexists> X. \<rho> @ [[X]\<^sub>R] \<in> P))"*)
+
+definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
+"CT4 P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
+
+definition CTwf :: "'e cttobs list set \<Rightarrow> bool" where
+  "CTwf P = (\<forall>x\<in>P. cttWF x)"
+
+lemma CTwf_cons_end_not_refusal_refusal:
+  assumes "CTwf P"
+  shows "\<not> sa @ [[S]\<^sub>R, [Z]\<^sub>R] \<in> P"
+  using assms unfolding CTwf_def using cttWF_dist_cons_refusal
+  using cttWF.simps(13) by blast
 
 definition CT :: "'e cttobs list set \<Rightarrow> bool" where
   "CT P = ((\<forall>x\<in>P. cttWF x) \<and> CT0 P \<and> CT1 P \<and> CT2 P \<and> CT3 P)"
@@ -425,6 +458,13 @@ lemma CT_CT0: "CT P \<Longrightarrow> CT0 P"
 lemma CT_CT1: "CT P \<Longrightarrow> CT1 P"
   using CT_def by auto
 
+lemma CT1_CT1c: "CT1 P \<Longrightarrow> CT1c P"
+  unfolding CT1_def CT1c_def
+  using ctt_prefix_imp_prefix_subset by blast
+
+lemma CT_CT1c: "CT P \<Longrightarrow> CT1c P"
+  unfolding CT_def using CT1_CT1c by auto
+
 lemma CT_CT2: "CT P \<Longrightarrow> CT2 P"
   using CT_def by auto
 
@@ -433,6 +473,13 @@ lemma CT_CT3: "CT P \<Longrightarrow> CT3 P"
 
 lemma CT_wf: "CT P \<Longrightarrow> \<forall>x\<in>P. cttWF x"
   using CT_def by auto
+
+lemma CT_CTwf: "CT P \<Longrightarrow> CTwf P"
+  unfolding CT_def CTwf_def by auto
+
+lemma CT0_CT1c_empty: "CT0 P \<Longrightarrow> CT1c P \<Longrightarrow> [] \<in> P"
+  unfolding CT0_def CT1c_def apply auto
+  using ctt_prefix.simps(1) by blast
 
 lemma CT0_CT1_empty: "CT0 P \<Longrightarrow> CT1 P \<Longrightarrow> [] \<in> P"
   unfolding CT0_def CT1_def
