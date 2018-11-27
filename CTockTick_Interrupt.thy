@@ -1433,4 +1433,610 @@ lemma CT_UntimedInterrupt:
   using CT3_UntimedInterrupt apply blast
   done
 
+subsection {* Time-synchronising Interrupt *}
+
+fun filter_tocks :: "'e cttobs list \<Rightarrow> 'e cttobs list" where
+  "filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # t) = [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks t" |
+  "filter_tocks [] = []" |
+  "filter_tocks (x # t) = filter_tocks t"
+
+thm filter_tocks.simps
+thm filter_tocks.induct
+
+lemma filter_tocks_in_tocks:
+  "filter_tocks t \<in> tocks UNIV"
+  by (induct t rule:filter_tocks.induct, auto simp add: tocks.intros)
+
+lemma filter_tocks_end_event:
+  "filter_tocks (s @ [[Event e]\<^sub>E]) = filter_tocks s"
+  by (induct_tac s rule:filter_tocks.induct, auto)
+
+lemma filter_tocks_end_tick:
+  "filter_tocks (s @ [[Tick]\<^sub>E]) = filter_tocks s"
+  by (induct_tac s rule:filter_tocks.induct, auto)
+
+lemma filter_tocks_end_ref_tock:
+  "filter_tocks (s @ [[X]\<^sub>R, [Tock]\<^sub>E]) = filter_tocks s @ [[X]\<^sub>R, [Tock]\<^sub>E]"
+  by (induct_tac s rule:filter_tocks.induct, auto)
+
+lemma ctt_prefix_subset_filter_tocks:
+  "cttWF s \<Longrightarrow> cttWF t \<Longrightarrow> s \<lesssim>\<^sub>C t \<Longrightarrow> filter_tocks s \<lesssim>\<^sub>C filter_tocks t"
+  by (induct s t rule:cttWF2.induct, auto)
+
+lemma ctt_subset_filter_tocks:
+  "cttWF s \<Longrightarrow> cttWF t \<Longrightarrow> s \<subseteq>\<^sub>C t \<Longrightarrow> filter_tocks s \<subseteq>\<^sub>C filter_tocks t"
+  by (induct s t rule:cttWF2.induct, auto)
+
+definition TimeSyncInterruptCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<triangle>\<^sub>T" 58) where
+  "P \<triangle>\<^sub>T Q = {t. \<exists> p q. p @ [[Tick]\<^sub>E] \<in> P \<and> q \<in> Q \<and> filter_tocks p = q \<and> t = p @ [[Tick]\<^sub>E]}
+    \<union> {t. \<exists> p X Y Z q. p @ [[X]\<^sub>R] \<in> P \<and> filter_tocks p = q \<and> q @ [[Y]\<^sub>R] \<in> Q
+      \<and> Z \<subseteq> X \<union> Y \<and> {e\<in>X. e \<noteq> Tock} = {e\<in>Y. e \<noteq> Tock} \<and> t = p @ [[Z]\<^sub>R]}
+    \<union> {t. \<exists> p q1 q2. p \<in> P \<and> (\<nexists> p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists> p' Y. p = p' @ [[Y]\<^sub>R])
+      \<and> filter_tocks p = q1 \<and> q1 @ q2 \<in> Q \<and> (\<nexists> q' Y. q2 = [Y]\<^sub>R # q') \<and> t =  p @ q2}"
+
+lemma TimeSyncInterruptCTT_wf:
+  assumes "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x"
+  shows "\<forall>x\<in>(P \<triangle>\<^sub>T Q). cttWF x"
+  unfolding TimeSyncInterruptCTT_def
+proof (safe, simp_all)
+  fix p
+  show "p @ [[Tick]\<^sub>E] \<in> P \<Longrightarrow> cttWF (p @ [[Tick]\<^sub>E])"
+    using assms by auto
+next
+  fix p X Y Z
+  show "p @ [[X]\<^sub>R] \<in> P \<Longrightarrow> cttWF (p @ [[Z]\<^sub>R])"
+    using assms(1) end_refusal_start_refusal_append_wf by fastforce
+next
+  fix p q2
+  assume "filter_tocks p @ q2 \<in> Q"
+  then have "cttWF q2"
+    using assms(2) filter_tocks_in_tocks tocks_append_wf2 by blast
+  then show "p \<in> P \<Longrightarrow> \<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow> \<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> cttWF (p @ q2)"
+    using assms(1) nontick_event_end_append_wf by blast
+qed
+
+lemma CT0_TimeSyncInterrupt:
+  assumes "CT0 P" "CT0 Q" "CT1 P" "CT1 Q"
+  shows "CT0 (P \<triangle>\<^sub>T Q)"
+  unfolding TimeSyncInterruptCTT_def CT0_def
+proof auto
+  have "[] \<in> P \<and> [] \<in> Q"
+    by (simp add: CT0_CT1_empty assms)
+  then show "\<forall>x p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or>
+      (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> x \<noteq> p @ q2) \<Longrightarrow>
+    \<exists>x p. (\<exists>X. p @ [[X]\<^sub>R] \<in> P \<and> (\<exists>Y. {e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<and> filter_tocks p @ [[Y]\<^sub>R] \<in> Q \<and> (\<exists>Z\<subseteq>X \<union> Y. x = p @ [[Z]\<^sub>R])))"
+    by (erule_tac x="[]" in allE, erule_tac x="[]" in allE, auto simp add: tocks.intros)
+qed
+
+lemma CT1_TimeSyncInterrupt:
+  assumes "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x"
+  assumes "CT1 P" "CT1 Q"
+  shows "CT1 (P \<triangle>\<^sub>T Q)"
+  unfolding CT1_def
+proof (auto)
+  fix \<rho> \<sigma> :: "'a cttobs list"
+  assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
+  assume assm2: "\<sigma> \<in> P \<triangle>\<^sub>T Q"
+  then have "(\<exists>p q. p @ [[Tick]\<^sub>E] \<in> P \<and> q \<in> Q \<and> filter_tocks p = q \<and> \<sigma> = p @ [[Tick]\<^sub>E])
+    \<or> (\<exists>p X Y Z q. p @ [[X]\<^sub>R] \<in> P \<and>  filter_tocks p = q \<and> q @ [[Y]\<^sub>R] \<in> Q
+      \<and> Z \<subseteq> X \<union> Y \<and> {e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<and> \<sigma> = p @ [[Z]\<^sub>R])
+    \<or> (\<exists>p q1 q2. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R])
+      \<and> filter_tocks p = q1 \<and> q1 @ q2 \<in> Q \<and> (\<nexists>q' Y. q2 = [Y]\<^sub>R # q') \<and> \<sigma> = p @ q2)"
+    unfolding TimeSyncInterruptCTT_def by auto
+  then show "\<rho> \<in> P \<triangle>\<^sub>T Q"
+  proof (safe, simp_all)
+    fix p
+    assume case_assms: "p @ [[Tick]\<^sub>E] \<in> P" "filter_tocks p \<in> Q" "\<sigma> = p @ [[Tick]\<^sub>E]"
+    then have \<rho>_in_P: "\<rho> \<in> P"
+      using CT1_def assm1 assms(3) by blast
+    have 1: "filter_tocks \<rho> \<lesssim>\<^sub>C filter_tocks \<sigma>"
+      using \<rho>_in_P assm1 assms(1) case_assms(1) case_assms(3) ctt_prefix_subset_filter_tocks by blast
+    have 2: "filter_tocks \<sigma> = filter_tocks p"
+      by (simp add: case_assms, induct p rule:filter_tocks.induct, auto)
+    have filter_tocks_\<rho>_in_Q: "filter_tocks \<rho> \<in> Q"
+      using 1 2 CT1_def assms(4) case_assms(2) by auto
+    have \<rho>_cases: "(\<exists> p' X. \<rho> = p' @ [[Tick]\<^sub>E]) \<or> (\<exists> p' X. \<rho> = p' @ [[X]\<^sub>R]) \<or> ((\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R]))"
+      by auto
+    then show "\<rho> \<in> P \<triangle>\<^sub>T Q"
+      unfolding TimeSyncInterruptCTT_def
+    proof auto
+      fix p'
+      show "\<rho> = p' @ [[Tick]\<^sub>E] \<Longrightarrow> p' @ [[Tick]\<^sub>E] \<notin> P \<Longrightarrow> False"
+        using \<rho>_in_P by blast
+    next
+      fix p'
+      assume case_assm2: "\<rho> = p' @ [[Tick]\<^sub>E]"
+      have "filter_tocks \<rho> = filter_tocks p'"
+        by (simp add: case_assm2, induct p' rule:filter_tocks.induct, auto)
+      then show "filter_tocks p' \<notin> Q \<Longrightarrow> False"
+        using filter_tocks_\<rho>_in_Q by auto
+    next
+      fix p' X
+      have cttWF_\<sigma>: "cttWF (p @ [[Tick]\<^sub>E])"
+        by (simp add: assms(1) case_assms(1))
+      assume "\<rho> = p' @ [[X]\<^sub>R]"
+      then have "p' @ [[X]\<^sub>R] \<lesssim>\<^sub>C p @ [[Tick]\<^sub>E]"
+        using case_assms assm1 by auto
+      then have "p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Tick]\<^sub>E]"
+        using cttWF_\<sigma> apply - 
+        apply (induct p' p rule:cttWF2.induct, auto)
+        using cttWF.simps(12) ctt_prefix_subset_cttWF apply blast
+        apply (meson cttWF.simps(11) ctt_prefix_subset_cttWF)
+        using cttWF.simps(13) ctt_prefix_subset_cttWF apply blast
+        using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
+        using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
+      then have 1: "filter_tocks (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<lesssim>\<^sub>C filter_tocks (p @ [[Tick]\<^sub>E])"
+        using cttWF_\<sigma> ctt_prefix_subset_cttWF ctt_prefix_subset_filter_tocks by blast
+      have 2: "filter_tocks (p @ [[Tick]\<^sub>E]) = filter_tocks (p)"
+        by (induct p rule:filter_tocks.induct, auto)
+      have 3: "filter_tocks (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) = filter_tocks p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
+        by (induct p' rule:filter_tocks.induct, auto)
+      have 4: "filter_tocks p' @ [[X]\<^sub>R, [Tock]\<^sub>E]  \<lesssim>\<^sub>C filter_tocks p"
+        using 1 2 3 by auto
+      have 5: "filter_tocks p' @ [[X]\<^sub>R]  \<lesssim>\<^sub>C filter_tocks p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
+        by (induct p' rule:filter_tocks.induct, auto)
+      then have "filter_tocks p' @ [[X]\<^sub>R]  \<lesssim>\<^sub>C filter_tocks p"
+        using 4 ctt_prefix_subset_trans by blast
+      then have "filter_tocks p' @ [[X]\<^sub>R] \<in> Q"
+        using CT1_def assms(4) case_assms(2) by blast
+      then show "\<rho> = p' @ [[X]\<^sub>R] \<Longrightarrow>
+        \<exists>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<and>
+          (\<exists>Y. filter_tocks p @ [[Y]\<^sub>R] \<in> Q \<and> X \<subseteq> Xa \<union> Y \<and> {e \<in> Xa. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<and> p' = p)"
+        using \<rho>_in_P filter_tocks_in_tocks by (rule_tac x="p'" in exI, rule_tac x="X" in exI, auto)
+    next
+      show "\<forall>p. p \<in> P \<longrightarrow>
+          (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> \<noteq> p @ q2) \<Longrightarrow>
+        \<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow> \<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> False"
+        using \<rho>_in_P filter_tocks_in_tocks
+      proof (erule_tac x="\<rho>" in allE, auto)
+        show "\<forall>q2. filter_tocks \<rho> @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> q2 \<noteq> [] \<Longrightarrow> False"
+          by (erule_tac x="[]" in allE, auto simp add: filter_tocks_\<rho>_in_Q)
+      qed
+    qed
+  next
+    fix p X Y Z
+    assume case_assms: "p @ [[X]\<^sub>R] \<in> P" "\<sigma> = p @ [[Z]\<^sub>R]" "filter_tocks p @ [[Y]\<^sub>R] \<in> Q" "Z \<subseteq> X \<union> Y" "{e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock}"
+    then have "\<rho> \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
+      using assm1 by auto
+    thm ctt_prefix_subset_filter_tocks
+    then have "\<rho> \<lesssim>\<^sub>C p \<or> \<rho> \<subseteq>\<^sub>C p @ [[Z]\<^sub>R]"
+      apply (induct \<rho> p rule:ctt_prefix_subset.induct, auto, case_tac x, auto)
+      using ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym ctt_subset_refl by blast
+    also have "\<rho> \<subseteq>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> \<exists> p' Z'. Z' \<subseteq> X \<union> Y \<and> \<rho> = p' @ [[Z']\<^sub>R] \<and> p' \<subseteq>\<^sub>C p"
+      apply (induct \<rho> p rule:ctt_subset.induct, auto, rule_tac x="[]" in exI, simp, case_tac v, auto)
+      using case_assms(4) ctt_subset_same_length by (auto, force)
+    then have "\<rho> \<lesssim>\<^sub>C p \<or> (\<exists> p' Z'. Z' \<subseteq> X \<union> Y \<and> \<rho> = p' @ [[Z']\<^sub>R] \<and> p' \<subseteq>\<^sub>C p)"
+      using calculation by auto
+    then show "\<rho> \<in> P \<triangle>\<^sub>T Q"
+    proof auto
+      assume case_assms2: "\<rho> \<lesssim>\<^sub>C p"
+      then have \<rho>_in_P: "\<rho> \<in> P"
+        using assms(3) case_assms(1) unfolding CT1_def by (meson ctt_prefix_concat ctt_prefix_imp_prefix_subset) 
+      have 1: "filter_tocks \<rho> \<lesssim>\<^sub>C filter_tocks \<sigma>"
+        by (metis TimeSyncInterruptCTT_wf \<rho>_in_P assm1 assm2 assms(1) assms(2) ctt_prefix_subset_filter_tocks)
+      have 2: "filter_tocks \<sigma> = filter_tocks p"
+        by (simp add: case_assms, induct p rule:filter_tocks.induct, auto)
+      have filter_tocks_\<rho>_in_Q: "filter_tocks \<rho> \<in> Q"
+        by (metis "1" "2" CT1_def assms(4) case_assms(3) ctt_prefix_concat ctt_prefix_subset_ctt_prefix_trans)
+      have \<rho>_cases: "(\<exists> p' X. \<rho> = p' @ [[Tick]\<^sub>E]) \<or> (\<exists> p' X. \<rho> = p' @ [[X]\<^sub>R]) \<or> ((\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R]))"
+        by auto
+      then have \<rho>_cases: " (\<exists> p' X. \<rho> = p' @ [[X]\<^sub>R]) \<or> ((\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R]))"
+      proof auto
+        fix p'a
+        assume case_assm3: "\<rho> = p'a @ [[Tick]\<^sub>E]"
+        have "\<exists> \<rho>'. \<rho>' \<le>\<^sub>C p \<and> \<rho> \<subseteq>\<^sub>C \<rho>'"
+          using case_assms2 ctt_prefix_subset_imp_ctt_subset_ctt_prefix by blast
+        then have "\<exists> \<rho>' p'. p = \<rho>' @ p' \<and> \<rho> \<subseteq>\<^sub>C \<rho>'"
+          using ctt_prefix_decompose by blast
+        then obtain \<rho>' p' where 1: "p = \<rho>' @ p' \<and> \<rho> \<subseteq>\<^sub>C \<rho>'"
+          by auto
+        then have "\<exists> p'a'. \<rho>' = p'a' @ [[Tick]\<^sub>E]"
+          using case_assm3
+        proof auto
+          fix \<rho>' p'
+          show "p'a @ [[Tick]\<^sub>E] \<subseteq>\<^sub>C \<rho>' \<Longrightarrow> \<exists>p'a'. \<rho>' = p'a' @ [[Tick]\<^sub>E]"
+            apply (induct p'a \<rho>' rule:ctt_subset.induct, auto, case_tac v, auto)
+            using ctt_subset.elims(2) by fastforce+
+        qed
+        then obtain p'a' where "cttWF (p'a' @ [[Tick]\<^sub>E] @ p' @ [[X]\<^sub>R])"
+          using 1 assms(1) case_assms(1) cttWF_prefix_is_cttWF by fastforce
+        then show False
+          by (induct p'a' rule:cttWF.induct, auto, induct p' rule:cttWF.induct, auto)
+      qed
+      then show "\<rho> \<in> P \<triangle>\<^sub>T Q"
+        unfolding TimeSyncInterruptCTT_def
+      proof auto
+        fix p' X'
+        have cttWF_\<sigma>: "cttWF (p @ [[Z]\<^sub>R])"
+          using TimeSyncInterruptCTT_wf assm2 assms(1) assms(2) case_assms(2) by blast
+        assume case_assms3: "\<rho> = p' @ [[X']\<^sub>R]"
+        then have \<rho>_prefix_subset_\<sigma>: "p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
+          using assm1 case_assms(2) by blast
+        then have 1: "p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
+          using cttWF_\<sigma> case_assms2 case_assms3
+        proof auto
+          show "p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> cttWF (p @ [[Z]\<^sub>R]) \<Longrightarrow> p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p \<Longrightarrow> p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
+            apply (induct p' p rule:cttWF2.induct, auto)
+            using cttWF.simps(12) ctt_prefix_subset_cttWF apply blast
+            apply (meson cttWF.simps(11) ctt_prefix_subset_cttWF)
+            using cttWF.simps(13) ctt_prefix_subset_cttWF apply blast
+            using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
+            using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
+        qed
+        then have 2: "p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
+          using cttWF_\<sigma> case_assms3 case_assms2
+        proof auto
+          show "p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> cttWF (p @ [[Z]\<^sub>R]) \<Longrightarrow> p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p \<Longrightarrow> p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
+            apply (induct p' p rule:cttWF2.induct, auto)
+            using cttWF.simps(12) ctt_prefix_subset_cttWF apply blast
+            apply (meson cttWF.simps(11) ctt_prefix_subset_cttWF)
+            using cttWF.simps(13) ctt_prefix_subset_cttWF apply blast
+            using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
+            using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
+        qed
+        then have 3: "filter_tocks (p' @ [[X']\<^sub>R, [Tock]\<^sub>E]) \<lesssim>\<^sub>C filter_tocks p"
+          using cttWF_\<sigma> cttWF_prefix_is_cttWF ctt_prefix_subset_cttWF ctt_prefix_subset_filter_tocks by blast
+        have 4: "filter_tocks (p' @ [[X']\<^sub>R, [Tock]\<^sub>E]) = filter_tocks p' @ [[X']\<^sub>R, [Tock]\<^sub>E]"
+          by (induct p' rule:filter_tocks.induct, auto)
+        have 5: "filter_tocks p' @ [[X']\<^sub>R, [Tock]\<^sub>E]  \<lesssim>\<^sub>C filter_tocks p"
+          using 3 4 by auto
+        have 6: "filter_tocks p' @ [[X']\<^sub>R]  \<lesssim>\<^sub>C filter_tocks p' @ [[X']\<^sub>R, [Tock]\<^sub>E]"
+          by (induct p' rule:filter_tocks.induct, auto)
+        then have "filter_tocks p' @ [[X']\<^sub>R]  \<lesssim>\<^sub>C filter_tocks p"
+          using 5 ctt_prefix_subset_trans by blast
+        then have "filter_tocks p' @ [[X']\<^sub>R] \<in> Q"
+          by (meson CT1_def assms(4) case_assms(3) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+        then show "\<rho> = p' @ [[X']\<^sub>R] \<Longrightarrow>
+          \<exists>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<and> (\<exists>Y. filter_tocks p @ [[Y]\<^sub>R] \<in> Q \<and> X' \<subseteq> Xa \<union> Y \<and> {e \<in> Xa. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<and> p' = p)"
+          using \<rho>_in_P by (rule_tac x="p'" in exI, rule_tac x="X'" in exI, auto)
+      next
+        show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+            (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> \<noteq> p @ q2) \<Longrightarrow>
+          \<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow> \<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> False"
+          using \<rho>_in_P filter_tocks_\<rho>_in_Q by (erule_tac x="\<rho>" in allE, auto, force)
+      qed
+    next
+      fix p' Z'
+      thm case_assms
+      assume case_assms2: "Z' \<subseteq> X \<union> Y" "p' \<subseteq>\<^sub>C p" "\<rho> = p' @ [[Z']\<^sub>R]"
+      have "p' @ [[X]\<^sub>R] \<subseteq>\<^sub>C p @ [[X]\<^sub>R]"
+        by (simp add: case_assms2(2) ctt_subset_combine)
+      then have p'_X_in_P: "p' @ [[X]\<^sub>R] \<in> P"
+        using assms(3) case_assms(1) ctt_subset_imp_prefix_subset unfolding CT1_def by blast
+      have "filter_tocks p' \<subseteq>\<^sub>C filter_tocks p"
+        using assms(1) case_assms(1) case_assms2(2) cttWF_prefix_is_cttWF ctt_prefix_subset_cttWF ctt_subset_filter_tocks ctt_subset_imp_prefix_subset by blast
+      then have "filter_tocks p' @ [[Y]\<^sub>R] \<subseteq>\<^sub>C filter_tocks p @ [[Y]\<^sub>R]"
+        by (simp add: ctt_subset_combine)
+      then have "filter_tocks p' @ [[Y]\<^sub>R] \<lesssim>\<^sub>C filter_tocks p @ [[Y]\<^sub>R]"
+        using ctt_subset_imp_prefix_subset by blast 
+      then have "filter_tocks p' @ [[Y]\<^sub>R] \<in> Q"
+        using assms(4) case_assms(3) ctt_subset_imp_prefix_subset unfolding CT1_def by blast
+      then show "p' @ [[Z']\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+        unfolding TimeSyncInterruptCTT_def using p'_X_in_P case_assms case_assms2 by auto
+    qed
+  next
+    fix p q2
+    assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]"
+        "filter_tocks p @ q2 \<in> Q" "\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q'" "\<sigma> = p @ q2"
+    have "\<rho> \<lesssim>\<^sub>C p \<or> (\<exists> p' q'. q' \<lesssim>\<^sub>C q2 \<and> p' \<subseteq>\<^sub>C p \<and> \<rho> = p' @ q')"
+      using assm1 case_assms(6) ctt_prefix_subset_concat2 by blast
+    then show "\<rho> \<in> P \<triangle>\<^sub>T Q"
+      unfolding TimeSyncInterruptCTT_def
+    proof auto
+      assume case_assms2: "\<rho> \<lesssim>\<^sub>C p"
+      have "(\<exists>p' Y. \<rho> = p' @ [[Y]\<^sub>R]) \<or> ((\<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R]))"
+      proof auto
+        fix p'
+        have p_wf: "cttWF p"
+          by (simp add: assms(1) case_assms(1))
+        assume "\<rho> = p' @ [[Tick]\<^sub>E]"
+        then have 1: "p' @ [[Tick]\<^sub>E] \<lesssim>\<^sub>C p"
+          using case_assms2 by auto
+        then have "cttWF (p' @ [[Tick]\<^sub>E])"
+          using ctt_prefix_subset_cttWF p_wf by blast
+        then show False
+          using case_assms(2) p_wf 1 by (induct p' p rule:cttWF2.induct, auto, fastforce+)
+      qed
+      then show " \<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+          (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> \<noteq> p @ q2) \<Longrightarrow>
+        \<exists>p X. p @ [[X]\<^sub>R] \<in> P \<and> (\<exists>Y. filter_tocks p @ [[Y]\<^sub>R] \<in> Q \<and>
+          (\<exists>Z\<subseteq>X \<union> Y. {e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<and> \<rho> = p @ [[Z]\<^sub>R]))"
+      proof auto
+        fix p' Y
+        assume case_assms3: "\<rho> = p' @ [[Y]\<^sub>R]"
+        have "filter_tocks p' @ [[Y]\<^sub>R] \<in> Q"
+        proof -
+          have p_wf: "cttWF p"
+            by (simp add: assms(1) case_assms(1))
+          have p'_wf: "cttWF (p' @ [[Y]\<^sub>R])"
+            using case_assms2 case_assms3 ctt_prefix_subset_cttWF p_wf by blast
+          have "p' @ [[Y]\<^sub>R] \<lesssim>\<^sub>C p"
+            using case_assms2 case_assms3 by auto
+          then have "p' @ [[Y]\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
+            using case_assms(3) p_wf p'_wf by (induct p' p rule:cttWF2.induct, auto, fastforce+)
+          then have 1: "filter_tocks (p' @ [[Y]\<^sub>R, [Tock]\<^sub>E]) \<lesssim>\<^sub>C filter_tocks p"
+            using ctt_prefix_subset_cttWF ctt_prefix_subset_filter_tocks p_wf by blast
+          have "filter_tocks (p' @ [[Y]\<^sub>R, [Tock]\<^sub>E]) = filter_tocks p' @ [[Y]\<^sub>R, [Tock]\<^sub>E]"
+            by (induct p' rule:filter_tocks.induct, auto)
+          then have "filter_tocks p' @ [[Y]\<^sub>R]  \<lesssim>\<^sub>C filter_tocks (p' @ [[Y]\<^sub>R, [Tock]\<^sub>E])"
+            using ctt_prefix_subset_same_front by fastforce
+          then have "filter_tocks p' @ [[Y]\<^sub>R] \<lesssim>\<^sub>C filter_tocks p"
+            using "1" ctt_prefix_subset_trans by blast
+          then show "filter_tocks p' @ [[Y]\<^sub>R] \<in> Q"
+            by (meson CT1_def assms(4) case_assms(4) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+        qed
+        then show "\<exists>p X. p @ [[X]\<^sub>R] \<in> P \<and> (\<exists>Ya. filter_tocks p @ [[Ya]\<^sub>R] \<in> Q \<and> Y \<subseteq> X \<union> Ya \<and> {e \<in> X. e \<noteq> Tock} = {e \<in> Ya. e \<noteq> Tock} \<and> p' = p)"
+          using CT1_def assms(3) case_assms(1) case_assms2 case_assms3 by blast
+      next
+        assume case_assms3: "\<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R]"
+        have "filter_tocks \<rho> \<lesssim>\<^sub>C filter_tocks p"
+          using assms(1) case_assms(1) case_assms2 ctt_prefix_subset_cttWF ctt_prefix_subset_filter_tocks by blast
+        then have "filter_tocks \<rho> \<in> Q"
+          by (meson CT1_def assms(4) case_assms(4) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+        also have "\<rho> \<in> P"
+          using CT1_def assms(3) case_assms(1) case_assms2 by blast
+        then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+          (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> \<noteq> p @ q2) \<Longrightarrow> False"
+          by (metis append_self_conv calculation case_assms3(1) case_assms3(2) list.discI)
+      qed
+    next
+      fix p' q'
+      assume case_assms2: "q' \<lesssim>\<^sub>C q2" "p' \<subseteq>\<^sub>C p" "\<rho> = p' @ q'"
+      have 1: "(\<forall>p''. p' \<noteq> p'' @ [[Tick]\<^sub>E]) \<and> (\<forall>p'' Y. p' \<noteq> p'' @ [[Y]\<^sub>R])"
+        using case_assms2(2) case_assms(2) case_assms(3) apply (induct p' p rule:ctt_subset.induct, auto)
+        by (smt append_butlast_last_id ctt_subset_same_length last.simps last_appendR length_0_conv list.distinct(1))+
+      have p'_in_P: "p' \<in> P"
+        using CT1_def assms(3) case_assms(1) case_assms2(2) ctt_subset_imp_prefix_subset by blast
+      then have 2: "filter_tocks p' \<subseteq>\<^sub>C filter_tocks p"
+        by (simp add: assms(1) case_assms(1) case_assms2(2) ctt_subset_filter_tocks)
+      then have "filter_tocks p' @ q' \<lesssim>\<^sub>C filter_tocks p' @ q2"
+        using case_assms2(1) ctt_prefix_subset_same_front by blast
+      then have "filter_tocks p' @ q' \<lesssim>\<^sub>C filter_tocks p @ q2"
+        using "2" ctt_prefix_subset_trans ctt_subset_combine ctt_subset_imp_prefix_subset ctt_subset_refl by blast
+      then have "filter_tocks p' @ q' \<in> Q"
+        using CT1_def assms(4) case_assms(4) by blast
+      then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+          (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> p' @ q' \<noteq> p @ q2) \<Longrightarrow>
+        \<exists>p X. p @ [[X]\<^sub>R] \<in> P \<and> (\<exists>Y. filter_tocks p @ [[Y]\<^sub>R] \<in> Q \<and> (\<exists>Z\<subseteq>X \<union> Y. {e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<and> p' @ q' = p @ [[Z]\<^sub>R]))"
+        using p'_in_P 1 apply (erule_tac x="p'" in allE, auto, erule_tac x="q'" in allE, auto)
+        by (metis case_assms(5) case_assms2(1) contains_refusal.cases ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(5) ctt_prefix_subset_antisym)
+    qed
+  qed
+qed
+
+lemma CT2_TimeSyncInterrupt:
+  assumes P_wf: "\<forall>x\<in>P. cttWF x"
+  assumes CT1_P: "CT1 P" and CT1_Q: "CT1 Q"
+  assumes CT2_P: "CT2 P" and CT2_Q: "CT2 Q"
+  assumes CT3_P: "CT3 P" and CT3_Q: "CT3 Q"
+  shows "CT2 (P \<triangle>\<^sub>T Q)"
+  unfolding CT2_def
+proof auto
+  fix \<rho> X Y
+  assume assm1: "\<rho> @ [[X]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q} = {}"
+  have "(\<exists> Z W q. \<rho> @ [[Z]\<^sub>R] \<in> P \<and> filter_tocks \<rho> = q \<and> q @ [[W]\<^sub>R] \<in> Q \<and> X \<subseteq> Z \<union> W \<and> {e \<in> Z. e \<noteq> Tock} = {e \<in> W. e \<noteq> Tock})
+    \<or> (\<exists>p q1 q2. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]) \<and> filter_tocks p = q1 \<and>
+      q1 @ q2 @ [[X]\<^sub>R] \<in> Q \<and> (\<nexists>q' Y. q2 @ [[X]\<^sub>R] = [Y]\<^sub>R # q') \<and> \<rho> @ [[X]\<^sub>R] = p @ q2 @ [[X]\<^sub>R])"
+    using assm1 unfolding TimeSyncInterruptCTT_def
+  proof (safe, simp_all)
+    fix Xa Y
+    assume "\<rho> @ [[Xa]\<^sub>R] \<in> P" "filter_tocks \<rho> @ [[Y]\<^sub>R] \<in> Q" "X \<subseteq> Xa \<union> Y" "{e \<in> Xa. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock}"
+    then show "\<exists>Z. \<rho> @ [[Z]\<^sub>R] \<in> P \<and> (\<exists>W. filter_tocks \<rho> @ [[W]\<^sub>R] \<in> Q \<and> X \<subseteq> Z \<union> W \<and> {e \<in> Z. e \<noteq> Tock} = {e \<in> W. e \<noteq> Tock})"
+      by (rule_tac x="Xa" in exI, auto)
+  next
+    fix p q2
+    assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]"
+      "filter_tocks p @ q2 \<in> Q" "\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q'" "\<rho> @ [[X]\<^sub>R] = p @ q2"
+    have "\<exists> q'. \<rho> @ [[X]\<^sub>R] = p @ q' @ [[X]\<^sub>R]"
+      using case_assms(6) by (auto, metis append_butlast_last_id append_self_conv case_assms(3) last_appendR last_snoc) 
+    then show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<or>
+        (\<forall>q2a. filter_tocks pa @ q2a @ [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q2a @ [[X]\<^sub>R] = [Y]\<^sub>R # q') \<or> p @ q2 \<noteq> pa @ q2a @ [[X]\<^sub>R]) \<Longrightarrow>
+      \<exists>Z. \<rho> @ [[Z]\<^sub>R] \<in> P \<and> (\<exists>W. filter_tocks \<rho> @ [[W]\<^sub>R] \<in> Q \<and> X \<subseteq> Z \<union> W \<and> {e \<in> Z. e \<noteq> Tock} = {e \<in> W. e \<noteq> Tock})"
+      using case_assms by (erule_tac x=p in allE, auto)
+  qed
+  then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+  proof (safe, simp_all)
+    fix Z W
+    assume case_assms: "\<rho> @ [[Z]\<^sub>R] \<in> P" "filter_tocks \<rho> @ [[W]\<^sub>R] \<in> Q" "X \<subseteq> Z \<union> W" "{e \<in> Z. e \<noteq> Tock} = {e \<in> W. e \<noteq> Tock}"
+    have \<rho>_in_P: "\<rho> \<in> P"
+      using CT1_P CT1_def case_assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+    have \<rho>_end_assms: "(\<nexists> \<rho>'. \<rho> = \<rho>' @ [[Tick]\<^sub>E]) \<and> (\<nexists> \<rho>' X. \<rho> = \<rho>' @ [[X]\<^sub>R])"
+    proof auto
+      fix \<rho>'
+      assume "\<rho> = \<rho>' @ [[Tick]\<^sub>E]"
+      then have "cttWF (\<rho>' @ [[Tick]\<^sub>E, [Z]\<^sub>R])"
+        using case_assms(1) P_wf by auto
+      then show False
+        by (induct \<rho>' rule:cttWF.induct, auto)
+    next
+      fix \<rho>' X
+      assume "\<rho> = \<rho>' @ [[X]\<^sub>R]"
+      then have "cttWF (\<rho>' @ [[X]\<^sub>R, [Z]\<^sub>R])"
+        using case_assms(1) P_wf by auto
+      then show False
+        by (induct \<rho>' rule:cttWF.induct, auto)
+    qed
+    have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P} \<union> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q}
+          \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      unfolding TimeSyncInterruptCTT_def
+    proof (safe, simp_all)
+      fix x
+      assume "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+      then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+          (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q2) \<Longrightarrow>
+        \<rho> @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks \<rho> \<in> Q \<and> x = Tick"
+        apply (cases x, auto, erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
+        apply (metis CT1_Q CT1_def append_Nil2 case_assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset filter_tocks_end_event list.simps(3))
+        by (meson CT1_Q CT1_def case_assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+    next
+      fix x
+      assume "filter_tocks \<rho> @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+      then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+          (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q2) \<Longrightarrow>
+        \<rho> @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks \<rho> \<in> Q \<and> x = Tick"
+        apply (cases x, auto)
+        using \<rho>_end_assms \<rho>_in_P by blast+
+    qed
+    then have P_nontock_inter: "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P} = {}"
+      and Q_nontock_inter: "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q} = {}"
+      using assm2 inf.orderE mem_Collect_eq by fastforce+
+    thm assm2
+    thm case_assms
+    have "{e. e = Tock \<and> \<rho> @ [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} \<inter> {e. e = Tock \<and> filter_tocks \<rho> @ [[W]\<^sub>R, [e]\<^sub>E] \<in> Q}
+          \<subseteq> {e. e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      unfolding TimeSyncInterruptCTT_def
+    proof (safe, simp_all)  
+      assume assm: "\<rho> @ [[Z]\<^sub>R, [Tock]\<^sub>E] \<in> P" "filter_tocks \<rho> @ [[W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+      then have Tock_notin_Z: "Tock \<notin> Z \<and> Tock \<notin> W"
+        using CT3_P CT3_Q CT3_any_cons_end_tock by blast
+      then have "Z = W"
+        using Collect_mono Collect_mono_iff case_assms(4) by auto
+      then have "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        using case_assms(3) apply auto
+        apply (metis CT1_P CT1_def assm(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl ctt_prefix_subset_same_front)
+        by (metis CT1_Q CT1_def assm(2) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl ctt_prefix_subset_same_front)
+      then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+        (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> p @ q2) \<Longrightarrow> False"
+        by (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto, erule_tac x="[]" in allE, auto simp add: case_assms(4) filter_tocks_end_ref_tock)
+    qed
+    then have tock_inter_cases: "{e\<in>Y. e = Tock} \<inter> {e. e = Tock \<and> \<rho> @ [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<or> {e\<in>Y. e = Tock} \<inter> {e. e = Tock \<and> filter_tocks \<rho> @ [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+      using assm2 by auto
+    show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+    proof (cases "Tock \<in> Y")
+      assume Tock_in_Y: "Tock \<in> Y"
+      show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+        using tock_inter_cases
+      proof safe
+        assume case_assms2: "{e \<in> Y. e = Tock} \<inter> {e. e = Tock \<and> \<rho> @ [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+        then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+          using P_nontock_inter by auto
+        then have \<rho>_Z_Y_in_P: "\<rho> @ [[Z \<union> Y]\<^sub>R] \<in> P"
+          using CT2_P case_assms(1) unfolding CT2_def by auto
+        have "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+          using Q_nontock_inter by auto
+        then have \<rho>_W_Y_in_Q: "filter_tocks \<rho> @ [[W \<union> {e\<in>Y. e \<noteq> Tock}]\<^sub>R] \<in> Q"
+          using CT2_Q case_assms(2) unfolding CT2_def by auto
+        show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+          using \<rho>_Z_Y_in_P \<rho>_W_Y_in_Q unfolding TimeSyncInterruptCTT_def apply (auto)
+          apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="Z \<union> Y" in exI, auto)
+          using case_assms by (rule_tac x="W \<union> {e\<in>Y. e \<noteq> Tock}" in exI, auto)
+      next
+        assume case_assms2: "{e \<in> Y. e = Tock} \<inter> {e. e = Tock \<and> filter_tocks \<rho> @ [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        then have "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+          using Q_nontock_inter by auto
+        then have \<rho>_W_Y_in_Q: "filter_tocks \<rho> @ [[W \<union> Y]\<^sub>R] \<in> Q"
+          using CT2_Q case_assms(2) unfolding CT2_def by auto
+        have "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+          using P_nontock_inter by auto
+        then have \<rho>_Z_Y_in_P: "\<rho> @ [[Z \<union> {e\<in>Y. e \<noteq> Tock}]\<^sub>R] \<in> P"
+          using CT2_P case_assms(1) unfolding CT2_def by auto
+        show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+          using \<rho>_Z_Y_in_P \<rho>_W_Y_in_Q unfolding TimeSyncInterruptCTT_def apply (auto)
+          apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="Z \<union> {e\<in>Y. e \<noteq> Tock}" in exI, auto)
+          using case_assms by (rule_tac x="W \<union> Y" in exI, auto)
+      qed
+    next
+      assume Tock_notin_Y: "Tock \<notin> Y"
+      have "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+        using P_nontock_inter by auto
+      then have \<rho>_Z_Y_in_P: "\<rho> @ [[Z \<union> {e\<in>Y. e \<noteq> Tock}]\<^sub>R] \<in> P"
+        using CT2_P case_assms(1) unfolding CT2_def by auto
+      have "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        using Q_nontock_inter by auto
+      then have \<rho>_W_Y_in_Q: "filter_tocks \<rho> @ [[W \<union> {e\<in>Y. e \<noteq> Tock}]\<^sub>R] \<in> Q"
+        using CT2_Q case_assms(2) unfolding CT2_def by auto
+      show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+        using \<rho>_Z_Y_in_P \<rho>_W_Y_in_Q unfolding TimeSyncInterruptCTT_def apply (auto)
+        apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="Z \<union> {e\<in>Y. e \<noteq> Tock}" in exI, auto)
+        using case_assms Tock_notin_Y by (rule_tac x="W \<union> {e\<in>Y. e \<noteq> Tock}" in exI, auto)
+    qed
+  next
+    fix p q2
+    assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]"
+      "filter_tocks p @ q2 @ [[X]\<^sub>R] \<in> Q" "\<forall>q' Y. q2 @ [[X]\<^sub>R] \<noteq> [Y]\<^sub>R # q'" "\<rho> = p @ q2"
+    have "{e. e \<noteq> Tock \<and> filter_tocks p @ q2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks p @ q2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      unfolding TimeSyncInterruptCTT_def
+    proof (safe, simp_all)
+      fix x
+      assume "filter_tocks p @ q2 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+      then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+          (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q2) \<Longrightarrow>
+        \<rho> @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks \<rho> \<in> Q \<and> x = Tick"
+        using case_assms apply (erule_tac x="p" in allE, auto)
+        by (erule_tac x="q2 @ [[x]\<^sub>E]" in allE, auto, metis Cons_eq_append_conv append_Cons case_assms(5))+
+    next
+      fix x
+      assume "filter_tocks p @ q2 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+      then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+          (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q2) \<Longrightarrow>
+        \<rho> @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks \<rho> \<in> Q \<and> x = Tick"
+        using case_assms apply (erule_tac x="p" in allE, auto)
+        by (erule_tac x="q2 @ [[x]\<^sub>E]" in allE, auto, metis Cons_eq_append_conv append_Cons case_assms(5))+
+    next
+      assume "filter_tocks p @ q2 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+      then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+        (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> p @ q2) \<Longrightarrow> False"
+        using case_assms apply (erule_tac x="p" in allE, auto)
+        by (erule_tac x="q2 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto, metis Cons_eq_append_conv append_Cons case_assms(5))+
+    next
+      assume "filter_tocks p @ q2 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+      then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+        (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> p @ q2) \<Longrightarrow> False"
+        using case_assms apply (erule_tac x="p" in allE, auto)
+        by (erule_tac x="q2 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto, metis Cons_eq_append_conv append_Cons case_assms(5))+
+    qed
+    then have "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks p @ q2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks p @ q2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+      using assm2 by auto
+    then have "filter_tocks p @ q2 @ [[X \<union> Y]\<^sub>R] \<in> Q"
+      using CT2_Q case_assms unfolding CT2_def by (erule_tac x="filter_tocks p @ q2" in allE, auto)
+    then show "p @ q2 @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+      unfolding TimeSyncInterruptCTT_def
+      apply (auto, erule_tac x=p in allE, auto simp add: case_assms, erule_tac x="q2 @ [[X \<union> Y]\<^sub>R]" in allE, auto simp add: case_assms)
+      by (metis (no_types, lifting) Cons_eq_append_conv append_Cons case_assms(5))
+  qed
+qed
+
+lemma CT3_TimeSyncInterrupt:
+  assumes "CT3 P" "CT3 Q" "\<forall>x\<in>Q. cttWF x"
+  shows "CT3 (P \<triangle>\<^sub>T Q)"
+  unfolding CT3_def TimeSyncInterruptCTT_def
+proof (safe, simp_all)
+  fix p
+  assume "p @ [[Tick]\<^sub>E] \<in> P"
+  then show "CT3_trace (p @ [[Tick]\<^sub>E])"
+    using assms(1) unfolding CT3_def by auto
+next
+  fix p X Y Z
+  assume "p @ [[X]\<^sub>R] \<in> P"
+  then have "CT3_trace (p @ [[X]\<^sub>R])"
+    using assms(1) unfolding CT3_def by auto
+  then show "CT3_trace (p @ [[Z]\<^sub>R])"
+    using CT3_trace_end_refusal_change by blast
+next
+  fix p q2
+  assume "p \<in> P"
+  then have "CT3_trace p"
+    using assms(1) unfolding CT3_def by auto
+  also assume assm2: "filter_tocks p @ q2 \<in> Q"
+  then have "CT3_trace (filter_tocks p @ q2)"
+    using assms(2) unfolding CT3_def by auto
+  then have "CT3_trace q2"
+    using CT3_trace_cons_right by blast
+  then show "CT3_trace (p @ q2)"
+    using calculation CT3_append assm2 assms(3) filter_tocks_in_tocks tocks_append_wf2 by blast
+qed
+
+lemma CT_TimeSyncInterrupt:
+  assumes "CT P" "CT Q"
+  shows "CT (P \<triangle>\<^sub>T Q)"
+  using assms unfolding CT_def apply auto
+  using TimeSyncInterruptCTT_wf apply blast
+  using CT0_TimeSyncInterrupt apply blast
+  using CT1_TimeSyncInterrupt apply blast
+  using CT2_TimeSyncInterrupt apply blast
+  using CT3_TimeSyncInterrupt apply blast
+  done
+
 end

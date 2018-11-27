@@ -409,6 +409,10 @@ proof -
     by simp
 qed
 
+lemma CT3_trace_end_refusal_change:
+  "CT3_trace (t @ [[X]\<^sub>R]) \<Longrightarrow> CT3_trace (t @ [[Y]\<^sub>R])"
+  by (induct t rule:CT3_trace.induct, auto, case_tac x, auto)
+
 (*definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
   "CT4 P = (\<forall> \<rho>. \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<nexists> X. \<rho> @ [[X]\<^sub>R] \<in> P))"*)
 
