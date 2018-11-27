@@ -440,6 +440,44 @@ lemma CT3_trace_cons_imp_cons [simp]:
 definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
 "CT4 P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
 
+fun add_Tick_refusal_trace :: "'e cttobs list \<Rightarrow> 'e cttobs list" where
+  "add_Tick_refusal_trace [] = []" |
+  "add_Tick_refusal_trace ([e]\<^sub>E # t) = [e]\<^sub>E # add_Tick_refusal_trace t" |
+  "add_Tick_refusal_trace ([X]\<^sub>R # t) = [X \<union> {Tick}]\<^sub>R # add_Tick_refusal_trace t"
+
+lemma add_Tick_refusal_trace_idempotent:
+  "add_Tick_refusal_trace (add_Tick_refusal_trace \<rho>) = add_Tick_refusal_trace \<rho>"
+  by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
+
+lemma add_Tick_refusal_trace_end_refusal:
+  "add_Tick_refusal_trace (\<rho> @ [[X]\<^sub>R]) = add_Tick_refusal_trace \<rho> @ [[X \<union> {Tick}]\<^sub>R]"
+  by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
+
+lemma add_Tick_refusal_trace_ctt_subset:
+  "\<rho> \<subseteq>\<^sub>C add_Tick_refusal_trace \<rho>"
+  by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
+
+definition CT4s :: "'e cttobs list set \<Rightarrow> bool" where
+  "CT4s P = (\<forall> \<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P)"
+
+lemma CT4s_CT1_imp_CT4:
+  "CT4s P \<Longrightarrow> CT1 P \<Longrightarrow> CT4 P"
+  unfolding CT4_def CT4s_def CT1_def
+proof (safe, simp)
+  fix \<rho> X
+  assume CT1_P: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P"
+  assume "\<rho> @ [[X]\<^sub>R] \<in> P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P"
+  then have "add_Tick_refusal_trace (\<rho> @ [[X]\<^sub>R]) \<in> P"
+    by auto
+  then have "add_Tick_refusal_trace \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P"
+    by (simp add: add_Tick_refusal_trace_end_refusal)
+  also have "\<rho> @ [[X \<union> {Tick}]\<^sub>R] \<subseteq>\<^sub>C add_Tick_refusal_trace \<rho> @ [[X \<union> {Tick}]\<^sub>R]"
+    by (simp add: add_Tick_refusal_trace_ctt_subset ctt_subset_combine)
+  then show "\<rho> @ [[insert Tick X]\<^sub>R] \<in> P"
+    using CT1_P calculation ctt_subset_imp_prefix_subset by auto
+qed
+    
+
 definition CTwf :: "'e cttobs list set \<Rightarrow> bool" where
   "CTwf P = (\<forall>x\<in>P. cttWF x)"
 
