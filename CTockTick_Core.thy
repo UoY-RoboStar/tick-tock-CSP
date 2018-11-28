@@ -457,6 +457,10 @@ lemma add_Tick_refusal_trace_end_event:
   "add_Tick_refusal_trace (\<rho> @ [[e]\<^sub>E]) = add_Tick_refusal_trace \<rho> @ [[e]\<^sub>E]"
   by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
 
+lemma add_Tick_refusal_trace_end_event_trace:
+  "add_Tick_refusal_trace (\<rho> @ [e]\<^sub>E # \<sigma>) = add_Tick_refusal_trace \<rho> @ [e]\<^sub>E # add_Tick_refusal_trace \<sigma>"
+  by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
+
 lemma add_Tick_refusal_trace_ctt_subset:
   "\<rho> \<subseteq>\<^sub>C add_Tick_refusal_trace \<rho>"
   by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
