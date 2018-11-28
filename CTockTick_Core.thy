@@ -453,8 +453,20 @@ lemma add_Tick_refusal_trace_end_refusal:
   "add_Tick_refusal_trace (\<rho> @ [[X]\<^sub>R]) = add_Tick_refusal_trace \<rho> @ [[X \<union> {Tick}]\<^sub>R]"
   by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
 
+lemma add_Tick_refusal_trace_end_event:
+  "add_Tick_refusal_trace (\<rho> @ [[e]\<^sub>E]) = add_Tick_refusal_trace \<rho> @ [[e]\<^sub>E]"
+  by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
+
 lemma add_Tick_refusal_trace_ctt_subset:
   "\<rho> \<subseteq>\<^sub>C add_Tick_refusal_trace \<rho>"
+  by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
+
+lemma add_Tick_refusal_trace_same_length:
+  "length \<rho> = length (add_Tick_refusal_trace \<rho>)"
+  by (simp add: add_Tick_refusal_trace_ctt_subset ctt_subset_same_length)
+
+lemma add_Tick_refusal_trace_filter_Tock_same_length:
+  "length (filter (\<lambda> x. x = [Tock]\<^sub>E) \<rho>) = length (filter (\<lambda> x. x = [Tock]\<^sub>E) (add_Tick_refusal_trace \<rho>))"
   by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
 
 definition CT4s :: "'e cttobs list set \<Rightarrow> bool" where
@@ -1219,5 +1231,16 @@ proof auto
   show "Tock \<notin> X \<Longrightarrow> x \<in> tocks X \<Longrightarrow> CT3_trace x"
     using tocks.cases by (induct rule:CT3_trace.induct, auto)
 qed
+
+lemma CT4s_tocks: "Tick \<in> X \<Longrightarrow> CT4s (tocks X)"
+  unfolding CT4s_def
+proof auto
+  fix \<rho>
+  assume assm: "Tick \<in> X"
+  show "\<rho> \<in> tocks X \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> tocks X"
+    by (induct \<rho> rule:tocks.induct, auto simp add: assm tocks.empty_in_tocks tocks.tock_insert_in_tocks)
+qed
+
+
 
 end
