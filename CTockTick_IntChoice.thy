@@ -10,6 +10,11 @@ definition IntChoiceCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set 
 lemma IntChoiceCTT_wf: "\<forall> t\<in>P. cttWF t \<Longrightarrow> \<forall> t\<in>Q. cttWF t \<Longrightarrow> \<forall> t\<in>P \<sqinter>\<^sub>C Q. cttWF t"
   unfolding IntChoiceCTT_def by auto
 
+lemma CT4s_IntChoice:
+  assumes "CT4s P" "CT4s Q"
+  shows "CT4s (P \<sqinter>\<^sub>C Q)"
+  using assms unfolding IntChoiceCTT_def CT4s_def by auto
+
 lemma CT_IntChoice:
   assumes "CT P" "CT Q"
   shows "CT (P \<sqinter>\<^sub>C Q)"
