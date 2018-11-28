@@ -473,6 +473,10 @@ lemma add_Tick_refusal_trace_filter_Tock_same_length:
   "length (filter (\<lambda> x. x = [Tock]\<^sub>E) \<rho>) = length (filter (\<lambda> x. x = [Tock]\<^sub>E) (add_Tick_refusal_trace \<rho>))"
   by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
 
+lemma add_Tick_refusal_trace_concat:
+  "add_Tick_refusal_trace (\<rho> @ \<sigma>) = add_Tick_refusal_trace \<rho> @ add_Tick_refusal_trace \<sigma>"
+  by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
+
 definition CT4s :: "'e cttobs list set \<Rightarrow> bool" where
   "CT4s P = (\<forall> \<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P)"
 
@@ -1221,6 +1225,73 @@ proof -
   then show "\<rho>' \<subseteq>\<^sub>C \<rho> \<and> \<sigma>' \<subseteq>\<^sub>C \<sigma>"
     using assms(7) ctt_subset_remove_start by auto
 qed
+
+lemma tocks_ctt_subset1:
+  "\<sigma> \<in> tocks X \<Longrightarrow> \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> \<rho> \<in> tocks X"
+proof (induct \<rho> \<sigma> rule:cttWF2.induct, auto simp add: notin_tocks)
+  fix Xa \<rho> Y \<sigma>
+  assume "[Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> tocks X"
+  then have "\<sigma> \<in> tocks X \<and> Y \<subseteq> X"
+    by (cases rule:tocks.cases, auto)
+  then show "(\<sigma> \<in> tocks X \<Longrightarrow> \<rho> \<in> tocks X) \<Longrightarrow> Xa \<subseteq> Y \<Longrightarrow> \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> [Xa]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> tocks X"
+    by (meson order.trans tocks.tock_insert_in_tocks)
+next
+  fix Xa \<rho> \<sigma>
+  show "\<sigma> \<in> tocks X \<Longrightarrow> [Xa]\<^sub>R # [Tick]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
+    using cttWF.simps(12) ctt_prefix_subset_cttWF ctt_subset_imp_prefix_subset tocks_wf by blast
+next
+  fix Xa e \<rho> \<sigma>
+  show "\<sigma> \<in> tocks X \<Longrightarrow> [Xa]\<^sub>R # [Event e]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
+    by (meson cttWF.simps(11) ctt_prefix_subset_cttWF ctt_subset_imp_prefix_subset tocks_wf)
+next
+  fix Xa Y \<rho> \<sigma>
+  show "\<sigma> \<in> tocks X \<Longrightarrow> [Xa]\<^sub>R # [Y]\<^sub>R # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
+    using cttWF.simps(13) ctt_prefix_subset_cttWF ctt_subset_imp_prefix_subset tocks_wf by blast
+next
+  fix x \<rho> \<sigma>
+  show "\<sigma> \<in> tocks X \<Longrightarrow> [Tick]\<^sub>E # x # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
+    using cttWF.simps(8) ctt_prefix_subset_cttWF ctt_subset_imp_prefix_subset tocks_wf by blast
+next
+  fix \<rho> \<sigma>
+  show "\<sigma> \<in> tocks X \<Longrightarrow> [Tock]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
+    using cttWF.simps(6) ctt_prefix_subset_cttWF ctt_subset_imp_prefix_subset tocks_wf by blast
+qed
+
+lemma tocks_ctt_subset2:
+  "\<rho> \<in> tocks X \<Longrightarrow> \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> tocks UNIV"
+proof (induct \<rho> \<sigma> rule:cttWF2.induct, auto simp add: notin_tocks)
+  show "[] \<in> tocks UNIV"
+    by (simp add: tocks.empty_in_tocks)
+next
+  fix Xa \<rho> Y \<sigma>
+  assume "[Xa]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> tocks X"
+  then have "\<rho> \<in> tocks X \<and> Xa \<subseteq> X"
+    by (cases rule:tocks.cases, auto)
+  then show "(\<rho> \<in> tocks X \<Longrightarrow> \<sigma> \<in> tocks UNIV) \<Longrightarrow> Xa \<subseteq> Y \<Longrightarrow> \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> tocks UNIV"
+    by (simp add: tocks.tock_insert_in_tocks)
+next
+  fix Xa \<rho> \<sigma>
+  show "\<rho> \<in> tocks X \<Longrightarrow> \<rho> \<subseteq>\<^sub>C [Xa]\<^sub>R # [Tick]\<^sub>E # \<sigma> \<Longrightarrow> False"
+    by (metis cttWF.simps(12) ctt_subset.simps(2) ctt_subset.simps(3) ctt_subset.simps(8) tocks.simps tocks_wf)
+next
+  fix Xa e \<rho> \<sigma>
+  show "\<rho> \<in> tocks X \<Longrightarrow> \<rho> \<subseteq>\<^sub>C [Xa]\<^sub>R # [Event e]\<^sub>E # \<sigma> \<Longrightarrow> False"
+    by (metis ctt_subset.simps(2) ctt_subset.simps(3) ctt_subset.simps(8) second_event_notin_tocks tocks.cases)
+next
+  fix Xa Y \<rho> \<sigma>
+  show "\<rho> \<in> tocks X \<Longrightarrow> \<rho> \<subseteq>\<^sub>C [Xa]\<^sub>R # [Y]\<^sub>R # \<sigma> \<Longrightarrow> False"
+    by (metis ctt_subset.simps(2) ctt_subset.simps(8) ctt_subset.simps(9) tocks.simps)
+next
+  fix y \<rho> \<sigma>
+  show "\<rho> \<in> tocks X \<Longrightarrow> \<rho> \<subseteq>\<^sub>C [Tick]\<^sub>E # y # \<sigma> \<Longrightarrow> False"
+    by (metis ctt_subset.simps(11) ctt_subset.simps(8) tocks.cases)
+next
+  fix \<rho> \<sigma>
+  show "\<rho> \<in> tocks X \<Longrightarrow> \<rho> \<subseteq>\<^sub>C [Tock]\<^sub>E # \<sigma> \<Longrightarrow> False"
+    by (metis ctt_subset.simps(10) ctt_subset.simps(11) tocks.simps)
+qed
+
+  thm tocks.intros
 
 lemma CT0_tocks: "CT0 (tocks X)"
   unfolding CT0_def using tocks.empty_in_tocks by auto 
