@@ -2132,6 +2132,54 @@ next
     using calculation CT3_append assm2 assms(3) filter_tocks_in_tocks tocks_append_wf2 by blast
 qed
 
+lemma add_Tick_refusal_trace_filter_tocks:
+  "add_Tick_refusal_trace (filter_tocks t) = filter_tocks (add_Tick_refusal_trace t)"
+  by (induct t rule:filter_tocks.induct, auto, (case_tac x, auto)+)
+
+lemma CT4s_TimeSyncInterrupt:
+  assumes CT4s_P: "CT4s P" and CT4s_Q: "CT4s Q"
+  shows "CT4s (P \<triangle>\<^sub>T Q)"
+  unfolding CT4s_def TimeSyncInterruptCTT_def
+proof (safe, simp_all)
+  fix p
+  assume case_assms: "p @ [[Tick]\<^sub>E] \<in> P" "filter_tocks p \<in> Q"
+  have 1: "add_Tick_refusal_trace p @ [[Tick]\<^sub>E] \<in> P"
+    by (metis CT4s_P CT4s_def add_Tick_refusal_trace_end_event case_assms(1))
+  have 2: "filter_tocks (add_Tick_refusal_trace p) \<in> Q"
+    by (metis CT4s_Q CT4s_def add_Tick_refusal_trace_filter_tocks case_assms(2))
+  show "\<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks pa \<in> Q \<and> add_Tick_refusal_trace (p @ [[Tick]\<^sub>E]) = pa @ [[Tick]\<^sub>E]"
+    using 1 2 by (rule_tac x="add_Tick_refusal_trace p" in exI, auto simp add: add_Tick_refusal_trace_end_event)
+next
+  fix p X Y Z
+  assume case_assms: "p @ [[X]\<^sub>R] \<in> P" "filter_tocks p @ [[Y]\<^sub>R] \<in> Q" "Z \<subseteq> X \<union> Y" "{e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock}"
+  have 1: "add_Tick_refusal_trace p @ [[X \<union> {Tick}]\<^sub>R] \<in> P"
+    by (metis CT4s_P CT4s_def add_Tick_refusal_trace_end_refusal case_assms(1))
+  have 2: "filter_tocks (add_Tick_refusal_trace p) @ [[Y \<union> {Tick}]\<^sub>R] \<in> Q"
+    by (metis CT4s_Q CT4s_def add_Tick_refusal_trace_end_refusal add_Tick_refusal_trace_filter_tocks case_assms(2))
+  show "\<forall>pa X. pa @ [[X]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y. {e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<longrightarrow>
+      filter_tocks pa @ [[Y]\<^sub>R] \<in> Q \<longrightarrow> (\<forall>Za\<subseteq>X \<union> Y. add_Tick_refusal_trace (p @ [[Z]\<^sub>R]) \<noteq> pa @ [[Za]\<^sub>R])) \<Longrightarrow>
+    \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks pa \<in> Q \<and> add_Tick_refusal_trace (p @ [[Z]\<^sub>R]) = pa @ [[Tick]\<^sub>E]"
+    using 1 2 case_assms apply (erule_tac x="add_Tick_refusal_trace p" in allE, erule_tac x="X \<union> {Tick}" in allE, safe, simp_all)
+    apply (erule_tac x="Y \<union> {Tick}" in allE, safe, simp_all, blast, blast)
+    by (erule_tac x="Z \<union> {Tick}" in allE, safe, simp, blast, simp add: add_Tick_refusal_trace_end_refusal)
+next
+  fix p q2
+  assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "filter_tocks p @ q2 \<in> Q" "\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q'"
+  have 1: "add_Tick_refusal_trace p \<in> P"
+    using CT4s_P CT4s_def case_assms(1) by blast
+  have 2: "(\<forall>p'. add_Tick_refusal_trace p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. add_Tick_refusal_trace p \<noteq> p' @ [[Y]\<^sub>R])"
+    using add_Tick_refusal_trace_not_end_refusal add_Tick_refusal_trace_not_end_tick case_assms by blast
+  have 3: "filter_tocks (add_Tick_refusal_trace p) @ add_Tick_refusal_trace q2 \<in> Q"
+    by (metis CT4s_Q CT4s_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_tocks case_assms(4))
+  have 4: "\<forall>q' Y. add_Tick_refusal_trace q2 \<noteq> [Y]\<^sub>R # q'"
+    by (metis add_Tick_refusal_trace.simps(2) case_assms(5) contains_refusal.elims(2) contains_refusal.elims(3) contains_refusal_add_Tick_refusal_trace cttobs.distinct(1) list.inject)
+  show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<or>
+      (\<forall>q2a. filter_tocks pa @ q2a \<in> Q \<longrightarrow> (\<exists>q' Y. q2a = [Y]\<^sub>R # q') \<or> add_Tick_refusal_trace (p @ q2) \<noteq> pa @ q2a) \<Longrightarrow>
+    \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks pa \<in> Q \<and> add_Tick_refusal_trace (p @ q2) = pa @ [[Tick]\<^sub>E]"
+    using 1 2 3 4 add_Tick_refusal_trace_concat
+    by (erule_tac x="add_Tick_refusal_trace p" in allE, auto, erule_tac x="add_Tick_refusal_trace q2" in allE, auto)
+qed
+
 lemma CT_TimeSyncInterrupt:
   assumes "CT P" "CT Q"
   shows "CT (P \<triangle>\<^sub>T Q)"
