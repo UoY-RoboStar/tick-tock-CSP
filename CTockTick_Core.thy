@@ -496,7 +496,10 @@ proof (safe, simp)
   then show "\<rho> @ [[insert Tick X]\<^sub>R] \<in> P"
     using CT1_P calculation ctt_subset_imp_prefix_subset by auto
 qed
-    
+
+lemma CT4s_CT1_add_Tick_ref_Tock:
+  "CT4s P \<Longrightarrow> CT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P \<Longrightarrow> [X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
+  by (metis CT1_def CT4s_def add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_ctt_subset add_Tick_refusal_trace_idempotent ctt_subset_imp_prefix_subset)
 
 definition CTwf :: "'e cttobs list set \<Rightarrow> bool" where
   "CTwf P = (\<forall>x\<in>P. cttWF x)"
