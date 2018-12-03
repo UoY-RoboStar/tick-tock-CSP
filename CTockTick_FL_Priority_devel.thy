@@ -375,62 +375,13 @@ lemma prirelRef_nonmax_Tock_imp_exists_refusal:
   apply (case_tac v, auto)
   using cttWF.elims(2) by blast+
 
-lemma FL1_extends_strong_less_eq_fltrace_last_extended:
-  assumes "FL1 x" "fl \<in> x" "e \<in>\<^sub>\<F>\<^sub>\<L> X" "last fl = X"
-  shows "FL1 (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
-  using assms unfolding FL1_def
-  by (metis (no_types, lifting) Un_iff fl_cons_acceptance_consFL mem_Collect_eq strong_less_eq_fltrace_less_eq_common)
-
-lemma FL1_extends_strong_less_eq_fltrace_last_bullet':
-  assumes "FL1 x" "fl \<in> x" "e \<in>\<^sub>\<F>\<^sub>\<L> X" "last fl = \<bullet>"
-  shows "FL1(x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>) \<or> fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
-proof -
-  have fl:"FL1(x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
-    by (simp add: FL1_extends_strong_less_eq_fltrace_acceptance assms(1) assms(2))
-  then obtain z newfl where z:"z = (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>)}) \<and> newfl = (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>) \<and> newfl \<in> z" 
-    using strong_less_eq_fltrace_refl by auto
-  then have "e \<in>\<^sub>\<F>\<^sub>\<L> last newfl"
-    by (metis assms(3) assms(4) butlast_last_FL last_bullet_butlast_last last_rev3_acceptance last_rev3_is_bullet rev3_rev3_const2_last)
-  then have "FL1(z \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (newfl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
-    using z FL1_extends_strong_less_eq_fltrace_last_extended
-    proof -
-      have "Finite_Linear_Model.last newfl = X"
-        by (metis assms(4) butlast_last_FL last_bullet_butlast_last last_dist_plus last_rev3_acceptance last_rev3_is_bullet z)
-      then show ?thesis
-        by (metis (full_types) \<open>\<And>x fl e X. \<lbrakk>FL1 x; fl \<in> x; e \<in>\<^sub>\<F>\<^sub>\<L> X; Finite_Linear_Model.last fl = X\<rbrakk> \<Longrightarrow> FL1 (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})\<close> \<open>e \<in>\<^sub>\<F>\<^sub>\<L> Finite_Linear_Model.last newfl\<close> fl z)
-    qed
-  then have "FL1((x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>)}) \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (newfl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
-    using z by auto
-  then have "FL1(x \<union> ({fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>)} \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (newfl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)}))"
-    by (simp add: Un_assoc)
-  then have "FL1(x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>) \<or> fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (newfl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
-    by (simp add: Collect_disj_eq)
-  then have "FL1(x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>) \<or> fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> ((fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>) @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
-    using z by auto
-  then have "FL1(x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>) \<or> fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
-    by (simp add: fltrace_concat_assoc)
-  then show ?thesis by auto
-qed
-
-lemma FL0_Tick_extends_strong_less_eq_fltrace_last_bullet':
-  assumes "FLTick0 Tick x" "fl \<in> x" "last fl = \<bullet>" "Tick \<notin> events fl" "Tick \<notin>\<^sub>\<F>\<^sub>\<L> X" "e \<in>\<^sub>\<F>\<^sub>\<L> X"
-  shows "FLTick0 Tick (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>) \<or> fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
-  using assms
-  unfolding FLTick0_def apply auto
-  using tickWF_concatFL_acceptance_imp tickWF_prefix_imp apply blast
-  by (metis (mono_tags, lifting) assms(2) assms(3) assms(4) assms(5) assms(6) bullet_right_zero2 butlast_last_FL butlast_last_cons2_FL fl_cons_acceptance_consFL last_bullet_butlast_last last_bullet_then_last_cons last_rev3_acceptance last_rev3_cons2_is_last_cons tickWF_acceptance_imp_tickWF_consFL tickWF_concatFL_acceptance_imp tickWF_prefix_imp)
-
-lemma flt2goodTock_extend_consFL_last_e':
-  assumes "flt2goodTock fl" "e \<in>\<^sub>\<F>\<^sub>\<L> X"
-  shows "flt2goodTock (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(X,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  using assms by (induct fl rule:flt2goodTock.induct, auto)
 
 lemma CTwf_1c_3_imp_flt2cttobs_FL1_mod:
   assumes "x \<in> P" 
       and CTwf_healthy: "CTwf P" 
       and CT1c_healthy: "CT1c P"
       and CT3_healthy:  "CT3 P"
-      and CTRMax_healthy: "CTRMax P"
+      and CTTick_healthy: "CTTick P"
       and CT4_healthy: "CT4 P"
       and pri:"prirelRef p ar x [] P \<and> x \<in> P"
       and tick_Max:"maximal(p,Tick)"
@@ -467,8 +418,7 @@ next
     proof (cases x)
       case (Ref x1)
       then have "Tick \<in> x1"
-        using CTRMax_CT4_Tick CT4_healthy CTRMax_healthy
-        using snoc.prems(1) by blast
+        using CTTick_def CTTick_healthy Nil.prems(8) by blast
       then show ?thesis
           apply (intro exI[where x="\<langle>[{x. x \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
           using Ref apply auto
@@ -519,7 +469,7 @@ next
              apply simp
             using prirelRef_imp_butlast_of_prirelRefs by fastforce
           then have "Tick \<in> ES"
-            using CT1c_healthy CT4_healthy CTRMax_CT4_CT1c_CTTickTrace CTRMax_healthy CTTickTrace.simps(3) by blast
+            using CTTick_healthy by (metis CTTick_def append.left_neutral)
           then show ?thesis using ObsEvent Event False ES
             apply (intro exI[where x="\<langle>([{x. x \<notin> ES}]\<^sub>\<F>\<^sub>\<L>,Event ev)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
             apply (simp add:ObsEvent, auto)
@@ -806,8 +756,12 @@ next
             then obtain Z where Z:"ys @ [[e1]\<^sub>E] @ [[Z]\<^sub>R] \<in> P \<and> Event e3 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> Event e3 <\<^sup>*p b)"
               using prirelRef_nonmax_Tock_imp_exists_refusal
               by (metis CTwf_def CTwf_healthy Event append.assoc append_Nil cttevent.distinct(1) e1 e2 prirelRefyys)
-            then have "flt2cttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> Z}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P"
-              using fl
+            then have Tick_in_Z:"Tick \<in> Z"
+              using CTTick_healthy
+              by (metis CTTick_def append_assoc)
+            
+            have "flt2cttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> Z}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P"
+              using fl Z
               by (metis (mono_tags, lifting) Nil_is_append_conv append.assoc flt2cttobs_fl_acceptance last_snoc not_Cons_self2)
             then have "flt2cttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>([{x. x \<notin> Z}]\<^sub>\<F>\<^sub>\<L>,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P"
             proof -
@@ -882,9 +836,9 @@ next
                 assume a1: "FL1 (xb \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> Z}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>([{x. x \<notin> Z}]\<^sub>\<F>\<^sub>\<L>,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
                   assume a2: "{flt2cttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> xb} \<subseteq> P"
                   assume a3: "fl \<in> xb"
-                assume a4: "FLTick0 Tick xb"
+                  assume a4: "FLTick0 Tick xb"
                   have "Tick \<in> Z"
-                    by (metis CT4_healthy CTRMax_CT4_Tick CTRMax_healthy Z append_assoc)
+                    using Tick_in_Z by auto
                   then have "FLTick0 Tick (xb \<union> {f. f \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{c. c \<notin> Z}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> f \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>([{c. c \<notin> Z}]\<^sub>\<F>\<^sub>\<L>,Event e3)\<^sub>\<F>\<^sub>\<L>,Finite_Linear_Model.last fl\<rangle>\<^sub>\<F>\<^sub>\<L>})"
                     using a4 a3 by (simp add: FL0_Tick_extends_strong_less_eq_fltrace_last_bullet' Tick_not_in_events_fl Z last_fl)
                   then show "\<exists>F. FLTick0 Tick (F \<union> {f. f \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{c. c \<notin> Z}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> f \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>([{c. c \<notin> Z}]\<^sub>\<F>\<^sub>\<L>,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}) \<and> FL1 (F \<union> {f. f \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{c. c \<notin> Z}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> f \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>([{c. c \<notin> Z}]\<^sub>\<F>\<^sub>\<L>,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}) \<and> {flt2cttobs f |f. f \<in> F} \<subseteq> P \<and> fl \<in> F"
@@ -1050,7 +1004,7 @@ next
       next
         case (Ref r2)
         have Tick_in_r2:"Tick \<in> r2"
-          using CT4_healthy CTRMax_CT4_Tick CTRMax_healthy Ref snoc.prems(1) by blast
+          using CTTick_healthy Ref CTTick_def xs_x_in_P by blast
         then have "ys @ [[e1]\<^sub>E] @ [[r2]\<^sub>R] \<in> P"
           using e1 Ref yys.prems(2) by auto
         then have "[Tick]\<^sub>E \<notin> set (ys @ [[e1]\<^sub>E])" 
@@ -2410,7 +2364,7 @@ next
       show ?thesis 
         proof (cases "maximal(pa,e\<^sub>2)")
           case True
-          then show ?thesis sledgehammer
+          then show ?thesis
           proof -
             obtain ff :: "'a cttevent fltrace" and aaa :: "'a cttevent acceptance" where
               f1: "flt2cttobs ff = zz \<and> flt2goodTock ff \<and> flt2goodAcceptance ff pa \<and> zra = \<langle>(aaa,e\<^sub>2)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> ff \<and> (e\<^sub>2 \<in>\<^sub>\<F>\<^sub>\<L> aaa \<or> aaa = \<bullet>)"
@@ -2795,7 +2749,7 @@ lemma pp3:
 
 lemma pp4:
   assumes "prirelRef p xs ys [] P" "ys \<in> P" 
-          "CT0 P" "CTwf P" "CT1c P" "CT3 P" "CTRMax P" "CT4 P" "maximal(p,Tick)"
+          "CT0 P" "CTwf P" "CT1c P" "CT3 P" "CTTick P" "CT4 P" "maximal(p,Tick)"
     shows "\<exists>fl. flt2cttobs fl = xs \<and> (\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ctt fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0)) \<and> flt2goodTock fl"
 proof -
   have "cttWF ys"
@@ -2827,7 +2781,7 @@ lemma fl2ctt_pri_ctt2fl_priNS:
       and CTwf_healthy: "CTwf P" 
       and CT1c_healthy: "CT1c P"
       and CT3_healthy:  "CT3 P"
-      and CTRMax_healthy: "CTRMax P"
+      and CTTick_healthy: "CTTick P"
       and CT4_healthy:    "CT4 P"
       and Tick_max:"maximal(p,Tick)"
   shows "fl2ctt(pri p (ctt2fl P)) = priNS p P"
