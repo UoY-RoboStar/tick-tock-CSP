@@ -142,12 +142,53 @@ next
   qed
 qed
 
+
+
+definition mkCTM2a :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" where
+"mkCTM2a P = P \<union> {\<rho> @ [[e]\<^sub>E]|\<rho> X e. \<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e \<noteq> Tock}"
+
+definition mkCTM2b :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" where
+"mkCTM2b P = P \<union> {\<rho> @ [[X]\<^sub>R,[Tock]\<^sub>E]|\<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<and> Tock \<notin> X}"
+
+lemma CTM2a_mkCTM2a [simp]: "CTM2a (mkCTM2a P)"
+  unfolding mkCTM2a_def CTM2a_def by auto
+
+lemma CTM2b_mkCTM2b [simp]: "CTM2b (mkCTM2b P)"
+  unfolding mkCTM2b_def CTM2b_def by auto
+
+lemma mkCTM2b_mkCTM2a_commute: "mkCTM2b (mkCTM2a P) = mkCTM2a (mkCTM2b P)"
+  unfolding mkCTM2b_def mkCTM2a_def by auto
+
+lemma CTMPick_imp_in_mkCTM2b_mkCTM2a:
+  assumes "CTMPick s [] P" 
+  shows "s \<in> mkCTM2b (mkCTM2a {s})"
+  using assms unfolding mkCTM2b_def mkCTM2a_def by auto
+
+lemma CTMPick_imp_in_prefix_mkCTM2b_mkCTM2a:
+  assumes "CTMPick s [] P" 
+  shows "s \<in> mkCTM2b (mkCTM2a {x. x \<le>\<^sub>C s})"
+  using assms unfolding mkCTM2b_def mkCTM2a_def apply auto
+  by (simp add: ctt_prefix_refl)
+
+lemma CTTick_imp_CTTick_mkCTM2a_mkCTM2b:
+  assumes "CTTick {s}"
+  shows "CTTick (mkCTM2a (mkCTM2b {s}))"
+  using assms unfolding mkCTM2b_def mkCTM2a_def CTTick_def by auto
+
 lemma
-  assumes "CTMPick s [] P" "s \<in> P"
-  shows "CTM2a {s}"
-  nitpick
-
-
+  assumes "CTTick {s}"
+  shows "CTTick {x. x \<le>\<^sub>C s}"
+  using assms unfolding CTTick_def apply auto
+  apply (induct s rule:rev_induct, auto)
+  
+  using ctt_prefix.simps(1) ctt_prefix_antisym apply blast
+  apply (case_tac x, auto)
+sledgehammer
+lemma CTTick_imp_CTTick_mkCTM2a_mkCTM2b:
+  assumes "CTTick {s}"
+  shows "CTTick (mkCTM2a (mkCTM2b {x. x \<le>\<^sub>C s}))"
+  using assms unfolding mkCTM2b_def mkCTM2a_def CTTick_def apply auto
+  
 
 lemma CTTick_mkCT1_simp:
   assumes "CT1 P" "CT4 P"
@@ -160,7 +201,11 @@ lemma CTTick_mkCT1_simp:
     apply (metis insert_Diff insert_is_Un)
   using CTM2a_CTM2b_CT1c_mkCT1_imp_CTMPick apply blast
   (* Need to define mkCTM2a mkCTM2b and mkCT1c then can prove the following goal. *)
-  apply (rule_tac x="{s}" in exI, auto) 
+  apply (rule_tac x="mkCTM2b(mkCTM2a {x. x \<le>\<^sub>C s})" in exI) 
+  apply auto
+  apply (simp add:CTMPick_imp_in_prefix_mkCTM2b_mkCTM2a)
+  apply (auto simp add:mkCTM2b_mkCTM2a_commute CTTick_imp_CTTick_mkCTM2a_mkCTM2b)
+  unfolding mkCTM2a_def mkCTM2b_def apply auto
   unfolding mkCT1_def apply auto
   oops
 
