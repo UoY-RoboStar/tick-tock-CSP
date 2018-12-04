@@ -166,6 +166,24 @@ next
     using 1 2 CT3_append by auto
 qed     
 
+lemma CT4s_SeqComp:
+  assumes "CT4s P" "CT4s Q"
+  shows "CT4s (P ;\<^sub>C Q)"
+  unfolding SeqCompCTT_def CT4s_def
+proof auto
+  fix \<rho>
+  show "\<rho> \<in> P \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> P"
+    using CT4s_def assms(1) by blast
+next
+  fix s t
+  assume "s @ [[Tick]\<^sub>E] \<in> P" "t \<in> Q"
+  then have "add_Tick_refusal_trace s @ [[Tick]\<^sub>E] \<in> P \<and> add_Tick_refusal_trace t \<in> Q"
+    by (metis CT4s_def add_Tick_refusal_trace_end_event assms(1) assms(2))
+  then show "\<forall>sa. sa @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>ta. ta \<in> Q \<longrightarrow> add_Tick_refusal_trace (s @ t) \<noteq> sa @ ta) \<Longrightarrow>
+    add_Tick_refusal_trace (s @ t) \<in> P"
+    using add_Tick_refusal_trace_concat by blast
+qed
+
 lemma CT_SeqComp: 
   assumes "CT P" "CT Q"
   shows "CT (P ;\<^sub>C Q)"

@@ -14,6 +14,47 @@ definition PrefixCTT :: "'e \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e ct
 lemma PrefixCTT_wf: "\<forall> t\<in>P. cttWF t \<Longrightarrow> \<forall> t\<in>PrefixCTT e P. cttWF t"
   unfolding PrefixCTT_def by (auto simp add: tocks_wf tocks_append_wf)
 
+lemma CT4s_Prefix:
+  "CT4s P \<Longrightarrow> CT4s (e \<rightarrow>\<^sub>C P)"
+  unfolding PrefixCTT_def CT4s_def
+proof auto
+  fix s
+  assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+  then show "\<forall>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. add_Tick_refusal_trace s \<noteq> sa \<and>
+      (\<forall>\<sigma>\<in>P. add_Tick_refusal_trace s \<noteq> sa @ [Event e]\<^sub>E # \<sigma>) \<Longrightarrow>
+    \<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]"
+    apply (erule_tac x="add_Tick_refusal_trace s" in ballE, auto)
+    by (metis (mono_tags, lifting) CT4s_def CT4s_tocks cttevent.distinct(3) cttevent.simps(7) mem_Collect_eq)
+next
+  fix s X
+  assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "Tock \<notin> X" "Event e \<notin> X"
+  then show "\<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}.
+    \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> add_Tick_refusal_trace (s @ [[X]\<^sub>R]) = sa @ [[Xa]\<^sub>R]"
+    apply (rule_tac x="add_Tick_refusal_trace s" in bexI, rule_tac x="X \<union> {Tick}" in exI, auto simp add: add_Tick_refusal_trace_end_refusal)
+    by (metis (mono_tags, lifting) CT4s_def CT4s_tocks cttevent.distinct(3) cttevent.simps(7) mem_Collect_eq)
+next
+  fix s
+  assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+  then show "\<forall>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. add_Tick_refusal_trace s \<noteq> sa \<and>
+      (\<forall>\<sigma>\<in>P. add_Tick_refusal_trace s \<noteq> sa @ [Event e]\<^sub>E # \<sigma>) \<Longrightarrow>
+    \<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]"
+    apply (erule_tac x="add_Tick_refusal_trace s" in ballE, auto)
+    by (metis (mono_tags, lifting) CT4s_def CT4s_tocks cttevent.distinct(3) cttevent.simps(7) mem_Collect_eq)
+next
+  fix s \<sigma>
+  assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<sigma> \<in> P"
+  also assume "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P"
+  then have "add_Tick_refusal_trace \<sigma> \<in> P"
+    using calculation by auto
+  then show "\<forall>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. add_Tick_refusal_trace (s @ [Event e]\<^sub>E # \<sigma>) \<noteq> sa \<and>
+      (\<forall>\<sigma>'\<in>P. add_Tick_refusal_trace (s @ [Event e]\<^sub>E # \<sigma>) \<noteq> sa @ [Event e]\<^sub>E # \<sigma>') \<Longrightarrow>
+    \<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}.
+      \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> add_Tick_refusal_trace (s @ [Event e]\<^sub>E # \<sigma>) = sa @ [[X]\<^sub>R]"
+    using calculation apply (erule_tac x="add_Tick_refusal_trace s" in ballE, auto)
+    apply (erule_tac x="add_Tick_refusal_trace \<sigma>" in ballE, auto simp add: add_Tick_refusal_trace_end_event_trace)
+    by (metis (mono_tags, lifting) CT4s_def CT4s_tocks cttevent.distinct(3) cttevent.simps(7) mem_Collect_eq)
+qed
+
 lemma CT_Prefix:
   assumes "CT P"
   shows "CT (e \<rightarrow>\<^sub>C P)"

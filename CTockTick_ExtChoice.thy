@@ -837,6 +837,166 @@ lemma CT3_ExtChoice:
   shows "CT3 (P \<box>\<^sub>C Q)"
   using assms unfolding CT3_def ExtChoiceCTT_def by auto
 
+lemma CT4s_ExtChoice:
+  assumes "CT4s P" "CT4s Q"
+  shows "CT4s (P \<box>\<^sub>C Q)"
+  unfolding CT4s_def ExtChoiceCTT_def
+proof auto
+  fix \<rho>' \<sigma> \<tau> :: "'a cttobs list"
+  assume assm1: "\<rho>' \<in> tocks UNIV"
+  assume assm2: "\<rho>' @ \<sigma> \<in> P"
+  assume assm3: "\<rho>' @ \<tau> \<in> Q"
+  assume assm4: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume assm5: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume assm6: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume assm7: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  have 1: "add_Tick_refusal_trace \<rho>' \<in> tocks UNIV"
+    using CT4s_def CT4s_tocks assm1 by blast
+  have 2: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<in> P"
+    using assms(1) assm2 unfolding CT4s_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+  have 3: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau> \<in> Q"
+    using assms(2) assm3 unfolding CT4s_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+  have 4: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
+  proof auto
+    fix \<rho>''
+    assume assms2: "\<rho>'' \<in> tocks UNIV" "\<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma>"
+    then obtain \<rho>''' where \<rho>'''_assms: "\<rho>''' \<subseteq>\<^sub>C \<rho>'' \<and> \<rho>''' \<le>\<^sub>C \<rho>' @ \<sigma>"
+      by (metis add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset ctt_prefix_ctt_subset)
+    then have "\<rho>''' \<in> tocks UNIV"
+      using assms2(1) tocks_ctt_subset1 by blast
+    then have "\<rho>''' \<le>\<^sub>C \<rho>'"
+      using \<rho>'''_assms assm4 by blast
+    then show "\<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
+      by (smt \<rho>'''_assms add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset append_eq_append_conv assms2(2) ctt_prefix_concat ctt_prefix_split ctt_subset_same_length)
+  qed
+  have 5: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
+  proof auto
+    fix \<rho>''
+    assume assms2: "\<rho>'' \<in> tocks UNIV" "\<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau>"
+    then obtain \<rho>''' where \<rho>'''_assms: "\<rho>''' \<subseteq>\<^sub>C \<rho>'' \<and> \<rho>''' \<le>\<^sub>C \<rho>' @ \<tau>"
+      by (metis add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset ctt_prefix_ctt_subset)
+    then have "\<rho>''' \<in> tocks UNIV"
+      using assms2(1) tocks_ctt_subset1 by blast
+    then have "\<rho>''' \<le>\<^sub>C \<rho>'"
+      using \<rho>'''_assms assm5 by blast
+    then show "\<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
+      by (smt \<rho>'''_assms add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset append_eq_append_conv assms2(2) ctt_prefix_concat ctt_prefix_split ctt_subset_same_length)
+  qed
+  have 6: "\<forall>X. add_Tick_refusal_trace \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. add_Tick_refusal_trace \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  proof auto
+    fix X
+    assume "add_Tick_refusal_trace \<sigma> = [[X]\<^sub>R]"
+    then obtain X' where X'_assms: "\<sigma> = [[X']\<^sub>R] \<and> X = X' \<union> {Tick}"
+      apply (cases \<sigma> rule:add_Tick_refusal_trace.cases, simp_all)
+      using add_Tick_refusal_trace.elims by blast
+    then obtain Y' where Y'_assms: "\<tau> = [[Y']\<^sub>R] \<and> (\<forall>e. (e \<in> X') = (e \<in> Y') \<or> e = Tock)"
+      using assm6 by blast
+    then show "\<exists>Y. add_Tick_refusal_trace \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock)"
+      using X'_assms by (rule_tac x="Y' \<union> {Tick}" in exI, auto)
+  qed
+  have 7: "\<forall>X. add_Tick_refusal_trace \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. add_Tick_refusal_trace \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  proof auto
+    fix X
+    assume "add_Tick_refusal_trace \<tau> = [[X]\<^sub>R]"
+    then obtain X' where X'_assms: "\<tau> = [[X']\<^sub>R] \<and> X = X' \<union> {Tick}"
+      apply (cases \<tau> rule:add_Tick_refusal_trace.cases, simp_all)
+      using add_Tick_refusal_trace.elims by blast
+    then obtain Y' where Y'_assms: "\<sigma> = [[Y']\<^sub>R] \<and> (\<forall>e. (e \<in> X') = (e \<in> Y') \<or> e = Tock)"
+      using assm7 by blast
+    then show "\<exists>Y. add_Tick_refusal_trace \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock)"
+      using X'_assms by (rule_tac x="Y' \<union> {Tick}" in exI, auto)
+  qed
+  show "\<exists>\<rho>\<in>tocks UNIV.
+    \<exists>\<sigma>'. \<rho> @ \<sigma>' \<in> P \<and>
+      (\<exists>\<tau>. \<rho> @ \<tau> \<in> Q \<and>
+        (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma>' \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+        (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+        (\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+        (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+        (add_Tick_refusal_trace (\<rho>' @ \<sigma>) = \<rho> @ \<sigma>' \<or> add_Tick_refusal_trace (\<rho>' @ \<sigma>) = \<rho> @ \<tau>))"
+    using 1 2 3 4 5 6 7 apply (rule_tac x="add_Tick_refusal_trace \<rho>'" in bexI, auto)
+    apply (rule_tac x="add_Tick_refusal_trace \<sigma>" in exI, auto)
+    apply (rule_tac x="add_Tick_refusal_trace \<tau>" in exI, auto)
+    by (simp add: add_Tick_refusal_trace_concat)
+next
+  fix \<rho>' \<sigma> \<tau> :: "'a cttobs list"
+  assume assm1: "\<rho>' \<in> tocks UNIV"
+  assume assm2: "\<rho>' @ \<sigma> \<in> P"
+  assume assm3: "\<rho>' @ \<tau> \<in> Q"
+  assume assm4: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume assm5: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume assm6: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume assm7: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  have 1: "add_Tick_refusal_trace \<rho>' \<in> tocks UNIV"
+    using CT4s_def CT4s_tocks assm1 by blast
+  have 2: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<in> P"
+    using assms(1) assm2 unfolding CT4s_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+  have 3: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau> \<in> Q"
+    using assms(2) assm3 unfolding CT4s_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+  have 4: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
+  proof auto
+    fix \<rho>''
+    assume assms2: "\<rho>'' \<in> tocks UNIV" "\<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma>"
+    then obtain \<rho>''' where \<rho>'''_assms: "\<rho>''' \<subseteq>\<^sub>C \<rho>'' \<and> \<rho>''' \<le>\<^sub>C \<rho>' @ \<sigma>"
+      by (metis add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset ctt_prefix_ctt_subset)
+    then have "\<rho>''' \<in> tocks UNIV"
+      using assms2(1) tocks_ctt_subset1 by blast
+    then have "\<rho>''' \<le>\<^sub>C \<rho>'"
+      using \<rho>'''_assms assm4 by blast
+    then show "\<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
+      by (smt \<rho>'''_assms add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset append_eq_append_conv assms2(2) ctt_prefix_concat ctt_prefix_split ctt_subset_same_length)
+  qed
+  have 5: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
+  proof auto
+    fix \<rho>''
+    assume assms2: "\<rho>'' \<in> tocks UNIV" "\<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau>"
+    then obtain \<rho>''' where \<rho>'''_assms: "\<rho>''' \<subseteq>\<^sub>C \<rho>'' \<and> \<rho>''' \<le>\<^sub>C \<rho>' @ \<tau>"
+      by (metis add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset ctt_prefix_ctt_subset)
+    then have "\<rho>''' \<in> tocks UNIV"
+      using assms2(1) tocks_ctt_subset1 by blast
+    then have "\<rho>''' \<le>\<^sub>C \<rho>'"
+      using \<rho>'''_assms assm5 by blast
+    then show "\<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
+      by (smt \<rho>'''_assms add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset append_eq_append_conv assms2(2) ctt_prefix_concat ctt_prefix_split ctt_subset_same_length)
+  qed
+  have 6: "\<forall>X. add_Tick_refusal_trace \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. add_Tick_refusal_trace \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  proof auto
+    fix X
+    assume "add_Tick_refusal_trace \<sigma> = [[X]\<^sub>R]"
+    then obtain X' where X'_assms: "\<sigma> = [[X']\<^sub>R] \<and> X = X' \<union> {Tick}"
+      apply (cases \<sigma> rule:add_Tick_refusal_trace.cases, simp_all)
+      using add_Tick_refusal_trace.elims by blast
+    then obtain Y' where Y'_assms: "\<tau> = [[Y']\<^sub>R] \<and> (\<forall>e. (e \<in> X') = (e \<in> Y') \<or> e = Tock)"
+      using assm6 by blast
+    then show "\<exists>Y. add_Tick_refusal_trace \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock)"
+      using X'_assms by (rule_tac x="Y' \<union> {Tick}" in exI, auto)
+  qed
+  have 7: "\<forall>X. add_Tick_refusal_trace \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. add_Tick_refusal_trace \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  proof auto
+    fix X
+    assume "add_Tick_refusal_trace \<tau> = [[X]\<^sub>R]"
+    then obtain X' where X'_assms: "\<tau> = [[X']\<^sub>R] \<and> X = X' \<union> {Tick}"
+      apply (cases \<tau> rule:add_Tick_refusal_trace.cases, simp_all)
+      using add_Tick_refusal_trace.elims by blast
+    then obtain Y' where Y'_assms: "\<sigma> = [[Y']\<^sub>R] \<and> (\<forall>e. (e \<in> X') = (e \<in> Y') \<or> e = Tock)"
+      using assm7 by blast
+    then show "\<exists>Y. add_Tick_refusal_trace \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock)"
+      using X'_assms by (rule_tac x="Y' \<union> {Tick}" in exI, auto)
+  qed
+  show "\<exists>\<rho>\<in>tocks UNIV.
+    \<exists>\<sigma>. \<rho> @ \<sigma> \<in> P \<and>
+      (\<exists>\<tau>'. \<rho> @ \<tau>' \<in> Q \<and>
+        (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+        (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau>' \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+        (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+        (\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+        (add_Tick_refusal_trace (\<rho>' @ \<tau>) = \<rho> @ \<sigma> \<or> add_Tick_refusal_trace (\<rho>' @ \<tau>) = \<rho> @ \<tau>'))"
+    using 1 2 3 4 5 6 7 apply (rule_tac x="add_Tick_refusal_trace \<rho>'" in bexI, auto)
+    apply (rule_tac x="add_Tick_refusal_trace \<sigma>" in exI, auto)
+    apply (rule_tac x="add_Tick_refusal_trace \<tau>" in exI, auto)
+    by (simp add: add_Tick_refusal_trace_concat)
+qed
+
 lemma CT_ExtChoice:
   assumes "CT P" "CT Q"
   shows "CT (P \<box>\<^sub>C Q)"

@@ -1,5 +1,5 @@
 theory CTockTick_ParComp
-  imports CTockTick_Core CTockTick_Basic_Ops
+  imports CTockTick_Basic_Ops
 begin
 
 subsection {* Parallel Composition *}
@@ -2549,6 +2549,276 @@ proof auto
       by auto
   qed
 qed
+
+lemma CT4s_init_event:
+  "CT4s P \<Longrightarrow> CT4s {t. [e]\<^sub>E # t \<in> P}"
+  unfolding CT4s_def by (safe, force)
+
+lemma CT1_init_event:
+  assumes "CT1 P"
+  shows "CT1 {t. [Event e]\<^sub>E # t \<in> P}"
+  unfolding CT1_def
+proof auto
+  fix \<rho> \<sigma> :: "'a cttobs list"
+  assume "\<rho> \<lesssim>\<^sub>C \<sigma>"
+  then have "[Event e]\<^sub>E # \<rho> \<lesssim>\<^sub>C [Event e]\<^sub>E # \<sigma>"
+    by auto
+  then show "[Event e]\<^sub>E # \<sigma> \<in> P \<Longrightarrow> [Event e]\<^sub>E # \<rho> \<in> P"
+    using CT1_def CT_CT1 assms(1) by blast
+qed
+
+lemma CT1_init_tock:
+  assumes "CT1 P"
+  shows "CT1 {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+  unfolding CT1_def
+proof auto
+  fix \<rho> \<sigma> :: "'a cttobs list"
+  assume "\<rho> \<lesssim>\<^sub>C \<sigma>"
+  then have "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<lesssim>\<^sub>C [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>"
+    by auto
+  also assume "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
+  then show "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P"
+    using assms(1) calculation unfolding CT_def CT1_def apply auto 
+    by (erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
+qed
+
+lemma CT4s_CT1_init_tock:
+  "CT4s P \<Longrightarrow> CT1 P \<Longrightarrow> CT4s {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+  unfolding CT4s_def
+proof (safe)
+  fix \<rho>
+  assume "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P"
+  then have "[X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<rho> \<in> P"
+    by force
+  also have "[X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<rho> \<lesssim>\<^sub>C [X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<rho>"
+    using ctt_prefix_subset_refl by fastforce
+  then show "CT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<rho> \<in> P"
+    unfolding CT1_def using calculation by blast
+qed
+
+lemma CT4s_ParComp:
+  assumes "CT1 P" "CT1 Q"
+  assumes "CT4s P" "CT4s Q"
+  shows "CT4s (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding ParCompCTT_def CT4s_def using assms
+proof auto
+  fix \<rho>
+  show "\<And> p q P Q. CT1 P \<Longrightarrow> CT1 Q \<Longrightarrow> CT4s P \<Longrightarrow> CT4s Q \<Longrightarrow> \<rho> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
+    \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+  proof (induct \<rho> rule:cttWF.induct, auto)
+    fix X p q P Q
+    assume case_assms: "[[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT4s P" "CT4s Q"
+    then have "(\<exists> Y Z. p = [[Y]\<^sub>R] \<and> q = [[Z]\<^sub>R] \<and> X \<subseteq> Y \<union> Z \<and> {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}})
+      \<or> (\<exists> Z. p = [[Tick]\<^sub>E] \<and> q = [[Z]\<^sub>R] \<and> X \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> Z \<and> {e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}})
+      \<or> (\<exists> Y. p = [[Y]\<^sub>R] \<and> q = [[Tick]\<^sub>E] \<and> X \<subseteq> Y \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<and> {e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}})"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[insert Tick X]\<^sub>R] \<in> x"
+    proof safe
+      fix Y Z
+      assume case_assms2: "p = [[Y]\<^sub>R]" "q = [[Z]\<^sub>R]" "X \<subseteq> Y \<union> Z" "{e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}}"
+      then have "[[Y \<union> {Tick}]\<^sub>R] \<in> P" "[[Z \<union> {Tick}]\<^sub>R] \<in> Q"
+        using CT4s_def case_assms by force+
+      then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[insert Tick X]\<^sub>R] \<in> x"
+        using case_assms2 by (rule_tac x="[[Y \<union> {Tick}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Z \<union> {Tick}]\<^sub>R]" in exI, safe, blast, simp, blast)
+    next
+      fix Z
+      assume case_assms2: "p = [[Tick]\<^sub>E]" "q = [[Z]\<^sub>R]" "X \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> Z" "{e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}}"
+      then have "[[Z \<union> {Tick}]\<^sub>R] \<in> Q"
+        using CT4s_def case_assms by force
+      then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[insert Tick X]\<^sub>R] \<in> x"
+        using case_assms case_assms2 by (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Z \<union> {Tick}]\<^sub>R]" in exI, safe, blast, simp, blast)
+    next
+      fix Y
+      assume case_assms2: "p = [[Y]\<^sub>R]" "q = [[Tick]\<^sub>E]" "X \<subseteq> Y \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick}" "{e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}}"
+      then have "[[Y \<union> {Tick}]\<^sub>R] \<in> P"
+        using CT4s_def case_assms by force
+      then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[insert Tick X]\<^sub>R] \<in> x"
+        using case_assms case_assms2 by (rule_tac x="[[Y \<union> {Tick}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, blast, simp, blast)
+    qed
+  next
+    fix e \<sigma> p q P Q
+    assume ind_hyp: "\<And>p q P Q. CT1 P \<Longrightarrow> CT1 Q \<Longrightarrow> CT4s P \<Longrightarrow> CT4s Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
+      \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> add_Tick_refusal_trace \<sigma> \<in> x"
+    assume case_assms: "[Event e]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT1 P" "CT1 Q" "CT4s P" "CT4s Q"
+    then have "(\<exists> p' q'. \<sigma> \<in> (p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q') \<and> p = [Event e]\<^sub>E # p' \<and> q = [Event e]\<^sub>E # q' \<and> e \<in> A)
+      \<or> (\<exists> p'. \<sigma> \<in> (p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> p = [Event e]\<^sub>E # p' \<and> e \<notin> A)
+      \<or> (\<exists> q'. \<sigma> \<in> (p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q') \<and> q = [Event e]\<^sub>E # q' \<and> e \<notin> A)"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
+    proof safe
+      fix p' q'
+      assume case_assms2: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "p = [Event e]\<^sub>E # p'" "q = [Event e]\<^sub>E # q'" "e \<in> A"
+      have 1: "p' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
+        using case_assms(2) case_assms2(2) by blast
+      have 2: "CT1 {t. [Event e]\<^sub>E # t \<in> P}"
+        by (simp add: CT1_init_event case_assms(4))
+      have 3: "CT4s {t. [Event e]\<^sub>E # t \<in> P}"
+        by (simp add: CT4s_init_event case_assms(6))
+      have 4: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
+        using case_assms(3) case_assms2(3) by blast
+      have 5: "CT1 {t. [Event e]\<^sub>E # t \<in> Q}"
+        by (simp add: CT1_init_event case_assms(5))
+      have 6: "CT4s {t. [Event e]\<^sub>E # t \<in> Q}"
+        by (simp add: CT4s_init_event case_assms(7))
+      obtain p'' q'' where "p''\<in>{t. [Event e]\<^sub>E # t \<in> P} \<and> q''\<in>{t. [Event e]\<^sub>E # t \<in> Q} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using 1 2 3 4 5 6 case_assms2(1) ind_hyp by blast
+      then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
+        using case_assms2 apply (rule_tac x="[Event e]\<^sub>E # p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [Event e]\<^sub>E # q''" in exI, auto)
+        by (rule_tac x="[Event e]\<^sub>E # p''" in bexI, auto, rule_tac x="[Event e]\<^sub>E # q''" in bexI, auto)
+    next
+      fix p'
+      assume case_assms2: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p = [Event e]\<^sub>E # p'" "e \<notin> A"
+      have 1: "p' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
+        using case_assms(2) case_assms2(2) by blast
+      have 2: "CT1 {t. [Event e]\<^sub>E # t \<in> P}"
+        by (simp add: CT1_init_event case_assms(4))
+      have 3: "CT4s {t. [Event e]\<^sub>E # t \<in> P}"
+        by (simp add: CT4s_init_event case_assms(6))
+      obtain p'' q' where "p''\<in>{t. [Event e]\<^sub>E # t \<in> P} \<and> q' \<in> Q \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+        using 1 2 3 case_assms case_assms2(1) ind_hyp by blast
+      then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
+        using case_assms2 by (rule_tac x="[Event e]\<^sub>E # p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" in exI, auto, cases q' rule:cttWF.cases, auto)
+    next
+      fix q'
+      assume case_assms2: "\<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "q = [Event e]\<^sub>E # q'" "e \<notin> A"
+      have 1: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
+        using case_assms case_assms2 by blast
+      have 2: "CT1 {t. [Event e]\<^sub>E # t \<in> Q}"
+        by (simp add: CT1_init_event case_assms(5))
+      have 3: "CT4s {t. [Event e]\<^sub>E # t \<in> Q}"
+        by (simp add: CT4s_init_event case_assms(7))
+      obtain p' q'' where "q''\<in>{t. [Event e]\<^sub>E # t \<in> Q} \<and> p' \<in> P \<and> add_Tick_refusal_trace \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using 1 2 3 case_assms case_assms2(1) ind_hyp by blast
+      then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
+        using case_assms2 by (rule_tac x=" p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [Event e]\<^sub>E # q''" in exI, auto, cases p' rule:cttWF.cases, auto)
+    qed
+  next
+    fix X \<sigma> p q P Q
+    assume ind_hyp: "\<And>p q P Q. CT1 P \<Longrightarrow> CT1 Q \<Longrightarrow> CT4s P \<Longrightarrow> CT4s Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
+      \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> add_Tick_refusal_trace \<sigma> \<in> x"
+    assume case_assms: "CT1 P" "CT1 Q" "CT4s P" "CT4s Q" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    then have "(\<exists> Y Z p' q'. p = [Y]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [Z]\<^sub>R # [Tock]\<^sub>E # q' \<and> X \<subseteq> Y \<union> Z \<and> {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}} \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')
+      \<or> (\<exists> Z q'. p = [[Tick]\<^sub>E] \<and> q = [Z]\<^sub>R # [Tock]\<^sub>E # q' \<and> X \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> Z \<and> {e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}} \<and> \<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')
+      \<or> (\<exists> Y p'. p = [Y]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [[Tick]\<^sub>E] \<and> X \<subseteq> Y \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<and> {e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E])"
+      by (cases "(p,q)" rule:cttWF2.cases, simp_all)
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
+    proof (safe)
+      fix Y Z p' q'
+      assume case_assms2: "p = [Y]\<^sub>R # [Tock]\<^sub>E # p'" "q = [Z]\<^sub>R # [Tock]\<^sub>E # q'" "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "X \<subseteq> Y \<union> Z"
+        "{e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}}"
+      have 1: "p' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using case_assms(6) case_assms2(1) by auto
+      have 2: "CT1 {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        by (simp add: CT1_init_tock case_assms(1))
+      have 3: "CT4s {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        by (simp add: CT4s_CT1_init_tock case_assms(1) case_assms(3))
+      have 4: "q' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using case_assms(7) case_assms2(2) by auto
+      have 5: "CT1 {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        by (simp add: CT1_init_tock case_assms(2))
+      have 6: "CT4s {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        by (simp add: CT4s_CT1_init_tock case_assms(2) case_assms(4))
+      obtain  q'' p'' where "p'' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P} \<and> q'' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using "1" "2" "3" "4" "5" "6" case_assms2(3) ind_hyp by blast
+      then have "p'' \<in> {t. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P} \<and> q'' \<in> {t. [Z \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> Q} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using CT4s_CT1_add_Tick_ref_Tock case_assms case_assms by auto
+      then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
+        using case_assms case_assms2 apply (rule_tac x="[Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [Z \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # q''" in exI, safe, simp_all)
+        by (rule_tac x="[Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # p''" in bexI, rule_tac x="[Z \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # q''" in bexI, simp_all, safe, blast+)
+    next
+      fix Z q'
+      assume case_assms2: "p = [[Tick]\<^sub>E]" "q = [Z]\<^sub>R # [Tock]\<^sub>E # q'" "X \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> Z" "\<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
+        "{e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}}"
+      have 1: "q' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using case_assms(7) case_assms2(2) by auto
+      have 2: "CT1 {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        by (simp add: CT1_init_tock case_assms(2))
+      have 3: "CT4s {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        by (simp add: CT4s_CT1_init_tock case_assms(2) case_assms(4))
+      have 4: "CT1 {[], [[Tick]\<^sub>E]}"
+        using CT_Skip unfolding CT_defs SkipCTT_def by simp
+      have 5: "CT4s {[], [[Tick]\<^sub>E]}"
+        using CT4s_Skip unfolding CT4s_def SkipCTT_def by simp
+      have 6: "p \<in> {[], [[Tick]\<^sub>E]}"
+        by (simp add: case_assms2(1))
+      obtain p'' q'' where "p'' \<in> {[], [[Tick]\<^sub>E]} \<and> q'' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using 1 2 3 4 5 6 case_assms2 ind_hyp[where P="{[], [[Tick]\<^sub>E]}", where Q="{t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}", where p=p, where q=q'] by auto
+      then obtain q''' where "add_Tick_refusal_trace \<sigma> \<in> ([[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''') \<and> q''' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        by (auto, smt "2" CT1_def mem_Collect_eq merge_traces_comm merge_traces_empty_merge_traces_tick)
+      then have "add_Tick_refusal_trace \<sigma> \<in> ([[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''') \<and> q''' \<in> {t. [Z \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using CT4s_CT1_add_Tick_ref_Tock case_assms(2) case_assms(4) by blast
+      then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
+        using case_assms case_assms2 apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [insert Tick Z]\<^sub>R # [Tock]\<^sub>E # q'''" in exI, safe)
+        by (rule_tac x="[[Tick]\<^sub>E]" in bexI, rule_tac x="[insert Tick Z]\<^sub>R # [Tock]\<^sub>E # q'''" in bexI, auto)
+    next
+      fix Y p'
+      assume case_assms2: "p = [Y]\<^sub>R # [Tock]\<^sub>E # p'" "q = [[Tick]\<^sub>E]" "X \<subseteq> Y \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick}" "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
+        "{e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}}"
+      have 1: "p' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using case_assms(6) case_assms2(1) by auto
+      have 2: "CT1 {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        by (simp add: CT1_init_tock case_assms(1))
+      have 3: "CT4s {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        by (simp add: CT4s_CT1_init_tock case_assms(1) case_assms(3))
+      have 4: "CT1 {[], [[Tick]\<^sub>E]}"
+        using CT_Skip unfolding CT_defs SkipCTT_def by simp
+      have 5: "CT4s {[], [[Tick]\<^sub>E]}"
+        using CT4s_Skip unfolding CT4s_def SkipCTT_def by simp
+      have 6: "q \<in> {[], [[Tick]\<^sub>E]}"
+        by (simp add: case_assms2(2))
+      obtain p'' q'' where "q'' \<in> {[], [[Tick]\<^sub>E]} \<and> p'' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
+        using 1 2 3 4 5 6 case_assms2 ind_hyp[where Q="{[], [[Tick]\<^sub>E]}", where P="{t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}", where p=p', where q=q] by auto
+      then obtain p''' where "add_Tick_refusal_trace \<sigma> \<in> (p''' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]) \<and> p''' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        by (auto, smt "2" CT1_def mem_Collect_eq merge_traces_comm merge_traces_empty_merge_traces_tick)
+      then have "add_Tick_refusal_trace \<sigma> \<in> (p''' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]) \<and> p''' \<in> {t. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using CT4s_CT1_add_Tick_ref_Tock case_assms(1) case_assms(3) by blast
+      then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
+        using case_assms case_assms2 apply (rule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # p''' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe)
+        by (rule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # p'''" in bexI, rule_tac x="[[Tick]\<^sub>E]" in bexI, auto)
+    qed
+  next
+    fix va p q P Q
+    assume "[Tock]\<^sub>E # va \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tock]\<^sub>E # add_Tick_refusal_trace va \<in> x"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+  next
+    fix va p q P Q
+    assume "[Tock]\<^sub>E # va \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tock]\<^sub>E # add_Tick_refusal_trace va \<in> x"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+  next
+    fix va p q P Q
+    assume "[Tock]\<^sub>E # va \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tock]\<^sub>E # add_Tick_refusal_trace va \<in> x"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+  next
+    fix v vc p q P Q
+    assume "[Tick]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tick]\<^sub>E # add_Tick_refusal_trace (v # vc) \<in> x"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+  next
+    fix v vc p q P Q
+    assume "[Tick]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tick]\<^sub>E # add_Tick_refusal_trace (v # vc) \<in> x"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+  next
+    fix va vd vc p q P Q
+    assume "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick va]\<^sub>R # [Event vd]\<^sub>E # add_Tick_refusal_trace vc \<in> x"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+  next
+    fix va vc p q P Q
+    assume "[va]\<^sub>R # [Tick]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick va]\<^sub>R # [Tick]\<^sub>E # add_Tick_refusal_trace vc \<in> x"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+  next
+    fix va v vc p q P Q
+    assume "[va]\<^sub>R # [v]\<^sub>R # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
+    then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick va]\<^sub>R # [insert Tick v]\<^sub>R # add_Tick_refusal_trace vc \<in> x"
+      by (cases "(p,q)" rule:cttWF2.cases, auto)
+  qed
+qed
+
 
 lemma CT_ParComp:
   assumes "CT P" "CT Q"

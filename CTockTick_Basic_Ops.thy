@@ -10,6 +10,9 @@ definition DivCTT :: "'e cttobs list set" ("div\<^sub>C") where
 lemma DivCTT_wf: "\<forall> t\<in>div\<^sub>C. cttWF t"
   unfolding DivCTT_def by auto
 
+lemma CT4s_Div: "CT4s div\<^sub>C"
+  unfolding DivCTT_def CT4s_def by auto
+
 lemma CT_Div: "CT div\<^sub>C"
   unfolding CT_defs DivCTT_def by (auto simp add: ctt_prefix_subset_antisym)
 
@@ -21,6 +24,13 @@ definition StopCTT :: "'e cttobs list set" ("STOP\<^sub>C") where
 
 lemma StopCTT_wf: "\<forall> t\<in>STOP\<^sub>C. cttWF t"
   unfolding StopCTT_def by (auto simp add: tocks_append_wf tocks_wf)
+
+lemma CT4s_Stop: "CT4s STOP\<^sub>C"
+  unfolding CT4s_def StopCTT_def apply auto
+  apply (metis (mono_tags, lifting) CT4s_def CT4s_tocks cttevent.distinct(5) mem_Collect_eq)
+  apply (rule_tac x="add_Tick_refusal_trace s" in bexI, auto)
+  apply (erule_tac x="X \<union> {Tick}" in allE, auto simp add: add_Tick_refusal_trace_end_refusal)
+  by (metis (mono_tags, lifting) CT4s_def CT4s_tocks cttevent.distinct(5) mem_Collect_eq)
 
 lemma CT_Stop: "CT STOP\<^sub>C"
   unfolding CT_defs
@@ -79,6 +89,9 @@ definition SkipCTT :: "'e cttobs list set" ("SKIP\<^sub>C") where
 lemma SkipCTT_wf: "\<forall> t\<in>SKIP\<^sub>C. cttWF t"
   unfolding SkipCTT_def by auto
 
+lemma CT4s_Skip: "CT4s SKIP\<^sub>C"
+  unfolding SkipCTT_def CT4s_def by auto
+
 lemma CT_Skip: "CT SKIP\<^sub>C"
   unfolding CT_defs SkipCTT_def 
   apply (auto simp add: ctt_prefix_subset_antisym)
@@ -95,6 +108,49 @@ definition WaitCTT :: "nat \<Rightarrow> 'e cttobs list set" ("wait\<^sub>C[_]")
 
 lemma WaitCTT_wf: "\<forall> t\<in>wait\<^sub>C[n]. cttWF t"
   unfolding WaitCTT_def by (auto simp add: tocks_wf tocks_append_wf)
+
+lemma CT4s_Wait: "CT4s (wait\<^sub>C[n])"
+  unfolding WaitCTT_def CT4s_def
+proof auto
+  fix s :: "'a cttobs list"
+  assume "s \<in> tocks {x. x \<noteq> Tock}" "length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n"
+  then show "\<exists>sa\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>sa . x = [Tock]\<^sub>E] < n \<and>
+    (add_Tick_refusal_trace s = sa \<or> (\<exists>X. Tock \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]))"
+  apply (rule_tac x="add_Tick_refusal_trace s" in bexI, auto)
+  apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
+  by (meson CT4s_def CT4s_tocks cttevent.simps(7) mem_Collect_eq)
+next
+  fix s :: "'a cttobs list"
+  fix X :: "'a cttevent set"
+  assume "s \<in> tocks {x. x \<noteq> Tock}" "length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n" "Tock \<notin> X"
+  then show "\<exists>sa\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>sa . x = [Tock]\<^sub>E] < n \<and>
+    (add_Tick_refusal_trace (s @ [[X]\<^sub>R]) = sa \<or> (\<exists>Xa. Tock \<notin> Xa \<and> add_Tick_refusal_trace (s @ [[X]\<^sub>R]) = sa @ [[Xa]\<^sub>R]))"
+  apply (rule_tac x="add_Tick_refusal_trace s" in bexI, safe, simp_all)
+  apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
+  apply (erule_tac x="X \<union> {Tick}" in allE, simp add: add_Tick_refusal_trace_end_refusal)
+  by (metis (mono_tags, lifting) CT4s_def CT4s_tocks cttevent.simps(7) mem_Collect_eq)
+next
+  fix s :: "'a cttobs list"
+  assume "s \<in> tocks {x. x \<noteq> Tock}" "n = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
+  then show "\<forall>sa\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>sa . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E] \<longrightarrow>
+      add_Tick_refusal_trace s \<noteq> sa \<and> add_Tick_refusal_trace s \<noteq> sa @ [[Tick]\<^sub>E] \<Longrightarrow>
+    \<exists>sa\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>sa . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E] \<and>
+      (add_Tick_refusal_trace s = sa \<or> (\<exists>X. Tock \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]))"
+    apply (erule_tac x="add_Tick_refusal_trace s" in ballE, safe, simp_all)
+    apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
+    by (meson CT4s_def CT4s_tocks cttevent.simps(7) mem_Collect_eq)
+next
+  fix s :: "'a cttobs list"
+  assume "s \<in> tocks {x. x \<noteq> Tock}" "n = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
+  show "\<forall>sa\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>sa . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E] \<longrightarrow>
+      add_Tick_refusal_trace (s @ [[Tick]\<^sub>E]) \<noteq> sa \<and> add_Tick_refusal_trace (s @ [[Tick]\<^sub>E]) \<noteq> sa @ [[Tick]\<^sub>E] \<Longrightarrow>
+    \<exists>sa\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>sa . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E] \<and>
+      (add_Tick_refusal_trace (s @ [[Tick]\<^sub>E]) = sa \<or> (\<exists>X. Tock \<notin> X \<and> add_Tick_refusal_trace (s @ [[Tick]\<^sub>E]) = sa @ [[X]\<^sub>R]))"
+    apply (erule_tac x="add_Tick_refusal_trace s" in ballE, safe)
+    apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
+    using add_Tick_refusal_trace_end_event apply blast
+    by (metis (mono_tags, lifting) CT4s_def CT4s_tocks \<open>s \<in> tocks {x. x \<noteq> Tock}\<close> cttevent.simps(7) mem_Collect_eq)
+qed
 
 lemma CT_Wait: "CT wait\<^sub>C[n]"
   unfolding CT_defs
