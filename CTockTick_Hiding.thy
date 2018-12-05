@@ -439,3 +439,81 @@ proof (safe, simp_all)
       by simp
   qed
 qed
+
+lemma CT4s_Hiding:
+  "CT1 P \<Longrightarrow> CT4s P \<Longrightarrow> CT4s (P \<setminus>\<^sub>C X)"
+  unfolding CT4s_def HidingCTT_def
+proof (safe, simp_all)
+  fix p
+  show "\<And> \<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow> \<rho> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow>
+    \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+  proof (induct p rule:hide_trace.induct, auto)
+    fix X e s \<rho> P
+    assume ind_hyp: "\<And>\<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
+               \<rho> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+    assume case_assms: "CT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Event e]\<^sub>E # s \<in> P" "Event e \<in> X" "\<rho> \<in> hide_trace X s"
+    have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Event e]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Event e]\<^sub>E # s \<in> P}"
+      using case_assms(2) by force
+    have 2: "s \<in> {s. [Event e]\<^sub>E # s \<in> P}"
+      by (simp add: case_assms(3))
+    have 3: "CT1 {s. [Event e]\<^sub>E # s \<in> P}"
+      using case_assms(1) unfolding CT1_def apply auto by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
+    have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Event e]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+      using ind_hyp[where P="{s. [Event e]\<^sub>E # s \<in> P}", where \<rho>=\<rho>] 1 2 3 case_assms by blast
+    then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+      using case_assms by auto
+  next
+    fix X e s P s'
+    assume ind_hyp: "\<And>\<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
+               \<rho> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+    assume case_assms: "CT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Event e]\<^sub>E # s \<in> P" "Event e \<notin> X" "s' \<in> hide_trace X s"
+    have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Event e]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Event e]\<^sub>E # s \<in> P}"
+      using case_assms(2) by force
+    have 2: "s \<in> {s. [Event e]\<^sub>E # s \<in> P}"
+      by (simp add: case_assms(3))
+    have 3: "CT1 {s. [Event e]\<^sub>E # s \<in> P}"
+      using case_assms(1) unfolding CT1_def apply auto by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
+    have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Event e]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace s' \<in> x"
+      using ind_hyp[where P="{s. [Event e]\<^sub>E # s \<in> P}", where \<rho>=s'] 1 2 3 case_assms by blast
+    then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [Event e]\<^sub>E # add_Tick_refusal_trace s' \<in> x"
+      using case_assms by auto
+  next
+    fix X Y s \<rho> P
+    assume ind_hyp: "\<And>\<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
+               \<rho> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+    assume case_assms: "CT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Y]\<^sub>R # [Tock]\<^sub>E # s \<in> P" "Tock \<in> X" "\<rho> \<in> hide_trace X s"
+    have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
+      using case_assms(2) by force
+    have 2: "s \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
+      using CT4s_CT1_add_Tick_ref_Tock CT4s_def case_assms(1) case_assms(2) case_assms(3) by blast
+    have 3: "CT1 {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
+      using case_assms(1) unfolding CT1_def apply auto by (erule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
+    have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+      using ind_hyp[where P="{s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}", where \<rho>=\<rho>] 1 2 3 case_assms by blast
+    then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+      using case_assms(4) by auto
+  next
+    fix X Y s P s' Z
+    assume ind_hyp: "\<And>\<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
+               \<rho> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
+    assume case_assms: "CT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Y]\<^sub>R # [Tock]\<^sub>E # s \<in> P" "Z \<subseteq> Y" "Tock \<notin> X" "X \<subseteq> Y" "s' \<in> hide_trace X s"
+    have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
+      using case_assms(2) by force
+    have 2: "s \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
+      using CT4s_CT1_add_Tick_ref_Tock CT4s_def case_assms(1) case_assms(2) case_assms(3) by blast
+    have 3: "CT1 {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
+      using case_assms(1) unfolding CT1_def apply auto by (erule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
+    have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace s' \<in> x"
+      using ind_hyp[where P="{s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}", where \<rho>=s'] 1 2 3 case_assms by blast
+    then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [insert Tick Z]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace s' \<in> x"
+      using case_assms apply (auto) 
+      by (rule_tac x="hide_trace X ([insert Tick Y]\<^sub>R # [Tock]\<^sub>E # p)" in exI, auto, rule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # p" in exI, auto)
+  next
+    fix X Y P Z
+    show "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow> [[Y]\<^sub>R] \<in> P \<Longrightarrow> Z \<subseteq> Y \<Longrightarrow> X \<subseteq> Y \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [[insert Tick Z]\<^sub>R] \<in> x"
+      by (rule_tac x="hide_trace X [[Y\<union>{Tick}]\<^sub>R]" in exI, auto, rule_tac x="[[Y\<union>{Tick}]\<^sub>R]" in exI, auto)
+  qed
+qed
+
+lemma Hiding_Mono: "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> P \<setminus>\<^sub>C X \<sqsubseteq>\<^sub>C Q \<setminus>\<^sub>C X"
+  unfolding RefinesCTT_def HidingCTT_def by auto

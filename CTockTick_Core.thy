@@ -1319,6 +1319,9 @@ proof auto
     by (induct \<rho> rule:tocks.induct, auto simp add: assm tocks.empty_in_tocks tocks.tock_insert_in_tocks)
 qed
 
+section {* Refinement *}
 
+definition RefinesCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
+  "P \<sqsubseteq>\<^sub>C Q = (Q \<subseteq> P)"
 
 end

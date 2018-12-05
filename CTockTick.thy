@@ -3,11 +3,6 @@ theory CTockTick
 begin
 
 
-section {* Refinement *}
-
-definition RefinesCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
-  "P \<sqsubseteq>\<^sub>C Q = (Q \<subseteq> P)"
-
 subsection {* Compositionality *}
 
 lemma Prefix_compositional: 
