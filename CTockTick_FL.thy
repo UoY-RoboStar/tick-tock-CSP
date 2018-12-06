@@ -1851,6 +1851,34 @@ lemma CT4_fl2ctt:
   using assms unfolding CT4_def fl2ctt_def apply auto
   using CT4_fl2ctt_part by blast
 
+lemma tickWF_add_Tick_refusal_trace_flt2cttobs_idem:
+  assumes "tickWF Tick xs"
+  shows "add_Tick_refusal_trace (flt2cttobs xs) = (flt2cttobs xs)"
+  using assms apply(induct xs rule:flt2cttobs.induct, auto)
+   apply (case_tac A, auto, case_tac a, auto, case_tac b, auto)
+  by (case_tac A, auto, case_tac b, auto)
+
+lemma CT4s_fl2ctt_part:
+  assumes "FLTick0 Tick P" "fl \<in> P"
+  shows "\<exists>fla. add_Tick_refusal_trace (flt2cttobs fl) = flt2cttobs fla \<and> fla \<in> P"
+  using tickWF_add_Tick_refusal_trace_flt2cttobs_idem
+  by (metis FLTick0_def assms(1) assms(2))
+
+lemma CT4s_union_empty_trace:
+  assumes "CT0 P" "CT1c P"
+  shows "CT4s(P \<union> {[]}) = CT4s(P)"
+  using assms unfolding CT4s_def by auto
+
+lemma CT0_union_empty:
+  "CT0(P \<union> {[]})"
+  unfolding CT0_def by auto
+
+lemma CT4s_fl2ctt:
+  assumes "FLTick0 Tick P"
+  shows "CT4s (fl2ctt P)" 
+  using assms unfolding CT4s_def fl2ctt_def apply auto
+  using CT4s_fl2ctt_part by blast
+
 lemma CT3_trace_fl2cttobs:
   "CT3_trace (flt2cttobs fl)"
   apply (induct fl rule:flt2cttobs.induct) apply auto[1]

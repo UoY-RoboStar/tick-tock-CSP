@@ -193,6 +193,49 @@ proof -
   finally show ?thesis by auto
 qed
 
+lemma ctt_prefix_of_CT3_trace:
+  assumes "x \<lesssim>\<^sub>C \<sigma>" "CT3_trace \<sigma>"
+  shows "CT3_trace x"
+  using assms 
+proof (induct x \<sigma> rule:ctt_prefix_subset.induct)
+  case (1 x)
+  then show ?case by auto
+next
+  case (2 X xa Y ya)
+  then show ?case
+    apply (induct xa ya rule:ctt_prefix_subset.induct, auto)
+    by (case_tac y, auto)
+next
+  case (3 x xa y ya)
+  then show ?case by (induct xa ya rule:ctt_prefix_subset.induct, auto)
+next
+  case ("4_1" v xa va ya)
+  then show ?case by auto
+next
+  case ("4_2" va xa v ya)
+  then show ?case by auto
+next
+  case (5 x xa)
+  then show ?case by auto
+qed
+
+lemma CT3_mkCT1:
+  assumes "CT3 P"
+  shows "CT3(mkCT1(P))"
+  using assms unfolding mkCT1_def CT3_def apply auto
+  using ctt_prefix_of_CT3_trace by blast
+
+lemma add_Tick_refusal_trace_ctt_prefix_subset_mono:
+  assumes "\<rho> \<lesssim>\<^sub>C \<sigma>"
+  shows   "add_Tick_refusal_trace \<rho> \<lesssim>\<^sub>C add_Tick_refusal_trace \<sigma>"
+  using assms by(induct \<rho> \<sigma> rule:ctt_prefix_subset.induct, auto)
+
+lemma CT4s_mkCT1:
+  assumes "CT4s P"
+  shows "CT4s(mkCT1(P))"
+  using assms unfolding mkCT1_def CT4s_def apply auto
+  using add_Tick_refusal_trace_ctt_prefix_subset_mono by blast
+
 lemma
   "CTM2a(unCT1 P)"
   unfolding unCT1_def CTM2a_def by auto
