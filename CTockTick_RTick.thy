@@ -120,6 +120,40 @@ next
   qed
 qed
 
+lemma cttWF_ctt_prefix_subset_exists_three_part_concat:
+  assumes "\<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>"
+  shows "\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> s \<lesssim>\<^sub>C z \<and> size \<rho>\<^sub>2 = size \<rho>"
+  using assms proof (induct \<rho> \<sigma> arbitrary:X s rule:ctt_prefix_subset.induct)
+case (1 x)
+  then show ?case 
+    apply auto
+    by (cases x, auto, case_tac a, auto)
+next
+  case (2 Z za Y ya)
+  then have "za @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C ya"
+    by simp
+  then have "\<exists>Y z \<rho>\<^sub>2.
+               ya = \<rho>\<^sub>2 @ [Y]\<^sub>R # z \<and>
+               X \<subseteq> Y \<and> za \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> s \<lesssim>\<^sub>C z \<and> List.length \<rho>\<^sub>2 = List.length za"
+    using 2 by auto
+  then show ?case 
+    apply auto
+    by (metis "2.prems" append_Cons ctt_prefix_subset.simps(2) length_Cons)
+next
+  case (3 x xa y ya)
+  then show ?case apply auto
+    by (metis append_Cons ctt_prefix_subset.simps(3) length_Cons)
+next
+  case ("4_1" v xa va ya)
+  then show ?case by auto
+next
+  case ("4_2" va xa v ya)
+  then show ?case by auto
+next
+  case (5 x xa)
+  then show ?case by auto
+qed
+
 lemma ctt_prefix_subset_eq_length_common_prefix_eq:
   assumes "List.length xs = List.length ys"
   shows "((xs @ z) \<lesssim>\<^sub>C (ys @ s)) = (xs \<lesssim>\<^sub>C ys \<and> z \<lesssim>\<^sub>C s)"
@@ -181,6 +215,64 @@ proof -
     using \<open>\<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] \<in> P\<close> by blast
 qed
 
+lemma CT2s_mkCT1_part:
+  assumes "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} = {}"
+          "\<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>" "\<sigma> \<in> P" "CT1c P" "CTM2a P" "CTM2b P" "CT2s P"
+    shows "\<exists>\<sigma>. \<rho> @ [[X \<union> Y]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P"
+proof -
+  have "size (\<rho> @ [[X]\<^sub>R]) \<le> size \<sigma>"
+    apply auto
+    using assms ctt_prefix_subset_length by fastforce
+  then obtain \<rho>\<^sub>2 X\<^sub>2 z where X2:"\<sigma> = \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z \<and> X \<subseteq> X\<^sub>2 \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R]) = size (\<rho> @ [[X]\<^sub>R]) \<and> (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z) \<in> P"
+    using assms(2,3,4)
+    cttWF_ctt_prefix_subset_exists_three_part_concat
+    by (metis length_append_singleton)
+    (* by (metis CTwf_def assms(5) length_append_singleton) *)
+  then have "\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z \<in> P"
+      "\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P"
+    by (metis CT1c_prefix_concat_in append.assoc assms(4))+
+  then have "(\<forall>e. (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P \<and> e \<notin> X\<^sub>2 \<and> e \<noteq> Tock) \<longrightarrow> \<rho>\<^sub>2 @ [[e]\<^sub>E] \<in> P)"
+            "(\<forall>e. (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P \<and> e \<notin> X\<^sub>2 \<and> e = Tock) \<longrightarrow> \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R,[e]\<^sub>E] \<in> P)"
+    using assms by (auto simp add:CTM2a_def CTM2b_def)
+  then have "\<forall>e. (\<rho>\<^sub>2 @ [[e]\<^sub>E] \<notin> P \<and> e \<noteq> Tock) \<longrightarrow> e \<in> X\<^sub>2"
+    using assms \<open>\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P\<close> by blast
+  then obtain Z where Z:"Z \<inter> {e. (e \<noteq> Tock \<and> \<rho>\<^sub>2 @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
+    by blast
+  then have "\<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] @ z \<in> P"
+    using assms CT2s_def
+    by (simp add: CT2s_def Z X2)
+  then have "\<forall>e. \<rho> @ [[e]\<^sub>E] @ z \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[e]\<^sub>E] @ z"
+    by (metis Suc_le_mono X2 antisym_conv ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_length ctt_prefix_subset_refl length_append_singleton)
+  then have "\<forall>e. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] @ z \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] @ z"
+    by (metis X2 append_Cons ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq length_append_singleton nat.simps(1))
+  then have "{e. (e \<noteq> Tock \<and> \<rho>\<^sub>2 @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] \<in> P) }
+             \<subseteq>
+             {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)}
+             "
+    apply auto 
+    apply (metis X2 ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_refl length_append_singleton nat.simps(1))
+      apply (metis X2 ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_refl length_append_singleton nat.simps(1))
+      apply (metis X2 \<open>\<forall>e. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] @ z \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] @ z\<close> ctt_prefix_subset_eq_length_common_prefix_eq length_Cons length_append_singleton nat.simps(1))
+      by (metis X2 ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_refl length_append_singleton nat.simps(1))
+  then have "X \<union> Y \<subseteq> X\<^sub>2 \<union> Z"
+    using X2 apply safe
+    apply blast (* FIXME: The next step deserves a better understanding. *)
+    by (smt CollectI \<open>\<forall>e. \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P \<and> e \<notin> X\<^sub>2 \<and> e = Tock \<longrightarrow> \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] \<in> P\<close> \<open>\<forall>e. \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P \<and> e \<notin> X\<^sub>2 \<and> e \<noteq> Tock \<longrightarrow> \<rho>\<^sub>2 @ [[e]\<^sub>E] \<in> P\<close> \<open>\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P\<close> assms(1) disjoint_iff_not_equal subsetCE)
+  then have "\<rho> @ [[X \<union> Y]\<^sub>R] @ s \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] @ s"
+    by (metis X2 append_Cons ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_refl length_append_singleton nat.simps(1))
+  then show ?thesis
+  proof -
+    have f1: "\<forall>cs c. [c::'a cttobs] @ cs = c # cs"
+    by simp
+      have "\<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>"
+        using assms(2) by force
+      then have "s \<lesssim>\<^sub>C z"
+        by (metis (no_types) X2 append.assoc ctt_prefix_subset_eq_length_common_prefix_eq)
+      then show ?thesis
+        using f1 by (metis (no_types) X2 \<open>X \<union> Y \<subseteq> X\<^sub>2 \<union> Z\<close> \<open>\<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] @ z \<in> P\<close> ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq length_append_singleton nat.simps(1))
+    qed
+qed
+
 lemma CT2_mkCT1:
   assumes "CT2 P" "CT1c P" "CTM2a P" "CTM2b P" "CTwf P"
   shows "CT2(mkCT1(P))"
@@ -192,6 +284,35 @@ proof -
     using assms by (simp add: CT2_mkCT1_part)
   finally show ?thesis by auto
 qed
+
+lemma
+  assumes "CT2s P" "CT1c P" "CTM2a P" "CTM2b P"
+  shows "CT2s(mkCT1(P))"
+proof -
+  have "CT2s(mkCT1(P)) = CT2s({\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P})"
+    by (simp add:mkCT1_simp)
+  have "
+    (\<And>\<rho> s X Y \<sigma>'.
+       Y \<inter>
+       {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or>
+           e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} =
+       {} \<Longrightarrow>
+       \<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>' \<Longrightarrow> \<sigma>' \<in> P \<Longrightarrow> \<exists>\<sigma>'. \<rho> @ [[X \<union> Y]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>' \<and> \<sigma>' \<in> P)"
+   using assms CT2s_mkCT1_part sledgehammer
+   by metis apply (auto simp add:CT2s_mkCT1_part)
+    
+  then have "
+    (\<And>\<rho> \<sigma> X Y \<sigma>'.
+       Y \<inter>
+       {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or>
+           e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} =
+       {} \<Longrightarrow>
+       \<rho> @ [[X]\<^sub>R] @ \<sigma> \<lesssim>\<^sub>C \<sigma>' \<Longrightarrow> \<sigma>' \<in> P \<Longrightarrow> \<exists>\<sigma>'. \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<lesssim>\<^sub>C \<sigma>' \<and> \<sigma>' \<in> P) \<Longrightarrow> CT2s({\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P})"
+    unfolding CT2s_def by auto
+  also have "... = True"
+    unfolding CT2s_def apply auto
+    using assms CT2s_mkCT1_part sledgehammer[timeout=60] apply ( simp add:CT2s_mkCT1_part)
+    oops
 
 lemma ctt_prefix_of_CT3_trace:
   assumes "x \<lesssim>\<^sub>C \<sigma>" "CT3_trace \<sigma>"
