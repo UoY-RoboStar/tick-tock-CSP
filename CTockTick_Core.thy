@@ -371,6 +371,50 @@ definition CT2 :: "'e cttobs list set \<Rightarrow> bool" where
   "CT2 P = (\<forall> \<rho> X Y. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}))
      \<longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P)"
 
+definition CT2s :: "'e cttobs list set \<Rightarrow> bool" where
+  "CT2s P = (\<forall> \<rho> \<sigma> X Y. (\<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}))
+     \<longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P)"
+
+lemma wf_CT2s_induct:
+  "\<forall>x\<in>P. cttWF x \<Longrightarrow>
+    (\<And> \<rho> \<sigma> X Y. ([[X]\<^sub>R] \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {})) \<Longrightarrow> [[X \<union> Y]\<^sub>R] \<in> P) \<Longrightarrow>
+    (\<And> \<rho> \<sigma> X Y. ([[X]\<^sub>R, [Tock]\<^sub>E] @ \<sigma> \<in> P \<and> (Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {})) \<Longrightarrow> [[X \<union> Y]\<^sub>R, [Tock]\<^sub>E] @ \<sigma> \<in> P) \<Longrightarrow>
+    (\<And>e \<rho> \<sigma> X Y. ((\<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P)} = {})) \<Longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P) \<Longrightarrow> 
+      (([Event e]\<^sub>E # \<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {ea. (ea \<noteq> Tock \<and> [Event e]\<^sub>E # \<rho> @ [[ea]\<^sub>E] \<in> P) \<or> (ea = Tock \<and> [Event e]\<^sub>E # \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P)} = {})) \<Longrightarrow> 
+        [Event e]\<^sub>E # \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P)) \<Longrightarrow>
+    (\<And>e \<rho> \<sigma> X Y Z. ((\<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P)} = {})) \<Longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P) \<Longrightarrow> 
+      (([Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P)} = {})) \<Longrightarrow>
+        [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P)) \<Longrightarrow>
+    CT2s P"
+  unfolding CT2s_def
+proof auto
+  fix \<rho> \<sigma> X Y
+  assume P_wf: "\<forall>x\<in>P. cttWF x"
+  show "\<forall>x\<in>P. cttWF x \<Longrightarrow>
+       (\<And>X Y. [[X]\<^sub>R] \<in> P \<and> Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow> [[X \<union> Y]\<^sub>R] \<in> P) \<Longrightarrow>
+       (\<And>\<sigma> X Y. [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P \<and> Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow> [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P) \<Longrightarrow>
+       (\<And>e \<rho> \<sigma> X Y.
+           (\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P) \<Longrightarrow>
+           [Event e]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<and>
+           Y \<inter> {ea. ea \<noteq> Tock \<and> [Event e]\<^sub>E # \<rho> @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> [Event e]\<^sub>E # \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P} = {} \<Longrightarrow>
+           [Event e]\<^sub>E # \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P) \<Longrightarrow>
+       (\<And>\<rho> \<sigma> X Y Z.
+           (\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P) \<Longrightarrow>
+           [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<and>
+           Y \<inter> {e. e \<noteq> Tock \<and> [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow>
+           [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P) \<Longrightarrow>
+       \<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
+  proof (induct \<rho> rule:cttWF.induct, auto)
+    assume assm1: "\<And>X Y. [[X]\<^sub>R] \<in> P \<and> Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow> [[X \<union> Y]\<^sub>R] \<in> P"
+    assume assm2: "\<And>\<sigma> X Y. [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P \<and> Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow> [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
+    assume "[X]\<^sub>R # \<sigma> \<in> P"
+    then have "cttWF ([X]\<^sub>R # \<sigma>)"
+      using P_wf by auto
+    then show "[X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow> [X \<union> Y]\<^sub>R # \<sigma> \<in> P "
+      by (cases \<sigma> rule:cttWF.cases, simp_all add: assm1 assm2 disjoint_iff_not_equal)
+  qed
+qed
+
 fun CT3_trace :: "'e cttobs list \<Rightarrow> bool" where
   "CT3_trace [] = True" |
   "CT3_trace [x] = True" |
@@ -1083,13 +1127,6 @@ next
     by auto
 qed
 
-lemma longest_pretocks_ctt_prefix_subset2:
-  assumes "\<rho>' @ \<sigma>' \<lesssim>\<^sub>C \<rho> @ \<sigma>"
-  assumes "\<rho> \<in> tocks UNIV" "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> t \<le>\<^sub>C \<rho>"
-  assumes "\<rho>' \<in> tocks UNIV" "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> t \<le>\<^sub>C \<rho>'"
-  shows "\<rho>' \<lesssim>\<^sub>C \<rho> \<and> (\<sigma>' \<lesssim>\<^sub>C \<sigma> \<or> (\<exists> X. \<sigma>' \<lesssim>\<^sub>C [X]\<^sub>R # \<sigma>)) "
-  sorry
-
 lemma longest_pretocks_ctt_prefix_subset_split:
   assumes "\<rho> \<in> tocks UNIV" "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> t \<le>\<^sub>C \<rho>"
   shows "\<exists>\<rho>' \<sigma>'. \<rho>' \<in> tocks UNIV \<and> 
@@ -1194,8 +1231,6 @@ next
   then show "Xa \<subseteq> Y \<Longrightarrow> \<exists>\<rho>'\<in>tocks UNIV. [Xa]\<^sub>R # [Tock]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<rho>' \<and> \<rho>' \<le>\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>"
     by (rule_tac x="[Y]\<^sub>R # [Tock]\<^sub>E # \<rho>'" in bexI, auto simp add: tocks.tock_insert_in_tocks)
 qed
-
-
 
 lemma ctt_subset_longest_tocks:
   assumes "cttWF (\<rho>' @ \<sigma>')" "cttWF (\<rho> @ \<sigma>)"
@@ -1319,6 +1354,9 @@ proof auto
     by (induct \<rho> rule:tocks.induct, auto simp add: assm tocks.empty_in_tocks tocks.tock_insert_in_tocks)
 qed
 
+section {* Refinement *}
 
+definition RefinesCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
+  "P \<sqsubseteq>\<^sub>C Q = (Q \<subseteq> P)"
 
 end
