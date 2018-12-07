@@ -1329,7 +1329,66 @@ next
     by (metis ctt_subset.simps(10) ctt_subset.simps(11) tocks.simps)
 qed
 
-  thm tocks.intros
+lemma tocks_mid_refusal:
+  "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tocks Y \<Longrightarrow> X \<subseteq> Y"
+proof (induct \<rho> rule:cttWF.induct, auto simp add: notin_tocks)
+  fix x
+  show "[X]\<^sub>R # \<sigma> \<in> tocks Y \<Longrightarrow> x \<in> X \<Longrightarrow> x \<in> Y"
+    using tocks.cases by (cases \<sigma> rule:cttWF.cases, auto simp add: notin_tocks)
+next
+  fix Xa \<sigma>' x
+  assume ind_hyp: "\<sigma>' @ [X]\<^sub>R # \<sigma> \<in> tocks Y \<Longrightarrow> X \<subseteq> Y"
+  assume "[Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [X]\<^sub>R # \<sigma> \<in> tocks Y"
+  then have "\<sigma>' @ [X]\<^sub>R # \<sigma> \<in> tocks Y"
+    using tocks.cases by auto
+  then show "x \<in> X \<Longrightarrow> x \<in> Y"
+    using ind_hyp by auto
+qed
+
+lemma tocks_mid_refusal_change:
+  "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tocks Y \<Longrightarrow> Z \<subseteq> Y \<Longrightarrow> \<rho> @ [Z]\<^sub>R # \<sigma> \<in> tocks Y"
+proof (induct \<rho> rule:cttWF.induct, auto simp add: notin_tocks)
+  show "[X]\<^sub>R # \<sigma> \<in> tocks Y \<Longrightarrow> Z \<subseteq> Y \<Longrightarrow> [Z]\<^sub>R # \<sigma> \<in> tocks Y"
+  proof (cases \<sigma> rule:cttWF.cases, auto simp add: notin_tocks)
+    fix va
+    assume "[X]\<^sub>R # [Tock]\<^sub>E # va \<in> tocks Y"
+    then have "va \<in> tocks Y"
+      using tocks.cases by auto
+    then show "Z \<subseteq> Y \<Longrightarrow> [Z]\<^sub>R # [Tock]\<^sub>E # va \<in> tocks Y"
+      using tocks.intros by blast
+  next
+    fix va
+    assume "[X]\<^sub>R # [Tock]\<^sub>E # va \<in> tocks Y"
+    then have "va \<in> tocks Y"
+      using tocks.cases by auto
+    then show "Z \<subseteq> Y \<Longrightarrow> [Z]\<^sub>R # [Tock]\<^sub>E # va \<in> tocks Y"
+      using tocks.intros by blast
+  next
+    fix va
+    assume "[X]\<^sub>R # [Tock]\<^sub>E # va \<in> tocks Y"
+    then have "va \<in> tocks Y"
+      using tocks.cases by auto
+    then show "Z \<subseteq> Y \<Longrightarrow> [Z]\<^sub>R # [Tock]\<^sub>E # va \<in> tocks Y"
+      using tocks.intros by blast
+  qed
+next
+  fix Xa \<sigma>'
+  assume ind_hyp: "\<sigma>' @ [X]\<^sub>R # \<sigma> \<in> tocks Y \<Longrightarrow> \<sigma>' @ [Z]\<^sub>R # \<sigma> \<in> tocks Y"
+  assume "[Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [X]\<^sub>R # \<sigma> \<in> tocks Y"
+  then have "\<sigma>' @ [X]\<^sub>R # \<sigma> \<in> tocks Y \<and> Xa \<subseteq> Y"
+    using tocks.cases by auto
+  then have "\<sigma>' @ [Z]\<^sub>R # \<sigma> \<in> tocks Y \<and> Xa \<subseteq> Y"
+    using ind_hyp by auto
+  then show "Z \<subseteq> Y \<Longrightarrow> [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [Z]\<^sub>R # \<sigma> \<in> tocks Y"
+    using tocks.intros by blast
+qed
+
+lemma tocks_mid_refusal_front_in_tocks:
+  "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tocks Y \<Longrightarrow> \<rho> \<in> tocks Y"
+  apply (induct \<rho> rule:cttWF.induct)
+  using tocks.cases apply auto
+  using tocks.simps apply blast
+  by (metis (no_types, lifting) list.distinct(1) list.inject tocks.simps)
 
 lemma CT0_tocks: "CT0 (tocks X)"
   unfolding CT0_def using tocks.empty_in_tocks by auto 
