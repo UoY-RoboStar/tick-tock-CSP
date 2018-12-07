@@ -215,8 +215,10 @@ proof -
     using \<open>\<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] \<in> P\<close> by blast
 qed
 
+abbreviation "CT2sP \<rho> X P == {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)}"
+
 lemma CT2s_mkCT1_part:
-  assumes "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} = {}"
+  assumes "Y \<inter> CT2sP \<rho> X P = {}"
           "\<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>" "\<sigma> \<in> P" "CT1c P" "CTM2a P" "CTM2b P" "CT2s P"
     shows "\<exists>\<sigma>. \<rho> @ [[X \<union> Y]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P"
 proof -
@@ -285,34 +287,17 @@ proof -
   finally show ?thesis by auto
 qed
 
-lemma
+lemma CT2s_mkCT1:
   assumes "CT2s P" "CT1c P" "CTM2a P" "CTM2b P"
   shows "CT2s(mkCT1(P))"
 proof -
   have "CT2s(mkCT1(P)) = CT2s({\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P})"
     by (simp add:mkCT1_simp)
-  have "
-    (\<And>\<rho> s X Y \<sigma>'.
-       Y \<inter>
-       {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or>
-           e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} =
-       {} \<Longrightarrow>
-       \<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>' \<Longrightarrow> \<sigma>' \<in> P \<Longrightarrow> \<exists>\<sigma>'. \<rho> @ [[X \<union> Y]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>' \<and> \<sigma>' \<in> P)"
-   using assms CT2s_mkCT1_part sledgehammer
-   by metis apply (auto simp add:CT2s_mkCT1_part)
-    
-  then have "
-    (\<And>\<rho> \<sigma> X Y \<sigma>'.
-       Y \<inter>
-       {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or>
-           e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} =
-       {} \<Longrightarrow>
-       \<rho> @ [[X]\<^sub>R] @ \<sigma> \<lesssim>\<^sub>C \<sigma>' \<Longrightarrow> \<sigma>' \<in> P \<Longrightarrow> \<exists>\<sigma>'. \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<lesssim>\<^sub>C \<sigma>' \<and> \<sigma>' \<in> P) \<Longrightarrow> CT2s({\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P})"
-    unfolding CT2s_def by auto
   also have "... = True"
-    unfolding CT2s_def apply auto
-    using assms CT2s_mkCT1_part sledgehammer[timeout=60] apply ( simp add:CT2s_mkCT1_part)
-    oops
+    using assms CT2s_mkCT1_part unfolding CT2s_def apply auto
+    by (insert CT2s_mkCT1_part, blast)
+  then show ?thesis using calculation by auto
+qed
 
 lemma ctt_prefix_of_CT3_trace:
   assumes "x \<lesssim>\<^sub>C \<sigma>" "CT3_trace \<sigma>"
