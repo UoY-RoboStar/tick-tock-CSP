@@ -202,11 +202,34 @@ fun prirelAlt :: "'a partialorder \<Rightarrow> 'a fltrace \<Rightarrow> 'a fltr
 
 text \<open>Observe, that, in general, the recursive case for the relation is not equivalent. \<close>
 
+lemma prirelAlt_imp_prirel:
+  assumes "prirelAlt p xs ys"
+  shows "prirel p xs ys "
+  using assms apply (induct p xs ys rule:prirel.induct, auto)
+      apply (case_tac A, auto, case_tac Z, auto)
+     apply (case_tac Z, auto)
+    apply (case_tac A, auto, case_tac a, auto, case_tac Z, auto, case_tac a, auto)
+   apply (case_tac A, auto, case_tac a, auto, case_tac Z, auto, case_tac a, auto)
+  by (case_tac Z, auto, case_tac a, auto)
+
+lemma
+  assumes "prirel p xs ys"
+  shows "prirelAlt p xs ys "
+  using assms apply (induct p xs ys rule:prirelAlt.induct, auto)
+         apply (case_tac A, auto, case_tac Z, auto)
+        apply (case_tac A, auto)
+       apply (case_tac A, auto, case_tac a, auto, case_tac Z, auto, case_tac a, auto)
+      apply (case_tac Z, auto, case_tac A, auto, case_tac a, auto, case_tac ab, auto)
+     apply (case_tac A, auto, case_tac a, auto, case_tac Z, auto, case_tac a, auto)
+    apply (case_tac A, auto, case_tac a, auto)
+    apply (case_tac Z, auto, case_tac a, auto)
+  apply (case_tac A, auto)
+  oops
+
 lemma
   "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
   = 
   ((prirelAlt p aa zz) \<and> event(A) = event(Z) \<and> prirelaccAlt p (acceptance A) (acceptance Z))"
-  nitpick[expect=genuine]
   oops
 
 definition priAlt :: "'a partialorder \<Rightarrow> 'a fltraces \<Rightarrow> 'a fltraces" where
@@ -235,6 +258,7 @@ lemma prirelaccAlt_imp_prirelacc:
   shows "prirelacc p x y"
   using assms by (induct p x y rule:prirelaccAlt.induct, auto)
 
+(*
 lemma prirelAlt_imp_prirel:
   assumes "prirelAlt p x Z"
   shows "prirel p x Z"
@@ -242,6 +266,7 @@ lemma prirelAlt_imp_prirel:
   using prirelaccAlt_imp_prirelacc apply auto
   apply (case_tac Za, auto)
   by (smt amember.elims(2) prirelaccAlt.simps(4) prirelaccAlt_imp_prirelacc prirelacc_acceptance_not_bullet_imp)
+*)
 
 lemma prirelaccAlt_eq_event_imp_priority_choice:
   assumes "(prirelaccAlt p (acceptance A) (acceptance Z))" "event(A) = event(Z)"
