@@ -433,7 +433,7 @@ lemma CTMPick_extend_ref_imp:
 lemma CTM2a_CTM2b_CT1c_mkCT1_imp_CTMPick:
   assumes "s \<in> x" "CTM2a x" "CTM2b x" "CT1c x" "mkCT1 x \<subseteq> P" "CTTickAll x"
   shows "CTMPick s [] P"
-  using assms proof(induct s rule:rev_induct)
+  using assms proof(induct s arbitrary:x rule:rev_induct)
   case Nil
   then show ?case by auto
 next
@@ -447,28 +447,21 @@ next
       using \<open>CTMPick zs [] P\<close> by blast
   next
     case (Ref x2)
-    then have "Tick \<in> x2"
-      sorry
-    then show ?thesis using Ref snoc CTMPick_extend_ref_imp sledgehammer
-    proof -
-      obtain ccs :: "'a cttobs list set \<Rightarrow> 'a cttobs list" and CC :: "'a cttobs list set \<Rightarrow> 'a cttevent set" and cc :: "'a cttobs list set \<Rightarrow> 'a cttevent" where
-        f1: "\<forall>x0. (\<exists>v1 v2 v3. (v1 @ [[v2]\<^sub>R] \<in> x0 \<and> v3 \<notin> v2 \<and> v3 \<noteq> Tock) \<and> v1 @ [[v3]\<^sub>E] \<notin> x0) = ((ccs x0 @ [[CC x0]\<^sub>R] \<in> x0 \<and> cc x0 \<notin> CC x0 \<and> cc x0 \<noteq> Tock) \<and> ccs x0 @ [[cc x0]\<^sub>E] \<notin> x0)"
-        by moura
-      have "x \<union> {cs. \<exists>csa csb. cs = csa \<and> csa \<lesssim>\<^sub>C csb \<and> csb \<in> x} \<subseteq> P"
-        by (metis mkCT1_def snoc.prems(5))
-      then have f2: "\<forall>cs. cs \<notin> x \<or> cs \<in> P"
-        by (simp add: subset_iff)
-      have "\<forall>C Ca cs csa. (CTMPick csa cs Ca \<and> (\<forall>c. (c::'a cttevent) \<noteq> Tock \<and> c \<notin> C \<longrightarrow> cs @ csa @ [[c]\<^sub>E] \<in> Ca) \<and> (Tock \<notin> C \<longrightarrow> cs @ csa @ [[C]\<^sub>R, [Tock]\<^sub>E] \<in> Ca) \<longrightarrow> CTMPick (csa @ [[C]\<^sub>R]) cs Ca) = ((\<not> CTMPick csa cs Ca \<or> (\<exists>c. (c \<noteq> Tock \<and> c \<notin> C) \<and> cs @ csa @ [[c]\<^sub>E] \<notin> Ca) \<or> Tock \<notin> C \<and> cs @ csa @ [[C]\<^sub>R, [Tock]\<^sub>E] \<notin> Ca) \<or> CTMPick (csa @ [[C]\<^sub>R]) cs Ca)"
-        by blast
-      then have f3: "\<forall>cs csa C Ca. (\<not> CTMPick cs csa C \<or> (\<exists>c. ((c::'a cttevent) \<noteq> Tock \<and> c \<notin> Ca) \<and> csa @ cs @ [[c]\<^sub>E] \<notin> C) \<or> Tock \<notin> Ca \<and> csa @ cs @ [[Ca]\<^sub>R, [Tock]\<^sub>E] \<notin> C) \<or> CTMPick (cs @ [[Ca]\<^sub>R]) csa C"
-        using assms CTMPick_extend_ref_imp  by (simp add: CTMPick_extend_ref_imp)
-      obtain cca :: "'a cttevent set \<Rightarrow> 'a cttobs list set \<Rightarrow> 'a cttobs list \<Rightarrow> 'a cttobs list \<Rightarrow> 'a cttevent" where
-        "\<forall>x0 x1 x2a x3. (\<exists>v4. (v4 \<noteq> Tock \<and> v4 \<notin> x0) \<and> x2a @ x3 @ [[v4]\<^sub>E] \<notin> x1) = ((cca x0 x1 x2a x3 \<noteq> Tock \<and> cca x0 x1 x2a x3 \<notin> x0) \<and> x2a @ x3 @ [[cca x0 x1 x2a x3]\<^sub>E] \<notin> x1)"
-        by moura
-      then have "cca x2 P [] zs \<noteq> Tock \<and> cca x2 P [] zs \<notin> x2 \<and> [] @ zs @ [[cca x2 P [] zs]\<^sub>E] \<notin> P \<or> Tock \<notin> x2 \<and> [] @ zs @ [[x2]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<or> CTMPick (zs @ [[x2]\<^sub>R]) [] P"
-        using f3 \<open>CTMPick zs [] P\<close> by presburger
-        then show ?thesis using f2 f1 by (metis CTM2a_def CTM2b_def Ref append_Nil snoc.prems(1) snoc.prems(2) snoc.prems(3))
-      qed
+    then have "CTMPick zs [] P"
+      using \<open>CTMPick zs [] P\<close> by blast
+    
+    have a:"Tick \<in> x2"
+      using snoc Ref
+      by (metis CTTickAll_def CTTickTrace.elims(2) CTTickTrace_dist_concat cttobs.distinct(1) cttobs.inject(2) list.inject not_Cons_self2)
+    have b:"\<forall>e. e \<noteq> Tock \<and> e \<notin> x2 \<longrightarrow> zs @ [[e]\<^sub>E] \<in> P"  
+      using CTM2a_def Ref mkCT1_def snoc.prems(1) snoc.prems(2) snoc.prems(5) by fastforce
+    have c:"Tock \<notin> x2 \<longrightarrow> zs @ [[x2]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+      using CTM2b_def Ref mkCT1_def snoc.prems(1) snoc.prems(3) snoc.prems(5) by fastforce
+
+    then have "CTMPick (zs @ [[x2]\<^sub>R]) [] P"
+      using a b c snoc \<open>CTMPick zs [] P\<close>
+      by (simp add: CTMPick_extend_ref_imp)
+    then show ?thesis using Ref by auto
    qed
 qed
 
@@ -1200,9 +1193,9 @@ proof -
 qed
 
 lemma prirelRef_start_Ref_extends:
-  assumes "CT1 P" "CT2s P" "CT4s P" "prirelRef pa t s (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) (unCT1 Q)"
-  shows "prirelRef pa t s (sa @ [[S \<union> {e. e \<noteq> Tock \<and> sa @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E]) (unCT1 Q)"
-  sorry (* FIXME *)
+  assumes "CT1 P" "CT2s P" "CT4s P" "prirelRef pa t s (sa @ zs) (unCT1 Q)"
+  shows "prirelRef pa t s (sa @ (mkCTMP zs sa Q)) (unCT1 Q)"
+  using assms apply (induct pa t s zs Q arbitrary: sa rule:prirelRef.induct, auto)
 
 lemma CTMPick_imp_CTTickTrace:
   assumes "CTMPick s i P"
@@ -1261,11 +1254,7 @@ lemma
   shows "CTMPick (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) [] Q"
   nitpick
 
-lemma
-  assumes "prirelRef2 p xs ys i P" "CT1 P" "CT3 P" "CT2s P" "CT4s P"
-  shows "prirelRef2 p xs (mkCTMP ys i P) i P"
-  using assms apply(induct p xs ys i P rule:prirelRef2.induct, simp_all)
-  oops
+
 
 lemma
   assumes "prirelRef2 p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q" "CTMPick s [] Q" "CT1 Q" "CT2s Q" "CT4s Q"
@@ -1441,6 +1430,119 @@ lemma CTs_mkCTMP_in_P:
   using assms mkCTMP_in_P
   by (metis append_Nil2)
 
+lemma CTMPick_Refusal_subset:
+  assumes "CTMPick (xs @ [[Sa]\<^sub>R] @ ys) i Q"
+  shows "{e. e \<noteq> Tock \<and> i @ xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> i @ xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick} \<subseteq> Sa"
+  using assms by (induct xs i Q rule:CTMPick.induct, auto)
+
+lemma CTMPick_Refusal_extend:
+  assumes "CTMPick (xs @ [[Sa]\<^sub>R] @ ys) i Q"
+  shows "CTMPick (xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> i @ xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> i @ xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys) i Q"
+  using assms CTMPick_Refusal_subset
+  by (smt Un_absorb2 le_supE mem_Collect_eq subset_eq)
+
+lemma concat_unCT1_extend_CT2s_Refusal:
+  assumes "xs @ [[Sa]\<^sub>R] @ ys \<in> unCT1 Q" "CT2s Q" "CT1 Q" "CT4 Q"
+  shows "xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys \<in> unCT1 Q"
+proof -
+  have "xs @ [[Sa]\<^sub>R] @ ys \<in> unCT1 Q 
+        = 
+        (xs @ [[Sa]\<^sub>R] @ ys \<in> (\<Union>{x. CTM2a x \<and> CTM2b x \<and> CTTickAll x \<and> CT1c x \<and> (mkCT1 x) \<subseteq> Q}))"
+    unfolding unCT1_def by auto
+  also have "... = (\<exists>x. xs @ [[Sa]\<^sub>R] @ ys \<in> x \<and> CTM2a x \<and> CTM2b x \<and> CTTickAll x \<and> CT1c x \<and> (mkCT1 x) \<subseteq> Q)"
+    by auto
+  also have "... = (xs @ [[Sa]\<^sub>R] @ ys \<in> Q \<and> CTTickAll {xs @ [[Sa]\<^sub>R] @ ys} \<and> CTMPick (xs @ [[Sa]\<^sub>R] @ ys) [] Q)"
+    using CTTickAll_mkCT1_simp assms by blast
+  also have "... = (xs @ [[Sa]\<^sub>R] @ ys \<in> Q \<and> CTMPick (xs @ [[Sa]\<^sub>R] @ ys) [] Q)"
+    using assms CTTickAll_CTMPick by blast
+  then have "(xs @ [[Sa]\<^sub>R] @ ys \<in> Q \<and> CTMPick (xs @ [[Sa]\<^sub>R] @ ys) [] Q)"
+    using assms calculation by auto
+  then have "(xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q}]\<^sub>R] @ ys \<in> Q 
+                    \<and> CTMPick (xs @ [[Sa]\<^sub>R] @ ys) [] Q)"
+    using assms CT2s_extends_Ref by fastforce
+  then have "(xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys \<in> Q 
+                    \<and> CTMPick (xs @ [[Sa]\<^sub>R] @ ys) [] Q)"
+    using CTMPick_imp_prefix'' insert_absorb by fastforce
+  then have "(xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys \<in> Q 
+                    \<and> CTMPick (xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys) [] Q)"
+    using CTMPick_Refusal_extend by fastforce
+  then have "(xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys \<in> Q 
+                    \<and> CTTickAll {xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys}
+                    \<and> CTMPick (xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys) [] Q)"
+    using assms CTTickAll_CTMPick by blast
+  then have a:"(\<exists>x. xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys \<in> Q 
+                \<and> CTM2a x \<and> CTM2b x \<and> CTTickAll x \<and> CT1c x \<and> (mkCT1 x) \<subseteq> Q)"
+    using CTTickAll_mkCT1_simp assms by blast
+
+  then have "(\<exists>x. xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys \<in> Q 
+                \<and> CTM2a x \<and> CTM2b x \<and> CTTickAll x \<and> CT1c x \<and> (mkCT1 x) \<subseteq> Q)
+              =
+              (xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys
+              \<in> (\<Union>{x. CTM2a x \<and> CTM2b x \<and> CTTickAll x \<and> CT1c x \<and> (mkCT1 x) \<subseteq> Q}))"
+    apply auto
+    using CTTickAll_CTMPick CTTickAll_mkCT1_simp \<open>xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys \<in> Q \<and> CTMPick (xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys) [] Q\<close> assms(3) assms(4) by fastforce
+  then have "(xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys
+              \<in> (\<Union>{x. CTM2a x \<and> CTM2b x \<and> CTTickAll x \<and> CT1c x \<and> (mkCT1 x) \<subseteq> Q}))"
+    using a by auto
+  then have "xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys \<in> unCT1 Q"
+    unfolding unCT1_def by auto
+  then show ?thesis .
+qed
+
+lemma prirelRef_start_Ref_extends:
+  assumes "CT1 Q" "CT2s Q" "CT4 Q" "prirelRef pa t s (sa @ [[S]\<^sub>R, [Tock]\<^sub>E] @ z) (unCT1 Q)" 
+  shows "prirelRef pa t s (sa @ [[S \<union> {e. e \<noteq> Tock \<and> sa @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E] @ z) (unCT1 Q)"
+  using assms proof(induct pa t s z Q arbitrary:S sa rule:prirelRef.induct, auto)
+  fix p 
+  fix aa::"'a cttobs list" 
+  fix e\<^sub>2 zz sb Qa Sa saa Z
+  assume 
+    hyp:  "(\<And>S sa.
+           prirelRef p aa zz (sa @ [S]\<^sub>R # [Tock]\<^sub>E # sb @ [[e\<^sub>2]\<^sub>E]) (unCT1 Qa) \<Longrightarrow>
+           prirelRef p aa zz
+            (sa @ [insert Tick (S \<union> {e. e \<noteq> Tock \<and> sa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa})]\<^sub>R # [Tock]\<^sub>E # sb @ [[e\<^sub>2]\<^sub>E])
+            (unCT1 Qa))"
+    and CT1_healthy:    "CT1 Qa" 
+    and CT2s_healthy:   "CT2s Qa"
+    and CT4_healthy:   "CT4 Qa"
+    and prirelRef:      "prirelRef p aa zz (saa @ [Sa]\<^sub>R # [Tock]\<^sub>E # sb @ [[e\<^sub>2]\<^sub>E]) (unCT1 Qa)"
+    and assm1:          "saa @ [Sa]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unCT1 Qa"
+    and assm2:          "e\<^sub>2 \<notin> Z"
+    and assm3:          "\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*p b"
+    and assm4:          "\<forall>Z. saa @ [insert Tick (Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa})]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R]
+                            \<in> unCT1 Qa \<longrightarrow>
+                              e\<^sub>2 \<in> Z \<or> (\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b)"
+  then show "maximal(p,e\<^sub>2)"
+  proof -
+    have "saa @ [[Sa]\<^sub>R] @ [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unCT1 Qa"
+      using assm1 by auto
+    then have "saa @ [[Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R] @ [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unCT1 Qa"
+      using CT1_healthy CT2s_healthy CT4_healthy concat_unCT1_extend_CT2s_Refusal by blast
+    then have "saa @ [Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unCT1 Qa"
+      by auto
+    then have "\<exists>Z. saa @ [Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unCT1 Qa \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b)"
+      using assm2 assm3 by blast
+    then have "\<not>(\<forall>Z. saa @ [Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unCT1 Qa \<longrightarrow> e\<^sub>2 \<in> Z \<or> (\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))"
+      by blast
+    (* Show contradiction *)
+    then show ?thesis using assm4 by auto
+  qed
+qed
+
+(*
+lemma
+  assumes "prirelRef p xs ys (sa @ zs @ z) (unCT1 P)" "CT1 P" "CT3 P" "CT2s P" "CT4s P"
+  shows "prirelRef p xs ys (sa @ (mkCTMP zs sa P) @ z) (unCT1 P)"
+  using assms apply(induct p xs ys z P arbitrary:sa zs rule:prirelRef.induct, auto)
+  sledgehammer
+  oops
+
+lemma prirelRef_start_Ref_extends:
+  assumes "CT1 Q" "CT2s Q" "CT4s Q" "prirelRef pa t s (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) (unCT1 Q)"
+  shows "prirelRef pa t s (sa @ [[S \<union> {e. e \<noteq> Tock \<and> sa @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E]) (unCT1 Q)"
+  sorry (* FIXME: Proved above. *)
+*)
+
 (*
 proof (induct s arbitrary:P rule:rev_induct)
   case Nil
@@ -1555,6 +1657,8 @@ proof -
      and prirelRef_assm:"prirelRef pa t (mkCTMP zz (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q) (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) (unCT1 Q)"
      and Tock_not_in:"Tock \<notin> prirelrefSub pa S sa Q"
      and "prirelRef2 pa aa zz (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
+    then have CT4_healthy: "CT4 Q" 
+      using CT4s_healthy CT1_healthy CT4s_CT1_imp_CT4 by blast
     then obtain Y where Y:"Y = (mkCTMP zz (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q)" by auto
     then show "\<exists>t. [R]\<^sub>R # [Tock]\<^sub>E # aa \<lesssim>\<^sub>C t \<and>
            prirelRef pa t
@@ -1582,7 +1686,7 @@ proof -
         have "prirelRef pa t Y (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) (unCT1 Q)"
              using \<open>[R]\<^sub>R # [Tock]\<^sub>E # aa \<lesssim>\<^sub>C [prirelref pa Z]\<^sub>R # [Tock]\<^sub>E # t \<and> Tock \<notin> prirelref pa Z \<and> prirelRef pa t Y (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) (unCT1 Q)\<close> by blast
         then have "prirelRef pa t Y (sa @ [[S \<union> {e. e \<noteq> Tock \<and> sa @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E]) (unCT1 Q)"
-          using CT1_healthy CT2s_healthy CT4s_healthy Y Z prirelRef_start_Ref_extends by blast (*FIXME*)
+          using CT1_healthy CT2s_healthy CT4_healthy Y Z prirelRef_start_Ref_extends by fastforce
         then have "prirelRef pa t Y (sa @ [[Z]\<^sub>R, [Tock]\<^sub>E]) (unCT1 Q)"
           using Z by auto
         then have "prirelRef pa ([prirelref pa Z]\<^sub>R # [Tock]\<^sub>E # t) ([Z]\<^sub>R # [Tock]\<^sub>E # Y) sa (unCT1 Q)"
@@ -2063,11 +2167,12 @@ next
   qed
 qed
 
+definition priCT :: "('e cttevent) partialorder \<Rightarrow> ('e cttobs) list set \<Rightarrow> ('e cttobs) list set" where
+"priCT p P = {\<rho>|\<rho> s. prirelRef2 p \<rho> s [] P \<and> s \<in> P}"
 
-lemma
+lemma mkCT1_priNS_unCT1_priCT:
   assumes "CT1 P" "CT4 P" "CT4s P" "CT3 P" "CT2s P"
-  shows "mkCT1 (priNS p (unCT1 P)) = X p P"
-  unfolding unCT1_def priNS_def apply auto
+  shows "mkCT1 (priNS p (unCT1 P)) = priCT p P"
 proof -
   have "mkCT1 (priNS p (unCT1 P)) = mkCT1 ({t|s t. s \<in> (unCT1 P) \<and> prirelRef p t s [] (unCT1 P)})"
     unfolding priNS_def by auto
@@ -2096,7 +2201,8 @@ proof -
     using assms apply auto
      apply (meson CT1_def prirelRef_imp_prirelRef2)
     by (meson CTs_mkCTMP_in_P prirelRef2_CTMPick_imp_prirelRef)
-    oops
+  finally show ?thesis unfolding priCT_def by auto
+qed
 
 (* Redundant stuff below? *)
 
