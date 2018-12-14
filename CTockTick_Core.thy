@@ -470,7 +470,7 @@ lemma CT3_trace_end_refusal_change:
   "CT3_trace (t @ [[X]\<^sub>R]) \<Longrightarrow> CT3_trace (t @ [[Y]\<^sub>R])"
   by (induct t rule:CT3_trace.induct, auto, case_tac x, auto)
 
-lemma CT3_trace_cons_imp_cons [simp]:
+lemma CT3_trace_cons_imp_cons:
   assumes "CT3_trace (a # fl)"
   shows "CT3_trace fl"
   using assms apply (cases a, auto)

@@ -716,7 +716,7 @@ next
                     \<and> (\<exists>x. FLTick0 Tick (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)}) 
                         \<and> FL1 (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)}) 
                         \<and> {flt2cttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})} \<subseteq> P \<and> fl \<in> x)"  
-             using flt2cttobs_strongFL_subset 
+             using flt2cttobs_strongFL_subset CT3_trace_cons_imp_cons
              by (smt Un_iff mem_Collect_eq subset_iff)
            then have "
                     ys @ [[e1]\<^sub>E] @ [[Event e3]\<^sub>E] = flt2cttobs(fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)
@@ -1212,6 +1212,7 @@ lemma
   apply auto
   oops
 
+(*
 lemma xp:
   assumes "prirelRef p x zr s P"
     shows "\<exists>fl. x = flt2cttobs fl \<and> (\<exists>zr. prirelRef p (flt2cttobs fl) zr s P)"
@@ -1219,7 +1220,7 @@ lemma xp:
   
       apply (metis flt2cttobs.simps(1) prirelRef.simps(1))
    apply (metis CT3_trace.simps(2) cttWF.simps(2) flt2cttobs_exists_flt2goodS_for_cttWF_CT3_trace insert_Nil prirelRef.simps(2))
-  oops
+  oops*)
 
 lemma
   assumes "prirelRef p x zr [] P"
@@ -1967,85 +1968,157 @@ lemma CT1c_prefix_is_in:
   using assms unfolding CT1c_def 
   using ctt_prefix_concat by blast
 
+lemma
+  assumes "prirelRef p (x @ xs) (y @ ys) s P" "size x = size y"
+  shows "prirelRef p xs ys (s @ x) P"
+  sledgehammer
+  using assms apply (induct p x y s P arbitrary:xs ys rule:prirelRef.induct, auto)
+   apply (case_tac xsa, auto, case_tac ysa, auto, case_tac ysa, auto)
+   apply (case_tac a, auto, case_tac aa, auto)
+     apply (case_tac x1, auto, case_tac x1a, auto)
+    apply (case_tac x1, auto, case_tac x1a, auto)
+  oops
+
+lemma prirelRef_Event_common_extend:
+  assumes "prirelRef p ([[Event x1]\<^sub>E] @ xs) ([[Event x1]\<^sub>E] @ ys) s P"
+  shows "prirelRef p xs ys (s@[[Event x1]\<^sub>E]) P"
+  using assms by (induct p xs ys s P arbitrary:xs ys rule:prirelRef.induct, auto)
+
 lemma prirelRef_of_both_flt2cttobs_cons_acceptance_imp_prirel_acceptance:
   assumes "prirelRef p (flt2cttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P" 
           "last xs = \<bullet>" "last ys = \<bullet>"
           "flt2goodTock xs" "flt2goodTock ys"
   shows "prirel p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>" (* FIXME: better proof please.. *)
-  using assms apply (induct p xs ys arbitrary:s x y rule:prirel.induct, auto)
-  
-  apply (smt Collect_cong acceptance_left_zero flt2cttobs.simps(1) prirelRef.simps(2) prirelRef.simps(28) prirelacc.simps(1) prirelacc_eq_prirelref_via_flt2cttobs)
-  
-        apply (metis (mono_tags) prirelRef.simps(46))
-
-  apply (smt prirelRef.simps(29) prirelRef.simps(46) prirelRef.simps(68))
-  
-      apply (smt prirelRef.simps(46))   
-     
-     apply (smt not_prirelRef_cases prirelRef.simps(28) prirelRef.simps(47))
-  
-    apply (smt not_prirelRef_cases prirelRef.simps(47))
-  apply (case_tac Z, auto, case_tac A, auto, case_tac ba, auto, case_tac b, auto)
-    
-    apply meson 
-  apply meson 
-       apply (smt acceptance_event prirelRef.simps(47))
-
-      apply (smt acceptance_event acceptance_set prirelRef.simps(29) prirelRef.simps(3))
-  apply (case_tac b, auto)
-
-  apply (smt acceptance_event acceptance_set prirelRef.simps(4) prirelRef.simps(47))
-    apply (smt acceptance_event acceptance_set prirelRef.simps(29) prirelRef.simps(3) prirelRef.simps(4) prirelRef.simps(47))
-    apply (smt prirelRef.simps(29) prirelRef.simps(3) prirelRef.simps(4) prirelRef.simps(47))
-  apply (case_tac ba, auto, case_tac b, auto) 
-         apply meson
-        apply meson
-    apply (case_tac a, auto, case_tac b, auto, case_tac a, auto, case_tac a, auto)
-      apply meson
-    apply (case_tac A, auto, case_tac ba, auto, case_tac b, auto, case_tac a, auto)
-        apply meson
-    apply (case_tac b, auto, case_tac a, auto, case_tac a, auto, case_tac b, auto)
-       apply meson
-      apply meson
-     apply (case_tac ba, auto, case_tac b, auto, case_tac b, auto)
-    apply (case_tac A, auto, case_tac b, auto, case_tac Z, auto, case_tac b, auto)
-          apply (case_tac a, auto, case_tac ab, auto)
-    
-    apply force 
-         apply (metis bullet_right_zero2)
-
-        apply (smt acceptance_event prirelRef.simps(47))
-    apply (case_tac b, auto, case_tac a, auto)
-        apply (smt bullet_right_zero2 prirelRef.simps(4))
-  
-       apply (metis bullet_right_zero2)
-    apply (case_tac Z, auto, case_tac b, auto, case_tac a, auto, case_tac ab, auto)
-        apply (case_tac a, auto)
-        apply force
-       apply (case_tac a, auto, case_tac b, auto, case_tac a, auto, case_tac a, auto)
- apply (case_tac Z, auto, case_tac b, auto, case_tac a, auto, case_tac ab, auto)
-        apply (case_tac a, auto, case_tac ab, auto)
-        apply force
-      apply (case_tac a, auto, case_tac ab, auto)
+  using assms 
+proof (induct p xs ys arbitrary:s x y rule:prirel.induct)
+  case (1 p A Z)
+  then show ?case 
+  proof (cases y)
+    case acnil
+    then show ?thesis using 1
+      apply auto
+      by (cases x, auto)
+  next
+    case (acset x2)
+    then show ?thesis using 1 
+      apply auto
+      apply (cases x, safe)
       apply force
-     apply (case_tac b, auto, case_tac a, auto)
-      apply force
-     apply (case_tac a, auto, force)
-    apply (case_tac Z, auto, case_tac b, auto, case_tac a, auto, case_tac ba, auto, force)
-      apply force
-     apply (case_tac ba, auto, case_tac a, auto, case_tac a, auto,force)
-     apply (case_tac a, auto, force)
-  proof -
-    fix pa :: "'a cttevent partialorder" and aa :: "'a cttevent fltrace" and zz :: "'a cttevent fltrace" and sa :: "'a cttobs list" and ya :: "'a cttevent acceptance" and b :: "'a cttevent" and ba :: "'a cttevent"
-    assume a1: "prirelRef pa (if b = Tock then if acceptance (\<bullet>,b)\<^sub>\<F>\<^sub>\<L> \<noteq> \<bullet> then [{z. z \<notin>\<^sub>\<F>\<^sub>\<L> acceptance (\<bullet>,b)\<^sub>\<F>\<^sub>\<L>}]\<^sub>R # [Tock]\<^sub>E # flt2cttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) else [] else [event (\<bullet>,b)\<^sub>\<F>\<^sub>\<L>]\<^sub>E # flt2cttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) (if ba = Tock then if acceptance (\<bullet>,ba)\<^sub>\<F>\<^sub>\<L> \<noteq> \<bullet> then [{z. z \<notin>\<^sub>\<F>\<^sub>\<L> acceptance (\<bullet>,ba)\<^sub>\<F>\<^sub>\<L>}]\<^sub>R # [Tock]\<^sub>E # flt2cttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>ya\<rangle>\<^sub>\<F>\<^sub>\<L>) else [] else [event (\<bullet>,ba)\<^sub>\<F>\<^sub>\<L>]\<^sub>E # flt2cttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>ya\<rangle>\<^sub>\<F>\<^sub>\<L>)) sa P"
-    assume a2: "if b = Tock then False else flt2goodTock aa"
-    assume a3: "if ba = Tock then False else flt2goodTock zz"
-    assume a4: "\<And>s x y. \<lbrakk>prirelRef pa (flt2cttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P; flt2goodTock aa; flt2goodTock zz\<rbrakk> \<Longrightarrow> prirelacc pa x y \<and> (x = \<bullet> \<longrightarrow> y = \<bullet>)"
-    have "b \<noteq> Tock \<and> ba \<noteq> Tock"
-      using a3 a2 by presburger
-    then show "ya = \<bullet>"
-      using a4 a3 a2 a1 by force
+      by (metis (no_types, lifting) "1.prems"(1) acceptance.simps(3) bullet_left_zero2 flt2cttobs.simps(1) prirelRef.simps(2) prirelacc_eq_prirelref_via_flt2cttobs)
   qed
+next
+case (2 p A Z zz)
+  then show ?case
+    apply (cases x, auto, cases A, auto)
+    by (cases Z, auto, case_tac a, auto, case_tac b, auto, case_tac b, auto)+
+next
+case (3 p A aa Z)
+  then show ?case
+    apply (cases y, auto, cases Z, auto)
+    by (cases A, auto, case_tac a, auto, case_tac b, auto, case_tac b, auto)+
+next
+  case (4 p A aa Z zz)
+  then obtain Aa a Zz z where A:"A = (Aa,a)\<^sub>\<F>\<^sub>\<L> \<and> (Aa = \<bullet> \<or> a \<in>\<^sub>\<F>\<^sub>\<L> Aa)"
+                          and Z:"Z = (Zz,z)\<^sub>\<F>\<^sub>\<L> \<and> (Zz = \<bullet> \<or> z \<in>\<^sub>\<F>\<^sub>\<L> Zz)"
+    by (metis fltrace.inject(2) fltrace_add_idem plus_aevent_def plus_fltrace.simps(3))
+
+  have flt2goodTocks:
+        "flt2goodTock \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "flt2goodTock (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+        "flt2goodTock \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "flt2goodTock (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+    using "4.prems" apply auto
+    by (metis Finite_Linear_Model.last.simps(1) butlast_last_FL flt2goodTock_extend_consFL_acceptance last_bullet_butlast_last)+
+    
+  from 4 have "prirelRef p (flt2cttobs ((A #\<^sub>\<F>\<^sub>\<L> aa) &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs ((Z #\<^sub>\<F>\<^sub>\<L> zz) &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+    by auto
+(*  then have "prirelRef p (flt2cttobs ((\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> aa) &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs ((\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> zz) &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+    by auto
+  then have "prirelRef p (flt2cttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> aa) @ flt2cttobs(\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> zz) @ flt2cttobs(\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+  proof -
+    have "flt2goodTock \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "flt2goodTock (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+         "flt2goodTock \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "flt2goodTock (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+      using "4.prems" apply auto
+      by (metis Finite_Linear_Model.last.simps(1) butlast_last_FL flt2goodTock_extend_consFL_acceptance last_bullet_butlast_last)+
+    then have "flt2cttobs ((\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> aa) &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) = flt2cttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> aa) @ flt2cttobs(\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+              "flt2cttobs ((\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> zz) &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) = flt2cttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> zz) @ flt2cttobs(\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+      using "4.prems"(2) "4.prems"(4) flt2cttobs_cons_acceptance_eq_cons apply fastforce
+      using "4.prems"(3) "4.prems"(5) flt2cttobs_cons_acceptance_eq_cons by fastforce
+    then show ?thesis
+      using \<open>prirelRef p (flt2cttobs ((\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> aa) &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs ((\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> zz) &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P\<close> by auto 
+  qed
+
+  then have "prirelRef p (flt2cttobs \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (flt2cttobs \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) (flt2cttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> aa)) P"
+    sledgehammer*)
+  then have "prirelRef p (flt2cttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>))) (flt2cttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))) s P"
+    by auto
+  then have "prirelRef p (flt2cttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+  proof -
+    have "flt2cttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) = flt2cttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+              "flt2cttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) = flt2cttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+      using flt2goodTocks by auto
+    then show ?thesis
+      using \<open>prirelRef p (flt2cttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>))) (flt2cttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))) s P\<close> by auto 
+  qed
+
+  then have pp:"prirelRef p (flt2cttobs (\<langle>(Aa,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+    using A Z by auto
+
+  (* Aim is to deduce prirelRef p (flt2cttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>?x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>?y\<rangle>\<^sub>\<F>\<^sub>\<L>)) ?s P *)
+  then show ?case
+  proof (cases a)
+    case (Event x1)
+    then have p1:"prirelRef p ([[Event x1]\<^sub>E] @ flt2cttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+      using pp A by auto
+    then have "flt2cttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[Event x1]\<^sub>E]"
+      using Z flt2goodTocks by (cases z, auto)
+    
+    then have "prirelRef p ([[Event x1]\<^sub>E] @ flt2cttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) ([[Event x1]\<^sub>E] @ flt2cttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+      using p1 by auto
+    then have "prirelRef p (flt2cttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) (s@[[Event x1]\<^sub>E]) P"
+      by auto
+
+    then have "prirel p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
+      using 4 
+      by (metis Finite_Linear_Model.last.simps(2) flt2goodTock_cons_imp_prefix flt2goodTocks(2) flt2goodTocks(4))
+
+    then show ?thesis by auto
+  next
+    case Tock
+    then have "Aa \<noteq> \<bullet>"
+      using "4.prems"(4) A by auto
+    then have p1:"prirelRef p ([[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Aa}]\<^sub>R,[Tock]\<^sub>E] @ flt2cttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+      using pp A Tock by (cases Aa, auto)
+    then have "flt2cttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Zz}]\<^sub>R,[Tock]\<^sub>E]"
+      using Z flt2goodTocks by (cases z, auto)
+    
+    then have "prirelRef p ([[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Aa}]\<^sub>R,[Tock]\<^sub>E] @ flt2cttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) ([[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Zz}]\<^sub>R,[Tock]\<^sub>E] @ flt2cttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+      using p1 by auto
+    then have "prirelRef p (flt2cttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) (s@[[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Zz}]\<^sub>R,[Tock]\<^sub>E]) P"
+      by auto
+
+    then have "prirel p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
+      using 4 
+      by (metis Finite_Linear_Model.last.simps(2) flt2goodTock_cons_imp_prefix flt2goodTocks(2) flt2goodTocks(4))
+
+    then show ?thesis by auto
+  next
+    case Tick
+    then have p1:"prirelRef p ([[Tick]\<^sub>E] @ flt2cttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+      using pp A by auto
+    then have "flt2cttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[Tick]\<^sub>E]"
+      using Z flt2goodTocks by (cases z, auto)
+    
+    then have "prirelRef p ([[Tick]\<^sub>E] @ flt2cttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) ([[Tick]\<^sub>E] @ flt2cttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+      using p1 by auto
+    then have "prirelRef p (flt2cttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (flt2cttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) (s@[[Tick]\<^sub>E]) P"
+      by auto
+
+    then have "prirel p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
+      using 4 
+      by (metis Finite_Linear_Model.last.simps(2) flt2goodTock_cons_imp_prefix flt2goodTocks(2) flt2goodTocks(4))
+
+    then show ?thesis by auto
+  qed
+qed    
 
 lemma flt2goodS_imp_flt2goodTock [simp]:
   assumes "flt2goodS p xs"

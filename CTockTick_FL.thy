@@ -129,7 +129,7 @@ lemma fl_le_CT1c_Tick:
    apply (case_tac a, auto)
   by (case_tac x22, auto, case_tac x1, auto)
 
-declare cttWF_prefix_is_cttWF [simp]
+(*declare cttWF_prefix_is_cttWF [simp]*)
 
 lemma last_flt2cttobs_eq_ref_imp_last:
   assumes "flt2cttobs (xs) \<noteq> []" "List.last(flt2cttobs (xs)) = Ref r" 
