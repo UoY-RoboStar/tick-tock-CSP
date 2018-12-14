@@ -349,6 +349,15 @@ lemma flt2goodAcceptance_extend_consFL_last_fl_bullet_maximal_pri:
   apply (case_tac A, auto, case_tac a, auto)
   by (metis acceptance_event amember.simps(2))
 
+lemma flt2goodAcceptance_extend_consFL_last_fl_bullet_Tick:
+  assumes "flt2goodAcceptance fl p" "last fl = \<bullet>"
+  shows "flt2goodAcceptance (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Tick)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) p"
+  using assms apply(induct fl p rule:flt2goodAcceptance.induct, auto)
+   apply (case_tac A, auto, case_tac a, auto)
+   apply (meson acceptance_event amember.simps(2))
+  apply (case_tac A, auto, case_tac a, auto)
+  by (metis acceptance_event amember.simps(2))
+
 lemma flt2goodAcceptance_extend_consFL_acceptance:
   assumes "flt2goodAcceptance fl p"
   shows "flt2goodAcceptance (fl @\<^sub>\<F>\<^sub>\<L> \<langle>X\<rangle>\<^sub>\<F>\<^sub>\<L>) p"
@@ -384,7 +393,7 @@ lemma CTwf_1c_3_imp_flt2cttobs_FL1_mod:
       and CTTick_healthy: "CTTick P"
       and CT4_healthy: "CT4 P"
       and pri:"prirelRef p ar x [] P \<and> x \<in> P"
-      and tick_Max:"maximal(p,Tick)"
+     (* and tick_Max:"maximal(p,Tick)"*)
   shows "\<exists>fl. x = flt2cttobs fl \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2cttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
   using assms
 proof(induct x arbitrary:ar rule:rev_induct)
@@ -992,8 +1001,8 @@ next
                   \<and> (\<exists>z. FLTick0 Tick z \<and> FL1 z 
                       \<and> {flt2cttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> z} \<subseteq> P 
                       \<and> fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Tick)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> z)"
-           using flt2goodAcceptance_extend_consFL_last_fl_bullet_maximal_pri
-           by (metis (no_types, lifting) acceptance_event acceptance_set append_self_conv bullet_right_zero2 butlast_last_cons2_FL fl_cons_acceptance_consFL fl_e3 flt2cttobs.simps(2) flt2cttobs_acceptance_cons_eq_list_cons last_fl not_Cons_self2 tick_Max)
+           using flt2goodAcceptance_extend_consFL_last_fl_bullet_Tick
+           by (metis (no_types, lifting) bullet_right_zero2 butlast_last_cons2_FL fl_cons_acceptance_consFL fl_e3 last_fl)
          then have "
                   \<exists>fl. ys @ [[e1]\<^sub>E] @ [[Tick]\<^sub>E] = flt2cttobs(fl)
                   \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl 
@@ -2140,7 +2149,8 @@ lemma pp20:
   assumes "prirelRef p xs ys s P" "CT3_trace ys" "cttWF ys" "(flt2cttobs zr) = ys" 
           "flt2goodTock zr"
           "flt2goodAcceptance zr p"
-          "maximal(p,Tick)" (* FIXME: probably not needed *)
+          "CTTickAll P"
+        (*  "maximal(p,Tick)"*) (* FIXME: probably not needed *)
   shows "\<exists>fl. prirel p fl zr \<and> (flt2cttobs fl) = xs \<and> flt2goodTock fl"
   using assms
 proof (induct p xs ys s P arbitrary:zr rule:prirelRef.induct, auto)
@@ -2291,7 +2301,8 @@ next
   assume assm7:"\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*pa b"
   assume assm8:"e\<^sub>2 \<notin> Z"
   assume assm9:"flt2goodAcceptance zra pa"
-  assume assm10:"maximal(pa,Tick)" (* FIXME: Not needed, I think *)
+  assume assm10:"CTTickAll Q"
+  (*assume assm10:"maximal(pa,Tick)"*) (* FIXME: Not needed, I think *)
   from assm3 obtain tt aE where tt:"flt2cttobs tt = zz \<and> flt2goodTock tt 
     \<and> flt2goodAcceptance tt pa \<and> zra = \<langle>(aE,e\<^sub>2)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> tt 
     \<and> (e\<^sub>2 \<in>\<^sub>\<F>\<^sub>\<L> aE \<or> aE = \<bullet>)"
@@ -2345,14 +2356,25 @@ next
           by auto
         then have flt2goodTock_fla:"flt2goodTock fla"
           using fla fl aE_is_bullet assm4 flt2goodTock_cons_imp_prefix flt2goodTock_of_consFL_also_flt2goodTock tt by blast
-              
-        have "prirel pa fla zra"
-          using fla Tick fl tt 
-          using assm10 by auto
-        then have "prirel pa fla zra \<and> flt2goodTock fla"
-          using flt2goodTock_fla by auto
-        then show ?thesis 
-          using fl fla no_Tock by auto
+
+        then show ?thesis
+        proof (cases "maximal(pa,Tick)")
+          case True
+          then have "prirel pa fla zra"
+            using fla Tick fl tt by auto
+          then have "prirel pa fla zra \<and> flt2goodTock fla"
+            using flt2goodTock_fla by auto
+          then show ?thesis using fl fla no_Tock by auto
+        next
+          case False
+          then have Tick_not_in:"Tick \<notin> Z"
+            using assm8 Tick by auto
+          have "Tick \<in> Z"
+            using assm6 assm10 unfolding CTTickAll_def 
+            apply (induct sa, auto)
+            using CTTickTrace.simps(3) CTTickTrace_dist_concat by blast
+          then show ?thesis using Tick_not_in by auto
+        qed
       qed
  (*     obtain fle2 where "fle2 = \<langle>(\<bullet>,e\<^sub>2)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> fl" by auto
       then have "prirel pa fle2 zra"
@@ -2391,7 +2413,7 @@ next
                   by (metis Event aE_not_bullet)
                 then have "\<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> aE \<and> Event x1 <\<^sup>*pa b)"
                   using tt Event aE_not_bullet apply auto
-                  by (metis False acceptance_event assm10)
+                  by (metis Event False acceptance_event cttevent.distinct(3))
                 then have "Event x1 \<in>\<^sub>\<F>\<^sub>\<L> [{a. a \<in>\<^sub>\<F>\<^sub>\<L> aE \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L>aE \<and> a <\<^sup>*pa b)}]\<^sub>\<F>\<^sub>\<L>"
                   using assm7 assm8
                   using Event aE_not_bullet local.tt by auto
@@ -2411,9 +2433,14 @@ next
                   using no_Tock by blast
               next
                 case Tick
-                then show ?thesis 
-                  using False assm10 by blast
-              qed
+                then have Tick_not_in:"Tick \<notin> Z"
+                    using assm8 Tick by auto
+                have "Tick \<in> Z"
+                    using assm6 assm10 unfolding CTTickAll_def 
+                    apply (induct sa, auto)
+                    using CTTickTrace.simps(3) CTTickTrace_dist_concat by blast
+               then show ?thesis using Tick_not_in by auto
+           qed
         qed 
    (*Probably works, just neet to tweak it:
    then obtain fle2 where fle2:"fle2 = \<langle>([{a. a \<in>\<^sub>\<F>\<^sub>\<L> aE \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L>aE \<and> a <\<^sup>*pa b)}]\<^sub>\<F>\<^sub>\<L>,e\<^sub>2)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> fl \<and> e\<^sub>2 \<in>\<^sub>\<F>\<^sub>\<L> [{a. a \<in>\<^sub>\<F>\<^sub>\<L> aE \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L>aE \<and> a <\<^sup>*pa b)}]\<^sub>\<F>\<^sub>\<L>"
@@ -2428,6 +2455,7 @@ next
     qed
   qed
 
+(* Not used anymore, remove? *)
 lemma pp2:
   assumes "prirelRef p xs ys s P" "CT3_trace ys" "cttWF ys"
   shows "\<exists>fl zr. prirel p fl zr \<and> (flt2cttobs fl) = xs \<and> (flt2cttobs zr) = ys"
@@ -2749,7 +2777,7 @@ lemma pp3:
 
 lemma pp4:
   assumes "prirelRef p xs ys [] P" "ys \<in> P" 
-          "CT0 P" "CTwf P" "CT1c P" "CT3 P" "CTTick P" "CT4 P" "maximal(p,Tick)"
+          "CT0 P" "CTwf P" "CT1c P" "CT3 P" "CTTick P" "CTTickAll P" "CT4 P"
     shows "\<exists>fl. flt2cttobs fl = xs \<and> (\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ctt fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0)) \<and> flt2goodTock fl"
 proof -
   have "cttWF ys"
@@ -2782,6 +2810,7 @@ lemma fl2ctt_pri_ctt2fl_priNS:
       and CT1c_healthy: "CT1c P"
       and CT3_healthy:  "CT3 P"
       and CTTick_healthy: "CTTick P"
+      and CTTickAll:   "CTTickAll P"
       and CT4_healthy:    "CT4 P"
       and Tick_max:"maximal(p,Tick)"
   shows "fl2ctt(pri p (ctt2fl P)) = priNS p P"

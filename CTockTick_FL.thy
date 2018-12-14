@@ -1966,115 +1966,18 @@ next
   qed
 qed
 
-lemma CT2_fl2ctt_part':
+lemma flt2goodTock_consFL_imp_rhs:
+  assumes "flt2goodTock (xs &\<^sub>\<F>\<^sub>\<L> ys)" "last xs = \<bullet>"
+  shows "flt2goodTock (ys)"
+  using assms apply (induct xs arbitrary:ys, auto)
+  by (case_tac x1a, auto, case_tac a, auto, case_tac b, auto)
+
+lemma CT2_fl2ctt_part_Tock:
   assumes "FL2 P" "FL1 P" "FL0 P"
           "Y \<inter> CT2p \<rho> X P = {}"
-          "\<rho> @ [[X]\<^sub>R] = flt2cttobs fl" "fl \<in> P" "flt2goodTock fl"
-        shows "\<exists>fl. \<rho> @ [[X \<union> Y]\<^sub>R] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl"
-proof -
-  have "\<exists>fl. \<rho> @ [[X \<union> Y]\<^sub>R] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl \<and> X \<union> Y = X"
-    using assms by (auto simp add:CT2_fl2ctt_part)
-  then have "\<exists>fl. \<rho> @ [[X \<union> Y]\<^sub>R] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl"
-    by blast
-  then show ?thesis by auto
-qed
-
-lemma CT2_union_empty_trace:
-  "CT2(P \<union> {[]}) = CT2(P)"
-  unfolding CT2_def by auto
-
-lemma CT2_fl2ctt:
-  assumes "FL2 P" "FL1 P" "FL0 P"
-  shows "CT2 (fl2ctt P)"
-proof -
-  have "CT2 (fl2ctt P) = CT2 ({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
-    using assms by (simp add: fl2ctt_FL0_FL1_flt2goodTock)
-  also have "... = CT2 ({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
-    using CT2_union_empty_trace by auto
-  also have "... = (\<forall>\<rho> X Y.
-        \<rho> @ [[X]\<^sub>R] \<in> {flt2cttobs fl |fl. fl \<in> P \<and> flt2goodTock fl} \<and>
-        Y \<inter> CT2p \<rho> X P = {} \<longrightarrow>
-        \<rho> @ [[X \<union> Y]\<^sub>R] \<in> {flt2cttobs fl |fl. fl \<in> P \<and> flt2goodTock fl})"
-    using assms unfolding CT2_def fl2ctt_def by auto
-  also have "... = True"
-    using assms by (auto simp add: CT2_fl2ctt_part')
-  finally show ?thesis by auto
-qed
-
-lemma cttWF_dist_cons_refusal': 
-  assumes "cttWF (s @ [[S]\<^sub>R] @ t)"
-  shows "cttWF ([[S]\<^sub>R] @ t)"
-  using assms by(induct s rule:cttWF.induct, auto)
-
-lemma flt2cttobs_split_cons:
-  assumes "ys @ xs = flt2cttobs fl" "flt2goodTock fl" "cttWF ys"
-  shows "\<exists>fl\<^sub>1 fl\<^sub>0. ys = flt2cttobs fl\<^sub>0 \<and> xs = flt2cttobs fl\<^sub>1 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1"
-  using assms
-proof (induct fl arbitrary:xs ys rule:flt2cttobs.induct)
-  case (1 A)
-  then show ?case 
-    apply (cases A, auto)
-     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-    apply (induct ys, auto)
-     apply (rule_tac x="\<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-    by (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, rule_tac x="\<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-next
-  case (2 A fl)
-  then show ?case
-  proof (cases "event A = Tock \<and> acceptance A \<noteq> \<bullet>")
-    case True
-    then show ?thesis sorry
-  next
-    case False
-    then show ?thesis sorry
-  qed
-qed
-
-lemma CT2s_fl2ctt_part:
-  assumes "FL2 P" "FL1 P" "FL0 P" "FLTick0 Tick P"
-          "Y \<inter> CT2p \<rho> X P = {}"
-          "\<rho> @ [[X]\<^sub>R] @ \<sigma> = flt2cttobs fl" "fl \<in> P" "flt2goodTock fl"
-        shows "\<exists>fl. \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl"
-  using assms
-proof (cases \<sigma>)
-  case Nil
-  then show ?thesis using assms by (auto simp add: CT2_fl2ctt_part')
-next
-  case (Cons a list)
-  then have "a = [Tock]\<^sub>E"
-  proof -
-    have "cttWF(\<rho> @ [[X]\<^sub>R] @ \<sigma>)"
-      using flt2cttobs_is_cttWF assms
-      by (metis FLTick0_def)
-    then have "cttWF([[X]\<^sub>R] @ \<sigma>)"
-      using cttWF_dist_cons_refusal' by blast
-    then have "cttWF([[X]\<^sub>R] @ (a # list))"
-      using Cons by auto
-    then have "cttWF([X]\<^sub>R # a # list)"
-      by auto
-    then show ?thesis
-      using cttWF.elims(2) by blast
-  qed
-
-  have cttWF_cons:"cttWF(\<rho> @ [[X]\<^sub>R])"
-    by (metis FLTick0_def append_assoc assms(4) assms(6) assms(7) cttWF_prefix_is_cttWF flt2cttobs_is_cttWF)
-  then obtain fl\<^sub>0 fl\<^sub>1 where fls:"\<rho> @ [[X]\<^sub>R] = flt2cttobs fl\<^sub>0 \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1 \<and> \<sigma> = flt2cttobs fl\<^sub>1 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl"
-    using assms flt2cttobs_split_cons
-    by (metis (no_types, lifting) append_assoc)
-  then have "fl\<^sub>0 \<in> P"
-    using assms x_le_concat2_FL1 by blast
-  then have "\<exists>fl. \<rho> @ [[X \<union> Y]\<^sub>R] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl \<and> X \<union> Y = X"
-    using assms CT2_fl2ctt_part
-    by (metis (no_types, lifting) acceptance.distinct(1) append_assoc append_is_Nil_conv append_self_conv concat_FL_last_not_bullet_absorb fls last_flt2cttobs_eq_ref_imp_last last_snoc list.simps(3) local.Cons)
-  then show ?thesis
-    by (metis assms(6) assms(7) assms(8))
-qed
-(*
-  
-  have "hd \<sigma> = [Tock]\<^sub>E"
-
-  obtain fl\<^sub>0 fl\<^sub>1 where fls:"\<rho> @ [[X]\<^sub>R] = flt2cttobs fl\<^sub>0 \<and> \<sigma> = flt2cttobs fl\<^sub>1 \<and> flt2cttobs (fl\<^sub>0
-  using assms proof (induct fl arbitrary:\<rho> X Y \<sigma> rule:fltrace_induct)
+          "\<rho> @ [[X]\<^sub>R,[Tock]\<^sub>E] = flt2cttobs fl" "fl \<in> P" "flt2goodTock fl"
+    shows "\<exists>fl. \<rho> @ [[X \<union> Y]\<^sub>R,[Tock]\<^sub>E] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl \<and> X \<union> Y = X"
+  using assms proof (induct fl arbitrary:\<rho> X Y rule:fltrace_induct)
 case 1
   then show ?case by auto
 next
@@ -2082,7 +1985,8 @@ next
   then show ?case
   proof (cases "last xs = \<bullet>")
     case True
-    then have \<rho>_X:"\<rho> @ [[X]\<^sub>R] @ \<sigma> = flt2cttobs (xs) @ flt2cttobs(\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+    (* FIXME: This case is superfluous and should be provable in a much easier way *)
+    then have \<rho>_X:"\<rho> @ [[X]\<^sub>R,[Tock]\<^sub>E] = flt2cttobs (xs) @ flt2cttobs(\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
       using 2
       by (metis (no_types, lifting) Finite_Linear_Model.last.simps(1) append.right_neutral bullet_right_zero2 flt2cttobs.simps(1) flt2cttobs_last_fl_not_bullet_dist_list_cons last_bullet_butlast_last last_bullet_then_last_cons)
     then show ?thesis
@@ -2091,14 +1995,14 @@ next
         then show ?thesis using 2 True by auto
       next
         case (acset x2)
-        then show ?thesis using 2
-        (*then have "[[X]\<^sub>R] @ \<sigma> = flt2cttobs(\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-          using \<rho>_X by auto*)
+        then have "[[X]\<^sub>R] = flt2cttobs(\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+          using \<rho>_X by auto
         then have X_x2:"X = {x. x \<notin> x2}"
           using acset by auto
         
         have a:"\<forall>e. (e \<notin> X \<and> e \<noteq> Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[e]\<^sub>E] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
-          using "2.prems"(5) "2.prems"(6) "2.prems"(7) FL2_imp_CTM2a_part assms(1) sledgehammer
+          using "2.prems"(5) "2.prems"(6) "2.prems"(7) FL2_imp_CTM2a_part assms(1)
+          by (metis List.last.simps \<open>[[X]\<^sub>R] = flt2cttobs \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>\<close> \<rho>_X cttobs.distinct(1) last_appendR list.distinct(1))
         then have a2:"\<forall>e. (e \<in> x2 \<and> e \<noteq> Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[e]\<^sub>E] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
           using X_x2 by blast
         
@@ -2107,284 +2011,4 @@ next
         then have b2:"\<forall>e. (e \<in> x2 \<and> e = Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
           using X_x2 by blast
 
-        have "x2 \<subseteq> {e. e \<noteq> Tock \<and> (\<exists>fl. \<rho> @ [[e]\<^sub>E] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl) \<or> e = Tock \<and> (\<exists>fl. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] = flt2cttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)}"
-          using a2 b2 by auto
-        then have "Y \<subseteq> X"
-          using 2 X_x2 by blast
-        then have "X \<union> Y = X"
-          by auto
-       then show ?thesis using 2
-         by metis
-      qed
-  next
-    case False
-    then have "\<rho> @ [[X]\<^sub>R] = flt2cttobs (xs)"
-              "xs \<in> P"
-              "flt2goodTock xs"
-      using 2 by (metis concat_FL_last_not_bullet_absorb)+
-    then show ?thesis using 2
-      by blast
-  qed
-next
-  case (3 x xs)
-  then show ?case
-  proof (cases "last xs = \<bullet>")
-    case True
-    then show ?thesis using 3
-      by (metis (mono_tags, lifting) Nil_is_append_conv acceptance.distinct(1) last_cons_bullet_iff last_flt2cttobs_eq_ref_imp_last last_snoc not_Cons_self2)
-  next
-    case False
-    then have "\<rho> @ [[X]\<^sub>R] = flt2cttobs (xs)"
-      using 3 by (metis concat_FL_last_not_bullet_absorb)
-    then show ?thesis 
-      using 3 by (metis (no_types, lifting) False concat_FL_last_not_bullet_absorb)
-  qed
-qed*)
-
-lemma CT2s_union_empty_trace:
-  "CT2s(P \<union> {[]}) = CT2s(P)"
-  unfolding CT2s_def by auto
-
-lemma CT2s_fl2ctt:
-  assumes "FL2 P" "FL1 P" "FL0 P" "FLTick0 Tick P"
-  shows "CT2s (fl2ctt P)"
-proof -
-  have "CT2s (fl2ctt P) = CT2s ({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
-    using assms by (simp add: fl2ctt_FL0_FL1_flt2goodTock)
-  also have "... = CT2s ({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
-    using CT2s_union_empty_trace by auto
- (* also have "... = (\<forall>\<rho> X Y \<sigma>.
-        \<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> {flt2cttobs fl |fl. fl \<in> P \<and> flt2goodTock fl} \<and>
-        Y \<inter> CT2p \<rho> X P = {} \<longrightarrow>
-        \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> {flt2cttobs fl |fl. fl \<in> P \<and> flt2goodTock fl})"
-    using assms unfolding CT2s_def fl2ctt_def apply auto*)
-  also have "... = True"
-    using assms unfolding CT2s_def 
-    apply auto using CT2s_fl2ctt_part
-    by (auto)
-  finally show ?thesis by auto
-qed
-
-lemma CTwf_fl2ctt:
-  assumes "FLTick0 Tick P" 
-  shows "CTwf(fl2ctt(P))"
-  using assms unfolding fl2ctt_def CTwf_def
-  by (auto simp add: FLTick0_def flt2cttobs_is_cttWF)
-
-lemma CT1c_fl2ctt_part:
-  assumes "\<rho> \<le>\<^sub>C flt2cttobs fl"
-  shows "\<exists>fl\<^sub>2. \<rho> = flt2cttobs fl\<^sub>2 \<and> fl\<^sub>2 \<le> fl"
-  using assms  
-proof (induct fl arbitrary:\<rho> rule:flt2cttobs.induct)
-case (1 A)
-  then show ?case 
-    apply (cases A, auto)
-     apply (cases \<rho>, auto)
-     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-    apply (cases \<rho>, auto)
-     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-    apply (rule_tac x="\<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-    by (case_tac list, auto)
-next
-  case (2 A fl)
-  then show ?case 
-  proof (cases "event A = Tock \<and> acceptance A \<noteq> \<bullet>")
-    case True
-    then have "A = (acceptance(A),Tock)\<^sub>\<F>\<^sub>\<L> \<and> Tock \<in>\<^sub>\<F>\<^sub>\<L> acceptance(A)"
-      by (metis Rep_aevent_inverse acceptance.rep_eq event.rep_eq event_in_acceptance prod.collapse)
-    then have flt2cttobs_A_fl:"flt2cttobs (A #\<^sub>\<F>\<^sub>\<L> fl) = [{x. x \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R # [Tock]\<^sub>E # flt2cttobs fl"
-      using True by auto
-    then have "\<rho> \<le>\<^sub>C flt2cttobs (A #\<^sub>\<F>\<^sub>\<L> fl) = (\<rho> \<le>\<^sub>C ([{x. x \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R # [Tock]\<^sub>E # flt2cttobs fl))"
-      using True by auto
-    show ?thesis using True 2
-    proof (induct \<rho>)
-      case Nil
-      then show ?case 
-        apply auto
-        by (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-    next
-      case (Cons a as)
-      then have "a = [{x. x \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R"
-        by auto
-      then show ?case using True 2 Cons
-      proof (induct as)
-        case Nil
-        then show ?case using True
-          apply auto
-          by (rule_tac x="\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-      next
-        case (Cons z zs)
-        then have "z = [Tock]\<^sub>E"
-          by auto
-        then have "a # z # zs \<le>\<^sub>C flt2cttobs (A #\<^sub>\<F>\<^sub>\<L> fl)"
-          using Cons by blast
-        then have "[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R # [Tock]\<^sub>E # zs \<le>\<^sub>C flt2cttobs (A #\<^sub>\<F>\<^sub>\<L> fl)"
-          using Cons.prems(1) \<open>z = [Tock]\<^sub>E\<close> by blast
-        then have "[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R # [Tock]\<^sub>E # zs \<le>\<^sub>C [{x. x \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R # [Tock]\<^sub>E # flt2cttobs fl"
-          using flt2cttobs_A_fl by auto
-        then have "zs \<le>\<^sub>C flt2cttobs fl"
-          by auto
-        then have "\<exists>fl\<^sub>2. zs = flt2cttobs fl\<^sub>2 \<and> fl\<^sub>2 \<le> fl"
-          using Cons True by blast
-        then have "\<exists>fl\<^sub>2. [{x. x \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R # [Tock]\<^sub>E # zs = [{x. x \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R # [Tock]\<^sub>E # flt2cttobs fl\<^sub>2 \<and> A #\<^sub>\<F>\<^sub>\<L> fl\<^sub>2 \<le> A #\<^sub>\<F>\<^sub>\<L> fl"
-          by auto
-        then have "\<exists>fl\<^sub>2. [{x. x \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R # [Tock]\<^sub>E # zs = flt2cttobs (A #\<^sub>\<F>\<^sub>\<L> fl\<^sub>2) \<and> A #\<^sub>\<F>\<^sub>\<L> fl\<^sub>2 \<le> A #\<^sub>\<F>\<^sub>\<L> fl"
-          using True by auto
-        then have "\<exists>fl\<^sub>2. a # z # zs = flt2cttobs (A #\<^sub>\<F>\<^sub>\<L> fl\<^sub>2) \<and> A #\<^sub>\<F>\<^sub>\<L> fl\<^sub>2 \<le> A #\<^sub>\<F>\<^sub>\<L> fl"
-          using Cons by auto
-        then have "\<exists>fl\<^sub>2. a # z # zs = flt2cttobs fl\<^sub>2 \<and> fl\<^sub>2 \<le> A #\<^sub>\<F>\<^sub>\<L> fl"
-          by blast
-        then show ?case by blast
-      qed
-    qed
-  next
-    case False
-    then show ?thesis using 2 apply auto
-      apply (metis (no_types, hide_lams) bullet_left_zero2 ctt_prefix.simps(2) flt2cttobs.simps(1) flt2cttobs.simps(2) less_eq_fltrace.simps(3) neq_Nil_conv order_refl x_le_x_concat2)  
-      apply (cases A, auto)
-      apply (case_tac b, auto)
-      apply (metis (no_types, hide_lams) acceptance_event bullet_left_zero2 ctt_prefix.simps(2) cttevent.distinct(1) flt2cttobs.simps(1) flt2cttobs.simps(2) less_eq_fltrace.simps(3) neq_Nil_conv order_refl x_le_x_concat2)
-      using ctt_prefix_split apply force
-      by (metis (no_types, hide_lams) acceptance_event bullet_left_zero2 ctt_prefix.simps(2) cttevent.distinct(5) flt2cttobs.simps(1) flt2cttobs.simps(2) less_eq_fltrace.simps(3) neq_Nil_conv order_refl x_le_x_concat2)
-  qed
-qed
-
-(*
-lemma
-  assumes "\<rho> \<le>\<^sub>C x" "x = flt2cttobs fl" "tickWF Tick fl"
-  shows "\<exists>fl\<^sub>2. \<rho> = flt2cttobs fl\<^sub>2 \<and> fl\<^sub>2 \<le> fl"
-  using assms
-proof (induct \<rho> x arbitrary:fl rule:ctt_prefix.induct)
-  case (1 x)
-  then show ?case
-    apply auto
-    apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-    by (simp add: prefixFL_induct21)
-next
-  case (2 x xa y ya)
-  then have "xa \<le>\<^sub>C ya"
-    using ctt_prefix.simps(2) by blast
-  have "cttWF (y # ya)"
-    by (simp add: "2.prems"(2) "2.prems"(3) flt2cttobs_is_cttWF)
-  then have y_not_Tock:"y \<noteq> [Tock]\<^sub>E"
-    using cttWF.simps(6) by blast
-  then show ?case using 2
-  proof (cases y)
-    case (ObsEvent x1)
-    then have "x1 \<noteq> Tock"
-      using y_not_Tock by auto
-    then show ?thesis using 2
-      apply (induct fl, auto)
-      using ObsEvent apply force
-      apply (case_tac x1a, auto)
-      apply (case_tac a, auto, case_tac b, auto)
-      apply (metis ObsEvent acceptance_event amember.simps(2) cttobs.inject(1) flt2cttobs.simps(2) less_eq_fltrace.simps(3) order_refl)
-      using ObsEvent apply blast
-      apply (case_tac b, auto)
-      apply (metis acceptance_event aevent_less_eq_iff_components cttevent.distinct(1) flt2cttobs.simps(2) less_eq_fltrace.simps(3))
-      by (metis acceptance_event ctt_prefix.simps(1) ctt_prefix_antisym cttevent.distinct(5) flt2cttobs.simps(1) flt2cttobs.simps(2) order_refl)
-(* then obtain yA where yA:"(flt2cttobs \<langle>(yA,x1)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[x1]\<^sub>E]) \<and> (x1 \<in>\<^sub>\<F>\<^sub>\<L> yA \<or> yA = \<bullet>)"
-      using 2 y_not_Tock apply auto
-      apply (case_tac x1, auto)
-       apply (metis ObsEvent acceptance_event flt2cttobs.simps(1))
-      by (metis acceptance_event cttevent.distinct(5) flt2cttobs.simps(1))
-    then show ?thesis using 2*)
-  next
-    case (Ref x2)
-    then have "x = [x2]\<^sub>R"
-      using "2.prems"(1) by auto
-    then show ?thesis using 2
-    proof (induct ya)
-      case Nil
-      then show ?case using Ref 2 
-        apply (induct fl, auto)
-         apply (case_tac x, auto)
-        apply (metis (no_types, lifting) Collect_cong acceptance.distinct(1) amember.simps(2) ctt_prefix.elims(2) flt2cttobs.simps(1) list.distinct(1) list.inject order_refl)
-        apply (case_tac x1a, auto, case_tac b, auto, case_tac a, auto)
-          apply (metis cttobs.simps(4) list.inject)
-         apply (case_tac a, auto)
-         apply (metis list.distinct(1) list.inject)
-        apply (case_tac b, auto)
-         apply (metis "2.prems"(2) Ref cttobs.simps(4) list.inject)
-        by (metis cttobs.simps(4) last_snoc)
-    next
-      case (Cons z za)
-      then have "cttWF (y # z # za)"
-        by (simp add: flt2cttobs_is_cttWF)
-      then have "z = [Tock]\<^sub>E"
-        using Ref cttWF.elims(2) by blast
-      then show ?case using Ref 2 Cons 
-        proof (induct fl)
-          case (Acceptance A)
-          then show ?case using Ref 2 Cons apply auto
-            apply (cases A, auto)
-            by (metis Cons.prems(4) list.inject neq_Nil_conv)
-        next
-          case (AEvent x1a fla)
-          then have "[x2]\<^sub>R # [Tock]\<^sub>E # za = flt2cttobs (x1a #\<^sub>\<F>\<^sub>\<L> fla)"
-            by auto
-          then have "x # [Tock]\<^sub>E # za = flt2cttobs (x1a #\<^sub>\<F>\<^sub>\<L> fla)"
-            using 2 Cons by auto
-          then have "[[x2]\<^sub>R,[Tock]\<^sub>E] @ za = flt2cttobs (x1a #\<^sub>\<F>\<^sub>\<L> fla)"
-            by auto
-          then have "[[x2]\<^sub>R,[Tock]\<^sub>E] @ za = flt2cttobs (\<langle>x1a,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs(fla)"
-            by auto
-          then have "za = flt2cttobs(fla)"
-            by (metis (no_types, lifting) AEvent.prems(6) \<open>[x2]\<^sub>R # [Tock]\<^sub>E # za = flt2cttobs (x1a #\<^sub>\<F>\<^sub>\<L> fla)\<close> cttWF.simps(6) flt2cttobs.simps(1) flt2cttobs.simps(2) flt2cttobs_is_cttWF list.distinct(1) list.inject tickWF.simps(2))
-          
-          then show ?case sledgehammer sorry
-        qed
-        apply (induct fl, auto)
-         apply (case_tac x, auto)
-         apply (metis Cons.prems(4) list.inject neq_Nil_conv)
-        apply (case_tac x1a, auto, case_tac b, auto)
-          apply (metis cttobs.simps(4) list.sel(1))
-         apply (case_tac a, auto)
-        sledgehammer
-         apply (metis list.distinct(1) list.inject)
-        apply (case_tac x1a, auto, case_tac b, auto)
-        apply (metis cttobs.simps(4) list.inject)
-         apply (case_tac a, auto)
-        apply (cases z, auto)
-        sledgehammer
-        apply (metis cttobs.inject(1) list.inject)
-    qed
-      using 2
-      apply (induct fl, auto)
-       apply (case_tac x, auto)
-      apply (metis (no_types, lifting) Collect_cong acceptance.distinct(1) amember.simps(2) ctt_prefix.elims(2) flt2cttobs.simps(1) list.distinct(1) list.inject order_refl)
-      apply (case_tac x1a, auto, case_tac b, auto)
-        apply (metis cttobs.simps(4) list.inject)
-       apply (case_tac a, auto)
-      sorry
-  qed
-next
-  case (3 x xa)
-  then show ?case by auto
-qed
-*)
-  
-lemma CT1c_fl2ctt:
-  assumes "FL1 P"
-  shows "CT1c(fl2ctt(P))"
-  using assms unfolding fl2ctt_def CT1c_def apply auto
-  using CT1c_fl2ctt_part FL1_def by blast
-
-(* Not true, of course..
-lemma
-  assumes "tickWF tick xs"
-  shows "tickWF tick (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  using assms apply (induct xs, auto)
-  apply (cases x, auto, case_tac xa, auto)
-*)
-(*
-lemma
-  assumes "CTwf P" 
-          "FL1 xa" 
-          "fl2ctt xa \<subseteq> P" "fl \<in> xa"
-    shows "tickWF Tick fl"
-  using assms apply (induct fl rule:fltrace_induct, auto)
-  apply (case_tac x, auto)*)
-
-end
-  
+        have "x2 \<subseteq> {e. e \<noteq> Tock \<and> (\<exists>fl. \<rho> @ [[e]
