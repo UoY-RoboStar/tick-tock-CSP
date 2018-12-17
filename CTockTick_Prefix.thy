@@ -14,6 +14,180 @@ definition PrefixCTT :: "'e \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e ct
 lemma PrefixCTT_wf: "\<forall> t\<in>P. cttWF t \<Longrightarrow> \<forall> t\<in>PrefixCTT e P. cttWF t"
   unfolding PrefixCTT_def by (auto simp add: tocks_wf tocks_append_wf)
 
+lemma event_refusal_split: "s1 @ [X]\<^sub>R # s2 = t1 @ [e]\<^sub>E # t2 \<Longrightarrow>
+  (\<exists>t2'. s1 = t1 @ [e]\<^sub>E # t2' \<and> t2' \<le>\<^sub>C t2) \<or> (\<exists> s2'. t1 = s1 @ [X]\<^sub>R # s2' \<and> s2' \<le>\<^sub>C s2)"
+  by (induct t1 s1 rule:ctt_prefix_subset.induct, auto simp add: ctt_prefix_concat, metis append_eq_Cons_conv ctt_prefix_concat cttobs.distinct(1) list.inject)
+
+lemma CT2s_Prefix:
+  assumes CT0_P: "CT0 P" and CT1_P: "CT1 P"
+  assumes CT2s_P: "CT2s P"
+  shows "CT2s (e \<rightarrow>\<^sub>C P)"
+  unfolding CT2s_def
+proof auto
+  fix \<rho> \<sigma> X Y
+  assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> e \<rightarrow>\<^sub>C P"
+  assume assm2: "Y \<inter> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P} = {}"
+  show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> e \<rightarrow>\<^sub>C P"
+    using assm1 unfolding PrefixCTT_def
+  proof auto
+    assume case_assms: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+    then have 1: "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+      using tocks_mid_refusal_front_in_tocks by blast
+    then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
+      unfolding PrefixCTT_def apply auto
+      by (metis (no_types, lifting) case_assms tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
+    then have 2: "Tock \<notin> Y"
+      using assm2 by blast
+    then have "Event e \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
+      using 1 unfolding PrefixCTT_def apply auto
+      using CT0_CT1_empty CT0_P CT1_P by (erule_tac x="\<rho>" in ballE, auto)+
+    then have 3: "Event e \<notin> Y"
+      using assm2 by blast
+    have 4: "Tock \<notin> X"
+      using case_assms tocks_mid_refusal by fastforce
+    have 5: "Event e \<notin> X"
+      using case_assms tocks_mid_refusal by fastforce
+    then have "X \<union> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+      using 1 2 3 4 5 by auto
+    then show "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> s \<and> (\<forall>\<sigma>'\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> s @ [Event e]\<^sub>E # \<sigma>') \<Longrightarrow>
+      \<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s @ [[Xa]\<^sub>R]"
+      using case_assms apply (erule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>" in ballE, auto)
+      using tocks_mid_refusal_change by fastforce
+  next
+    assume case_assms: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+    then have 1: "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+      using tocks_mid_refusal_front_in_tocks by blast
+    then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
+      unfolding PrefixCTT_def apply auto
+      by (metis (no_types, lifting) case_assms tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
+    then have 2: "Tock \<notin> Y"
+      using assm2 by blast
+    then have "Event e \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
+      using 1 unfolding PrefixCTT_def apply auto
+      using CT0_CT1_empty CT0_P CT1_P by (erule_tac x="\<rho>" in ballE, auto)+
+    then have 3: "Event e \<notin> Y"
+      using assm2 by blast
+    have 4: "Tock \<notin> X"
+      using case_assms tocks_mid_refusal by fastforce
+    have 5: "Event e \<notin> X"
+      using case_assms tocks_mid_refusal by fastforce
+    then have "X \<union> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+      using 1 2 3 4 5 by auto
+    then show "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> s \<and> (\<forall>\<sigma>'\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> s @ [Event e]\<^sub>E # \<sigma>') \<Longrightarrow>
+      \<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s @ [[Xa]\<^sub>R]"
+      using case_assms apply (erule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>" in ballE, auto)
+      using tocks_mid_refusal_change by fastforce
+  next
+    fix s Xa
+    assume case_assms: "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "Tock \<notin> Xa" "Event e \<notin> Xa" "\<rho> @ [X]\<^sub>R # \<sigma> = s @ [[Xa]\<^sub>R]"
+    then have "(\<exists> \<sigma>'. s = \<rho> @ [X]\<^sub>R # \<sigma>') \<or> (s = \<rho> \<and> X = Xa \<and> \<sigma> = [])"
+      by (metis append.right_neutral butlast.simps(2) butlast_append cttobs.inject(2) last_snoc list.distinct(1))
+    then show "\<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s @ [[Xa]\<^sub>R]"
+      using case_assms
+    proof auto
+      fix \<sigma>'
+      assume case_assms2: "s = \<rho> @ [X]\<^sub>R # \<sigma>'"
+      have 1: "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+        using case_assms(1) case_assms2 tocks_mid_refusal_front_in_tocks by auto
+      have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
+         unfolding PrefixCTT_def apply auto
+         using case_assms case_assms2 1 by (simp add: empty_in_tocks tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
+       then have 2:"Tock \<notin> Y"
+         using assm2 by auto
+      have "Event e \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
+        unfolding PrefixCTT_def using "1" CT0_CT1_empty CT0_P CT1_P by auto
+      then have 3: "Event e \<notin> Y"
+        using assm2 by auto
+      have 4: "Tock \<notin> X"
+        using case_assms(1) case_assms2 tocks_mid_refusal by fastforce
+      have 5: "Event e \<notin> X"
+        using case_assms(1) case_assms2 tocks_mid_refusal by fastforce
+      have "X \<union> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+        using 2 3 4 5 by auto
+      then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+        using case_assms case_assms2 tocks_mid_refusal_change by fastforce
+    next
+      assume "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "s = \<rho>" "X = Xa" "\<sigma> = []"
+      then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
+         unfolding PrefixCTT_def using case_assms apply auto
+         by (metis (mono_tags, lifting) CollectI subsetI tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
+       then show "Tock \<in> Y \<Longrightarrow> False"
+         using assm2 by auto
+    next
+      assume "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "s = \<rho>" "X = Xa" "\<sigma> = []"
+      then have "Event e \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
+         unfolding PrefixCTT_def using case_assms CT0_CT1_empty CT0_P CT1_P by auto
+      then show "Event e \<in> Y \<Longrightarrow> False"
+        using assm2 by auto
+    qed
+  next
+    fix s \<sigma>'
+    assume case_assms: "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<sigma>' \<in> P" "\<rho> @ [X]\<^sub>R # \<sigma> = s @ [Event e]\<^sub>E # \<sigma>'"
+    then have "(\<exists>t. \<rho> = s @ [Event e]\<^sub>E # t \<and> t \<le>\<^sub>C \<sigma>') \<or> (\<exists>t. s = \<rho> @ [X]\<^sub>R # t \<and> t \<le>\<^sub>C \<sigma>)"
+      by (simp add: event_refusal_split)
+    then show "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> s \<and> (\<forall>\<sigma>'\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> s @ [Event e]\<^sub>E # \<sigma>') \<Longrightarrow>
+            \<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s @ [[Xa]\<^sub>R]"
+    proof auto  
+      fix t
+      assume case_assms2: "t \<le>\<^sub>C \<sigma>'" "\<rho> = s @ [Event e]\<^sub>E # t"
+      then obtain \<rho>' where \<sigma>'_def: "\<sigma>' = \<rho>' @ [X]\<^sub>R # \<sigma>"
+        using case_assms(3) by auto
+      then have \<rho>_def: "\<rho> = s @ [Event e]\<^sub>E # \<rho>'"
+        using case_assms(3) by auto
+      then have "{ea. ea \<noteq> Tock \<and> \<rho>' @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> \<rho>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P}
+        \<subseteq> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
+      proof auto
+        fix x
+        assume "\<rho> = s @ [Event e]\<^sub>E # \<rho>'" "\<rho>' @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        then show "s @ [Event e]\<^sub>E # \<rho>' @ [[x]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
+          unfolding PrefixCTT_def using case_assms by auto 
+      next
+          fix x
+        assume "\<rho> = s @ [Event e]\<^sub>E # \<rho>'" "\<rho>' @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        then show "s @ [Event e]\<^sub>E # \<rho>' @ [[x]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
+          unfolding PrefixCTT_def using case_assms by auto 
+      next
+        assume "\<rho> = s @ [Event e]\<^sub>E # \<rho>'" "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        then show "s @ [Event e]\<^sub>E # \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> e \<rightarrow>\<^sub>C P \<Longrightarrow> False"
+          unfolding PrefixCTT_def using case_assms by auto
+       
+      next
+        assume "\<rho> = s @ [Event e]\<^sub>E # \<rho>'" "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        then show "s @ [Event e]\<^sub>E # \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> e \<rightarrow>\<^sub>C P \<Longrightarrow> s @ [Event e]\<^sub>E # \<rho>' @ [[Tock]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
+          unfolding PrefixCTT_def using case_assms by auto
+      qed
+      then have 1: "Y \<inter> {ea. ea \<noteq> Tock \<and> \<rho>' @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> \<rho>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P} = {}"
+        using assm2 subsetCE by auto
+      have 2: "\<rho>' @ [X]\<^sub>R # \<sigma> \<in> P"
+        using \<sigma>'_def case_assms(2) by auto
+      have "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
+        using 1 2 CT2s_P unfolding CT2s_def by auto
+      then show "\<forall>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}.
+          s @ [Event e]\<^sub>E # t @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> sa \<and> (\<forall>\<sigma>'\<in>P. s @ [Event e]\<^sub>E # t @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> sa @ [Event e]\<^sub>E # \<sigma>') \<Longrightarrow>
+        \<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> s @ [Event e]\<^sub>E # t @ [X \<union> Y]\<^sub>R # \<sigma> = sa @ [[Xa]\<^sub>R]"
+        using \<rho>_def case_assms(1) case_assms2(2) by blast
+    next
+      fix t
+      assume case_assms2: "s = \<rho> @ [X]\<^sub>R # t" "t \<le>\<^sub>C \<sigma>"
+      have 1: "\<rho> @ [X]\<^sub>R # t \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+        using case_assms(1) case_assms2(1) by auto
+      then have 2: "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+        using tocks_mid_refusal_front_in_tocks by auto
+      then have 3: "\<rho> @ [[Event e]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
+        unfolding PrefixCTT_def using CT0_CT1_empty CT0_P CT1_P by fastforce
+      have 4: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
+        unfolding PrefixCTT_def by (metis (mono_tags, lifting) "1" "2" CollectI UnI2 tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
+      have 5: "Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+        using assm2 3 4 by auto
+      then have "\<rho> @ [X \<union> Y]\<^sub>R # t \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+        using "1" tocks_mid_refusal tocks_mid_refusal_change by fastforce
+      then show "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> s \<and> (\<forall>\<sigma>'\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> s @ [Event e]\<^sub>E # \<sigma>') \<Longrightarrow>
+        \<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s @ [[Xa]\<^sub>R]"
+        using case_assms(2) case_assms(3) case_assms2(1) by fastforce
+    qed
+  qed
+qed
+
 lemma CT4s_Prefix:
   "CT4s P \<Longrightarrow> CT4s (e \<rightarrow>\<^sub>C P)"
   unfolding PrefixCTT_def CT4s_def

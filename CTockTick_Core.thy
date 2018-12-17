@@ -1394,7 +1394,7 @@ lemma CT0_tocks: "CT0 (tocks X)"
   unfolding CT0_def using tocks.empty_in_tocks by auto 
 
 lemma CT2_tocks: "CT2 (tocks X)"
-  unfolding CT2_def by (simp add: end_refusal_notin_tocks)  
+  unfolding CT2_def by (simp add: end_refusal_notin_tocks)
 
 lemma CT3_tocks: "Tock \<notin> X \<Longrightarrow> CT3 (tocks X)"
   unfolding CT3_def
