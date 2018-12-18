@@ -310,7 +310,8 @@ next
   case (2 X xa Y ya)
   then show ?case
     apply (induct xa ya rule:ctt_prefix_subset.induct, auto)
-    by (case_tac y, auto)
+    apply (case_tac y, auto)
+    using CT3_trace.simps(3) CT3_trace_cons_imp_cons by blast
 next
   case (3 x xa y ya)
   then show ?case by (induct xa ya rule:ctt_prefix_subset.induct, auto)

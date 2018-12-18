@@ -64,7 +64,7 @@ translations
   "x <\<^sup>*p y" == "CONST my_lt p x y"
 
 definition maximal :: "'a partialorder \<Rightarrow> 'a \<Rightarrow> bool" ("maximal'(_,_')" 65) where
-"maximal(p,a) = (\<forall>x. (x \<le>\<^sup>*p a))"
+"maximal(p,a) = (\<forall>x. (\<not> (a \<le>\<^sup>*p x) \<or> x \<le>\<^sup>*p a))"
 
 lemma some_higher_not_maximal:
   assumes "z <\<^sup>*p b"
@@ -72,6 +72,10 @@ lemma some_higher_not_maximal:
   using assms unfolding maximal_def apply auto
   by (meson partialorder.less_le_not_le)
 
+lemma maximal_iff:
+  "maximal(p,z) = (\<not>(\<exists>x. z <\<^sup>*p x))"
+  unfolding maximal_def apply auto
+  by (meson partialorder.less_le_not_le)+
 
 (* Is this useful to endow a type with such an operator? *)
 (*

@@ -96,7 +96,7 @@ lemma maximal_not_exists_higher:
     shows "\<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b)"
   using assms apply auto
   unfolding maximal_def apply (cases Z, auto)
-  by (simp add: partialorder.less_le_not_le)
+  by (meson assms some_higher_not_maximal)
 
 (*
 lemma
