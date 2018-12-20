@@ -14,10 +14,6 @@ definition PrefixCTT :: "'e \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e ct
 lemma PrefixCTT_wf: "\<forall> t\<in>P. cttWF t \<Longrightarrow> \<forall> t\<in>PrefixCTT e P. cttWF t"
   unfolding PrefixCTT_def by (auto simp add: tocks_wf tocks_append_wf)
 
-lemma event_refusal_split: "s1 @ [X]\<^sub>R # s2 = t1 @ [e]\<^sub>E # t2 \<Longrightarrow>
-  (\<exists>t2'. s1 = t1 @ [e]\<^sub>E # t2' \<and> t2' \<le>\<^sub>C t2) \<or> (\<exists> s2'. t1 = s1 @ [X]\<^sub>R # s2' \<and> s2' \<le>\<^sub>C s2)"
-  by (induct t1 s1 rule:ctt_prefix_subset.induct, auto simp add: ctt_prefix_concat, metis append_eq_Cons_conv ctt_prefix_concat cttobs.distinct(1) list.inject)
-
 lemma CT2s_Prefix:
   assumes CT0_P: "CT0 P" and CT1_P: "CT1 P"
   assumes CT2s_P: "CT2s P"

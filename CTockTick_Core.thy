@@ -106,6 +106,10 @@ lemma ctt_prefix_notfront_is_whole:
   "t \<le>\<^sub>C s @ [x] \<Longrightarrow> \<not> t \<le>\<^sub>C s \<Longrightarrow> t = s @ [x]"
   by (induct t s rule:ctt_prefix.induct, auto simp add: ctt_prefix_antisym)
 
+lemma event_refusal_split: "s1 @ [X]\<^sub>R # s2 = t1 @ [e]\<^sub>E # t2 \<Longrightarrow>
+  (\<exists>t2'. s1 = t1 @ [e]\<^sub>E # t2' \<and> t2' \<le>\<^sub>C t2) \<or> (\<exists> s2'. t1 = s1 @ [X]\<^sub>R # s2' \<and> s2' \<le>\<^sub>C s2)"
+  by (induct t1 s1 rule:ctt_prefix.induct, auto simp add: ctt_prefix_concat, metis append_eq_Cons_conv ctt_prefix_concat cttobs.distinct(1) list.inject)
+
 subsection {* Subset *}
 
 fun ctt_subset :: "'e cttobs list \<Rightarrow> 'e cttobs list \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50) where
@@ -898,6 +902,15 @@ lemmas notin_tocks =
   start_tick_notin_tocks second_tick_notin_tocks mid_tick_notin_tocks end_tick_notin_tocks tick_notin_tocks
   start_tock_notin_tocks
 
+lemma tocks_ctt_prefix_end_event: "t \<in> tocks X \<Longrightarrow> e \<noteq> Tock \<Longrightarrow> t \<le>\<^sub>C s @ [[e]\<^sub>E] \<Longrightarrow> t \<le>\<^sub>C s"
+proof -
+  assume assms: "t \<in> tocks X" "e \<noteq> Tock" "t \<le>\<^sub>C s @ [[e]\<^sub>E]"
+  have "t = s @ [[e]\<^sub>E] \<or> t \<le>\<^sub>C s"
+    using assms(3) ctt_prefix_notfront_is_whole by blast
+  then show "t \<le>\<^sub>C s"
+    by (auto, cases e, insert assms notin_tocks, fastforce+)
+qed
+
 lemma nontocks_append_tocks: "t\<notin>tocks X \<Longrightarrow> s\<in>tocks X \<Longrightarrow> t @ s \<notin>tocks X"
   using tocks.cases apply (induct t rule:cttWF.induct, simp_all add: tocks.intros notin_tocks)
   apply (metis double_refusal_start_notin_tocks refusal_notin_tocks tocks.cases)
@@ -1262,6 +1275,281 @@ proof -
     using tocks.cases by (auto simp add: notin_tocks)
   then show "\<rho>' \<subseteq>\<^sub>C \<rho> \<and> \<sigma>' \<subseteq>\<^sub>C \<sigma>"
     using assms(7) ctt_subset_remove_start by auto
+qed
+
+lemma ctt_subset_in_tocks:
+  "t \<in> tocks X \<Longrightarrow> t' \<subseteq>\<^sub>C t \<Longrightarrow> t' \<in> tocks X"
+proof (induct t' t rule:cttWF2.induct, auto simp add: notin_tocks)
+  fix Xa \<rho> Y \<sigma>
+  assume assms: "[Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> tocks X" "Xa \<subseteq> Y" "\<sigma> \<in> tocks X \<Longrightarrow> \<rho> \<in> tocks X"
+  then have "\<sigma> \<in> tocks X \<and> Y \<subseteq> X"
+    by (metis cttobs.inject(2) list.inject list.simps(3) tocks.simps)
+  then have "\<rho> \<in> tocks X \<and> Xa \<subseteq> X"
+    using assms(2) assms(3) by blast
+  then show "[Xa]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> tocks X"
+    using tocks.tock_insert_in_tocks by blast
+next
+  fix Xa \<rho> \<sigma>
+  assume assms: "\<sigma> \<in> tocks X" "[Xa]\<^sub>R # [Tick]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma>"
+  then obtain \<sigma>' Y where "\<sigma> = [Y]\<^sub>R # [Tick]\<^sub>E # \<sigma>'"
+    using cttWF.simps(12) ctt_prefix_subset_cttWF ctt_subset_imp_prefix_subset tocks_wf by blast
+  then show False
+    using assms(1) second_tick_notin_tocks by blast
+next
+  fix Xa e \<rho> \<sigma>
+  assume assms: "\<sigma> \<in> tocks X" "[Xa]\<^sub>R # [Event e]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma>"
+  then obtain \<sigma>' Y where "\<sigma> = [Y]\<^sub>R # [Event e]\<^sub>E # \<sigma>'"
+    by (meson cttWF.simps(11) ctt_prefix_subset_cttWF ctt_subset_imp_prefix_subset tocks_wf)
+  then show False
+    using assms(1) second_event_notin_tocks by force
+next
+  fix Xa Y \<rho> \<sigma>
+  assume assms: "\<sigma> \<in> tocks X" "[Xa]\<^sub>R # [Y]\<^sub>R # \<rho> \<subseteq>\<^sub>C \<sigma>"
+  then obtain \<sigma>' Z W where "\<sigma> = [Z]\<^sub>R # [W]\<^sub>R # \<sigma>'"
+    using cttWF.simps(13) ctt_prefix_subset_cttWF ctt_subset_imp_prefix_subset tocks_wf by blast
+  then show False
+    using assms(1) double_refusal_start_notin_tocks by blast
+next
+  fix x \<rho> \<sigma>
+  assume assms: "\<sigma> \<in> tocks X" "[Tick]\<^sub>E # x # \<rho> \<subseteq>\<^sub>C \<sigma>"
+  then obtain \<sigma>' where "\<sigma> = [Tick]\<^sub>E # x # \<sigma>'"
+    using cttWF.simps(8) ctt_prefix_subset_cttWF ctt_subset_imp_prefix_subset tocks_wf by blast
+  then show False
+    using assms(1) start_tick_notin_tocks by blast
+next
+  fix \<rho> \<sigma>
+  assume assms: "\<sigma> \<in> tocks X" "[Tock]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma>"
+  then obtain \<sigma>' where "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
+    by (metis ctt_subset.simps(5) ctt_subset.simps(6) tocks.simps)
+  then show False
+    using assms(1) start_tock_notin_tocks by blast
+qed
+
+lemma ctt_subset_in_tocks2:
+  "t \<in> tocks X \<Longrightarrow> t \<subseteq>\<^sub>C t' \<Longrightarrow> t' \<in> tocks UNIV"
+proof (induct t t' rule:cttWF2.induct, auto simp add: notin_tocks)
+  fix Xa \<rho> Y \<sigma>
+  assume assms: "[Xa]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> tocks X" "\<rho> \<in> tocks X \<Longrightarrow> \<sigma> \<in> tocks UNIV"
+  then have "\<rho> \<in> tocks X"
+    by (metis list.inject list.simps(3) tocks.simps)
+  then have "\<sigma> \<in> tocks UNIV"
+    using assms(2) by blast
+  then show "[Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> tocks UNIV"
+    using tocks.tock_insert_in_tocks by blast
+next
+  show "[] \<in> tocks UNIV"
+    by (simp add: tocks.empty_in_tocks)
+next
+  fix Xa e \<rho> \<sigma>
+  assume assms: "\<rho> \<in> tocks X" "\<rho> \<subseteq>\<^sub>C [Xa]\<^sub>R # [Event e]\<^sub>E # \<sigma>"
+  then obtain \<rho>' Y where "\<rho> = [Y]\<^sub>R # [Event e]\<^sub>E # \<rho>'"
+    by (induct \<rho> rule:cttWF.induct, auto)
+  then show False
+    using assms(1) second_event_notin_tocks by force
+next
+  fix Xa Y \<rho> \<sigma>
+  assume assms: "\<rho> \<in> tocks X" "\<rho> \<subseteq>\<^sub>C [Xa]\<^sub>R # [Y]\<^sub>R # \<sigma>"
+  then obtain \<rho>' Z W where "\<rho> = [Z]\<^sub>R # [W]\<^sub>R # \<rho>'"
+    by (induct \<rho> rule:cttWF.induct, auto)
+  then show False
+    using assms(1) double_refusal_start_notin_tocks by blast
+next
+  fix x \<rho> \<sigma>
+  assume assms: "\<rho> \<in> tocks X" "\<rho> \<subseteq>\<^sub>C [Tick]\<^sub>E # x # \<sigma>"
+  then obtain \<rho>' where "\<rho> = [Tick]\<^sub>E # \<rho>'"
+    by (induct \<rho> rule:cttWF.induct, auto)
+  then show False
+    using assms(1) start_tick_notin_tocks by blast
+next
+  fix \<rho> \<sigma>
+  assume assms: "\<rho> \<in> tocks X" "\<rho> \<subseteq>\<^sub>C [Tock]\<^sub>E # \<sigma>"
+  then obtain \<rho>' where "\<rho> = [Tock]\<^sub>E # \<rho>'"
+    by (induct \<rho> rule:cttWF.induct, auto)
+  then show False
+    using assms(1) start_tock_notin_tocks by blast
+next
+  fix \<rho> Xa \<sigma>
+  assume assms: "\<rho> \<in> tocks X" "\<rho> \<subseteq>\<^sub>C [Xa]\<^sub>R # [Tick]\<^sub>E # \<sigma>"
+  then obtain \<rho>' Y where "\<rho> = [Y]\<^sub>R # [Tick]\<^sub>E # \<rho>'"
+    by (induct \<rho> rule:cttWF.induct, auto)
+  then show False
+    using assms(1) second_tick_notin_tocks by auto
+qed
+
+lemma ctt_subset_longest_tocks2:
+  "\<forall> t\<in>tocks UNIV. t \<le>\<^sub>C s1 @ s2  \<longrightarrow> t \<le>\<^sub>C s1 \<Longrightarrow> s2' \<subseteq>\<^sub>C s2 \<Longrightarrow> \<forall> t\<in>tocks UNIV. t \<le>\<^sub>C s1 @ s2' \<longrightarrow> t \<le>\<^sub>C s1"
+proof auto
+  fix t
+  assume assms: "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C s1 @ s2 \<longrightarrow> t \<le>\<^sub>C s1" "s2' \<subseteq>\<^sub>C s2" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1 @ s2'"
+  then obtain t' where t'_assms: "t \<subseteq>\<^sub>C t' \<and> t' \<le>\<^sub>C s1 @ s2"
+    by (meson ctt_prefix_ctt_prefix_subset_trans ctt_prefix_subset_imp_ctt_subset_ctt_prefix ctt_subset_combine ctt_subset_imp_prefix_subset ctt_subset_refl)
+  then have "t' \<in> tocks UNIV"
+    using assms(3) ctt_subset_in_tocks2 by blast
+  then have "t' \<le>\<^sub>C s1"
+    by (simp add: assms(1) t'_assms)
+  then show "t \<le>\<^sub>C s1"
+    by (metis assms(4) ctt_prefix_append_split ctt_prefix_concat ctt_prefix_imp_prefix_subset ctt_prefix_subset_antisym ctt_prefix_subset_ctt_prefix_trans ctt_subset_imp_prefix_subset t'_assms)
+qed
+
+lemma ctt_subset_longest_tocks3:
+  "\<forall> t\<in>tocks UNIV. t \<le>\<^sub>C s1 @ s2  \<longrightarrow> t \<le>\<^sub>C s1 \<Longrightarrow> s2 \<subseteq>\<^sub>C s2' \<Longrightarrow> \<forall> t\<in>tocks UNIV. t \<le>\<^sub>C s1 @ s2' \<longrightarrow> t \<le>\<^sub>C s1"
+proof auto
+  fix t
+  assume assms: "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C s1 @ s2 \<longrightarrow> t \<le>\<^sub>C s1" "s2 \<subseteq>\<^sub>C s2'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1 @ s2'"
+  then obtain t' where t'_assms: "t' \<subseteq>\<^sub>C t \<and> t' \<le>\<^sub>C s1 @ s2"
+    by (meson ctt_prefix_ctt_subset ctt_subset_combine ctt_subset_refl)
+  then have "t' \<in> tocks UNIV"
+    using assms(3) ctt_subset_in_tocks by blast
+  then have "t' \<le>\<^sub>C s1"
+    by (simp add: assms(1) t'_assms)
+  then show "t \<le>\<^sub>C s1"
+    by (smt append_assoc append_eq_append_conv assms(4) ctt_prefix_split ctt_subset_same_length t'_assms)
+qed
+
+lemma ctt_subset_longest_tocks4:
+  "\<And> s1'. \<forall> t\<in>tocks UNIV. t \<le>\<^sub>C s1 @ s2  \<longrightarrow> t \<le>\<^sub>C s1 \<Longrightarrow> s1 \<subseteq>\<^sub>C s1' \<Longrightarrow> \<forall> t\<in>tocks UNIV. t \<le>\<^sub>C s1' @ s2 \<longrightarrow> t \<le>\<^sub>C s1'"
+proof (safe, induct s1 rule:cttWF.induct)
+  fix t s1'
+  assume assms: "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C [] @ s2 \<longrightarrow> t \<le>\<^sub>C []" "[] \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then have "s1' = []"
+    using ctt_subset_same_length by force
+  then show "t \<le>\<^sub>C s1'"
+    using assms(1) assms(3) assms(4) by auto
+next
+  fix X s1' t
+  assume assms: "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C [[X]\<^sub>R] @ s2 \<longrightarrow> t \<le>\<^sub>C [[X]\<^sub>R]" "[[X]\<^sub>R] \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain Y where s1'_def: "s1' = [[Y]\<^sub>R]"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> (\<exists> ta. t = [Y]\<^sub>R # ta)"
+    using assms(4) ctt_prefix.elims(2) by auto
+  then show "t \<le>\<^sub>C s1'"
+  proof auto
+    fix ta
+    assume case_assm: "t = [Y]\<^sub>R # ta"
+    then obtain tb where ta_def: "ta = [Tock]\<^sub>E # tb"
+      using assms(3) tocks.cases by blast
+    then obtain s2a where s2_def: "s2 = [Tock]\<^sub>E # s2a"
+      using assms(4) s1'_def case_assm by (cases s2 rule:cttWF.cases, auto)
+    then have "[[X]\<^sub>R, [Tock]\<^sub>E] \<le>\<^sub>C [[X]\<^sub>R]"
+      using assms(1) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in ballE, auto simp add: tocks.intros)
+    then show "[Y]\<^sub>R # ta \<le>\<^sub>C s1'"
+      by auto
+  qed
+next
+  fix s1' t
+  assume assms: "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C [[Tick]\<^sub>E] @ s2 \<longrightarrow> t \<le>\<^sub>C [[Tick]\<^sub>E]" "[[Tick]\<^sub>E] \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then have s1'_def: "s1' = [[Tick]\<^sub>E]"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> (\<exists> ta. t = [Tick]\<^sub>E # ta)"
+    using assms(4) ctt_prefix.elims(2) by auto
+  then show "t \<le>\<^sub>C s1'"
+    using assms(3) start_tick_notin_tocks by auto
+next
+  fix e \<sigma> s1' t
+  assume assms: "[Event e]\<^sub>E # \<sigma> \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain s1'a where s1'_def: "s1' = [Event e]\<^sub>E # s1'a"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> (\<exists> ta. t = [Event e]\<^sub>E # ta)"
+    using assms(3) ctt_prefix.elims(2) by auto
+  then show "t \<le>\<^sub>C s1'"
+    using assms(2) start_event_notin_tocks by force
+next
+  fix X \<sigma> s1' t
+  assume ind_hyp: "\<And>s1' t. \<forall>t\<in>tocks UNIV. t \<le>\<^sub>C \<sigma> @ s2 \<longrightarrow> t \<le>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<subseteq>\<^sub>C s1' \<Longrightarrow> t \<in> tocks UNIV \<Longrightarrow> t \<le>\<^sub>C s1' @ s2 \<Longrightarrow> t \<le>\<^sub>C s1'"
+  assume assms: "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) @ s2 \<longrightarrow> t \<le>\<^sub>C [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  obtain Y s1'a where s1'_def: "s1' = [Y]\<^sub>R # [Tock]\<^sub>E # s1'a"
+    using assms(2) by (cases s1' rule:cttWF.cases, auto)
+  have 1: "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C \<sigma> @ s2 \<longrightarrow> t \<le>\<^sub>C \<sigma>"
+    using assms(1) by (auto, erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # t" in ballE, auto simp add: tock_insert_in_tocks)
+  have 2: "\<sigma> \<subseteq>\<^sub>C s1'a"
+    using assms(2) s1'_def by auto
+  have t_cases: "t = [] \<or> (\<exists> ta. t = [Y]\<^sub>R # [Tock]\<^sub>E # ta)"
+    using assms(4) s1'_def assms(3) refusal_notin_tocks by (cases t rule:cttWF.cases, auto)
+  then show "t \<le>\<^sub>C s1'"
+  proof auto
+    fix ta
+    assume case_assm: "t = [Y]\<^sub>R # [Tock]\<^sub>E # ta"
+    then have 3: "ta \<in> tocks UNIV"
+      using assms(3) tocks.cases by auto
+    then have 4: "ta \<le>\<^sub>C s1'a @ s2"
+      using assms(4) case_assm s1'_def by auto
+    have "ta \<le>\<^sub>C s1'a"
+      using ind_hyp 1 2 3 4 by auto
+    then show "[Y]\<^sub>R # [Tock]\<^sub>E # ta \<le>\<^sub>C s1'"
+      using s1'_def by auto
+  qed
+next
+  fix va s1' t
+  assume assms: "[Tock]\<^sub>E # va \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain s1'a where "s1' = [Tock]\<^sub>E # s1'a"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> (\<exists> ta. t = [Tock]\<^sub>E # ta)"
+    using assms(3) by (cases t rule:cttWF.cases, auto)
+  then show "t \<le>\<^sub>C s1'"
+    using assms(2) cttWF.simps(6) tocks_wf by (auto, blast)
+next
+  fix va s1' t
+  assume assms: "[Tock]\<^sub>E # va \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain s1'a where "s1' = [Tock]\<^sub>E # s1'a"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> (\<exists> ta. t = [Tock]\<^sub>E # ta)"
+    using assms(3) by (cases t rule:cttWF.cases, auto)
+  then show "t \<le>\<^sub>C s1'"
+    using assms(2) cttWF.simps(6) tocks_wf by (auto, blast)
+next
+  fix va s1' t
+  assume assms: "[Tock]\<^sub>E # va \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain s1'a where "s1' = [Tock]\<^sub>E # s1'a"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> (\<exists> ta. t = [Tock]\<^sub>E # ta)"
+    using assms(3) by (cases t rule:cttWF.cases, auto)
+  then show "t \<le>\<^sub>C s1'"
+    using assms(2) cttWF.simps(6) tocks_wf by (auto, blast)
+next
+  fix va s1' t
+  assume assms: "[Tick]\<^sub>E # va \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain s1'a where "s1' = [Tick]\<^sub>E # s1'a"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> (\<exists> ta. t = [Tick]\<^sub>E # ta)"
+    using assms(3) by (cases t rule:cttWF.cases, auto)
+  then show "t \<le>\<^sub>C s1'"
+    using assms(2) start_tick_notin_tocks by auto
+next
+  fix va s1' t
+  assume assms: "[Tick]\<^sub>E # va \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain s1'a where "s1' = [Tick]\<^sub>E # s1'a"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> (\<exists> ta. t = [Tick]\<^sub>E # ta)"
+    using assms(3) by (cases t rule:cttWF.cases, auto)
+  then show "t \<le>\<^sub>C s1'"
+    using assms(2) start_tick_notin_tocks by auto
+next
+  fix va vd vc s1' t
+  assume assms: "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain s1'a X where "s1' = [X]\<^sub>R # [Event vd]\<^sub>E # s1'a"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> t = [[X]\<^sub>R] \<or> (\<exists> ta. t = [X]\<^sub>R # [Event vd]\<^sub>E # ta)"
+    using assms(3) by (cases t rule:cttWF.cases, auto)
+  then show "t \<le>\<^sub>C s1'"
+    using assms(2) refusal_notin_tocks second_event_notin_tocks by force
+next
+  fix va vd vc s1' t
+  assume assms: "[va]\<^sub>R # [Tick]\<^sub>E # vc \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain s1'a X where "s1' = [X]\<^sub>R # [Tick]\<^sub>E # s1'a"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> t = [[X]\<^sub>R] \<or> (\<exists> ta. t = [X]\<^sub>R # [Tick]\<^sub>E # ta)"
+    using assms(3) by (cases t rule:cttWF.cases, auto)
+  then show "t \<le>\<^sub>C s1'"
+    using assms(2) refusal_notin_tocks second_tick_notin_tocks by force
+next
+  fix va v vc s1' t
+  assume assms: "[va]\<^sub>R # [v]\<^sub>R # vc \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
+  then obtain s1'a X Y where "s1' = [X]\<^sub>R # [Y]\<^sub>R # s1'a"
+    by (cases s1' rule:cttWF.cases, auto)
+  then have "t = [] \<or> t = [[X]\<^sub>R] \<or> (\<exists> ta. t = [X]\<^sub>R # [Y]\<^sub>R # ta)"
+    using assms(3) by (cases t rule:cttWF.cases, auto)
+  then show "t \<le>\<^sub>C s1'"
+    using assms(2) refusal_notin_tocks double_refusal_start_notin_tocks by force
 qed
 
 lemma tocks_ctt_subset1:
