@@ -146,6 +146,96 @@ next
   qed
 qed
 
+lemma CT2s_SeqComp: 
+  assumes CT2s_P: "CT2s P" and CT2s_Q: "CT2s Q"
+  shows "CT2s (P ;\<^sub>C Q)"
+  unfolding CT2s_def
+proof auto
+  fix \<rho> \<sigma> X Y
+  assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P ;\<^sub>C Q"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P ;\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P ;\<^sub>C Q} = {}"
+  have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} \<subseteq>
+      {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P ;\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P ;\<^sub>C Q}"
+    unfolding SeqCompCTT_def by auto
+  then have P_assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+    using assm2 subset_iff by auto
+  show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P ;\<^sub>C Q"
+    using assm1 unfolding SeqCompCTT_def
+  proof auto
+    assume case_assm: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P"
+    then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
+      using CT2s_P case_assm unfolding CT2s_def by auto
+  next
+    fix s t
+    assume case_assms: "s @ [[Tick]\<^sub>E] \<in> P" "t \<in> Q" "\<rho> @ [X]\<^sub>R # \<sigma> = s @ t"
+    have "(\<exists> \<sigma>'. s = \<rho> @ [X]\<^sub>R # \<sigma>' \<and> \<sigma> = \<sigma>' @ t) \<or> (\<exists> \<rho>'. t = \<rho>' @ [X]\<^sub>R # \<sigma> \<and> \<rho> = s @ \<rho>')"
+      using case_assms(3)
+    proof auto
+      have "\<And> s t. \<rho> @ [X]\<^sub>R # \<sigma> = s @ t \<Longrightarrow> \<forall>\<rho>'. t = \<rho>' @ [X]\<^sub>R # \<sigma> \<longrightarrow> \<rho> \<noteq> s @ \<rho>' \<Longrightarrow> \<exists>\<sigma>'. s = \<rho> @ [X]\<^sub>R # \<sigma>' \<and> \<sigma> = \<sigma>' @ t"
+      proof (induct \<rho>, auto)
+        fix s t
+        show "[X]\<^sub>R # \<sigma> = s @ t \<Longrightarrow> s \<noteq> [] \<Longrightarrow> \<exists>\<sigma>'. s = [X]\<^sub>R # \<sigma>' \<and> \<sigma> = \<sigma>' @ t"
+          by (metis Cons_eq_append_conv)
+      next
+        fix a \<rho> s t
+        assume ind_hyp: "\<And>s t. \<rho> @ [X]\<^sub>R # \<sigma> = s @ t \<Longrightarrow> \<forall>\<rho>'. t = \<rho>' @ [X]\<^sub>R # \<sigma> \<longrightarrow> \<rho> \<noteq> s @ \<rho>' \<Longrightarrow> \<exists>\<sigma>'. s = \<rho> @ [X]\<^sub>R # \<sigma>' \<and> \<sigma> = \<sigma>' @ t"
+        assume case_assms2: "a # \<rho> @ [X]\<^sub>R # \<sigma> = s @ t" "\<forall>\<rho>'. t = \<rho>' @ [X]\<^sub>R # \<sigma> \<longrightarrow> a # \<rho> \<noteq> s @ \<rho>'"
+        have "s = [] \<or> (\<exists> s'. s = a # s')"
+          by (metis Cons_eq_append_conv case_assms2(1))
+        then show "\<exists>\<sigma>'. s = a # \<rho> @ [X]\<^sub>R # \<sigma>' \<and> \<sigma> = \<sigma>' @ t"
+        proof auto
+          fix t'
+          assume case_assm3: "s = []"
+          then have "t = a # \<rho> @ [X]\<^sub>R # \<sigma>"
+            by (simp add: case_assms2(1))
+          then obtain t' where "t = a # t' \<and> t' = \<rho> @ [X]\<^sub>R # \<sigma>"
+            by blast
+          then have "\<exists>\<sigma>'. [] = \<rho> @ [X]\<^sub>R # \<sigma>' \<and> \<sigma> = \<sigma>' @ \<rho> @ [X]\<^sub>R # \<sigma>"
+            using case_assm3 case_assms2(2) by auto
+          then show False
+            by blast
+        next
+          fix s'
+          assume case_assm3: "s = a # s'"
+          then have "\<rho> @ [X]\<^sub>R # \<sigma> = s' @ t"
+            using case_assms2(1) by auto
+          then have "\<exists>\<sigma>'. s' = \<rho> @ [X]\<^sub>R # \<sigma>' \<and> \<sigma> = \<sigma>' @ t"
+            using case_assm3 case_assms2(2) ind_hyp by auto
+          then show "\<exists>\<sigma>'. s' = \<rho> @ [X]\<^sub>R # \<sigma>' \<and> \<sigma> = \<sigma>' @ t"
+            by blast
+        qed
+      qed
+      then show "\<rho> @ [X]\<^sub>R # \<sigma> = s @ t \<Longrightarrow> \<forall>\<rho>'. t = \<rho>' @ [X]\<^sub>R # \<sigma> \<longrightarrow> \<rho> \<noteq> s @ \<rho>' \<Longrightarrow> \<exists>\<sigma>'. s = \<rho> @ [X]\<^sub>R # \<sigma>' \<and> \<sigma> = \<sigma>' @ t"
+        by auto
+    qed
+    then show "\<forall>s. s @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>t. t \<in> Q \<longrightarrow> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> s @ t) \<Longrightarrow> 
+      \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
+    proof auto
+      fix \<sigma>'
+      assume case_assms2: "s = \<rho> @ [X]\<^sub>R # \<sigma>'" "\<sigma> = \<sigma>' @ t"
+      then have "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ [[Tick]\<^sub>E] \<in> P"
+        using CT2s_P P_assm2 case_assms case_assms2 unfolding CT2s_def by auto
+      then show "\<forall>s. s @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>ta. ta \<in> Q \<longrightarrow> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ t \<noteq> s @ ta) \<Longrightarrow>
+          \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ t \<in> P"
+        using case_assms by (erule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'" in allE, auto)
+    next
+      fix \<rho>'
+      assume case_assms2: "t = \<rho>' @ [X]\<^sub>R # \<sigma>" "\<rho> = s @ \<rho>'"
+      
+      have "{e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} \<subseteq>
+      {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P ;\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P ;\<^sub>C Q}"
+        unfolding SeqCompCTT_def using case_assms case_assms2 by auto
+      then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        using assm2 subsetCE by auto
+      then have "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
+        using CT2s_Q P_assm2 case_assms case_assms2 unfolding CT2s_def by auto
+      then show "\<forall>sa. sa @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>t. t \<in> Q \<longrightarrow> s @ \<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> sa @ t) \<Longrightarrow>
+          s @ \<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
+        using case_assms case_assms2 by auto
+    qed
+  qed
+qed
+
 lemma CT3_SeqComp: 
   assumes "CT P" "CT Q"
   shows "CT3 (P ;\<^sub>C Q)"
