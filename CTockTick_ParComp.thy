@@ -644,84 +644,6 @@ proof (auto)
     using 2 by auto
 qed
 
-lemma CT_init_event:
-  assumes "CT P" "\<exists> t. [Event e]\<^sub>E # t \<in> P"
-  shows "CT {t. [Event e]\<^sub>E # t \<in> P}"
-  unfolding CT_defs
-proof auto
-  fix x 
-  assume "[Event e]\<^sub>E # x \<in> P"
-  then have "cttWF ([Event e]\<^sub>E # x)"
-    using CT_wf assms(1) by blast
-  then show "cttWF x"
-    by auto
-next
-  show "\<exists>x. [Event e]\<^sub>E # x \<in> P"
-    using assms(2) by auto
-next
-  fix \<rho> \<sigma> :: "'a cttobs list"
-  assume "\<rho> \<lesssim>\<^sub>C \<sigma>"
-  then have "[Event e]\<^sub>E # \<rho> \<lesssim>\<^sub>C [Event e]\<^sub>E # \<sigma>"
-    by auto
-  then show "[Event e]\<^sub>E # \<sigma> \<in> P \<Longrightarrow> [Event e]\<^sub>E # \<rho> \<in> P"
-    using CT1_def CT_CT1 assms(1) by blast
-next
-  fix \<rho> X Y
-  have "\<forall>\<rho> X Y. \<rho> @ [[X]\<^sub>R] \<in> P \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<longrightarrow>
-         \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-    using CT2_def CT_CT2 assms(1) by auto
-  then show "[Event e]\<^sub>E # \<rho> @ [[X]\<^sub>R] \<in> P \<Longrightarrow>
-    Y \<inter> {ea. ea \<noteq> Tock \<and> [Event e]\<^sub>E # \<rho> @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> [Event e]\<^sub>E # \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P} = {} \<Longrightarrow>
-      [Event e]\<^sub>E # \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-    by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
-next
-  fix x
-  assume "[Event e]\<^sub>E # x \<in> P"
-  then have "CT3_trace ([Event e]\<^sub>E # x)"
-    using CT3_def CT_CT3 assms(1) by blast
-  then show "CT3_trace x"
-    by (cases x, auto)
-qed
-
-lemma CT_init_tock:
-  assumes "CT P" "\<exists> t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
-  shows "CT {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-  unfolding CT_defs
-proof auto
-  fix x
-  assume "[X]\<^sub>R # [Tock]\<^sub>E # x \<in> P"
-  then have "cttWF ([X]\<^sub>R # [Tock]\<^sub>E # x)"
-    using CT_wf assms(1) by blast
-  then show "cttWF x"
-    by auto
-next
-  show "\<exists>x. [X]\<^sub>R # [Tock]\<^sub>E # x \<in> P"
-    using assms(2) by auto
-next
-  fix \<rho> \<sigma> :: "'a cttobs list"
-  assume "\<rho> \<lesssim>\<^sub>C \<sigma>"
-  then have "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<lesssim>\<^sub>C [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>"
-    by auto
-  also assume "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
-  then show "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P"
-    using assms(1) calculation unfolding CT_def CT1_def apply auto 
-    by (erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
-next
-  fix \<rho> Xa Y
-  assume "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[Xa]\<^sub>R] \<in> P"
-  and "Y \<inter> {e. e \<noteq> Tock \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
-  then show "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> P"
-    using assms(1) unfolding CT_def CT2_def apply auto
-    by (erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
-next
-  fix x
-  assume "[X]\<^sub>R # [Tock]\<^sub>E # x \<in> P"
-  then have "CT3_trace ([X]\<^sub>R # [Tock]\<^sub>E # x)"
-    using CT3_def CT_CT3 assms(1) by blast
-  then show "CT3_trace x"
-    by auto
-qed
-
 lemma CT2_ParComp:
   "\<And> P Q. CT P \<Longrightarrow> CT Q \<Longrightarrow> CT2 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
   unfolding CT2_def ParCompCTT_def
@@ -1947,18 +1869,6 @@ proof (auto)
       by simp
   qed
 qed   
-
-lemma CT2s_init_event:
-  assumes "CT2s P"
-  shows "CT2s {t. [Event e]\<^sub>E # t \<in> P}"
-  using assms unfolding CT2s_def apply (auto)
-  by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
-
-lemma CT2s_init_tock:
-  assumes "CT2s P"
-  shows "CT2s {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-  using assms unfolding CT2s_def apply (auto)
-  by (erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
 
 lemma CT2s_ParComp:
   assumes "CT P" "CT Q" "CT2s P" "CT2s Q"
