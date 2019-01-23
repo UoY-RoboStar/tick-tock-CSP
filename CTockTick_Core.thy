@@ -419,6 +419,9 @@ proof auto
   qed
 qed
 
+lemma CT2s_imp_CT2: "CT2s P \<Longrightarrow> CT2 P"
+  unfolding CT2s_def CT2_def by auto
+
 fun CT3_trace :: "'e cttobs list \<Rightarrow> bool" where
   "CT3_trace [] = True" |
   "CT3_trace [x] = True" |
