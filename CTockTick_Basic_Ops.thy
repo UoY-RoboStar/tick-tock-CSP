@@ -19,7 +19,7 @@ lemma CT4s_Div: "CT4s div\<^sub>C"
 lemma CT_Div: "CT div\<^sub>C"
   unfolding CT_defs DivCTT_def by (auto simp add: ctt_prefix_subset_antisym)
 
-subsection {* Stop *}
+subsection {* Timed Stop *}
 
 definition StopCTT :: "'e cttobs list set" ("STOP\<^sub>C") where
   "STOP\<^sub>C = {t. \<exists> s\<in>tocks({x. x \<noteq> Tock}). t = s \<or> (\<exists> X. t = s @ [[X]\<^sub>R] \<and> Tock \<notin> X)}
@@ -184,6 +184,23 @@ next
     unfolding StopCTT_def using CT3_append CT3_trace.simps(2) cttWF.simps(2) by (auto, blast)
 qed
 
+subsection {* Untimed Stop *}
+
+definition UntimedStopCTT :: "'e cttobs list set" ("STOP\<^sub>U") where
+  "STOP\<^sub>U = {t. t = [] \<or> (\<exists> X. t = [[X]\<^sub>R])}"
+
+lemma UntimedStopCTT_wf: "\<forall> t\<in>STOP\<^sub>U. cttWF t"
+  unfolding UntimedStopCTT_def by auto
+
+lemma CT2s_UntimedStop: "CT2s STOP\<^sub>U"
+  unfolding UntimedStopCTT_def CT2s_def by (auto simp add: append_eq_Cons_conv)
+
+lemma CT4s_UntimedStop: "CT4s STOP\<^sub>U"
+  unfolding UntimedStopCTT_def CT4s_def by auto
+
+lemma CT_UntimedStop: "CT STOP\<^sub>U"
+  unfolding UntimedStopCTT_def CT_defs apply (auto simp add: ctt_prefix_subset_antisym)
+  by (metis ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(4) ctt_prefix_subset.simps(6) cttobs.exhaust list.exhaust)
 
 subsection {* Skip *}
 
