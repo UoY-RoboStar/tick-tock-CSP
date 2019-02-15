@@ -209,6 +209,13 @@ lemma ctt_subset_end_event:
   "s' \<subseteq>\<^sub>C s \<Longrightarrow> s' @ [[e]\<^sub>E] \<subseteq>\<^sub>C s @ [[e]\<^sub>E]"
   by (induct s' s rule:ctt_subset.induct, auto)   
 
+lemma ctt_subset_split: "r \<subseteq>\<^sub>C s @ t \<Longrightarrow> \<exists> s' t'. r = s' @ t' \<and> s' \<subseteq>\<^sub>C s \<and> t' \<subseteq>\<^sub>C t"
+  apply (induct r s rule:ctt_subset.induct, auto)
+  apply (meson Cons_eq_appendI ctt_subset.simps(2))
+  apply (meson Cons_eq_appendI ctt_subset.simps(3))
+  using ctt_subset.simps(1) apply blast
+  using ctt_subset.simps(1) by blast
+
 subsection {* Prefix and Subset *}
 
 fun ctt_prefix_subset :: "'e cttobs list \<Rightarrow> 'e cttobs list \<Rightarrow> bool" (infix "\<lesssim>\<^sub>C" 50) where
