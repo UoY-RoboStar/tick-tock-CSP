@@ -28,6 +28,39 @@ definition StopCTT :: "'e cttobs list set" ("STOP\<^sub>C") where
 lemma StopCTT_wf: "\<forall> t\<in>STOP\<^sub>C. cttWF t"
   unfolding StopCTT_def by (auto simp add: tocks_append_wf tocks_wf)
 
+lemma CT0_Stop: "CT0 STOP\<^sub>C"
+  unfolding CT0_def StopCTT_def by (auto, rule_tac x="[]" in exI, auto simp add: empty_in_tocks)
+
+lemma CT1_Stop: "CT1 STOP\<^sub>C"
+  unfolding CT1_def StopCTT_def using ctt_prefix_subset_tocks ctt_prefix_subset_tocks_refusal by (auto, fastforce+)
+
+lemma CT2_Stop: "CT2 STOP\<^sub>C"
+  unfolding CT2_def StopCTT_def
+proof auto
+  fix \<rho> X Y
+  assume "\<rho> @ [[X]\<^sub>R] \<in> tocks {x. x \<noteq> Tock}"
+  then have "False"
+    using tocks.cases by (induct \<rho> rule:cttWF.induct, auto)
+  then show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. \<rho> @ [[X \<union> Y]\<^sub>R] = s \<or> \<rho> = s \<and> Tock \<notin> X \<and> Tock \<notin> Y"
+    by auto
+next
+  fix \<rho> :: "'a cttobs list"
+  fix X Y :: "'a cttevent set"
+  assume Tock_notin_X: "Tock \<notin> X"
+  assume rho_tocks: "\<rho> \<in> tocks {x. x \<noteq> Tock}"
+  from rho_tocks have setA: "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {}"
+    using tocks.cases by (auto, induct \<rho> rule:cttWF.induct, auto)
+  from rho_tocks Tock_notin_X have setB: "{e. e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {Tock}"
+    by (auto, intro tocks_append_tocks, auto, metis (mono_tags, lifting) mem_Collect_eq subsetI tocks.empty_in_tocks tocks.tock_insert_in_tocks)
+  from setA setB have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock} \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {Tock}"
+    by (auto)
+  also assume "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock} \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {}"
+  then have "Tock \<notin> Y"
+    using calculation by (auto)
+  from this and rho_tocks show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. \<rho> @ [[X \<union> Y]\<^sub>R] = s \<or> \<rho> = s \<and> Tock \<notin> Y"
+    by auto
+qed
+
 lemma CT2s_Stop: "CT2s STOP\<^sub>C"
 proof (rule_tac wf_CT2s_induct, safe, simp_all add: StopCTT_wf, unfold StopCTT_def, safe, simp_all)
   fix X Y :: "'a cttevent set"
@@ -128,6 +161,16 @@ next
     apply (auto, rule_tac x="[Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>" in bexI, simp_all)
     apply (metis (no_types, lifting) assm2 assm3 butlast.simps(2) butlast_snoc list.distinct(1) list.inject tocks.simps)
     using 3 by (safe, (rule_tac x="[Z]\<^sub>R # [Tock]\<^sub>E # sa" in bexI, simp_all, metis assm3 ctt_subset.simps(1) ctt_subset.simps(8) list.sel(1) tocks.simps)+)
+qed
+
+lemma CT3_Stop: "CT3 STOP\<^sub>C"
+  unfolding CT3_def
+proof (auto)
+  fix x
+  have "\<forall>s \<in> tocks {x. x \<noteq> Tock}. CT3_trace s"
+    by (metis (mono_tags, lifting) CT3_def CT3_tocks mem_Collect_eq)
+  then show "x \<in> STOP\<^sub>C \<Longrightarrow> CT3_trace x"
+    unfolding StopCTT_def using CT3_append CT3_trace.simps(2) cttWF.simps(2) by (auto, blast)
 qed
 
 lemma CT4s_Stop: "CT4s STOP\<^sub>C"
@@ -505,5 +548,34 @@ next
     using CT3_append CT3_trace.simps(2) cttWF.simps(3) apply blast
     done
 qed
+
+subsection {* Guard *}
+
+definition GuardCTT :: "bool \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixr "&\<^sub>C" 61) where
+  "g &\<^sub>C P = {x\<in>P. g} \<union> {x\<in>STOP\<^sub>C. \<not> g}"
+
+lemma GuardCTT_wf: "\<forall>t\<in>P. cttWF t \<Longrightarrow> \<forall>t\<in>(g &\<^sub>C P). cttWF t"
+  unfolding GuardCTT_def using StopCTT_wf by blast
+
+lemma CT0_Guard: "CT0 P \<Longrightarrow> CT0 (g &\<^sub>C P)"
+  using CT0_Stop unfolding CT0_def GuardCTT_def by auto
+
+lemma CT1_Guard: "CT1 P \<Longrightarrow> CT1 (g &\<^sub>C P)"
+  using CT1_Stop unfolding CT1_def GuardCTT_def by auto
+
+lemma CT2_Guard: "CT2 P \<Longrightarrow> CT2 (g &\<^sub>C P)"
+  using CT2_Stop unfolding CT2_def GuardCTT_def by (auto, blast+)
+
+lemma CT2s_Guard: "CT2s P \<Longrightarrow> CT2s (g &\<^sub>C P)"
+  using CT2s_Stop unfolding CT2s_def GuardCTT_def by (auto, blast+)
+
+lemma CT3_Guard: "CT3 P \<Longrightarrow> CT3 (g &\<^sub>C P)"
+  using CT3_Stop unfolding CT3_def GuardCTT_def by blast
+
+lemma CT4s_Guard: "CT4s P \<Longrightarrow> CT4s (g &\<^sub>C P)"
+  using CT4s_Stop unfolding CT4s_def GuardCTT_def by blast
+
+lemma CT_Guard: "CT P \<Longrightarrow> CT (g &\<^sub>C P)"
+  using GuardCTT_wf CT0_Guard CT1_Guard CT2_Guard CT3_Guard  unfolding CT_def GuardCTT_def by auto
 
 end
