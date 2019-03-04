@@ -213,8 +213,14 @@ lemma ctt_subset_split: "r \<subseteq>\<^sub>C s @ t \<Longrightarrow> \<exists>
   apply (induct r s rule:ctt_subset.induct, auto)
   apply (meson Cons_eq_appendI ctt_subset.simps(2))
   apply (meson Cons_eq_appendI ctt_subset.simps(3))
-  using ctt_subset.simps(1) apply blast
-  using ctt_subset.simps(1) by blast
+  using ctt_subset.simps(1) by blast+
+
+lemma ctt_subset_split2: "r @ s \<subseteq>\<^sub>C t \<Longrightarrow> \<exists> r' s'. t =  r' @  s' \<and> r \<subseteq>\<^sub>C r' \<and> s \<subseteq>\<^sub>C s'"
+  apply (induct r t rule:ctt_subset.induct, auto)
+  apply (metis append_Cons ctt_subset.simps(2))
+  apply (metis append_Cons ctt_subset.simps(3))
+  using ctt_subset.simps(1) by blast+
+  
 
 subsection {* Prefix and Subset *}
 
@@ -558,6 +564,21 @@ qed
 lemma CT4s_CT1_add_Tick_ref_Tock:
   "CT4s P \<Longrightarrow> CT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P \<Longrightarrow> [X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
   by (metis CT1_def CT4s_def add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_ctt_subset add_Tick_refusal_trace_idempotent ctt_subset_imp_prefix_subset)
+
+lemma "add_Tick_refusal_trace (\<rho> @ [X]\<^sub>R # \<sigma>) = add_Tick_refusal_trace \<rho> @ [X \<union> {Tick}]\<^sub>R # add_Tick_refusal_trace \<sigma>"
+  oops
+
+lemma CT4s_CT1_add_Tick:
+  assumes CT1_P: "CT1 P" and CT4s_P: "CT4s P"
+  shows "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [X \<union> {Tick}]\<^sub>R # \<sigma> \<in> P"
+proof auto
+  assume "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P"
+  then have "add_Tick_refusal_trace (\<rho> @ [X]\<^sub>R # \<sigma>) \<in> P"
+    using CT4s_P unfolding CT4s_def by auto
+  then show "\<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P"
+    using CT1_P unfolding CT1_def apply auto
+    by (metis Un_insert_left Un_insert_right add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset ctt_subset_imp_prefix_subset insert_absorb2)
+qed  
 
 definition CTwf :: "'e cttobs list set \<Rightarrow> bool" where
   "CTwf P = (\<forall>x\<in>P. cttWF x)"
