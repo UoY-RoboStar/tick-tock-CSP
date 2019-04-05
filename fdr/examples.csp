@@ -1,0 +1,89 @@
+---------------------------------------------------------------------------
+-- Pedro Ribeiro <pedro.ribeiro@york.ac.uk>
+-- Department of Computer Science
+-- University of York
+-- York, YO10 5GH
+-- UK
+---------------------------------------------------------------------------
+
+---------------------------------------------------------------------------
+-- SUMMARY
+---------------------------------------------------------------------------
+--
+-- This file contains the source for the examples included in the paper:
+-- Baxter, J. and Ribeiro, P. and Cavalcanti. A. Reasoning in tock-CSP with 
+-- FDR.
+--
+
+-- Including auxiliary files, tick-tock definitions and semantic model
+-- encoding.
+include "tick-tock.csp"
+
+-- Examples as included in 'Reasoning in tock-CSP with FDR'.
+
+-- Events of interest
+channel a, b, c
+
+instance M = MS({a,b,c})
+
+-- Example 1, specified on its own.
+R = (a -> SKIP [] b -> SKIP [] tock -> R) |~| RUN({tock})
+S = (a -> SKIP [] tock -> S) |~| RUN({tock})
+
+-- Example 2, specified on its own. Note that STOP here is TSTOP,
+-- that is, that allows time to pass.
+T0 = (a -> TSTOP [] b -> TSTOP) |~| c -> TSTOP
+U0 = (a -> TSTOP |~| c -> TSTOP) [] (b -> TSTOP |~| c -> TSTOP)
+
+channel move, obs, halt
+
+Timed(et) {
+	-- Example 3, inside a timed section.
+	-- Here C(s) is parametric on 's' time units.
+	C(s) = (move -> STOP /\ (obs -> (halt -> SKIP) [] (WAIT(s) ; USTOP)))
+
+	-- Example 4
+	Z = (EndBy(a -> SKIP,0) ; b -> Z)
+	Z1 = EndBy(a -> SKIP,0) ; Z1
+
+	-- Assuming 'a' takes place as soon as possible, ie. by hiding it.
+	-- No zeno
+	assert timed_priority(Z \{a}) :[divergence free]
+	-- Zeno once event 'b' is hidden.
+	assert not timed_priority(Z \{a,b}) :[divergence free] 
+
+	R1 = (a -> SKIP [] b -> SKIP) |~| STOP
+	S1 = (a -> SKIP) |~| STOP
+
+	-- Check that both definitions are the same in tick-tock.
+	assert M::C3(R1) 	[T= M::C3(R)
+	assert M::C3(R)		[T= M::C3(R1)
+
+	assert M::C3(S1) 	[T= M::C3(S)
+	assert M::C3(S)		[T= M::C3(S1)
+	
+	-- R1 is not refined by S1
+	assert not M::C3(R1) [T= M::C3(S1)
+
+	T = (a -> STOP [] b -> STOP) |~| c -> STOP
+	U = (a -> STOP |~| c -> STOP) [] (b -> STOP |~| c -> STOP)
+
+	T1 = timed_priority(T [] USTOP)
+	U1 = timed_priority(U [] USTOP)
+
+	-- Check that both definitions are the same in tick-tock.
+	assert M::C3(T0) 	[T= M::C3(T1)
+	assert M::C3(T1) 	[T= M::C3(T0)
+
+	assert M::C3(U1) 	[T= M::C3(U0)
+	assert M::C3(U0) 	[T= M::C3(U1)
+
+	-- T1 = U1
+	assert M::C3(T1) 	[T= M::C3(U1)
+	assert M::C3(U1) 	[T= M::C3(T1)
+
+	-- In general, it is not the case that T [TT= U (refinement in tick-tock)
+	assert not M::C3(T) [T= M::C3(U)
+
+}
+---------------------------------------------------------------------------
