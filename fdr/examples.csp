@@ -56,11 +56,11 @@ Timed(et) {
 	S1 = (a -> SKIP) |~| STOP
 
 	-- Check that both definitions are the same in tick-tock.
-	assert M::C3(R1) 	[T= M::C3(R)
-	assert M::C3(R)		[T= M::C3(R1)
+	assert M::C3(timed_priority(R1)) 	[T= M::C3(R)
+	assert M::C3(R)		[T= M::C3(timed_priority(R1))
 
-	assert M::C3(S1) 	[T= M::C3(S)
-	assert M::C3(S)		[T= M::C3(S1)
+	assert M::C3(timed_priority(S1)) 	[T= M::C3(S)
+	assert M::C3(S)		[T= M::C3(timed_priority(S1))
 	
 	-- R1 is not refined by S1
 	assert not M::C3(R1) [T= M::C3(S1)
@@ -72,18 +72,18 @@ Timed(et) {
 	U1 = timed_priority(U [] USTOP)
 
 	-- Check that both definitions are the same in tick-tock.
-	assert M::C3(T0) 	[T= M::C3(T1)
-	assert M::C3(T1) 	[T= M::C3(T0)
+	assert M::C3(T0) 					[T= M::C3(timed_priority(T1))
+	assert M::C3(timed_priority(T1)) 	[T= M::C3(T0)
 
-	assert M::C3(U1) 	[T= M::C3(U0)
-	assert M::C3(U0) 	[T= M::C3(U1)
+	assert M::C3(timed_priority(U1)) 	[T= M::C3(U0)
+	assert M::C3(U0) 					[T= M::C3(timed_priority(U1))
 
 	-- T1 = U1
-	assert M::C3(T1) 	[T= M::C3(U1)
-	assert M::C3(U1) 	[T= M::C3(T1)
+	assert M::C3(timed_priority(T1)) 	[T= M::C3(timed_priority(U1))
+	assert M::C3(timed_priority(U1)) 	[T= M::C3(timed_priority(T1))
 
 	-- In general, it is not the case that T [TT= U (refinement in tick-tock)
-	assert not M::C3(T) [T= M::C3(U)
+	assert not M::C3(timed_priority(T)) [T= M::C3(timed_priority(U))
 
 }
 ---------------------------------------------------------------------------
