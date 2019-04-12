@@ -123,13 +123,13 @@ order = {(x,ref.x) | x:union(Sigma,{tock,tick})}
 -- normal trace (ie, with events drawn from Sigma) we have the possibility
 -- to also observe in the trace refusal information, at that point.
 
-C1(P) = prioritisepo(P ||| RUN({|ref,stab|}), Events, order, union(Sigma,{tock,tick}))
+C1(P) = prioritisepo(P ||| RUN({|ref,stab|}), union(Sigma,{|ref,tock,tick|}), order, union(Sigma,{tock,tick}))
 
 ---------------------------------------------------------------------------
 -- Encoding of 'tick-tock'-CSP model
 ---------------------------------------------------------------------------
 
-C2(P) = C1(P) [| Events |] Sem
+C2(P) = C1(P) [| union(Sigma,{|ref,stab,tock,tick|}) |] Sem
 
 Sem = ([] x : union(Sigma,{tock,tick}) @ x -> Sem)
       [] (ref?x -> Ref)

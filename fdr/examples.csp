@@ -57,13 +57,13 @@ Timed(et) {
 
 	-- Check that both definitions are the same in tick-tock.
 	assert M::C3(timed_priority(R1)) 	[T= M::C3(R)
-	assert M::C3(R)		[T= M::C3(timed_priority(R1))
+	assert M::C3(R)						[T= M::C3(timed_priority(R1))
 
 	assert M::C3(timed_priority(S1)) 	[T= M::C3(S)
-	assert M::C3(S)		[T= M::C3(timed_priority(S1))
+	assert M::C3(S)						[T= M::C3(timed_priority(S1))
 	
 	-- R1 is not refined by S1
-	assert not M::C3(R1) [T= M::C3(S1)
+	assert not M::C3(timed_priority(R1)) [T= M::C3(timed_priority(S1))
 
 	T = (a -> STOP [] b -> STOP) |~| c -> STOP
 	U = (a -> STOP |~| c -> STOP) [] (b -> STOP |~| c -> STOP)
