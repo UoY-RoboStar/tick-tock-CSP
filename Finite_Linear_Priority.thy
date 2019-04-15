@@ -970,15 +970,6 @@ lemma pri_IntChoice_dist:
   "pri p (P \<sqinter>\<^sub>\<F>\<^sub>\<L> Q) = (pri p P) \<sqinter>\<^sub>\<F>\<^sub>\<L> (pri p Q)"
   unfolding pri_def IntChoice_def by auto
 
-lemma
-  "pri p (pri p P) = pri p P"
-  unfolding pri_def apply auto
-  oops
-
-lemma
-  assumes "prirel p x Z" "prirel p Z Za" "Za \<in> P" 
-  shows "\<exists>Z. prirel p x Z \<and> Z \<in> P"
-  oops
 
 lemma
   assumes "\<not>a <\<^sup>*p b" "\<not>b <\<^sup>*p a"
@@ -1041,5 +1032,91 @@ lemma prirel_last_bullets_cons_imp:
    apply (induct x y rule:prirelacc.induct, auto)
   apply (induct x y rule:prirelacc.induct, auto)
   by (cases x, auto)+
+
+lemma prirelacc_trans:
+  assumes "prirelacc p A Z" "prirelacc p Z Y"
+  shows "prirelacc p A Y"
+  using assms apply (induct p A Y rule:prirelacc.induct, auto)
+  by (cases Z, auto)+
+  
+lemma prirel_trans:
+  assumes "prirel p xs ys" "prirel p ys zs"
+  shows "prirel p xs zs"
+  using assms apply (induct p xs zs arbitrary:ys rule:prirel.induct, auto)
+          apply (metis fltrace.exhaust prirel.simps(1) prirel.simps(3) prirelacc_trans)
+         apply (metis fltrace.exhaust prirel.simps(1) prirel.simps(3))
+        apply (metis fltrace.exhaust prirel.simps(2))
+       apply (metis fltrace.exhaust prirel.simps(3))
+      apply (metis (mono_tags, hide_lams) fltrace.exhaust prirel.simps(3) prirel.simps(4) prirelacc_trans)
+   apply (metis fltrace.exhaust prirel.simps(3) prirel_cons_imp2)
+    apply (metis fltrace.exhaust prirel.simps(3) prirel.simps(4))
+  apply (metis Rep_aevent_inverse acceptance.rep_eq prirel.simps(4) prirel_cons_bullet_iff_exists prod.collapse)
+  by (metis fltrace.exhaust prirel.simps(3) prirel.simps(4) prirelacc_acceptance_not_bullet_imp)
+
+lemma
+  assumes "prirel p x Z" "prirel p Z Za" "Za \<in> P" 
+  shows "\<exists>Z. prirel p x Z \<and> Z \<in> P"
+  using assms(1) assms(2) assms(3) prirel_trans by blast
+
+(*
+lemma
+  assumes "prirel p xs ys" "ys \<in> P" "FL1 P"
+  shows "prirel p xs ys \<and> (\<exists>Za. prirel p ys Za \<and> Za \<in> P)"
+  using assms 
+  apply (induct xs ys rule:ftrace_cons_induct_both_eq_length)
+  
+  using assms(1) prirel_same_length apply blast
+  apply (case_tac x, auto)
+
+  using prirelAlt_bullet_refl_iff prirelAlt_imp_prirel apply blast
+    apply (case_tac y, auto)
+  apply (rule_tac x="\<langle>[x2a]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+  sledgehammer*)
+
+lemma prirel_extend_both_acceptance:
+  assumes "prirel p xs zs" "prirel p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
+  shows "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (zs &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms
+  apply (induct p xs zs rule:prirel.induct, auto)
+  by (metis plus_acceptance.elims prirelacc.simps(3))+
+
+lemma prirelacc_decompose:
+  assumes "prirelacc p xs ys" 
+  shows "\<exists>Z. prirelacc p xs Z \<and> prirelacc p Z ys"
+  using assms apply(induct p xs ys rule:prirelacc.induct, auto)
+  using prirelacc.simps(1) apply blast
+  by (rule_tac x="[{a \<in> Z. \<forall>b. b \<in> Z \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+
+lemma prirel_decompose:
+  assumes "prirel p xs ys" 
+  shows "\<exists>Z. prirel p xs Z \<and> prirel p Z ys"
+  using assms apply(induct p xs ys rule:prirel.induct, auto)
+  apply (metis prirel.simps(1) prirelacc.simps(1) prirelacc_decompose prirelacc_trans)
+  using prirel.simps(1) prirelacc.simps(1) apply blast
+      apply (case_tac A, auto, case_tac Z, auto)
+       apply (case_tac a, auto, case_tac ab, auto)
+  apply (rule_tac x="(([{a \<in> x2a. \<forall>b. b \<in> x2a \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
+      apply (metis amember.elims(2) prirelacc.simps(3))
+     apply (case_tac A, auto, case_tac Z, auto, case_tac a, auto, case_tac ab, auto)
+     apply (rule_tac x="(([{a \<in> x2a. \<forall>b. b \<in> x2a \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
+apply (case_tac A, auto, case_tac Z, auto, case_tac a, auto, case_tac ab, auto)
+  apply (rule_tac x="(([{a \<in> x2a. \<forall>b. b \<in> x2a \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
+  apply (metis amember.elims(2) prirelacc.simps(3))
+apply (case_tac A, auto, case_tac Z, auto, case_tac a, auto)
+  apply (rule_tac x="((\<bullet>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
+  apply (rule_tac x="((\<bullet>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
+  apply (case_tac A, auto, case_tac Z, auto, case_tac a, auto)
+  by (rule_tac x="(([{a \<in> x2. \<forall>b. b \<in> x2 \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
+
+lemma
+  assumes "prirel p xs ys" "ys \<in> P" "FL1 P"
+  shows "\<exists>Z. prirel p xs Z \<and> (\<exists>Za. prirel p Z Za \<and> Za \<in> P)"
+  using assms prirel_decompose by blast
+
+lemma pri_idem:
+  "pri p (pri p P) = pri p P"
+  unfolding pri_def apply auto
+  using prirel_trans apply blast
+  using prirel_decompose by blast
 
 end
