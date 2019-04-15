@@ -1,0 +1,271 @@
+---------------------------------------------------------------------------
+-- Pedro Ribeiro <pedro.ribeiro@york.ac.uk>
+-- Department of Computer Science
+-- University of York
+-- York, YO10 5GH
+-- UK
+---------------------------------------------------------------------------
+
+---------------------------------------------------------------------------
+-- SUMMARY AND ACKNOWLEDGMENTS
+---------------------------------------------------------------------------
+--
+-- This file contains an encoding of 'tick-tock'-CSP, as well as encodings
+-- for the models: Finite-Linear, Refusal Testing, Revivals and Failures,
+-- based on that originally mechanised by David Mestel. It is effectively
+-- an extension of the file 'model-shifting.csp' by David as found at:
+--
+-- http://www.cs.ox.ac.uk/people/david.mestel/model-shifting.csp
+--
+-- That work referred to the strategy outlined in the paper:
+--
+-- Mestel, D. and Roscoe, A.W., 2016. Reducing complex CSP models 
+-- to traces via priority. Electronic Notes in Theoretical Computer 
+-- Science, 325, pp.237-252.
+--
+-- The current file extends that work to 'tick-tock'-CSP, whose details
+-- can be found in the paper:
+--
+-- Baxter, J. and Ribeiro, P. and Cavalcanti, A. Reasoning with tock-CSP 
+-- with FDR.
+--
+---------------------------------------------------------------------------
+
+---------------------------------------------------------------------------
+-- CHANGES
+---------------------------------------------------------------------------
+--
+-- April/2019:
+--  * Encapsulated the encoding within a parametrised module to facilitate
+--    use within existing files.
+--  * Added tick-tock modelling definitions.
+--
+-- February/2019:
+--  * Added 'tick' to cope with termination. Updated CF definition.
+--
+-- 2018:
+--  * Commented existing definitions.
+---------------------------------------------------------------------------
+
+---------------------------------------------------------------------------
+-- Auxiliary definitions for tick-tock-CSP modelling
+---------------------------------------------------------------------------
+
+channel tock
+
+USTOP = STOP
+et(_) = 0
+
+Int(P,Q) = P /\ Q
+
+Timed(et) {
+  TSTOP = STOP
+  EndBy(P,d) = P /\ (WAIT(d) ; USTOP)
+  StartBy(P,d) = P [] (WAIT(d) ; USTOP)
+
+  TimedInterrupt(P,d) = timed_priority(P /+Events+\ RT(d))
+}
+
+RT(d) = if d > 0 then RUN(diff(Events,{tock})) /\ tock -> RT(d-1)
+    else SKIP
+
+---------------------------------------------------------------------------    
+
+external prioritisepo
+
+module MS(NormalEvents)
+
+-- Note that for the purposes of encoding refusals/acceptances in this model
+-- ref.x, rather than x' is used, unlike that discussed in the paper. This 
+-- is a technicality as it makes it easier to defined a parametrised channel.
+
+channel ref:union(NormalEvents,{tick})
+channel acc:union(NormalEvents,{tick})
+
+channel stab
+channel tick
+
+-- The partial order gives each event 'x' priority over 'ref.x'
+order = {(x,ref.x) | x:union(NormalEvents,{tick})}
+
+---------------------------------------------------------------------------
+-- Context C1
+---------------------------------------------------------------------------
+
+-- This is the first context, whereby in interleaving with P we have the
+-- process that can perform ref or stab, and is prioritised according to
+-- 'order', whereby 'NormalEvents' have same priority as 'tau' and 'tick'.
+--
+-- This is effectively an implementation of the RT-model, because after each
+-- normal trace (ie, with events drawn from NormalEvents) we have the possibility
+-- to also observe in the trace refusal information, at that point.
+
+C1(P) = prioritisepo(P ||| RUN({|ref,stab|}), Events, order, union(NormalEvents,{tick}))
+
+---------------------------------------------------------------------------
+-- Encoding of Failures model
+---------------------------------------------------------------------------
+
+-- The UNSTABLE process can perform any of the NormalEvents any number of
+-- times, or once a ref.x event is possible, it behaves as STABLE, or
+-- if no event is refused, 'stab' is possible too.
+UNSTABLE = ([] x : union(NormalEvents,{tick}) @ x -> UNSTABLE)
+           [] (ref?x -> STABLE) 
+           [] (stab -> STABLE)
+
+-- A stable refusal can refuse any of the ref.x events, or simply be
+-- stable (not refusing any). Recall that because of subset-closure for
+-- refusals the 'empty set' is always a possibility for stable traces.
+-- For DIV the stable failures are empty.
+STABLE = (ref?x -> STABLE) [] (stab -> STABLE)
+
+-- The full context for the failures model, is then the parallel composition
+-- of C1 with the process UNSTABLE that regulates the output of failures. So
+-- the output of a refusal following a normal trace is the last thing on the
+-- trace itself.
+-- CF(P) = C1(P ; tick -> SKIP) [|Events|] UNSTABLE
+
+---------------------------------------------------------------------------
+-- Encoding of 'tick-tock'-CSP model
+---------------------------------------------------------------------------
+
+C2(P) = C1(P) [| Events |] Sem
+
+Sem = ([] x : union(NormalEvents,{tick}) @ x -> Sem)
+      [] (ref?x -> Ref)
+      [] (stab -> Ref)
+
+Ref = (ref?x -> Ref) [] (stab -> Ref) [] tock -> Sem
+
+------------------------------------------------------
+-- Below is the construction using acceptances instead.
+------------------------------------------------------
+
+-- First we have the definition of a partial order where the 'ref.x' events
+-- have priority over 'acc.x'.
+accpo = {(ref.x,acc.x) | x:union(NormalEvents,{tick})}
+
+EventsNumbering(<>,i) = {}
+EventsNumbering(list,i) = union({(head(list),i)},EventsNumbering(tail(list),i+1))
+
+-- This takes the set of events 'NormalEvents' turns it into a sequence, via
+-- seq(_), which is implementation dependent, and then yields a set of pairs
+-- whose first component is an element of the sequence, and whose second
+-- component is a number. Essentially it yields a set of pairs, with each
+-- event from the set 'NormalEvents' numbered uniquely.
+NumberedEvents = EventsNumbering(seq(union(NormalEvents,{tick})),1)
+
+-- Returns the i'th event mapped to i in NumberedEvents.
+IthEv(i) = head(seq({ev|(ev,i') <- NumberedEvents,i'==i}))
+
+-- Yields the number of elements in the sequence
+eventsnum = #(seq(union(NormalEvents,{tick})))
+
+--
+-- We have, first of all, the base case AccInOrder(0), where it can accept
+-- an event 'acc.IthEv(j)' where 'j' is a number identifying some event IthEv(j),
+-- and so afterwards this is not offered again, via AccInOrder(j+1), or it
+-- does 'stab' and STOPs, or an event drawn from NormalEvents takes place
+-- and it recurses as AccInOrder(0).
+--
+-- So effectively, either stability is asserted and it stops, or a sequence
+-- of normal events takes place, or once some 'acc.e' takes place, then only
+-- acceptances of vents mapped to a higher number j+1 can take place?
+AccInOrder(0) = ([] j:{1..eventsnum} @ acc.IthEv(j) -> AccInOrder(j+1))
+                 [] (stab -> STOP)
+                 [] ([] x:union(NormalEvents,{tick}) @x->AccInOrder(0))
+
+AccInOrder(i) = ([] j:{i..eventsnum} @ acc.IthEv(j) -> AccInOrder(j+1))
+                 [] (stab -> STOP)
+
+-- The construction here is different, for example, from CF.
+--
+-- Recall that C1(P) can communicate 'ref.x' for 'x', when 'x' is not possible,
+-- ie. it is refused. Here 'reg' is some regulator process, and synchronises with
+-- C1(P) on 'stab' and all the normal events, whereby 'acc.x' has priority over
+-- 'ref.x'. Finally 'ref.x.' events are prevented at the outer level by synchronising
+-- with STOP.
+AddAccs(P,reg) = prioritisepo(C1(P ; tick -> SKIP) [|union({|stab|},union(NormalEvents,{tick}))|] reg,Events, accpo, union(NormalEvents,{tick})) [|{|ref|}|] STOP
+
+
+C'(P) = AddAccs(P,AccInOrder(0))
+
+-- The following partial order establishes that an acceptance acc.x, where (x,i) in the
+-- sequence, has priority over acc.y, where (y,j) is in the tail of the sequence. And
+-- furthermore every acc.x has priority over 'stab'.
+--
+stabnotearly = union({(acc.IthEv(i),acc.IthEv(j)) | i:{1..eventsnum}, j:{i+1..eventsnum}},{(acc.IthEv(i),stab)|i:{1..eventsnum}})
+
+RAccInOrder(0) = ([] j:{1..eventsnum} @ acc.IthEv(j) -> RAccInOrder(j+1))
+              [] (stab -> RRev)
+              [] ([] x:NormalEvents@x->RAccInOrder(0))
+RAccInOrder(i) = ([] j:{i..eventsnum} @ acc.IthEv(j) -> RAccInOrder(j+1))
+              [] (stab -> RRev)
+RRev = [] x:NormalEvents@x->STOP
+
+RC(P) = AddAccs(P,RAccInOrder(0))
+
+RTAccInOrder(0) = ([] j:{1..eventsnum} @ acc.IthEv(j) -> RTAccInOrder(j+1))
+              [] (stab -> RTAccInOrder(0))
+              [] ([] x:NormalEvents@x->RTAccInOrder(0))
+RTAccInOrder(i) = ([] j:{i..eventsnum} @ acc.IthEv(j) -> RTAccInOrder(j+1))
+              [] (stab -> RTAccInOrder(0))
+
+RTC(P) = AddAccs(P,RTAccInOrder(0))
+
+exports
+
+-- Failures (via refusals)
+CF(P) = C1(P ; tick -> SKIP) [|Events|] UNSTABLE
+
+-- Refusal-testing (via refusals)
+CRT(P) = C1(P ; tick -> SKIP)
+
+-- tick-tock (via refusals)
+C3(P) = C2(P ; tick -> SKIP)
+
+-- Failures (via acceptances)
+CFImpl'(P) = prioritisepo(C'(P), Events, stabnotearly, NormalEvents)
+CFSpec'(P) = CFImpl'(P) ||| RUN({|acc|})
+
+-- Revivals (via acceptances)
+CRImpl'(P) = prioritisepo(RC(P), Events, stabnotearly, NormalEvents)
+CRSpec'(P) = CRImpl'(P) ||| RUN({|acc|})
+
+-- Refusal Testing (via acceptances)  
+CRTImpl'(P) = prioritisepo(RTC(P), Events, stabnotearly, NormalEvents)
+CRTSpec'(P) = CRTImpl'(P) ||| RUN({|acc|})
+
+-- Finite-Linear (via acceptances)
+CA(P) = CFImpl'(P)
+CFL(P) = CRTImpl'(P)
+
+endmodule
+---------------------------------------------------------------------------
+
+--assert CRSpec'((a -> STOP [] b -> STOP) |~| STOP) [T= CRImpl'(a -> STOP |~| b -> STOP |~| STOP)
+
+--Failures: 
+--assert a->DIV [T= a->STOP -- succeeds (T)
+--assert CFSpec'(a->DIV) [T= CFImpl'(a->STOP) -- fails (F)
+
+--Revivals: 
+--assert CFSpec'(((a->DIV)[]DIV)|~|STOP) [T= CFImpl'(a->DIV) -- succeeds (F)
+--assert CRSpec'(((a->DIV)[]DIV)|~|STOP) [T= CRImpl'(a->DIV) -- fails (R)
+
+--Refusal testing: 
+--assert CRSpec'((a->DIV)|~|(DIV/\a->STOP)) [T= CRImpl'(a->STOP) -- succeeds (R)
+--assert CA((a->DIV)|~|(DIV/\a->STOP)) [T= CA(a->STOP) -- succeeds (A)
+--assert CRTSpec'((a->DIV)|~|(DIV/\a->STOP)) [T= CRTImpl'(a->STOP) -- fails (RT)
+--assert CFL((a->DIV)|~|(DIV/\a->STOP)) [T= CFL(a->STOP) -- fails (FL)
+
+
+
+--Acceptance:
+--assert CRSpec'((a->STOP)|~|(b->STOP)) [T= CRImpl'((a->STOP)[](b->STOP)) 
+  -- succeeds (R) 
+--assert CRTSpec'((a->STOP)|~|(b->STOP)) [T= CRTImpl'((a->STOP)[](b->STOP)) 
+  -- succeeds (RT)
+--assert CA((a->STOP)|~|(b->STOP)) [T= CA((a->STOP)[](b->STOP)) -- fails (A)
+--assert CFL((a->STOP)|~|(b->STOP)) [T= CFL((a->STOP)[](b->STOP)) -- fails (FL)
+

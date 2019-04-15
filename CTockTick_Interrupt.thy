@@ -80,6 +80,17 @@ lemma intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock:
   "s @ [[X]\<^sub>R] = intersect_refusal_trace Z (t @ [[Y]\<^sub>R]) \<Longrightarrow> s @ [[X]\<^sub>R, [Tock]\<^sub>E] = intersect_refusal_trace Z (t @ [[X]\<^sub>R, [Tock]\<^sub>E])"
   by (induct s t rule:ctt_subset.induct, auto, case_tac v, auto, case_tac va, auto, case_tac a, auto)
 
+lemma intersect_refusal_trace_refusal_subset: "\<rho> @ [X]\<^sub>R # \<sigma> = intersect_refusal_trace Y t \<Longrightarrow> X \<subseteq> Y"
+  by (induct \<rho> t rule:ctt_subset.induct, auto, case_tac v, auto)
+
+lemma subset_intersect_refusal_trace_idempotent:
+  "Y \<subseteq> Z \<Longrightarrow> intersect_refusal_trace Y t = intersect_refusal_trace Z (intersect_refusal_trace Y t)"
+  by (induct t rule:intersect_refusal_trace.induct, auto)
+
+lemma intersect_refusal_trace_refusal_subset_idempotent:
+  "\<rho> @ [X]\<^sub>R # \<sigma> = intersect_refusal_trace Y t \<Longrightarrow> \<rho> @ [X \<union> Z]\<^sub>R # \<sigma> = intersect_refusal_trace (Y \<union> Z) (\<rho> @ [X \<union> Z]\<^sub>R # \<sigma>)"
+  by (induct \<rho> t rule:ctt_subset.induct, auto, case_tac v, auto, case_tac v, auto simp add: subset_intersect_refusal_trace_idempotent)
+
 lemma ctt_prefix_subset_intersect_refusal_trace_concat:
   "r \<lesssim>\<^sub>C intersect_refusal_trace Y s @ t \<Longrightarrow>
     r \<lesssim>\<^sub>C intersect_refusal_trace Y s
@@ -1379,6 +1390,1443 @@ proof (auto)
   qed
 qed 
 
+lemma CT2s_UntimedInterrupt:
+  assumes P_wf: "\<forall> x\<in>P. cttWF x" and Q_wf: "\<forall> x\<in>Q. cttWF x"
+  assumes CT0_Q: "CT0 Q"
+  assumes CT1_P: "CT1 P" and CT1_Q: "CT1 Q"
+  assumes CT2_P: "CT2 P" and CT2_Q: "CT2 Q"
+  assumes CT2s_P: "CT2s P" and CT2s_Q: "CT2s Q"
+  shows "CT2s (P \<triangle>\<^sub>U Q)"
+  unfolding CT2s_def
+proof (auto)
+  fix \<rho> \<sigma> X Y
+  assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>U Q"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q} = {}"
+  have \<rho>_X_\<sigma>_wf: "cttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
+    using P_wf Q_wf UntimedInterruptCTT_wf assm1 by blast
+  then have \<sigma>_cases: "\<sigma> = [] \<or> (\<exists> \<sigma>'. \<sigma> = [Tock]\<^sub>E # \<sigma>')"
+    by (cases \<sigma> rule:cttWF.cases, auto, (induct \<rho> rule:cttWF.induct, auto)+)
+  have "cttWF (\<rho> @ [[X]\<^sub>R])"
+    using \<rho>_X_\<sigma>_wf append_self_conv2 cttWF_prefix_is_cttWF by fastforce
+  then have \<rho>_non_tick_refusal: "(\<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R])"
+  proof auto
+    fix p'
+    show "cttWF (p' @ [[Tick]\<^sub>E, [X]\<^sub>R]) \<Longrightarrow> False"
+      by (induct p' rule:cttWF.induct, auto)
+  next
+    fix p' Y
+    show "cttWF (p' @ [[Y]\<^sub>R, [X]\<^sub>R]) \<Longrightarrow> False"
+      by (induct p' rule:cttWF.induct, auto)
+  qed
+  show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>U Q"
+    using \<sigma>_cases
+  proof auto
+    assume case_assm: "\<sigma> = []"
+    have "CT2 (P \<triangle>\<^sub>U Q)"
+      using CT0_Q CT1_P CT1_Q CT2_P CT2_Q CT2_UntimedInterrupt P_wf by blast
+    then show "\<sigma> = [] \<Longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>U Q"
+      using assm1 assm2 case_assm unfolding CT2_def by auto
+  next
+    fix \<sigma>'
+    assume case_assm: "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
+    have "(\<exists> p Z. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> [[Z]\<^sub>R] \<in> Q \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z (p @ [[Tick]\<^sub>E]))
+    \<or> (\<exists>p Z W q. p @ [[Z]\<^sub>R] \<in> P \<and> [W]\<^sub>R # q \<in> Q \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace W (p @ [[Z]\<^sub>R]) @ q)
+    \<or> (\<exists>p q Z. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]) \<and> contains_refusal p
+      \<and> [[Z]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<nexists>q' Y. q = [Y]\<^sub>R # q') \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z p @ q)
+    \<or> (\<exists>p q. p \<in> P \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]) \<and> \<not> contains_refusal p
+      \<and> q \<in> Q \<and> (\<nexists>q' Y. q = [Y]\<^sub>R # q') \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ q)"
+      using case_assm assm1 unfolding UntimedInterruptCTT_def apply simp
+    proof (safe, simp_all)
+      fix p
+      assume case_assm2: "p @ [[Tick]\<^sub>E] \<in> P" "\<not> contains_refusal p" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ [[Tick]\<^sub>E]"
+      obtain \<sigma>'' where "p = \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>''"
+        by (metis butlast.simps(2) butlast_append butlast_snoc case_assm2(3) cttevent.distinct(5) cttobs.simps(1) last.simps last_appendR list.simps(3))
+      then have "contains_refusal p"
+        by (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+      then show "\<exists>pa. pa \<in> P \<and> (\<forall>p'. pa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. pa \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal pa \<and>
+              (\<exists>q Z. [[Z]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> p @ [[Tick]\<^sub>E] = intersect_refusal_trace Z pa @ q)"
+        using case_assm2(2) by auto
+    qed
+    then show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
+    proof auto
+      fix p Z
+      assume case_assms: "p @ [[Tick]\<^sub>E] \<in> P" "contains_refusal p" "[[Z]\<^sub>R] \<in> Q" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z (p @ [[Tick]\<^sub>E])"
+      have \<rho>_X_\<sigma>_ctt_subset_p: "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<subseteq>\<^sub>C p @ [[Tick]\<^sub>E]"
+        using case_assms(4) intersect_refusal_trace_eq_imp_subset by blast
+      have "\<exists> W \<rho>' \<sigma>''. p = \<rho>' @ [W]\<^sub>R # [Tock]\<^sub>E # \<sigma>''"
+        using \<rho>_X_\<sigma>_ctt_subset_p apply -
+        apply (induct \<rho> p rule:ctt_subset.induct, auto, metis append_Cons, metis append_Cons)
+        using ctt_subset_same_length apply force
+        apply (metis Nil_is_append_conv ctt_subset.simps(3) ctt_subset.simps(6) ctt_subset.simps(7) cttobs.exhaust neq_Nil_conv)
+        apply (case_tac v, auto, case_tac va, auto, case_tac a, auto)
+        by (rule_tac x="x2" in exI, rule_tac x="[]" in exI, rule_tac x="list" in exI, auto)
+      then obtain W \<rho>' \<sigma>'' where p_def: "p = \<rho>' @ [W]\<^sub>R # [Tock]\<^sub>E # \<sigma>''"
+        by auto
+      have 1: "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P"
+        using CT1_P CT1_def case_assms(1) \<rho>_X_\<sigma>_ctt_subset_p ctt_subset_imp_prefix_subset by blast
+      have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
+          \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+      proof (auto)
+        fix x
+        assume case_assms2: "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def
+        proof (cases x, cases "contains_refusal \<rho>", safe, simp_all)
+          fix x1
+          assume case_assms3: "contains_refusal \<rho>" "\<rho> @ [[Event x1]\<^sub>E] \<in> P"
+          then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+            \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+            apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
+            using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+            apply (erule_tac x="[]" in allE, auto, simp add: CT0_CT1_empty CT0_Q CT1_Q)
+            apply (erule_tac x="Z" in allE, auto)
+            using case_assms(3) apply blast
+            by (metis case_assms(4) eq_intersect_refusal_trace_append intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
+        next
+          fix x1
+          assume case_assms3: "\<not> contains_refusal \<rho>" "\<rho> @ [[Event x1]\<^sub>E] \<in> P"
+          show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+            \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+            apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
+            using CT0_CT1_empty CT0_Q CT1_Q case_assms3 not_contains_refusal_append_event by blast+
+        next
+          assume "\<rho> @ [[Tick]\<^sub>E] \<in> P" "contains_refusal \<rho>"
+          then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tick]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+            apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="Z" in exI, auto simp add: case_assms(3))
+            by (metis case_assms(4) eq_intersect_refusal_trace_append intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
+        qed
+      next
+        fix x
+        assume case_assms2: "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def
+        proof (cases x, cases "contains_refusal \<rho>", safe, simp_all)
+          fix x1
+          assume case_assms3: "contains_refusal \<rho>" "\<rho> @ [[Event x1]\<^sub>E] \<in> P"
+          then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+            \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+            apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
+            using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+            apply (erule_tac x="[]" in allE, auto, simp add: CT0_CT1_empty CT0_Q CT1_Q)
+            apply (erule_tac x="Z" in allE, auto)
+            using case_assms(3) apply blast
+            by (metis case_assms(4) eq_intersect_refusal_trace_append intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
+        next
+          fix x1
+          assume case_assms3: "\<not> contains_refusal \<rho>" "\<rho> @ [[Event x1]\<^sub>E] \<in> P"
+          show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+            \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+            apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
+            using CT0_CT1_empty CT0_Q CT1_Q case_assms3 not_contains_refusal_append_event by blast+
+        next
+          assume "\<rho> @ [[Tick]\<^sub>E] \<in> P" "contains_refusal \<rho>"
+          then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tick]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+            apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="Z" in exI, auto simp add: case_assms(3))
+            by (metis case_assms(4) eq_intersect_refusal_trace_append intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
+        qed
+      next
+        assume case_assms2: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+        have 1: "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>')"
+            by (simp add: case_assms(4) intersect_refusal_trace_idempotent) 
+        have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+          (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+          using case_assms2(2) unfolding UntimedInterruptCTT_def by (auto)
+        then show "False"
+          using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+          apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+          apply (erule_tac x="[]" in allE, auto)+
+          using CT0_CT1_empty CT0_Q CT1_Q apply blast
+          apply (erule_tac x="Z" in allE, auto)
+          by (metis (no_types, lifting) "1" eq_intersect_refusal_trace_append eq_intersect_refusal_trace_same_front intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat list.inject)
+      next
+        assume case_assms2: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+        have 1: "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>')"
+            by (simp add: case_assms(4) intersect_refusal_trace_idempotent) 
+        have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+          (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+          using case_assms2(2) unfolding UntimedInterruptCTT_def by (auto)
+        then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+          apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+          apply (erule_tac x="[]" in allE, auto)+
+          using CT0_CT1_empty CT0_Q CT1_Q apply blast
+          apply (erule_tac x="Z" in allE, auto)
+          by (metis (no_types, lifting) "1" eq_intersect_refusal_trace_append eq_intersect_refusal_trace_same_front intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat list.inject)
+      qed
+      then have 2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+        using assm2 subsetCE by auto
+      have "{e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> Q}
+          \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+      proof auto
+        fix x
+        assume case_assms2: "[[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+        proof (cases "contains_refusal \<rho>", auto)
+          assume case_assms3: "contains_refusal \<rho>"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (auto)
+            show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<rho> @ [[Tick]\<^sub>E] \<in> P"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal apply (blast, blast)
+              apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
+              by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
+          next
+            show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              False"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal apply (blast, blast)
+              apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
+              by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
+          next
+            show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              x = Tick"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal apply (blast, blast)
+              apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
+              by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
+          qed
+        next
+          assume case_assms3: "\<not> contains_refusal \<rho>"
+          show " \<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (auto)
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> \<rho> @ [[Tick]\<^sub>E] \<in> P"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal by (blast, blast)
+          next
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> False"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal by (blast, blast)
+          next
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> x = Tick"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal by (blast, blast)
+          qed
+        qed
+      next
+        fix x
+        assume case_assms2: "[[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+        proof (cases "contains_refusal \<rho>", auto)
+          assume case_assms3: "contains_refusal \<rho>"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (auto)
+            show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<rho> @ [[Tick]\<^sub>E] \<in> P"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal apply (blast, blast)
+              apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
+              by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
+          next
+            show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              False"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal apply (blast, blast)
+              apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
+              by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
+          next
+            show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              x = Tick"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal apply (blast, blast)
+              apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
+              by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
+          qed
+        next
+          assume case_assms3: "\<not> contains_refusal \<rho>"
+          show " \<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (auto)
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> \<rho> @ [[Tick]\<^sub>E] \<in> P"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal by (blast, blast)
+          next
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> False"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal by (blast, blast)
+          next
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> x = Tick"
+              using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              using \<rho>_non_tick_refusal by (blast, blast)
+          qed
+        qed
+      next
+        fix x
+        assume case_assms2: "[[Z]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q \<Longrightarrow> False"
+          unfolding UntimedInterruptCTT_def
+        proof (auto)
+          show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
+            False"
+            using case_assms case_assms2 apply (erule_tac x="\<rho>" in allE, auto, erule_tac x="X" in allE, auto)
+            apply (meson CT1_P CT1_def \<rho>_X_\<sigma>_ctt_subset_p ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front ctt_subset_imp_prefix_subset subsetI)
+            apply (erule_tac x="Z" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
+            by (metis (no_types, lifting) eq_intersect_refusal_trace_append eq_intersect_refusal_trace_same_front intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat intersect_refusal_trace_idempotent list.inject)
+        qed
+      next
+        fix x
+        assume case_assms2: "[[Z]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def
+        proof (auto)
+          show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
+            \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
+            (\<exists>q X. [[X]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Tock]\<^sub>E] = intersect_refusal_trace X p @ q)"
+            using case_assms case_assms2 apply (erule_tac x="\<rho>" in allE, auto, erule_tac x="X" in allE, auto)
+            apply (meson CT1_P CT1_def \<rho>_X_\<sigma>_ctt_subset_p ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front ctt_subset_imp_prefix_subset subsetI)
+            apply (erule_tac x="Z" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
+            by (metis (no_types, lifting) eq_intersect_refusal_trace_append eq_intersect_refusal_trace_same_front intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat intersect_refusal_trace_idempotent list.inject)
+        qed
+      qed
+      then have 3: "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        using assm2 subsetCE by auto
+      have 4:  "[[Z \<union> Y]\<^sub>R] \<in> Q"
+        using 3 case_assms CT2s_Q unfolding CT2s_def
+        by (erule_tac x="[]" in allE, erule_tac x="[]" in allE, erule_tac x="Z" in allE, erule_tac x="Y" in allE, auto)
+      have 5: "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P"
+        using 1 2 CT2s_P unfolding CT2s_def
+        by (erule_tac x="\<rho>" in allE, erule_tac x="\<sigma>'" in allE, erule_tac x="Z" in allE, erule_tac x="Y" in allE, auto)
+      obtain \<sigma>'' where \<sigma>'_def: "\<sigma>' = \<sigma>'' @ [[Tick]\<^sub>E]"
+        by (metis (no_types, hide_lams) case_assms(4) cttWF.simps(3) cttWF.simps(6) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace_concat last.simps last_appendR list.distinct(1) rev_exhaust)
+      show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
+        unfolding UntimedInterruptCTT_def
+      proof auto
+        show "\<forall>p. contains_refusal p \<longrightarrow> p @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<noteq> intersect_refusal_trace Xa (p @ [[Tick]\<^sub>E])) \<Longrightarrow>
+          \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
+            (\<exists>q Xa. [[Xa]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Xa p @ q)"
+          using 5 \<sigma>'_def apply (erule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>''" in allE, auto)
+          apply (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+          apply (erule_tac x="Z \<union> Y" in allE, auto simp add: 4)
+          using case_assms(4) intersect_refusal_trace_refusal_subset_idempotent by blast
+      qed
+    next
+      fix p Z W q
+      assume case_assms: "p @ [[Z]\<^sub>R] \<in> P" "[W]\<^sub>R # q \<in> Q" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace W (p @ [[Z]\<^sub>R]) @ q"
+      have "(intersect_refusal_trace W p = \<rho> \<and> X = W \<inter> Z \<and> q = [Tock]\<^sub>E # \<sigma>')
+        \<or> (\<exists> \<rho>1 \<rho>2 A. p = \<rho>1 @ [A]\<^sub>R # \<rho>2 \<and> X = A \<inter> W \<and> intersect_refusal_trace W \<rho>1 = \<rho> \<and> [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace W (\<rho>2 @ [[Z]\<^sub>R]) @ q)
+        \<or> (\<exists> \<sigma>1 \<sigma>2. q = \<sigma>1 @ [X]\<^sub>R # \<sigma>2 \<and> \<rho> = intersect_refusal_trace W (p @ [[Z]\<^sub>R]) @ \<sigma>1 \<and> \<sigma>2 = [Tock]\<^sub>E # \<sigma>')"
+        using case_assms(3) apply -
+        apply (induct \<rho> p rule:ctt_subset.induct, simp_all, safe, simp_all)
+        apply (metis append_Cons intersect_refusal_trace.simps(3))
+        apply (metis append_Cons intersect_refusal_trace.simps(3))
+        apply (metis append_Cons intersect_refusal_trace.simps(3))
+        apply (metis append_Cons intersect_refusal_trace.simps(3))
+        apply (metis append_Cons intersect_refusal_trace.simps(2))
+        apply (metis append_Cons intersect_refusal_trace.simps(2))
+        apply (metis append_Cons intersect_refusal_trace.simps(2))
+        apply (metis append_Cons intersect_refusal_trace.simps(2))
+        apply (case_tac v, auto, metis Int_commute append.left_neutral intersect_refusal_trace.simps(1))
+        apply (case_tac v, auto)
+        apply (case_tac v, auto, metis Int_commute append.left_neutral intersect_refusal_trace.simps(1))
+        apply (case_tac v, auto, metis Int_commute append.left_neutral intersect_refusal_trace.simps(1))
+        apply (case_tac v, auto, metis Int_commute append.left_neutral intersect_refusal_trace.simps(1))
+        done
+      then show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
+      proof auto
+        assume case_assms2: "\<rho> = intersect_refusal_trace W p" "q = [Tock]\<^sub>E # \<sigma>'" "X = W \<inter> Z"
+        have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
+          \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+        proof (auto)
+          fix x
+          assume case_assms3: "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+          then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (cases x, cases "contains_refusal \<rho>", safe, simp_all)
+            fix x1
+            assume case_assms4: "contains_refusal \<rho>" "\<rho> @ [[Event x1]\<^sub>E] \<in> P"
+            then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
+              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              apply (erule_tac x="[]" in allE, auto, simp add: CT0_CT1_empty CT0_Q CT1_Q)
+              apply (erule_tac x="W" in allE, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              by (simp add: case_assms2(1) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
+          next
+            fix x1
+            assume case_assms4: "\<not> contains_refusal \<rho>" "\<rho> @ [[Event x1]\<^sub>E] \<in> P"
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
+              using CT0_CT1_empty CT0_Q CT1_Q case_assms4 not_contains_refusal_append_event by blast+
+          next
+            assume "\<rho> @ [[Tick]\<^sub>E] \<in> P" "contains_refusal \<rho>"
+            then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tick]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="W" in exI, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              by (simp add: case_assms2(1) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
+          qed
+        next
+          fix x
+          assume case_assms3: "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+          then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (cases x, cases "contains_refusal \<rho>", safe, simp_all)
+            fix x1
+            assume case_assms4: "contains_refusal \<rho>" "\<rho> @ [[Event x1]\<^sub>E] \<in> P"
+            then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
+              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              apply (erule_tac x="[]" in allE, auto, simp add: CT0_CT1_empty CT0_Q CT1_Q)
+              apply (erule_tac x="W" in allE, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              by (simp add: case_assms2(1) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
+          next
+            fix x1
+            assume case_assms4: "\<not> contains_refusal \<rho>" "\<rho> @ [[Event x1]\<^sub>E] \<in> P"
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
+              using CT0_CT1_empty CT0_Q CT1_Q case_assms4 not_contains_refusal_append_event by blast+
+          next
+            assume "\<rho> @ [[Tick]\<^sub>E] \<in> P" "contains_refusal \<rho>"
+            then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tick]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="W" in exI, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              by (simp add: case_assms2(1) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
+          qed
+        next
+          assume case_assms3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+            (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by (auto)
+          then show "False"
+            using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+            apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+            using case_assms3(1) apply blast
+            apply (erule_tac x="[]" in allE, auto)+
+            using CT0_CT1_empty CT0_Q CT1_Q apply blast
+            apply (erule_tac x="W" in allE, auto)
+            apply (metis CT1_Q CT1_def append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+            by (simp add: intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
+        next
+          assume case_assms3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+            (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by (auto)
+          then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+            apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+            using case_assms3(1) apply blast
+            apply (erule_tac x="[]" in allE, auto)+
+            using CT0_CT1_empty CT0_Q CT1_Q apply blast
+            apply (erule_tac x="W" in allE, auto)
+            apply (metis CT1_Q CT1_def append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+            by (simp add: intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
+        qed
+        then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+          using assm2 by auto
+
+        have p_in_P: "p \<in> P"
+          using CT1_P CT1_def case_assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        have \<rho>_in_P: "\<rho> \<in> P"
+          using CT1_P CT1_def case_assms2(1) intersect_refusal_trace_prefix_subset p_in_P by blast
+        have \<rho>_intersect_refusal_trace_idempotent: "\<rho> = intersect_refusal_trace W \<rho>"
+          by (simp add: case_assms2(1) intersect_refusal_trace_idempotent)
+        have \<rho>_X_in_P: "\<rho> @ [[X]\<^sub>R] \<in> P"
+          by (metis (no_types, lifting) CT1_P CT1_def case_assms(1) case_assms2(1) case_assms2(3) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat intersect_refusal_trace_prefix_subset)
+        have \<rho>_X_intersect_refusal_trace_idempotent: "\<rho> @ [[X]\<^sub>R] = intersect_refusal_trace W (\<rho> @ [[X]\<^sub>R])"
+          by (metis Int_left_absorb \<rho>_intersect_refusal_trace_idempotent case_assms2(3) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat)
+        
+        have "{e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[W]\<^sub>R, [e]\<^sub>E] \<in> Q}
+            \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+        proof auto
+          fix x
+          assume case_assms2: "[[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          proof (cases "contains_refusal \<rho>", auto)
+            assume case_assms3: "contains_refusal \<rho>"
+            show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+              unfolding UntimedInterruptCTT_def
+            proof (auto)
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                \<rho> @ [[Tick]\<^sub>E] \<in> P"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            next
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                False"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            next
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                x = Tick"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            qed
+          next
+            assume case_assms3: "\<not> contains_refusal \<rho>"
+            show " \<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+              unfolding UntimedInterruptCTT_def
+            proof (auto)
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> \<rho> @ [[Tick]\<^sub>E] \<in> P"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            next
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> False"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            next
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> x = Tick"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            qed
+          qed
+        next
+          fix x
+          assume case_assms2: "[[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          proof (cases "contains_refusal \<rho>", auto)
+            assume case_assms3: "contains_refusal \<rho>"
+            show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+              unfolding UntimedInterruptCTT_def
+            proof (auto)
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                \<rho> @ [[Tick]\<^sub>E] \<in> P"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            next
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                False"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            next
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                x = Tick"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            qed
+          next
+            assume case_assms3: "\<not> contains_refusal \<rho>"
+            show " \<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+              unfolding UntimedInterruptCTT_def
+            proof (auto)
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> \<rho> @ [[Tick]\<^sub>E] \<in> P"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            next
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> False"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            next
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> x = Tick"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            qed
+          qed
+        next
+          fix x
+          assume case_assms3: "[[W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q \<Longrightarrow> False"
+            unfolding UntimedInterruptCTT_def
+          proof (auto)
+            show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
+              False"
+              using case_assms case_assms3 apply (erule_tac x="\<rho>" in allE, auto, erule_tac x="X" in allE, auto)
+              using \<rho>_X_in_P apply blast
+              apply (erule_tac x="W" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
+              using \<rho>_X_intersect_refusal_trace_idempotent by blast
+          qed
+        next
+          fix x
+          assume case_assms3: "[[W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (auto)
+            show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
+              \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
+                (\<exists>q X. [[X]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Tock]\<^sub>E] = intersect_refusal_trace X p @ q) "
+              using case_assms case_assms3 apply (erule_tac x="\<rho>" in allE, auto, erule_tac x="X" in allE, auto)
+              using \<rho>_X_in_P apply blast
+              apply (erule_tac x="W" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
+              using \<rho>_X_intersect_refusal_trace_idempotent by blast
+          qed
+        qed
+        then have 2: "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+          using assm2 by auto
+        have 3: "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
+          using "1" CT2_P CT2_def \<rho>_X_in_P by blast
+        have 4: "[W \<union> Y]\<^sub>R # q \<in> Q"
+          using CT2s_Q case_assms(2) 2 unfolding CT2s_def by (erule_tac x="[]" in allE, auto)
+        show "intersect_refusal_trace W p @ [W \<inter> Z \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def
+        proof auto
+          show "\<forall>pa X. pa @ [[X]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Ya q. [Ya]\<^sub>R # q \<in> Q \<longrightarrow>
+              intersect_refusal_trace W p @ [W \<inter> Z \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<noteq> intersect_refusal_trace Ya (pa @ [[X]\<^sub>R]) @ q) \<Longrightarrow>
+            \<exists>pa. pa \<in> P \<and> (\<forall>p'. pa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. pa \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal pa \<and>
+              (\<exists>q X. [[X]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> intersect_refusal_trace W p @ [W \<inter> Z \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace X pa @ q)"
+            using case_assms case_assms2 3 4 apply (erule_tac x="\<rho>" in allE, erule_tac x="X \<union> Y" in allE, auto)
+            apply (erule_tac x="W \<union> Y" in allE, erule_tac x="[Tock]\<^sub>E # \<sigma>'" in allE, auto)
+            using intersect_refusal_trace_refusal_subset_idempotent by blast
+        qed
+      next
+        fix \<rho>1 \<rho>2 A
+        assume case_assms2: "p = \<rho>1 @ [A]\<^sub>R # \<rho>2" "X = A \<inter> W" "[Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace W (\<rho>2 @ [[Z]\<^sub>R]) @ q" "\<rho> = intersect_refusal_trace W \<rho>1"
+
+        have "{e. e \<noteq> Tock \<and> \<rho>1 @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho>1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
+          \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+        proof (auto)
+          fix x
+          assume case_assms3: "\<rho>1 @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+          then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (cases x, cases "contains_refusal \<rho>1", safe, simp_all)
+            fix x1
+            assume case_assms4: "contains_refusal \<rho>1" "\<rho>1 @ [[Event x1]\<^sub>E] \<in> P"
+            then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="\<rho>1 @ [[Event x1]\<^sub>E]" in allE, auto)
+              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              apply (erule_tac x="[]" in allE, auto, simp add: CT0_CT1_empty CT0_Q CT1_Q)
+              apply (erule_tac x="W" in allE, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              by (simp add: case_assms2(4) intersect_refusal_trace_concat)
+          next
+            fix x1
+            assume case_assms4: "\<not> contains_refusal \<rho>1" "\<rho>1 @ [[Event x1]\<^sub>E] \<in> P"
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="\<rho>1 @ [[Event x1]\<^sub>E]" in allE, auto)
+              using case_assms4(2) apply blast
+              apply (simp add: case_assms4(1) not_contains_refusal_append_event)
+              using CT0_CT1_empty CT0_Q CT1_Q case_assms2(4) case_assms4(1) not_contains_refusal_intersect_refusal_trace by blast
+          next
+            assume "\<rho>1 @ [[Tick]\<^sub>E] \<in> P" "\<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> contains_refusal \<rho>"
+            then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tick]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (rule_tac x="\<rho>1" in exI, auto)
+              using case_assms2(4) not_contains_refusal_intersect_refusal_trace apply fastforce
+              apply (rule_tac x="W" in exI, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (simp add: case_assms2(4) intersect_refusal_trace_concat)
+              using case_assms2(4) not_contains_refusal_intersect_refusal_trace apply fastforce
+              apply (rule_tac x="W" in exI, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (simp add: case_assms2(4) intersect_refusal_trace_concat)
+              done
+          qed
+        next
+          fix x
+          assume case_assms3: "\<rho>1 @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+          then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (cases x, cases "contains_refusal \<rho>1", safe, simp_all)
+            fix x1
+            assume case_assms4: "contains_refusal \<rho>1" "\<rho>1 @ [[Event x1]\<^sub>E] \<in> P"
+            then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="\<rho>1 @ [[Event x1]\<^sub>E]" in allE, auto)
+              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              apply (erule_tac x="[]" in allE, auto, simp add: CT0_CT1_empty CT0_Q CT1_Q)
+              apply (erule_tac x="W" in allE, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              by (simp add: case_assms2(4) intersect_refusal_trace_concat)
+          next
+            fix x1
+            assume case_assms4: "\<not> contains_refusal \<rho>1" "\<rho>1 @ [[Event x1]\<^sub>E] \<in> P"
+            show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="\<rho>1 @ [[Event x1]\<^sub>E]" in allE, auto)
+              using case_assms4(2) apply blast
+              apply (simp add: case_assms4(1) not_contains_refusal_append_event)
+              using CT0_CT1_empty CT0_Q CT1_Q case_assms2(4) case_assms4(1) not_contains_refusal_intersect_refusal_trace by blast
+          next
+            assume "\<rho>1 @ [[Tick]\<^sub>E] \<in> P" "\<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> contains_refusal \<rho>"
+            then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tick]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (rule_tac x="\<rho>1" in exI, auto)
+              using case_assms2(4) not_contains_refusal_intersect_refusal_trace apply fastforce
+              apply (rule_tac x="W" in exI, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (simp add: case_assms2(4) intersect_refusal_trace_concat)
+              using case_assms2(4) not_contains_refusal_intersect_refusal_trace apply fastforce
+              apply (rule_tac x="W" in exI, auto)
+              apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (simp add: case_assms2(4) intersect_refusal_trace_concat)
+              done
+          qed
+        next
+          assume case_assms3: "\<rho>1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have A: "intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R, [Tock]\<^sub>E] = intersect_refusal_trace W (intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R, [Tock]\<^sub>E])"
+          proof -
+            have "\<And>C Ca. intersect_refusal_trace C [[Ca]\<^sub>R::'a cttobs] = [[Ca \<inter> C]\<^sub>R]"
+              by (simp add: Int_commute)
+            then have "\<exists>C. intersect_refusal_trace W (\<rho>1 @ [[C]\<^sub>R]) = intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R]"
+              by (metis (full_types) intersect_refusal_trace_concat)
+            then show ?thesis
+              by (metis (no_types) intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
+          qed 
+          have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+            (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by (auto)
+          then show "False"
+            using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+            apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+            apply (metis CT1_P CT1_def case_assms3(1) intersect_refusal_trace_append_prefix_subset)
+            apply (erule_tac x="[]" in allE, auto)+
+            using CT0_CT1_empty CT0_Q CT1_Q apply blast
+            apply (erule_tac x="W" in allE, auto)
+             apply (metis CT1_Q CT1_def append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+            using case_assms case_assms2 A by (auto)
+        next
+          assume case_assms3: "\<rho>1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have A: "intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R, [Tock]\<^sub>E] = intersect_refusal_trace W (intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R, [Tock]\<^sub>E])"
+          proof -
+            have "\<And>C Ca. intersect_refusal_trace C [[Ca]\<^sub>R::'a cttobs] = [[Ca \<inter> C]\<^sub>R]"
+              by (simp add: Int_commute)
+            then have "\<exists>C. intersect_refusal_trace W (\<rho>1 @ [[C]\<^sub>R]) = intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R]"
+              by (metis (full_types) intersect_refusal_trace_concat)
+            then show ?thesis
+              by (metis (no_types) intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
+          qed 
+          have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+            (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by (auto)
+          then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+            apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+            apply (metis CT1_P CT1_def case_assms3(1) intersect_refusal_trace_append_prefix_subset)
+            apply (erule_tac x="[]" in allE, auto)+
+            using CT0_CT1_empty CT0_Q CT1_Q apply blast
+            apply (erule_tac x="W" in allE, auto)
+             apply (metis CT1_Q CT1_def append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+            using case_assms case_assms2 A by (auto)
+        qed
+        then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>1 @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho>1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+          using assm2 by auto
+
+        have p_in_P: "p \<in> P"
+          using CT1_P CT1_def case_assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        have \<rho>1_in_P: "\<rho>1 \<in> P"
+          using CT1_P CT1_def case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset p_in_P by blast
+        have \<rho>_in_P: "\<rho> \<in> P"
+          using CT1_P CT1_def \<rho>1_in_P case_assms2(4) intersect_refusal_trace_prefix_subset by blast
+        have \<rho>_intersect_refusal_trace_idempotent: "\<rho> = intersect_refusal_trace W \<rho>"
+          by (simp add: case_assms2(4) intersect_refusal_trace_idempotent)
+        have \<rho>1_A_in_P: "\<rho>1 @ [[A]\<^sub>R] \<in> P"
+          by (metis CT1_P CT1_def case_assms2(1) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front p_in_P subsetI)
+        have \<rho>_X_in_P: "\<rho>1 @ [[X]\<^sub>R] \<in> P"
+          using CT1_P unfolding CT1_def apply auto apply (erule_tac x="\<rho>1 @ [[X]\<^sub>R]" in allE, auto, erule_tac x="\<rho>1 @ [[A]\<^sub>R]" in allE, auto)
+          using \<rho>1_A_in_P case_assms2(2) ctt_prefix_subset_same_front by fastforce+
+        have \<rho>1_A_intersect_refusal_trace: "\<rho> @ [[X]\<^sub>R] = intersect_refusal_trace W (\<rho>1 @ [[A]\<^sub>R])"
+          by (simp add: Int_commute case_assms2(2) case_assms2(4) intersect_refusal_trace_concat)
+        have \<rho>1_X_intersect_refusal_trace_idempotent: "\<rho> @ [[X]\<^sub>R] = intersect_refusal_trace W (\<rho> @ [[X]\<^sub>R])"
+          by (simp add: \<rho>1_A_intersect_refusal_trace intersect_refusal_trace_idempotent)
+
+        have "{e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[W]\<^sub>R, [e]\<^sub>E] \<in> Q}
+            \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+        proof auto
+          fix x
+          assume case_assms2: "[[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          proof (cases "contains_refusal \<rho>", auto)
+            assume case_assms3: "contains_refusal \<rho>"
+            show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+              unfolding UntimedInterruptCTT_def
+            proof (auto)
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                \<rho> @ [[Tick]\<^sub>E] \<in> P"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            next
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                False"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            next
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                x = Tick"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            qed
+          next
+            assume case_assms3: "\<not> contains_refusal \<rho>"
+            show " \<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+              unfolding UntimedInterruptCTT_def
+            proof (auto)
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> \<rho> @ [[Tick]\<^sub>E] \<in> P"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            next
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> False"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            next
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> x = Tick"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            qed
+          qed
+        next
+          fix x
+          assume case_assms2: "[[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          then show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          proof (cases "contains_refusal \<rho>", auto)
+            assume case_assms3: "contains_refusal \<rho>"
+            show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+              unfolding UntimedInterruptCTT_def
+            proof (auto)
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                \<rho> @ [[Tick]\<^sub>E] \<in> P"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            next
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                False"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            next
+              show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+                x = Tick"
+                apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
+                apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
+                apply (erule_tac x="W" in allE, auto)
+                apply (meson CT1_Q CT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                using \<rho>_intersect_refusal_trace_idempotent by blast
+            qed
+          next
+            assume case_assms3: "\<not> contains_refusal \<rho>"
+            show " \<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+              unfolding UntimedInterruptCTT_def
+            proof (auto)
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> \<rho> @ [[Tick]\<^sub>E] \<in> P"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            next
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> False"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            next
+              show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> x = Tick"
+                using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
+                using \<rho>_in_P \<rho>_non_tick_refusal by blast+
+            qed
+          qed
+        next
+          fix x
+          assume case_assms3: "[[W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q \<Longrightarrow> False"
+            unfolding UntimedInterruptCTT_def
+          proof (auto)
+            show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
+              False"
+              using case_assms case_assms3 apply (erule_tac x="\<rho>" in allE, auto, erule_tac x="X" in allE, auto)
+              using CT1_P CT1_def \<rho>_X_in_P case_assms2(4) intersect_refusal_trace_append_prefix_subset apply blast
+              apply (erule_tac x="W" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
+              using \<rho>1_X_intersect_refusal_trace_idempotent by linarith
+          qed
+        next
+          fix x
+          assume case_assms3: "[[W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (auto)
+            show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
+              \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
+                (\<exists>q X. [[X]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Tock]\<^sub>E] = intersect_refusal_trace X p @ q) "
+              using case_assms case_assms3 apply (erule_tac x="\<rho>" in allE, auto, erule_tac x="X" in allE, auto)
+              apply (metis CT1_P CT1_def \<rho>_X_in_P case_assms2(4) intersect_refusal_trace_append_prefix_subset)
+              apply (erule_tac x="W" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
+              using \<rho>1_X_intersect_refusal_trace_idempotent by linarith
+          qed
+        qed
+        then have 2: "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+          using assm2 by auto
+
+        have 3: "\<rho>1 @ [A]\<^sub>R # \<rho>2 @ [[Z]\<^sub>R] \<in> P"
+          using case_assms(1) case_assms2(1) by auto
+        have 4: "\<rho>1 @ [X]\<^sub>R # \<rho>2 @ [[Z]\<^sub>R] \<in> P"
+          using CT1_P 3 unfolding CT1_def apply auto apply (erule_tac x="\<rho>1 @ [X]\<^sub>R # \<rho>2 @ [[Z]\<^sub>R]" in allE, auto)
+          by (metis case_assms2(2) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl ctt_prefix_subset_same_front inf_le1)
+        have 5: "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z]\<^sub>R] \<in> P"
+          using 1 4 CT2s_P unfolding CT2s_def by auto
+        have 6: "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z \<inter> W]\<^sub>R] \<in> P"
+          using 5 CT1_P unfolding CT1_def apply auto apply (erule_tac x="\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z \<inter> W]\<^sub>R]" in allE, auto)
+          by (metis append_Cons ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front inf_le1)
+        have 7: "[W \<union> Y]\<^sub>R # q \<in> Q"
+          using case_assms(2) 2 CT2s_Q unfolding CT2s_def apply auto
+          apply (erule_tac x="[]" in allE, erule_tac x="q" in allE)
+          by (erule_tac x="W" in allE, erule_tac x="Y" in allE, auto)
+        obtain \<rho>3 where 8: "\<rho>3 = intersect_refusal_trace W \<rho>2"
+          by auto
+        have 11: "\<rho> @ [X \<union> Y]\<^sub>R # \<rho>3 @ [[Z \<inter> W]\<^sub>R] \<subseteq>\<^sub>C \<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z \<inter> W]\<^sub>R]"
+          by (simp add: "8" case_assms2(4) ctt_subset_combine intersect_refusal_trace_subset)
+        have 12: "\<rho> @ [X \<union> Y]\<^sub>R # \<rho>3 @ [[Z \<inter> W]\<^sub>R] \<in> P"
+          using CT1_P ctt_subset_imp_prefix_subset 6 11 unfolding CT1_def by auto
+        have 13: "intersect_refusal_trace W \<rho>1 @ [A \<inter> W \<union> Y]\<^sub>R # intersect_refusal_trace W (\<rho>2 @ [[Z]\<^sub>R]) =
+          intersect_refusal_trace (W \<union> Y) (\<rho> @ [X \<union> Y]\<^sub>R # \<rho>3 @ [[Z \<inter> W]\<^sub>R])"
+          by (smt "8" Int_commute Un_Int_distrib2 \<rho>_intersect_refusal_trace_idempotent case_assms2(2) case_assms2(4)
+              intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat
+              intersect_refusal_trace_idempotent intersect_refusal_trace_idempotent_widen_refusal)
+
+        show "intersect_refusal_trace W \<rho>1 @ [A \<inter> W \<union> Y]\<^sub>R # intersect_refusal_trace W (\<rho>2 @ [[Z]\<^sub>R]) @ q \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def
+        proof auto
+          show "\<forall>p X. p @ [[X]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Ya qa. [Ya]\<^sub>R # qa \<in> Q \<longrightarrow>
+              intersect_refusal_trace W \<rho>1 @ [A \<inter> W \<union> Y]\<^sub>R # intersect_refusal_trace W (\<rho>2 @ [[Z]\<^sub>R]) @ q \<noteq> intersect_refusal_trace Ya (p @ [[X]\<^sub>R]) @ qa) \<Longrightarrow>
+            \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
+              (\<exists>qa X. [[X]\<^sub>R] \<in> Q \<and> qa \<in> Q \<and> (\<forall>q' Y. qa \<noteq> [Y]\<^sub>R # q') \<and>
+              intersect_refusal_trace W \<rho>1 @ [A \<inter> W \<union> Y]\<^sub>R # intersect_refusal_trace W (\<rho>2 @ [[Z]\<^sub>R]) @ q = intersect_refusal_trace X p @ qa)"
+            using 7 12 13 apply (erule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # \<rho>3" in allE, erule_tac x="Z \<inter> W" in allE, auto)
+            by (erule_tac x="W \<union> Y" in allE, erule_tac x="q" in allE, auto)
+        qed
+      next
+        fix \<sigma>1
+        assume case_assms2: "q = \<sigma>1 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'" "\<rho> = intersect_refusal_trace W (p @ [[Z]\<^sub>R]) @ \<sigma>1"
+
+        have "{e. e \<noteq> Tock \<and> [W]\<^sub>R # \<sigma>1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [W]\<^sub>R # \<sigma>1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}
+          \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+        proof auto
+          fix x
+          assume case_assms3: "[W]\<^sub>R # \<sigma>1 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all)
+            show "\<forall>p X. p @ [[X]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms(1) case_assms2(2) case_assms3(1) by (erule_tac x="p" in allE, erule_tac x="Z" in allE, auto)
+          qed
+        next
+          fix x
+          assume case_assms3: "[W]\<^sub>R # \<sigma>1 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all)
+            show "\<forall>p X. p @ [[X]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms(1) case_assms2(2) case_assms3(1) by (erule_tac x="p" in allE, erule_tac x="Z" in allE, auto)
+          qed
+        next
+          assume case_assms3: "[W]\<^sub>R # \<sigma>1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q)"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by auto
+          then show "False"
+            using case_assms(1) case_assms2(2) case_assms3(1) by (erule_tac x="p" in allE, erule_tac x="Z" in allE, auto)
+        next
+          assume case_assms3: "[W]\<^sub>R # \<sigma>1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q)"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by auto
+          then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            using case_assms(1) case_assms2(2) case_assms3(1) by (erule_tac x="p" in allE, erule_tac x="Z" in allE, auto)
+        qed
+        then have "Y \<inter> {e. e \<noteq> Tock \<and> [W]\<^sub>R # \<sigma>1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [W]\<^sub>R # \<sigma>1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+          using assm2 by auto
+        then have "[W]\<^sub>R # \<sigma>1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q"
+          using CT2s_Q case_assms(2) case_assms2(1) unfolding CT2s_def apply auto
+          apply (erule_tac x="[W]\<^sub>R # \<sigma>1" in allE, erule_tac x="[Tock]\<^sub>E # \<sigma>'" in allE)
+          by (erule_tac x="X" in allE, erule_tac x="Y" in allE, auto)
+        then show "intersect_refusal_trace W (p @ [[Z]\<^sub>R]) @ \<sigma>1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def using case_assms(1) by blast
+      qed
+    next
+      fix p q Z
+      assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "contains_refusal p"
+        "[[Z]\<^sub>R] \<in> Q" "q \<in> Q" "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z p @ q"
+
+      have "(\<exists> p1 p2 A. p = p1 @ [A]\<^sub>R # p2 \<and> \<rho> = intersect_refusal_trace Z p1 \<and> X = A \<inter> Z \<and> [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z p2 @ q)
+        \<or> (\<exists> q1 q2. q = q1 @ [X]\<^sub>R # q2 \<and> q2 = [Tock]\<^sub>E # \<sigma>' \<and> \<rho> = intersect_refusal_trace Z p @ q1)"
+        using case_assms(8) apply - apply (induct \<rho> p rule:ctt_subset.induct, auto)
+        apply (rule_tac x="[Y]\<^sub>R # p1" in exI, auto)
+        apply (rule_tac x="[y]\<^sub>E # p1" in exI, auto)
+        apply (rule_tac x="[]" in exI, auto, case_tac v, auto)
+        done
+      then show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
+      proof auto
+        fix p1 p2 A
+        assume case_assms2: "p = p1 @ [A]\<^sub>R # p2" "\<rho> = intersect_refusal_trace Z p1" "[Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z p2 @ q" "X = A \<inter> Z"
+
+        have "{e. e \<noteq> Tock \<and> p1 @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> p1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
+          \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+        proof auto
+          fix x
+          assume case_assms3: "p1 @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all, cases x, cases "contains_refusal p1")
+            fix x1
+            assume "x = Event x1" "contains_refusal p1"
+            then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms3 apply (erule_tac x="p1 @ [[x]\<^sub>E]" in allE, auto)
+              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              apply (erule_tac x="[]" in allE, auto)
+              using CT0_CT1_empty CT0_Q CT1_Q apply blast
+              by (metis case_assms(5) case_assms2(2) contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
+          next
+            fix x1
+            assume "x = Event x1" "\<not> contains_refusal p1"
+            then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms3 apply (erule_tac x="p1 @ [[x]\<^sub>E]" in allE, auto simp add: not_contains_refusal_append_event)
+              using CT0_CT1_empty CT0_Q CT1_Q apply (erule_tac x="[]" in allE, auto)
+              by (simp add: case_assms2(2) not_contains_refusal_intersect_refusal_trace)
+          next
+            show "x = Tock \<Longrightarrow> \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms3(2) by blast
+          next
+            assume " \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> contains_refusal \<rho> \<or> x \<noteq> Tick" "x = Tick"
+            then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms case_assms2 case_assms3 apply auto
+              apply (meson CT1_P CT1_def intersect_refusal_trace_append_prefix_subset)
+              using not_contains_refusal_intersect_refusal_trace apply (rule_tac x="p1" in exI, auto, fastforce)
+              by (smt contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat)
+          qed
+        next
+          fix x
+          assume case_assms3: "p1 @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all, cases x, cases "contains_refusal p1")
+            fix x1
+            assume "x = Event x1" "contains_refusal p1"
+            then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms3 apply (erule_tac x="p1 @ [[x]\<^sub>E]" in allE, auto)
+              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              apply (erule_tac x="[]" in allE, auto)
+              using CT0_CT1_empty CT0_Q CT1_Q apply blast
+              by (metis case_assms(5) case_assms2(2) contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
+          next
+            fix x1
+            assume "x = Event x1" "\<not> contains_refusal p1"
+            then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms3 apply (erule_tac x="p1 @ [[x]\<^sub>E]" in allE, auto simp add: not_contains_refusal_append_event)
+              using CT0_CT1_empty CT0_Q CT1_Q apply (erule_tac x="[]" in allE, auto)
+              by (simp add: case_assms2(2) not_contains_refusal_intersect_refusal_trace)
+          next
+            show "x = Tock \<Longrightarrow> \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms3(2) by blast
+          next
+            assume " \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> contains_refusal \<rho> \<or> x \<noteq> Tick" "x = Tick"
+            then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              using case_assms case_assms2 case_assms3 apply auto
+              apply (meson CT1_P CT1_def intersect_refusal_trace_append_prefix_subset)
+              using not_contains_refusal_intersect_refusal_trace apply (rule_tac x="p1" in exI, auto, fastforce)
+              by (smt contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat)
+          qed
+        next
+          assume case_assms3: "p1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+            (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by auto
+          then show "False"
+            using case_assms3 apply (erule_tac x="p1 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+            apply (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+            apply ((erule_tac x="[]" in allE)+, auto)
+            using CT0_CT1_empty CT0_Q CT1_Q apply blast
+            apply (erule_tac x="Z" in allE, auto)
+            using case_assms(5) apply blast
+            by (smt Int_commute Int_left_absorb case_assms2(2) case_assms2(4) contains_refusal.simps(1) contains_refusal.simps(3)
+                intersect_refusal_trace.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
+        next
+          assume case_assms3: "p1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+            (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by auto
+          then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            using case_assms3 apply (erule_tac x="p1 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+            apply (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+            apply ((erule_tac x="[]" in allE)+, auto)
+            using CT0_CT1_empty CT0_Q CT1_Q apply blast
+            apply (erule_tac x="Z" in allE, auto)
+            using case_assms(5) apply blast
+            by (smt Int_commute Int_left_absorb case_assms2(2) case_assms2(4) contains_refusal.simps(1) contains_refusal.simps(3)
+                intersect_refusal_trace.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
+        qed
+        then have "Y \<inter> {e. e \<noteq> Tock \<and> p1 @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> p1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+          using assm2 by auto
+        then have 1: "p1 @ [X \<union> Y]\<^sub>R # p2 \<in> P"
+          using CT2s_P unfolding CT2s_def apply auto
+          apply (erule_tac x="p1" in allE, erule_tac x="p2" in allE)
+          apply (erule_tac x="X" in allE, erule_tac x="Y" in allE, auto)
+          by (metis CT1_P CT1_def case_assms(1) case_assms2(1) case_assms2(4) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl ctt_prefix_subset_same_front inf_le1)
+        
+        have "{e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> Q}
+          \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+        proof auto
+          fix x
+          assume case_assms3: "[[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all, cases "contains_refusal p1")
+            assume "contains_refusal p1"
+            then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="p1" in allE, auto)
+              using CT1_P CT1_def case_assms(1) case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset apply fastforce
+              apply (metis (no_types, lifting) \<rho>_non_tick_refusal case_assms2(2) contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
+              apply (metis \<rho>_non_tick_refusal case_assms2(2) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat)
+              using case_assms(5) case_assms2(2) case_assms3(1) by blast
+          next
+            assume "\<not> contains_refusal p1"
+            then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="p1" in allE, auto)
+              using CT1_P CT1_def case_assms(1) case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset apply fastforce
+              apply (metis (no_types, lifting) \<rho>_non_tick_refusal case_assms2(2) not_contains_refusal_intersect_refusal_trace)
+              apply (metis \<rho>_non_tick_refusal case_assms2(2) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat)
+              using case_assms2(2) case_assms3(1) not_contains_refusal_intersect_refusal_trace by blast
+          qed
+        next
+          fix x
+          assume case_assms3: "[[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all, cases "contains_refusal p1")
+            assume "contains_refusal p1"
+            then show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="p1" in allE, auto)
+              using CT1_P CT1_def case_assms(1) case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset apply fastforce
+              apply (metis (no_types, lifting) \<rho>_non_tick_refusal case_assms2(2) contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
+              apply (metis \<rho>_non_tick_refusal case_assms2(2) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat)
+              using case_assms(5) case_assms2(2) case_assms3(1) by blast
+          next
+            assume "\<not> contains_refusal p1"
+            then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="p1" in allE, auto)
+              using CT1_P CT1_def case_assms(1) case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset apply fastforce
+              apply (metis (no_types, lifting) \<rho>_non_tick_refusal case_assms2(2) not_contains_refusal_intersect_refusal_trace)
+              apply (metis \<rho>_non_tick_refusal case_assms2(2) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat)
+              using case_assms2(2) case_assms3(1) not_contains_refusal_intersect_refusal_trace by blast
+          qed
+        next
+          assume case_assms3: "[[Z]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q \<Longrightarrow> False"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all)
+            show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>Xa. [[Xa]\<^sub>R] \<in> Q \<and> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] = intersect_refusal_trace Xa (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="p1" in allE, erule_tac x="A" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms2(1) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front subset_iff)
+              using case_assms3 apply (erule_tac x="Z" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
+              by (simp add: Int_commute case_assms2(2) case_assms2(4) intersect_refusal_trace_concat)
+          qed
+        next
+          assume case_assms3: "[[Z]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all)
+            show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tock]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="p1" in allE, erule_tac x="A" in allE, auto)
+              apply (metis CT1_P CT1_def case_assms(1) case_assms2(1) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front subset_iff)
+              using case_assms3 apply (erule_tac x="Z" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
+              by (simp add: Int_commute case_assms2(2) case_assms2(4) intersect_refusal_trace_concat)
+          qed
+        qed
+        then have "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+          using assm2 by auto
+        then have 2: "[[Z \<union> Y]\<^sub>R] \<in> Q"
+          using case_assms(5) CT2s_Q unfolding CT2s_def apply auto
+          by (erule_tac x="[]" in allE, erule_tac x="[]" in allE, auto)
+
+       
+        have 3: "(\<forall>p'. p1 @ [X \<union> Y]\<^sub>R # p2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p1 @ [X \<union> Y]\<^sub>R # p2 \<noteq> p' @ [[Y]\<^sub>R])"
+          using case_assms(1) case_assms(2) apply auto
+          apply (metis append_butlast_last_id append_is_Nil_conv case_assms2(1) cttobs.simps(4) last.simps last_appendR list.simps(3))
+          by (metis append_butlast_last_id append_is_Nil_conv case_assms(3) case_assms2(1) last.simps last_appendR list.distinct(1))
+
+        have 4: "contains_refusal (p1 @ [X \<union> Y]\<^sub>R # p2)"
+          by (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+
+        obtain \<rho>1 where \<rho>1_def: "\<rho>1 = intersect_refusal_trace Z p1"
+          by auto
+        obtain \<rho>2 where \<rho>2_def: "\<rho>2 = intersect_refusal_trace Z p2"
+          by auto
+
+        have 5: "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 \<in> P"
+          using CT1_P unfolding CT1_def apply auto
+          apply (erule_tac x="\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2" in allE, auto, erule_tac x="p1 @ [X \<union> Y]\<^sub>R # p2" in allE, auto)
+          by (simp_all add: 1 \<rho>1_def \<rho>2_def ctt_subset_combine ctt_subset_imp_prefix_subset intersect_refusal_trace_subset)
+  
+        have 6: "contains_refusal (\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2)"
+          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front inf_le1 not_contains_refusal_ctt_prefix_subset_end_nonref)
+
+        have 7: "(\<forall>p'. \<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y1. \<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 \<noteq> p' @ [[Y1]\<^sub>R])"
+        proof auto
+          fix p'
+          assume "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 = p' @ [[Tick]\<^sub>E]"
+          then obtain \<rho>2' where "\<rho>2 = \<rho>2' @ [[Tick]\<^sub>E]"
+            by (metis append_butlast_last_id cttobs.distinct(1) last.simps last_appendR list.distinct(1))
+          then have "\<rho>2' @ [[Tick]\<^sub>E] \<subseteq>\<^sub>C p2"
+            by (simp add: \<rho>2_def intersect_refusal_trace_subset, metis intersect_refusal_trace_subset)
+          then have "\<exists> p2'. p2 = p2' @ [[Tick]\<^sub>E]"
+            apply (induct \<rho>2' p2 rule:ctt_subset.induct, auto, case_tac v, auto)
+            by (metis Cons_eq_append_conv ctt_subset_same_length length_0_conv)+
+          then show False
+            using "3" by auto
+        next
+          fix p' Y1
+          assume "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 = p' @ [[Y1]\<^sub>R]"
+          then obtain \<rho>2' where "\<rho>2 = \<rho>2' @ [[Y1]\<^sub>R]"
+            by (metis \<rho>2_def append_butlast_last_id case_assms(3) case_assms2(1) intersect_refusal_trace.elims last.simps last_appendR list.distinct(1))
+          then have "\<rho>2' @ [[Y1]\<^sub>R] \<subseteq>\<^sub>C p2"
+            by (simp add: \<rho>2_def intersect_refusal_trace_subset, metis intersect_refusal_trace_subset)
+          then have "\<exists> p2' X. p2 = p2' @ [[X]\<^sub>R]"
+            apply -
+            apply (induct \<rho>2' p2 rule:ctt_subset.induct, auto, case_tac v, auto)
+            using ctt_subset.elims(2) by fastforce
+          then show False
+            using case_assms(3) case_assms2(1) by auto
+        qed 
+
+        show "intersect_refusal_trace Z p1 @ [A \<inter> Z \<union> Y]\<^sub>R # intersect_refusal_trace Z p2 @ q \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def apply auto
+          apply (rule_tac x="\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2" in exI, auto)
+          using 5 6 7 apply (blast, blast, blast, blast)
+          apply (rule_tac x="q" in exI, rule_tac x="Z \<union> Y" in exI, auto)
+          using 2 case_assms(6) case_assms(7) apply (blast, blast, blast)
+        proof -
+          have "intersect_refusal_trace Z p1 @ [A \<inter> Z]\<^sub>R # intersect_refusal_trace Z p2 = intersect_refusal_trace Z (p1 @ [A]\<^sub>R # p2)"
+            by (simp add: Int_commute intersect_refusal_trace_concat)
+          then show "intersect_refusal_trace Z p1 @ [A \<inter> Z \<union> Y]\<^sub>R # intersect_refusal_trace Z p2 = intersect_refusal_trace (Z \<union> Y) (\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2)"
+            using \<rho>1_def \<rho>2_def case_assms2(4) intersect_refusal_trace_refusal_subset_idempotent by blast
+        qed
+      next
+        fix q1
+        assume case_assms2: "q = q1 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'" "\<rho> = intersect_refusal_trace Z p @ q1"
+
+        have "{e. e \<noteq> Tock \<and> q1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> q1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}
+          \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+        proof auto
+          fix x
+          assume case_assms3: "q1 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all)
+            show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="p" in allE, auto simp add: case_assms)
+              apply (erule_tac x="q1 @ [[x]\<^sub>E]" in allE, auto simp add: case_assms3)
+              apply (erule_tac x="Z" in allE, auto simp add: case_assms case_assms2)
+              by (metis append_eq_Cons_conv case_assms(7) case_assms2(1))
+          qed
+        next
+          fix x
+          assume case_assms3: "q1 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+          show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            unfolding UntimedInterruptCTT_def
+          proof (safe, simp_all)
+            show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+                (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
+              \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+              apply (erule_tac x="p" in allE, auto simp add: case_assms)
+              apply (erule_tac x="q1 @ [[x]\<^sub>E]" in allE, auto simp add: case_assms3)
+              apply (erule_tac x="Z" in allE, auto simp add: case_assms case_assms2)
+              by (metis append_eq_Cons_conv case_assms(7) case_assms2(1))
+          qed
+        next
+          assume case_assms3: "q1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+            (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by auto
+          then show "False"
+            apply (erule_tac x="p" in allE, auto simp add: case_assms)
+            apply (erule_tac x="q1 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+            apply (erule_tac x="Z" in allE, auto simp add: case_assms case_assms2)
+            by (metis append_eq_Cons_conv case_assms(7) case_assms2(1))
+        next
+          assume case_assms3: "q1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+          have "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
+            (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q))"
+            using case_assms3(2) unfolding UntimedInterruptCTT_def by auto
+          then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            apply (erule_tac x="p" in allE, auto simp add: case_assms)
+            apply (erule_tac x="q1 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+            apply (erule_tac x="Z" in allE, auto simp add: case_assms case_assms2)
+            by (metis append_eq_Cons_conv case_assms(7) case_assms2(1))
+        qed
+        then have "Y \<inter> {e. e \<noteq> Tock \<and> q1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> q1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+          using assm2 by auto
+        then have "q1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q"
+          using CT2s_Q case_assms case_assms2 unfolding CT2s_def by auto
+        then show "intersect_refusal_trace Z p @ q1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def apply auto
+          apply (rule_tac x="p" in exI, auto simp add: case_assms case_assms2)
+          apply (rule_tac x="q1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'" in exI, auto simp add: case_assms case_assms2)
+          apply (rule_tac x="Z" in exI, auto simp add: case_assms case_assms2)
+          by (metis Cons_eq_append_conv append_Cons case_assms(7) case_assms2(1))
+      qed
+    next
+      fix p q
+      assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "\<not> contains_refusal p"
+        "q \<in> Q" "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ q"
+      obtain q1 where "q = q1 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<and> \<rho> = p @ q1"
+        using case_assms(4) case_assms(7) apply - by (induct \<rho> p rule:ctt_subset.induct, auto)
+      also have "{e. e \<noteq> Tock \<and> q1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> q1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
+      proof auto
+        fix x
+        assume case_assms2: "q1 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def
+        proof (safe, simp_all)
+          show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+            \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+            apply (erule_tac x="p" in allE, auto simp add: case_assms)
+            apply (erule_tac x="q1 @ [[x]\<^sub>E]" in allE, auto simp add: case_assms case_assms2 calculation)
+            by (metis append_eq_Cons_conv calculation case_assms(6))
+        qed
+      next
+        fix x
+        assume case_assms2: "q1 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+          unfolding UntimedInterruptCTT_def
+        proof (safe, simp_all)
+          show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+              (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
+            \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+            apply (erule_tac x="p" in allE, auto simp add: case_assms)
+            apply (erule_tac x="q1 @ [[x]\<^sub>E]" in allE, auto simp add: case_assms case_assms2 calculation)
+            by (metis append_eq_Cons_conv calculation case_assms(6))
+        qed
+      next
+        assume case_assms2: "q1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+        have "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+          (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> p @ q)"
+          using case_assms2(2) unfolding UntimedInterruptCTT_def by auto
+        then show "False"
+            apply (erule_tac x="p" in allE, auto simp add: case_assms)
+            apply (erule_tac x="q1 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms case_assms2 calculation)
+          by (metis append_eq_Cons_conv calculation case_assms(6))
+      next
+        assume case_assms2: "q1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
+        have "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+          (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> p @ q)"
+          using case_assms2(2) unfolding UntimedInterruptCTT_def by auto
+        then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
+            apply (erule_tac x="p" in allE, auto simp add: case_assms)
+            apply (erule_tac x="q1 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms case_assms2 calculation)
+          by (metis append_eq_Cons_conv calculation case_assms(6))
+      qed
+      then have "Y \<inter> {e. e \<noteq> Tock \<and> q1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> q1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        using assm2 by auto
+      then have "q1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q"
+        using CT2s_Q case_assms calculation unfolding CT2s_def by auto
+      then show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
+        unfolding UntimedInterruptCTT_def
+      proof auto
+        show "q1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q \<Longrightarrow>
+          \<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
+            (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<noteq> p @ q) \<Longrightarrow>
+          \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
+            (\<exists>q Xa. [[Xa]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Xa p @ q)"
+          apply (erule_tac x="p" in allE, auto simp add: case_assms)
+          apply (erule_tac x="q1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'" in allE, auto simp add: case_assms calculation)
+          by (metis append_eq_Cons_conv calculation case_assms(6))
+      qed
+    qed
+  qed
+qed
+
 lemma CT3_trace_intersect_refusal_trace:
   "CT3_trace t \<Longrightarrow> CT3_trace (intersect_refusal_trace X t)"
   by (induct t rule:CT3_trace.induct, auto, case_tac x, auto, case_tac vb, auto)
@@ -2099,6 +3547,594 @@ proof auto
       unfolding TimeSyncInterruptCTT_def
       apply (auto, erule_tac x=p in allE, auto simp add: case_assms, erule_tac x="q2 @ [[X \<union> Y]\<^sub>R]" in allE, auto simp add: case_assms)
       by (metis (no_types, lifting) Cons_eq_append_conv append_Cons case_assms(5))
+  qed
+qed
+
+lemma CT2s_TimeSyncInterrupt:
+  assumes P_wf: "\<forall>x\<in>P. cttWF x" assumes Q_wf: "\<forall>x\<in>Q. cttWF x"
+  assumes CT1_P: "CT1 P" and CT1_Q: "CT1 Q"
+  assumes CT2_P: "CT2 P" and CT2_Q: "CT2 Q"
+  assumes CT2s_P: "CT2s P" and CT2s_Q: "CT2s Q"
+  assumes CT3_P: "CT3 P" and CT3_Q: "CT3 Q"
+  shows "CT2s (P \<triangle>\<^sub>T Q)"
+  unfolding CT2s_def
+proof auto
+  fix \<rho> \<sigma> X Y
+  assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>T Q"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q} = {}"
+  have "cttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
+    using P_wf Q_wf TimeSyncInterruptCTT_wf assm1 by blast
+  then have "\<sigma> = [] \<or> (\<exists> \<sigma>'. \<sigma> = [Tock]\<^sub>E # \<sigma>')"
+    by (induct \<rho> rule:cttWF.induct, auto, cases \<sigma> rule:cttWF.cases, auto)
+  then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>T Q"
+  proof auto
+    assume "\<sigma> = []"
+    then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+      using CT1_P CT1_Q CT2_P CT2_Q CT2_TimeSyncInterrupt CT2_def CT3_P CT3_Q P_wf assm1 assm2 by blast
+  next
+    fix \<sigma>'
+    assume case_assm: "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
+    have "(\<exists> \<sigma>'' q1 q2. \<sigma>' = \<sigma>'' @ [[Tick]\<^sub>E] \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<and> q1 @ [X]\<^sub>R # [Tock]\<^sub>E # q2 \<in> Q
+        \<and> filter_tocks \<rho> = q1 \<and> filter_tocks \<sigma>'' = q2)
+      \<or> (\<exists> \<sigma>'' q1 q2 Y Z W. \<sigma>' = \<sigma>'' @ [[W]\<^sub>R] \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Y]\<^sub>R] \<in> P \<and> q1 @ [X]\<^sub>R # [Tock]\<^sub>E # q2 @ [[Z]\<^sub>R] \<in> Q
+        \<and> filter_tocks \<rho> = q1 \<and> filter_tocks \<sigma>'' = q2 \<and> W \<subseteq> Y \<union> Z \<and> {e \<in> Y. e \<noteq> Tock} = {e \<in> Z. e \<noteq> Tock})
+      \<or> (\<exists> p2 q1 q2 q3. \<sigma>' = p2 @ q3 \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P \<and> filter_tocks \<rho> = q1 \<and> filter_tocks p2 = q2 \<and> (\<nexists> Ya q'. q3 = [Ya]\<^sub>R # q')
+        \<and> q1 @ [X]\<^sub>R # [Tock]\<^sub>E # q2 @ q3 \<in> Q \<and> (\<nexists>p'. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 = p' @ [[Y]\<^sub>R]))
+      \<or> (\<exists> p q1 q2. \<rho> = p @ q2 \<and> p \<in> P \<and> filter_tocks p = q1 \<and> q1 @ q2 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q \<and> (\<nexists> Ya q'. q2 = [Ya]\<^sub>R # q') \<and> q2 \<noteq> []
+        \<and> (\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]))"
+      using assm1 case_assm unfolding TimeSyncInterruptCTT_def
+    proof (safe, simp_all)
+      fix p
+      assume case_assms2: "p @ [[Tick]\<^sub>E] \<in> P" "filter_tocks p \<in> Q" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ [[Tick]\<^sub>E]" "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
+      obtain \<sigma>'' where 1: "p = \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>''"
+        by (metis butlast.simps(2) butlast_append butlast_snoc case_assms2(3) cttWF.simps(3) cttWF.simps(6) last.simps last_appendR list.distinct(1))
+      have 2: "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+      show "\<forall>\<sigma>''. \<sigma>' = \<sigma>'' @ [[Tick]\<^sub>E] \<longrightarrow> filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' \<notin> Q \<Longrightarrow>
+        \<exists>p2 q3. \<sigma>' = p2 @ q3 \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P \<and> (\<forall>Ya q'. q3 \<noteq> [Ya]\<^sub>R # q') \<and> filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2 @ q3 \<in> Q \<and>
+          (\<forall>p'. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Y]\<^sub>R])"
+        using 1 2 case_assms2 by (erule_tac x="\<sigma>''" in allE, auto)
+    next
+      fix p Xa Y Z
+      assume case_assms2: "p @ [[Xa]\<^sub>R] \<in> P" "filter_tocks p @ [[Y]\<^sub>R] \<in> Q" "Z \<subseteq> Xa \<union> Y" "{e \<in> Xa. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock}"
+        "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ [[Z]\<^sub>R]" "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
+      obtain \<sigma>'' where 1: "\<sigma>' = \<sigma>'' @ [[Z]\<^sub>R]"
+        by (metis append_butlast_last_id case_assms2(5) cttobs.distinct(1) last.simps last_appendR list.simps(3))
+      have 2: "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>''"
+        by (induct \<rho> rule:filter_tocks.induct, auto)
+      show "\<forall>\<sigma>'' Y Z W. W \<subseteq> Y \<union> Z \<longrightarrow> filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' @ [[Z]\<^sub>R] \<in> Q \<longrightarrow>
+          \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Y]\<^sub>R] \<in> P \<longrightarrow> \<sigma>' = \<sigma>'' @ [[W]\<^sub>R] \<longrightarrow> {e \<in> Y. e \<noteq> Tock} \<noteq> {e \<in> Z. e \<noteq> Tock} \<Longrightarrow>
+        \<exists>p2 q3. \<sigma>' = p2 @ q3 \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P \<and> (\<forall>Ya q'. q3 \<noteq> [Ya]\<^sub>R # q') \<and> filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2 @ q3 \<in> Q \<and>
+          (\<forall>p'. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Y]\<^sub>R])"
+        using 1 2 case_assms2 by auto
+    next
+      fix p q2
+      assume case_assms2: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "filter_tocks p @ q2 \<in> Q"
+        "\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q'" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ q2" "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
+      have "(\<exists> p2. p = \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<and> \<sigma>' = p2 @ q2)
+        \<or> (\<exists> q21 q22. \<rho> = p @ q21 \<and> q2 = q21 @ [X]\<^sub>R # [Tock]\<^sub>E # q22)"
+        using case_assms2(6) by (induct \<rho> p rule:ctt_subset.induct, auto, metis Cons_eq_append_conv case_assms2(3))
+      then show "\<forall>p q2. filter_tocks p @ q2 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q \<longrightarrow>
+          p \<in> P \<longrightarrow> \<rho> = p @ q2 \<longrightarrow> (\<exists>Ya q'. q2 = [Ya]\<^sub>R # q') \<or> q2 = [] \<or> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<Longrightarrow>
+        \<exists>p2 q3. \<sigma>' = p2 @ q3 \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P \<and> (\<forall>Ya q'. q3 \<noteq> [Ya]\<^sub>R # q') \<and> filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2 @ q3 \<in> Q \<and>
+          (\<forall>p'. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Y]\<^sub>R])"
+      proof auto
+        fix p2
+        assume case_assms3: "p = \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2" "\<sigma>' = p2 @ q2"
+        have 1: "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2) = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2)"
+            by (induct \<rho> rule:filter_tocks.induct, auto)
+        show "\<exists>p2a q3. p2 @ q2 = p2a @ q3 \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2a \<in> P \<and> (\<forall>Ya q'. q3 \<noteq> [Ya]\<^sub>R # q') \<and> filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2a @ q3 \<in> Q \<and>
+          (\<forall>p'. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2a \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2a \<noteq> p' @ [[Y]\<^sub>R])"
+          using case_assms2 case_assms3 1 by auto
+      next
+        fix q21 q22
+        assume case_assms3: "\<rho> = p @ q21" "q2 = q21 @ [X]\<^sub>R # [Tock]\<^sub>E # q22"
+        have 1: "filter_tocks p @ q21 @ [X]\<^sub>R # [Tock]\<^sub>E # q22 \<in> Q"
+          using case_assms2(4) case_assms3(2) by blast
+        have 2: "(\<nexists>p'. q21 = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. q21 = p' @ [[Y]\<^sub>R])"
+        proof auto
+          fix p'
+          assume "q21 = p' @ [[Tick]\<^sub>E]"
+          then have "filter_tocks p @ p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # q22 \<in> Q"
+            using 1 case_assms3 by auto
+          then have "cttWF (filter_tocks p @ p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
+            using Q_wf by blast
+          then have "cttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
+            by (induct p rule:filter_tocks.induct, auto)
+          then show "False"
+            by (induct p' rule:cttWF.induct, auto)
+        next
+          fix p' Y
+          assume "q21 = p' @ [[Y]\<^sub>R]"
+          then have "filter_tocks p @ p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # q22 \<in> Q"
+            using 1 case_assms3 by auto
+          then have "cttWF (filter_tocks p @ p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
+            using Q_wf by blast
+          then have "cttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
+            by (induct p rule:filter_tocks.induct, auto)
+          then show "False"
+            by (induct p' rule:cttWF.induct, auto)
+        qed
+        show "\<forall>pa q2. filter_tocks pa @ q2 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q \<longrightarrow> pa \<in> P \<longrightarrow>
+            p @ q21 = pa @ q2 \<longrightarrow> (\<exists>Ya q'. q2 = [Ya]\<^sub>R # q') \<or> q2 = [] \<or> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<Longrightarrow>
+          \<exists>p2 q3. \<sigma>' = p2 @ q3 \<and> p @ q21 @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P \<and> (\<forall>Ya q'. q3 \<noteq> [Ya]\<^sub>R # q') \<and> filter_tocks (p @ q21) @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2 @ q3 \<in> Q \<and>
+            (\<forall>p'. p @ q21 @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p @ q21 @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Y]\<^sub>R])"
+          using 1 case_assms2 case_assms3 by (erule_tac x="p" in allE, auto)
+      qed
+    qed
+    then show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>T Q"
+    proof (safe)
+      fix \<sigma>''
+      assume case_assms2: "\<sigma>' = \<sigma>'' @ [[Tick]\<^sub>E]" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E] \<in> P" "filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' \<in> Q"
+      have 1: "(\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R])"
+      proof auto
+        fix p'
+        assume "\<rho> = p' @ [[Tick]\<^sub>E]"
+        then have "p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E] \<in> P"
+          using case_assms2 by auto
+        then have "cttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E])"
+          using P_wf by blast
+        then show False
+          by (induct p' rule:cttWF.induct, auto)
+      next
+        fix p' Y
+        assume "\<rho> = p' @ [[Y]\<^sub>R]"
+        then have "p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E] \<in> P"
+          using case_assms2 by auto
+        then have "cttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E])"
+          using P_wf by blast
+        then show False
+          by (induct p' rule:cttWF.induct, auto)
+      qed
+      have 2: "\<rho> \<in> P"
+        using CT1_P CT1_def case_assms2(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+      have 3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        using CT1_P case_assms2(2) ctt_prefix_subset_same_front unfolding CT1_def by fastforce
+      have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      proof auto
+        fix x
+        assume case_assms3:  "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') \<in> Q"
+          using case_assms2(3) by auto
+        then have 1: "filter_tocks \<rho> \<in> Q"
+          using CT1_Q CT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          using case_assms3 unfolding TimeSyncInterruptCTT_def
+        proof (cases x, auto)
+          fix x1
+          assume case_assms4: "\<rho> @ [[Event x1]\<^sub>E] \<in> P" "x = Event x1"
+          show "\<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and>
+            (\<exists>q2. filter_tocks p @ q2 \<in> Q \<and> (\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Event x1]\<^sub>E] = p @ q2)"
+            using 1 case_assms4 by (rule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in exI, auto simp add: filter_tocks_end_event)
+        next
+          show "filter_tocks \<rho> \<in> Q"
+            using 1 by auto
+        qed
+      next
+        fix x
+        assume case_assms3:  "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') \<in> Q"
+          using case_assms2(3) by auto
+        then have 1: "filter_tocks \<rho> \<in> Q"
+          using CT1_Q CT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          using case_assms3 unfolding TimeSyncInterruptCTT_def
+        proof (cases x, auto)
+          fix x1
+          assume case_assms4: "\<rho> @ [[Event x1]\<^sub>E] \<in> P" "x = Event x1"
+          show "\<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and>
+            (\<exists>q2. filter_tocks p @ q2 \<in> Q \<and> (\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Event x1]\<^sub>E] = p @ q2)"
+            using 1 case_assms4 by (rule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in exI, auto simp add: filter_tocks_end_event)
+        next
+          show "filter_tocks \<rho> \<in> Q"
+            using 1 by auto
+        qed
+      next
+        assume case_assms3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') \<in> Q"
+          using case_assms2(3) by auto
+        then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          using CT1_Q unfolding CT1_def apply auto
+          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+        then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
+          unfolding TimeSyncInterruptCTT_def apply (auto)
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+          by (erule_tac x="[]" in allE, auto simp add: filter_tocks_end_ref_tock)
+      next
+        assume case_assms3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') \<in> Q"
+          using case_assms2(3) by auto
+        then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          using CT1_Q unfolding CT1_def apply auto
+          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+        then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def apply (auto)
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+          by (erule_tac x="[]" in allE, auto simp add: filter_tocks_end_ref_tock)
+      qed
+      then have 4: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+        using assm2 by auto
+      have "{e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      proof auto
+        fix x
+        assume case_assms3: "filter_tocks \<rho> @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def using 1 2 case_assms3 by auto
+      next
+        fix x
+        assume case_assms3: "filter_tocks \<rho> @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def using 1 2 case_assms3 by auto
+      next
+        assume case_assms3: "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
+          unfolding TimeSyncInterruptCTT_def case_assms3 filter_tocks_end_ref_tock 1 2 3 apply auto
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: 1 2 3)
+          by (erule_tac x="[]" in allE, auto simp add: case_assms3 filter_tocks_end_ref_tock)
+      next
+        assume case_assms3: "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def case_assms3 filter_tocks_end_ref_tock 1 2 3 apply auto
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: 1 2 3)
+          by (erule_tac x="[]" in allE, auto simp add: case_assms3 filter_tocks_end_ref_tock)
+      qed
+      then have 5: "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        using assm2 by auto
+      have 6: "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E] \<in> P"
+        using CT2s_P case_assms2 4 unfolding CT2s_def by auto
+      have 7: "filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' \<in> Q"
+        using CT2s_Q case_assms2 5 unfolding CT2s_def by auto
+      have 8: "filter_tocks (\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>''"
+        by (induct \<rho> rule:filter_tocks.induct, auto)
+      show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+        unfolding TimeSyncInterruptCTT_def using 6 7 8 by auto
+    next
+      fix \<sigma>'' Ya Z W
+      assume case_assms2: "\<sigma>' = \<sigma>'' @ [[W]\<^sub>R]" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R] \<in> P"
+        "filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' @ [[Z]\<^sub>R] \<in> Q" "W \<subseteq> Ya \<union> Z" "{e \<in> Ya. e \<noteq> Tock} = {e \<in> Z. e \<noteq> Tock}"
+      have 1: "(\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R])"
+      proof auto
+        fix p'
+        assume "\<rho> = p' @ [[Tick]\<^sub>E]"
+        then have "p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R] \<in> P"
+          using case_assms2 by auto
+        then have "cttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R])"
+          using P_wf by blast
+        then show False
+          by (induct p' rule:cttWF.induct, auto)
+      next
+        fix p' Y
+        assume "\<rho> = p' @ [[Y]\<^sub>R]"
+        then have "p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R] \<in> P"
+          using case_assms2 by auto
+        then have "cttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R])"
+          using P_wf by blast
+        then show False
+          by (induct p' rule:cttWF.induct, auto)
+      qed
+      have 2: "\<rho> \<in> P"
+        using CT1_P CT1_def case_assms2(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+      have 3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        using CT1_P case_assms2(2) ctt_prefix_subset_same_front unfolding CT1_def by fastforce
+      have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      proof auto
+        fix x
+        assume case_assms3:  "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') @ [[Z]\<^sub>R] \<in> Q"
+          using case_assms2 by auto
+        then have 1: "filter_tocks \<rho> \<in> Q"
+          using CT1_Q CT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          using case_assms3 unfolding TimeSyncInterruptCTT_def
+        proof (cases x, auto)
+          fix x1
+          assume case_assms4: "\<rho> @ [[Event x1]\<^sub>E] \<in> P" "x = Event x1"
+          show "\<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and>
+            (\<exists>q2. filter_tocks p @ q2 \<in> Q \<and> (\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Event x1]\<^sub>E] = p @ q2)"
+            using 1 case_assms4 by (rule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in exI, auto simp add: filter_tocks_end_event)
+        next
+          show "filter_tocks \<rho> \<in> Q"
+            using 1 by auto
+        qed
+      next
+        fix x
+        assume case_assms3:  "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') @ [[Z]\<^sub>R] \<in> Q"
+          using case_assms2 by auto
+        then have 1: "filter_tocks \<rho> \<in> Q"
+          using CT1_Q CT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          using case_assms3 unfolding TimeSyncInterruptCTT_def
+        proof (cases x, auto)
+          fix x1
+          assume case_assms4: "\<rho> @ [[Event x1]\<^sub>E] \<in> P" "x = Event x1"
+          show "\<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and>
+            (\<exists>q2. filter_tocks p @ q2 \<in> Q \<and> (\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Event x1]\<^sub>E] = p @ q2)"
+            using 1 case_assms4 by (rule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in exI, auto simp add: filter_tocks_end_event)
+        next
+          show "filter_tocks \<rho> \<in> Q"
+            using 1 by auto
+        qed
+      next
+        assume case_assms3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') @ [[Z]\<^sub>R] \<in> Q"
+          using case_assms2(3) case_assms2(4) by auto
+        then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          using CT1_Q unfolding CT1_def apply auto
+          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+        then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
+          unfolding TimeSyncInterruptCTT_def apply (auto)
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+          by (erule_tac x="[]" in allE, auto simp add: filter_tocks_end_ref_tock)
+      next
+        assume case_assms3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') @ [[Z]\<^sub>R] \<in> Q"
+          using case_assms2(3) case_assms2(4) by auto
+        then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          using CT1_Q unfolding CT1_def apply auto
+          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+        then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def apply (auto)
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+          by (erule_tac x="[]" in allE, auto simp add: filter_tocks_end_ref_tock)
+      qed
+      then have 4: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+        using assm2 by auto
+      have "{e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      proof auto
+        fix x
+        assume case_assms3: "filter_tocks \<rho> @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def using 1 2 case_assms3 by auto
+      next
+        fix x
+        assume case_assms3: "filter_tocks \<rho> @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def using 1 2 case_assms3 by auto
+      next
+        assume case_assms3: "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
+          unfolding TimeSyncInterruptCTT_def case_assms3 filter_tocks_end_ref_tock 1 2 3 apply auto
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: 1 2 3)
+          by (erule_tac x="[]" in allE, auto simp add: case_assms3 filter_tocks_end_ref_tock)
+      next
+        assume case_assms3: "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def case_assms3 filter_tocks_end_ref_tock 1 2 3 apply auto
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: 1 2 3)
+          by (erule_tac x="[]" in allE, auto simp add: case_assms3 filter_tocks_end_ref_tock)
+      qed
+      then have 5: "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        using assm2 by auto
+      have 6: "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R] \<in> P"
+        using CT2s_P case_assms2 4 unfolding CT2s_def by auto
+      have 7: "filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' @ [[Z]\<^sub>R] \<in> Q"
+        using CT2s_Q case_assms2 5 unfolding CT2s_def by auto
+      have 8: "filter_tocks (\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>''"
+        by (induct \<rho> rule:filter_tocks.induct, auto)
+      show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[W]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
+        unfolding TimeSyncInterruptCTT_def using case_assms2 6 7 8 by force
+    next
+      fix p2 q3
+      assume case_assms2: "\<sigma>' = p2 @ q3" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P" "filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2 @ q3 \<in> Q"
+        "\<nexists>p'. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 = p' @ [[Tick]\<^sub>E]" "\<nexists>p' Y. \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 = p' @ [[Y]\<^sub>R]" "\<nexists>Ya q'. q3 = [Ya]\<^sub>R # q'"
+      have 1: "(\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R])"
+      proof auto
+        fix p'
+        assume "\<rho> = p' @ [[Tick]\<^sub>E]"
+        then have "p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P"
+          using case_assms2 by auto
+        then have "cttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # p2)"
+          using P_wf by blast
+        then show False
+          by (induct p' rule:cttWF.induct, auto)
+      next
+        fix p' Y
+        assume "\<rho> = p' @ [[Y]\<^sub>R]"
+        then have "p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P"
+          using case_assms2 by auto
+        then have "cttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # p2)"
+          using P_wf by blast
+        then show False
+          by (induct p' rule:cttWF.induct, auto)
+      qed
+      have 2: "\<rho> \<in> P"
+        using CT1_P CT1_def case_assms2(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+      have 3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        using CT1_P case_assms2(2) ctt_prefix_subset_same_front unfolding CT1_def by fastforce
+      have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      proof auto
+        fix x
+        assume case_assms3:  "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2) = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2)"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2) @ q3 \<in> Q"
+          using case_assms2 by auto
+        then have 1: "filter_tocks \<rho> \<in> Q"
+          using CT1_Q CT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          using case_assms3 unfolding TimeSyncInterruptCTT_def
+        proof (cases x, auto)
+          fix x1
+          assume case_assms4: "\<rho> @ [[Event x1]\<^sub>E] \<in> P" "x = Event x1"
+          show "\<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and>
+            (\<exists>q2. filter_tocks p @ q2 \<in> Q \<and> (\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Event x1]\<^sub>E] = p @ q2)"
+            using 1 case_assms4 by (rule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in exI, auto simp add: filter_tocks_end_event)
+        next
+          show "filter_tocks \<rho> \<in> Q"
+            using 1 by auto
+        qed
+      next
+        fix x
+        assume case_assms3:  "\<rho> @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2) = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2)"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2) @ q3 \<in> Q"
+          using case_assms2 by auto
+        then have 1: "filter_tocks \<rho> \<in> Q"
+          using CT1_Q CT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          using case_assms3 unfolding TimeSyncInterruptCTT_def
+        proof (cases x, auto)
+          fix x1
+          assume case_assms4: "\<rho> @ [[Event x1]\<^sub>E] \<in> P" "x = Event x1"
+          show "\<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and>
+            (\<exists>q2. filter_tocks p @ q2 \<in> Q \<and> (\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Event x1]\<^sub>E] = p @ q2)"
+            using 1 case_assms4 by (rule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in exI, auto simp add: filter_tocks_end_event)
+        next
+          show "filter_tocks \<rho> \<in> Q"
+            using 1 by auto
+        qed
+      next
+        assume case_assms3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2) = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2)"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2) @ q3 \<in> Q"
+          using case_assms2(3) case_assms2(4) by auto
+        then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          using CT1_Q unfolding CT1_def apply auto
+          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+        then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
+          unfolding TimeSyncInterruptCTT_def apply (auto)
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+          by (erule_tac x="[]" in allE, auto simp add: filter_tocks_end_ref_tock)
+      next
+        assume case_assms3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+        have "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2) = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2)"
+          by (induct \<rho> rule:filter_tocks.induct, auto)
+        then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2) @ q3 \<in> Q"
+          using case_assms2(3) case_assms2(4) by auto
+        then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+          using CT1_Q unfolding CT1_def apply auto
+          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+        then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def apply (auto)
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+          by (erule_tac x="[]" in allE, auto simp add: filter_tocks_end_ref_tock)
+      qed
+      then have 4: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+        using assm2 by auto
+      have "{e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      proof auto
+        fix x
+        assume case_assms3: "filter_tocks \<rho> @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def using 1 2 case_assms3 by auto
+      next
+        fix x
+        assume case_assms3: "filter_tocks \<rho> @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def using 1 2 case_assms3 by auto
+      next
+        assume case_assms3: "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
+          unfolding TimeSyncInterruptCTT_def case_assms3 filter_tocks_end_ref_tock 1 2 3 apply auto
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: 1 2 3)
+          by (erule_tac x="[]" in allE, auto simp add: case_assms3 filter_tocks_end_ref_tock)
+      next
+        assume case_assms3: "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def case_assms3 filter_tocks_end_ref_tock 1 2 3 apply auto
+          apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: 1 2 3)
+          by (erule_tac x="[]" in allE, auto simp add: case_assms3 filter_tocks_end_ref_tock)
+      qed
+      then have 5: "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        using assm2 by auto
+      have 6: "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P"
+        using CT2s_P case_assms2 4 unfolding CT2s_def by auto
+      have 7: "filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2 @ q3 \<in> Q"
+        using CT2s_Q case_assms2 5 unfolding CT2s_def by auto
+      have 8: "filter_tocks (\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2) = filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2"
+        by (induct \<rho> rule:filter_tocks.induct, auto)
+      have 9: "(\<forall>p'. \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Ya. \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Ya]\<^sub>R])"
+      proof auto
+        fix p'
+        assume "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 = p' @ [[Tick]\<^sub>E]"
+        then have "\<exists> p''. p2 = p'' @ [[Tick]\<^sub>E]"
+          by (metis append_butlast_last_id cttevent.simps(7) cttobs.inject(1) last.simps last_appendR list.distinct(1))
+        then show False
+          using case_assms2(4) by auto
+      next
+        fix p' Ya
+        assume "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 = p' @ [[Ya]\<^sub>R]"
+        then have "\<exists> p''. p2 = p'' @ [[Ya]\<^sub>R]"
+          by (metis append_butlast_last_id cttobs.distinct(1) last.simps last_appendR list.distinct(1))
+        then show False
+          using case_assms2(5) by auto
+      qed
+      show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 @ q3 \<in> P \<triangle>\<^sub>T Q"
+        unfolding TimeSyncInterruptCTT_def using case_assms2 6 7 8 9 by auto
+    next
+      fix p q2
+      assume case_assms2: "\<rho> = p @ q2" "p \<in> P" "filter_tocks p @ q2 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q" "\<nexists>Ya q'. q2 = [Ya]\<^sub>R # q'"
+        "q2 \<noteq> []" "\<nexists>p'. p = p' @ [[Tick]\<^sub>E]" "\<nexists>p' Y. p = p' @ [[Y]\<^sub>R]"
+      have "{e. e \<noteq> Tock \<and> filter_tocks p @ q2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks p @ q2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
+      proof auto
+        fix x
+        assume case_assms3: "filter_tocks p @ q2 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def using case_assms3 apply (safe, simp_all)
+          apply (erule_tac x="p" in allE, simp add: case_assms2)
+          apply (erule_tac x="q2 @ [[x]\<^sub>E]" in allE, simp add: case_assms3)
+          by (simp add: append_eq_Cons_conv case_assms2(4))
+      next
+        fix x
+        assume case_assms3: "filter_tocks p @ q2 @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
+        show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def using case_assms3 apply (safe, simp_all)
+          apply (erule_tac x="p" in allE, simp add: case_assms2)
+          apply (erule_tac x="q2 @ [[x]\<^sub>E]" in allE, simp add: case_assms3)
+          by (simp add: append_eq_Cons_conv case_assms2(4))
+      next
+        assume case_assms3: "filter_tocks p @ q2 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
+          unfolding TimeSyncInterruptCTT_def case_assms3 filter_tocks_end_ref_tock apply auto
+          apply (erule_tac x="p" in allE, auto simp add: case_assms2)
+          apply (erule_tac x="q2 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+          by (meson append_eq_Cons_conv case_assms2(4) case_assms2(5))
+      next
+        assume case_assms3: "filter_tocks p @ q2 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+        show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
+          unfolding TimeSyncInterruptCTT_def case_assms3 filter_tocks_end_ref_tock apply auto
+          apply (erule_tac x="p" in allE, auto simp add: case_assms2)
+          apply (erule_tac x="q2 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
+          by (meson append_eq_Cons_conv case_assms2(4) case_assms2(5))
+      qed
+      then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks p @ q2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks p @ q2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        using assm2 by auto
+      thm case_assms2
+      have 2: "filter_tocks p @ q2 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q"
+        using CT2s_Q unfolding CT2s_def apply auto
+        by (erule_tac x="filter_tocks p @ q2" in allE, erule_tac x="[Tock]\<^sub>E # \<sigma>'" in allE, auto simp add: 1 case_assms2)
+      have 3: "\<nexists> Ya q'. q2 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = [Ya]\<^sub>R # q'"
+        by (simp add: append_eq_Cons_conv case_assms2(4) case_assms2(5))
+        thm case_assms2
+      show "(p @ q2) @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>T Q"
+        unfolding TimeSyncInterruptCTT_def using case_assms2 2 3 by (auto)
+    qed
   qed
 qed
 
