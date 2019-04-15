@@ -9,7 +9,7 @@ definition PrefixCTT :: "'e \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e ct
     {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Event e}). t = s \<or> (\<exists> X. Tock \<notin> X \<and> Event e \<notin> X \<and> t = s @ [[X]\<^sub>R])}
      \<union> {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Event e}). t = s \<or> (\<exists> \<sigma>\<in>P. t = s @ [[Event e]\<^sub>E] @ \<sigma>)}"
 
-lemma PrefixCTT_wf: "\<forall> t\<in>P. cttWF t \<Longrightarrow> \<forall> t\<in>PrefixCTT e P. cttWF t"
+lemma PrefixCTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>PrefixCTT e P. ttWF t"
   unfolding PrefixCTT_def by (auto simp add: tocks_wf tocks_append_wf)
 
 lemma CT2s_Prefix:
@@ -229,7 +229,7 @@ lemma CT_Prefix:
   unfolding CT_defs
 proof auto
   fix x
-  show "x \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> cttWF x"
+  show "x \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> ttWF x"
     by (meson CT_def PrefixCTT_wf assms)
 next
   show "e \<rightarrow>\<^sub>C P = {} \<Longrightarrow> False"
@@ -351,17 +351,17 @@ next
     by (metis (mono_tags, lifting) CT3_def CT3_tocks mem_Collect_eq) 
   then show "x \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> CT3_trace x"
     unfolding PrefixCTT_def using calculation apply auto
-    using CT3_append CT3_trace.simps(2) cttWF.simps(2) apply blast
-    by (metis (no_types, lifting) CT3_append CT3_trace.simps(2) CT3_trace.simps(4) CT_wf assms cttWF.elims(2) cttWF.simps(4)) 
+    using CT3_append CT3_trace.simps(2) ttWF.simps(2) apply blast
+    by (metis (no_types, lifting) CT3_append CT3_trace.simps(2) CT3_trace.simps(4) CT_wf assms ttWF.elims(2) ttWF.simps(4)) 
 qed
 
 definition TockPrefixCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" ("tock \<rightarrow>\<^sub>C _") where
   "TockPrefixCTT P = {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Tock}). t = s \<or> (\<exists> X. Tock \<notin> X \<and> Tock \<notin> X \<and> t = s @ [[X]\<^sub>R])}
      \<union> {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Tock}). t = s \<or> (\<exists> \<sigma>\<in>P. \<exists> X. Tock \<notin> X \<and> t = s @ [[X]\<^sub>R, [Tock]\<^sub>E] @ \<sigma>)}"
 
-lemma TockPrefixCTT_wf: "(\<forall> t\<in>P. cttWF t) \<Longrightarrow> \<forall> t\<in>(tock \<rightarrow>\<^sub>C P). cttWF t"
+lemma TockPrefixCTT_wf: "(\<forall> t\<in>P. ttWF t) \<Longrightarrow> \<forall> t\<in>(tock \<rightarrow>\<^sub>C P). ttWF t"
   unfolding TockPrefixCTT_def using tocks_wf apply auto
-  using cttWF.simps(2) cttWF.simps(5) tocks_append_wf by blast+
+  using ttWF.simps(2) ttWF.simps(5) tocks_append_wf by blast+
 
 lemma CT0_TockPrefixCTT: "CT0 P \<Longrightarrow> CT0 (tock \<rightarrow>\<^sub>C P)"
   unfolding TockPrefixCTT_def CT0_def apply auto
@@ -409,7 +409,7 @@ next
       using ctt_subset_split[where r=\<rho>, where s="s @ [[X]\<^sub>R, [Tock]\<^sub>E]", where t=t'] by auto
     then obtain s'' Y where obtain2: "s' = s'' @ [[Y]\<^sub>R, [Tock]\<^sub>E] \<and> s'' \<subseteq>\<^sub>C s \<and> Y \<subseteq> X"
       using ctt_subset_split[where r=s', where s=s, where t="[[X]\<^sub>R, [Tock]\<^sub>E]"] apply auto
-      by (case_tac t'a rule:cttWF.cases, auto, metis ctt_subset.simps(6) neq_Nil_conv)
+      by (case_tac t'a rule:ttWF.cases, auto, metis ctt_subset.simps(6) neq_Nil_conv)
     have "t'' \<in> P"
       by (meson CT1_def assms case_assms(3) case_assms2(1) ctt_subset_imp_prefix_subset obtain1)
     then show "\<forall>s\<in>tocks {x. x \<noteq> Tock}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<forall>X. Tock \<in> X \<or> \<rho> \<noteq> s @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) \<Longrightarrow>
@@ -566,9 +566,9 @@ proof auto
       proof auto
         assume case_assms3: "s2' = s2'' @ [[Xa]\<^sub>R]"
         obtain s2''' where s2'''_def: "s2'' = [Tock]\<^sub>E # s2'''"
-          apply (cases s2'' rule:cttWF.cases, auto)
+          apply (cases s2'' rule:ttWF.cases, auto)
           using case_assms(1) case_assms2(2) case_assms3 end_refusal_notin_tocks apply force
-          using "2" case_assms(1) case_assms2(2) case_assms3 cttWF.simps(2) tocks_append_wf tocks_append_wf2 apply fastforce
+          using "2" case_assms(1) case_assms2(2) case_assms3 ttWF.simps(2) tocks_append_wf tocks_append_wf2 apply fastforce
           using "2" case_assms(1) case_assms2(2) case_assms3 tocks_append_nontocks tocks_wf by fastforce+
         then have "s2''' \<in> tocks {x. x \<noteq> Tock}"
           by (metis (no_types, lifting) "2" Nil_is_append_conv butlast.simps(2) butlast_append butlast_snoc case_assms(1) case_assms2(2) case_assms3 list.distinct(1) list.sel(3) tocks.cases tocks_append_nontocks)
@@ -600,7 +600,7 @@ proof (safe, simp_all)
     by (metis (mono_tags, lifting) CT3_def CT3_tocks mem_Collect_eq)
 next
   show "\<And>s X. s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> Tock \<notin> X \<Longrightarrow> CT3_trace (s @ [[X]\<^sub>R])"
-    by (metis (mono_tags, lifting) CT3_append CT3_def CT3_tocks CT3_trace.simps(2) cttWF.simps(2) mem_Collect_eq)
+    by (metis (mono_tags, lifting) CT3_append CT3_def CT3_tocks CT3_trace.simps(2) ttWF.simps(2) mem_Collect_eq)
 next
   show "\<And>s. s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> CT3_trace s"
     by (metis (mono_tags, lifting) CT3_def CT3_tocks mem_Collect_eq)

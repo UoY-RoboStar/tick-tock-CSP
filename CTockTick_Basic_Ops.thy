@@ -7,7 +7,7 @@ subsection {* Div *}
 definition DivCTT :: "'e cttobs list set" ("div\<^sub>C") where
   "div\<^sub>C = {[]}"
 
-lemma DivCTT_wf: "\<forall> t\<in>div\<^sub>C. cttWF t"
+lemma DivCTT_wf: "\<forall> t\<in>div\<^sub>C. ttWF t"
   unfolding DivCTT_def by auto
 
 lemma CT2s_Div: "CT2s div\<^sub>C"
@@ -25,7 +25,7 @@ definition StopCTT :: "'e cttobs list set" ("STOP\<^sub>C") where
   "STOP\<^sub>C = {t. \<exists> s\<in>tocks({x. x \<noteq> Tock}). t = s \<or> (\<exists> X. t = s @ [[X]\<^sub>R] \<and> Tock \<notin> X)}
   (*add_pretocks {x. x \<noteq> Tock} ({t. \<exists> Y. Tock \<notin> Y \<and> t = [[Y]\<^sub>R]} \<union> {[]})*)"
 
-lemma StopCTT_wf: "\<forall> t\<in>STOP\<^sub>C. cttWF t"
+lemma StopCTT_wf: "\<forall> t\<in>STOP\<^sub>C. ttWF t"
   unfolding StopCTT_def by (auto simp add: tocks_append_wf tocks_wf)
 
 lemma CT0_Stop: "CT0 STOP\<^sub>C"
@@ -40,7 +40,7 @@ proof auto
   fix \<rho> X Y
   assume "\<rho> @ [[X]\<^sub>R] \<in> tocks {x. x \<noteq> Tock}"
   then have "False"
-    using tocks.cases by (induct \<rho> rule:cttWF.induct, auto)
+    using tocks.cases by (induct \<rho> rule:ttWF.induct, auto)
   then show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. \<rho> @ [[X \<union> Y]\<^sub>R] = s \<or> \<rho> = s \<and> Tock \<notin> X \<and> Tock \<notin> Y"
     by auto
 next
@@ -49,7 +49,7 @@ next
   assume Tock_notin_X: "Tock \<notin> X"
   assume rho_tocks: "\<rho> \<in> tocks {x. x \<noteq> Tock}"
   from rho_tocks have setA: "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {}"
-    using tocks.cases by (auto, induct \<rho> rule:cttWF.induct, auto)
+    using tocks.cases by (auto, induct \<rho> rule:ttWF.induct, auto)
   from rho_tocks Tock_notin_X have setB: "{e. e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {Tock}"
     by (auto, intro tocks_append_tocks, auto, metis (mono_tags, lifting) mem_Collect_eq subsetI tocks.empty_in_tocks tocks.tock_insert_in_tocks)
   from setA setB have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock} \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {Tock}"
@@ -154,7 +154,7 @@ next
   have 2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock} \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {}"
     by (smt assm1 assm2 assm3 butlast.simps(2) butlast_snoc disjoint_iff_not_equal list.distinct(1) list.inject mem_Collect_eq tocks.simps)
   have 3: "\<exists>s'. s = [Z]\<^sub>R # [Tock]\<^sub>E # s'"
-    using assm2 by (induct s rule:cttWF.induct, auto)
+    using assm2 by (induct s rule:ttWF.induct, auto)
   have "\<exists>s\<in>tocks {x. x \<noteq> Tock}. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s \<or> (\<exists>Xa. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s @ [[Xa]\<^sub>R] \<and> Tock \<notin> Xa)"
     using "1" "2" ind_hyp by linarith
   then show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s \<or> (\<exists>Xa. [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s @ [[Xa]\<^sub>R] \<and> Tock \<notin> Xa)"
@@ -170,7 +170,7 @@ proof (auto)
   have "\<forall>s \<in> tocks {x. x \<noteq> Tock}. CT3_trace s"
     by (metis (mono_tags, lifting) CT3_def CT3_tocks mem_Collect_eq)
   then show "x \<in> STOP\<^sub>C \<Longrightarrow> CT3_trace x"
-    unfolding StopCTT_def using CT3_append CT3_trace.simps(2) cttWF.simps(2) by (auto, blast)
+    unfolding StopCTT_def using CT3_append CT3_trace.simps(2) ttWF.simps(2) by (auto, blast)
 qed
 
 lemma CT4s_Stop: "CT4s STOP\<^sub>C"
@@ -184,7 +184,7 @@ lemma CT_Stop: "CT STOP\<^sub>C"
   unfolding CT_defs
 proof (auto)
   fix x
-  show "x \<in> STOP\<^sub>C \<Longrightarrow> cttWF x"
+  show "x \<in> STOP\<^sub>C \<Longrightarrow> ttWF x"
     using StopCTT_wf by auto
 next
   show "STOP\<^sub>C = {} \<Longrightarrow> False"
@@ -201,14 +201,14 @@ next
   proof auto
     assume "\<rho> @ [[X]\<^sub>R] \<in> tocks {x. x \<noteq> Tock}"
     then have "False"
-      using tocks.cases by (induct \<rho> rule:cttWF.induct, auto)
+      using tocks.cases by (induct \<rho> rule:ttWF.induct, auto)
     then show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. \<rho> @ [[X \<union> Y]\<^sub>R] = s \<or> \<rho> = s \<and> Tock \<notin> X \<and> Tock \<notin> Y"
       by auto
   next
     assume Tock_notin_X: "Tock \<notin> X"
     assume rho_tocks: "\<rho> \<in> tocks {x. x \<noteq> Tock}"
     from rho_tocks have setA: "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {}"
-      using tocks.cases by (auto, induct \<rho> rule:cttWF.induct, auto)
+      using tocks.cases by (auto, induct \<rho> rule:ttWF.induct, auto)
     from rho_tocks Tock_notin_X have setB: "{e. e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {Tock}"
       by (auto, intro tocks_append_tocks, auto, metis (mono_tags, lifting) mem_Collect_eq subsetI tocks.empty_in_tocks tocks.tock_insert_in_tocks)
     from setA setB have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock} \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {Tock}"
@@ -224,7 +224,7 @@ next
   have "\<forall>s \<in> tocks {x. x \<noteq> Tock}. CT3_trace s"
     by (metis (mono_tags, lifting) CT3_def CT3_tocks mem_Collect_eq)
   then show "x \<in> STOP\<^sub>C \<Longrightarrow> CT3_trace x"
-    unfolding StopCTT_def using CT3_append CT3_trace.simps(2) cttWF.simps(2) by (auto, blast)
+    unfolding StopCTT_def using CT3_append CT3_trace.simps(2) ttWF.simps(2) by (auto, blast)
 qed
 
 subsection {* Untimed Stop *}
@@ -232,7 +232,7 @@ subsection {* Untimed Stop *}
 definition UntimedStopCTT :: "'e cttobs list set" ("STOP\<^sub>U") where
   "STOP\<^sub>U = {t. t = [] \<or> (\<exists> X. t = [[X]\<^sub>R])}"
 
-lemma UntimedStopCTT_wf: "\<forall> t\<in>STOP\<^sub>U. cttWF t"
+lemma UntimedStopCTT_wf: "\<forall> t\<in>STOP\<^sub>U. ttWF t"
   unfolding UntimedStopCTT_def by auto
 
 lemma CT2s_UntimedStop: "CT2s STOP\<^sub>U"
@@ -251,7 +251,7 @@ definition SkipCTT :: "'e cttobs list set" ("SKIP\<^sub>C") where
   "SKIP\<^sub>C = {[], [[Tick]\<^sub>E]}"
   (*{[], [[Tick]\<^sub>E]} \<union> {t. \<exists> Y. Tick \<notin> Y \<and> t = [[Y]\<^sub>R]} \<union> {t. \<exists> n s. (t = s \<or> t = s @ [[Tick]\<^sub>E]) \<and> s \<in> ntock {x. x \<noteq> Tick} n}*)
 
-lemma SkipCTT_wf: "\<forall> t\<in>SKIP\<^sub>C. cttWF t"
+lemma SkipCTT_wf: "\<forall> t\<in>SKIP\<^sub>C. ttWF t"
   unfolding SkipCTT_def by auto
 
 lemma CT2s_Skip: "CT2s SKIP\<^sub>C"
@@ -263,7 +263,7 @@ lemma CT4s_Skip: "CT4s SKIP\<^sub>C"
 lemma CT_Skip: "CT SKIP\<^sub>C"
   unfolding CT_defs SkipCTT_def 
   apply (auto simp add: ctt_prefix_subset_antisym)
-  apply (case_tac \<rho> rule:cttWF.cases, auto)
+  apply (case_tac \<rho> rule:ttWF.cases, auto)
   done
 
 subsection {* Wait *}
@@ -274,7 +274,7 @@ definition WaitCTT :: "nat \<Rightarrow> 'e cttobs list set" ("wait\<^sub>C[_]")
      \<union> {t. \<exists> s\<in>tocks({x. x \<noteq> Tock}). length (filter (\<lambda> x. x = [Tock]\<^sub>E) s) = n \<and> (t = s \<or> t = s @ [[Tick]\<^sub>E])}"
   (*{t. \<exists> s x. t = s @ x \<and> x \<in> {[], [[Tick]\<^sub>E]} \<and> s \<in> ntock {x. x \<noteq> Tock} n}*)
 
-lemma WaitCTT_wf: "\<forall> t\<in>wait\<^sub>C[n]. cttWF t"
+lemma WaitCTT_wf: "\<forall> t\<in>wait\<^sub>C[n]. ttWF t"
   unfolding WaitCTT_def by (auto simp add: tocks_wf tocks_append_wf)
 
 lemma CT2s_Wait: "CT2s wait\<^sub>C[n]"
@@ -443,7 +443,7 @@ lemma CT_Wait: "CT wait\<^sub>C[n]"
   unfolding CT_defs
 proof auto
   fix x
-  show "x \<in> wait\<^sub>C[n] \<Longrightarrow> cttWF x"
+  show "x \<in> wait\<^sub>C[n] \<Longrightarrow> ttWF x"
     using WaitCTT_wf by auto
 next
   show "wait\<^sub>C[n] = {} \<Longrightarrow> False"
@@ -544,8 +544,8 @@ next
     by (metis (mono_tags, lifting) CT3_def CT3_tocks mem_Collect_eq)
   then show "x \<in> wait\<^sub>C[n] \<Longrightarrow> CT3_trace x"
     unfolding WaitCTT_def apply auto
-    using CT3_append CT3_trace.simps(2) cttWF.simps(2) apply blast
-    using CT3_append CT3_trace.simps(2) cttWF.simps(3) apply blast
+    using CT3_append CT3_trace.simps(2) ttWF.simps(2) apply blast
+    using CT3_append CT3_trace.simps(2) ttWF.simps(3) apply blast
     done
 qed
 
@@ -554,7 +554,7 @@ subsection {* Guard *}
 definition GuardCTT :: "bool \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixr "&\<^sub>C" 61) where
   "g &\<^sub>C P = {x\<in>P. g} \<union> {x\<in>STOP\<^sub>C. \<not> g}"
 
-lemma GuardCTT_wf: "\<forall>t\<in>P. cttWF t \<Longrightarrow> \<forall>t\<in>(g &\<^sub>C P). cttWF t"
+lemma GuardCTT_wf: "\<forall>t\<in>P. ttWF t \<Longrightarrow> \<forall>t\<in>(g &\<^sub>C P). ttWF t"
   unfolding GuardCTT_def using StopCTT_wf by blast
 
 lemma CT0_Guard: "CT0 P \<Longrightarrow> CT0 (g &\<^sub>C P)"

@@ -13,7 +13,7 @@ definition ExtChoiceCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set 
     (\<forall> X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists> Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall> e. (e \<in> X = (e \<in> Y)) \<or> (e = Tock)))) \<and>
     (t = \<rho> @ \<sigma> \<or> t = \<rho> @ \<tau>)}"
 
-lemma ExtChoiceCTT_wf: "\<forall> t\<in>P. cttWF t \<Longrightarrow> \<forall> t\<in>Q. cttWF t \<Longrightarrow> \<forall> t\<in>P \<box>\<^sub>C Q. cttWF t"
+lemma ExtChoiceCTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t\<in>P \<box>\<^sub>C Q. ttWF t"
   unfolding ExtChoiceCTT_def by auto
 
 lemma CT0_ExtChoice:
@@ -91,10 +91,10 @@ proof auto
         then have case_assm5: "s = [[X]\<^sub>R]"
           using case_assm2
         proof -
-          have "cttWF s"
+          have "ttWF s"
             using CT_wf assm2_assms(1) assm2_assms(2) assms(1) tocks_append_wf2 by fastforce
           then show "\<rho>2' = [[X]\<^sub>R] \<Longrightarrow> \<rho>2' \<le>\<^sub>C s \<Longrightarrow> s = [[X]\<^sub>R]"
-            apply (cases s rule:cttWF.cases, auto, insert assm2_assms(1) assm2_assms(4))
+            apply (cases s rule:ttWF.cases, auto, insert assm2_assms(1) assm2_assms(4))
             apply (erule_tac x="\<sigma>' @ [[X]\<^sub>R, [Tock]\<^sub>E]" in ballE, auto simp add: ctt_prefix_same_front)
             using ctt_prefix_antisym ctt_prefix_concat apply blast
             apply (induct \<sigma>', auto simp add: tocks.tock_insert_in_tocks)
@@ -178,10 +178,10 @@ proof auto
         then have case_assm5: "t = [[X]\<^sub>R]"
           using case_assm2
         proof -
-          have "cttWF t"
+          have "ttWF t"
             using CT_wf assm2_assms(1) assm2_assms(3) assms(2) tocks_append_wf2 by fastforce
           then show "\<rho>2' = [[X]\<^sub>R] \<Longrightarrow> \<rho>2' \<le>\<^sub>C t \<Longrightarrow> t = [[X]\<^sub>R]"
-            apply (cases t rule:cttWF.cases, auto, insert assm2_assms(1) assm2_assms(5))
+            apply (cases t rule:ttWF.cases, auto, insert assm2_assms(1) assm2_assms(5))
             apply (erule_tac x="\<sigma>' @ [[X]\<^sub>R, [Tock]\<^sub>E]" in ballE, auto simp add: ctt_prefix_same_front)
             using ctt_prefix_antisym ctt_prefix_concat apply blast
             apply (induct \<sigma>', auto simp add: tocks.tock_insert_in_tocks)
@@ -231,7 +231,7 @@ proof auto
   then show "\<rho> \<in>  P \<box>\<^sub>C Q"
   proof auto
     assume case_assm: "\<rho>2 = \<rho>2' @ t2"
-    have \<rho>_wf: "cttWF \<rho>"
+    have \<rho>_wf: "ttWF \<rho>"
       using CT1_def CT_CT1 CT_wf \<rho>2_assms(2) \<rho>2_split(3) assms(2) case_assm ctt_subset_imp_prefix_subset by blast
     then obtain \<rho>' \<rho>'' where \<rho>'_\<rho>''_assms:
       "\<rho> = \<rho>' @ \<rho>''"
@@ -274,7 +274,7 @@ proof auto
     next
       assume "\<nexists>X. t2 = [[X]\<^sub>R]"
       then have "\<nexists>X. \<rho>'' = [[X]\<^sub>R]"
-        using \<rho>'_\<rho>''_ctt_subset by (auto, cases t2 rule:cttWF.cases, auto)
+        using \<rho>'_\<rho>''_ctt_subset by (auto, cases t2 rule:ttWF.cases, auto)
       then show "\<rho> \<in> P \<box>\<^sub>C Q"
         unfolding ExtChoiceCTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_\<rho>''_assms)
@@ -285,8 +285,8 @@ proof auto
     qed
   next
     assume case_assm: "\<rho>2 = \<rho>2' @ s2"
-    have \<rho>_wf: "cttWF \<rho>"
-      by (metis CT_def ExtChoiceCTT_wf assm1 assm2 assms(1) assms(2) ctt_prefix_subset_cttWF)
+    have \<rho>_wf: "ttWF \<rho>"
+      by (metis CT_def ExtChoiceCTT_wf assm1 assm2 assms(1) assms(2) ctt_prefix_subset_ttWF)
     then obtain \<rho>' \<rho>'' where \<rho>'_\<rho>''_assms:
       "\<rho> = \<rho>' @ \<rho>''"
       "\<rho>' \<in> tocks UNIV"
@@ -328,7 +328,7 @@ proof auto
     next
       assume "\<nexists>X. s2 = [[X]\<^sub>R]"
       then have "\<nexists>X. \<rho>'' = [[X]\<^sub>R]"
-        using \<rho>'_\<rho>''_ctt_subset by (auto, cases s2 rule:cttWF.cases, auto)
+        using \<rho>'_\<rho>''_ctt_subset by (auto, cases s2 rule:ttWF.cases, auto)
       then show "\<rho> \<in> P \<box>\<^sub>C Q"
         unfolding ExtChoiceCTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_\<rho>''_assms)
@@ -349,8 +349,8 @@ proof auto
   fix X Y :: "'a cttevent set"
   assume assm1: "\<rho> @ [[X]\<^sub>R] \<in> P \<box>\<^sub>C Q"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<box>\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<box>\<^sub>C Q} = {}"
-  from assm1 have "cttWF \<rho>"
-    by (metis CT_def ExtChoiceCTT_wf assms(1) assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset ctt_prefix_subset_cttWF)
+  from assm1 have "ttWF \<rho>"
+    by (metis CT_def ExtChoiceCTT_wf assms(1) assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset ctt_prefix_subset_ttWF)
   then obtain \<rho>' \<rho>'' where \<rho>_split: "\<rho>'\<in>tocks UNIV \<and> \<rho> = \<rho>' @ \<rho>'' \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C \<rho> \<longrightarrow> t' \<le>\<^sub>C \<rho>')"
     using split_tocks_longest by blast
   have \<rho>'_in_P_Q: "\<rho>' \<in> P \<and> \<rho>' \<in> Q"
@@ -840,11 +840,11 @@ proof auto
   fix \<rho> \<sigma> X Y
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<box>\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<box>\<^sub>C Q} = {}"
-  from assm1 have \<rho>_\<sigma>_wf: "cttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
+  from assm1 have \<rho>_\<sigma>_wf: "ttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
     by (metis CT_def ExtChoiceCTT_wf assms(1) assms(2))
   then obtain \<rho>' \<rho>'' where \<rho>_\<sigma>_split: "\<rho>'\<in>tocks UNIV \<and> \<rho> @ [X]\<^sub>R # \<sigma> = \<rho>' @ \<rho>'' \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C \<rho> @ [X]\<^sub>R # \<sigma> \<longrightarrow> t' \<le>\<^sub>C \<rho>')"
     using split_tocks_longest by blast
-  then have \<rho>'_\<rho>''_wf: "cttWF (\<rho>' @ \<rho>'')"
+  then have \<rho>'_\<rho>''_wf: "ttWF (\<rho>' @ \<rho>'')"
     using \<rho>_\<sigma>_wf by auto  
   have \<rho>'_in_P_Q: "\<rho>' \<in> P \<and> \<rho>' \<in> Q"
     using assm1 unfolding ExtChoiceCTT_def apply auto
@@ -854,7 +854,7 @@ proof auto
     by (metis CT1_def CT_CT1 \<rho>_\<sigma>_split assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
   have \<rho>'_cases: "\<rho>' \<le>\<^sub>C \<rho> \<or> (\<exists> \<sigma>'. \<rho>' = \<rho> @ [X]\<^sub>R # \<sigma>' \<and> \<sigma>' \<le>\<^sub>C \<sigma> \<and> \<sigma>' \<noteq> [])"
     using \<rho>_\<sigma>_split \<rho>'_\<rho>''_wf \<rho>_\<sigma>_wf apply -
-  proof (induct \<rho> \<rho>' rule:cttWF2.induct, auto simp add: notin_tocks ctt_prefix_concat)
+  proof (induct \<rho> \<rho>' rule:ttWF2.induct, auto simp add: notin_tocks ctt_prefix_concat)
     fix \<rho> \<sigma>' :: "'a cttobs list"
     fix Y
     assume "[Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> tocks UNIV"
@@ -868,36 +868,36 @@ proof auto
       using 1 2 by blast
   next
     fix Xa \<rho> \<sigma>'
-    assume "[Xa]\<^sub>R # [Tick]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "cttWF (\<sigma>' @ \<rho>'')"
-    then have "cttWF ([Xa]\<^sub>R # [Tick]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma>)"
+    assume "[Xa]\<^sub>R # [Tick]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "ttWF (\<sigma>' @ \<rho>'')"
+    then have "ttWF ([Xa]\<^sub>R # [Tick]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma>)"
       by auto
     then show "\<sigma>' \<le>\<^sub>C [Xa]\<^sub>R # [Tick]\<^sub>E # \<rho>"
       by auto
   next
     fix Xa e \<rho> \<sigma>'
-    assume "[Xa]\<^sub>R # [Event e]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "cttWF (\<sigma>' @ \<rho>'')"
-    then have "cttWF ([Xa]\<^sub>R # [Event e]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma>)"
+    assume "[Xa]\<^sub>R # [Event e]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "ttWF (\<sigma>' @ \<rho>'')"
+    then have "ttWF ([Xa]\<^sub>R # [Event e]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma>)"
       by auto
     then show "\<sigma>' \<le>\<^sub>C [Xa]\<^sub>R # [Event e]\<^sub>E # \<rho>"
       by auto
   next
     fix Xa Y \<rho> \<sigma>'
-    assume "[Xa]\<^sub>R # [Y]\<^sub>R # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "cttWF (\<sigma>' @ \<rho>'')"
-    then have "cttWF ([Xa]\<^sub>R # [Y]\<^sub>R # \<rho> @ [X]\<^sub>R # \<sigma>)"
+    assume "[Xa]\<^sub>R # [Y]\<^sub>R # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "ttWF (\<sigma>' @ \<rho>'')"
+    then have "ttWF ([Xa]\<^sub>R # [Y]\<^sub>R # \<rho> @ [X]\<^sub>R # \<sigma>)"
       by auto
     then show "\<sigma>' \<le>\<^sub>C [Xa]\<^sub>R # [Y]\<^sub>R # \<rho>"
       by auto
   next
     fix x \<rho> \<sigma>'
-    assume "[Tick]\<^sub>E # x # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "cttWF (\<sigma>' @ \<rho>'')"
-    then have "cttWF ([Tick]\<^sub>E # x # \<rho> @ [X]\<^sub>R # \<sigma>)"
+    assume "[Tick]\<^sub>E # x # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "ttWF (\<sigma>' @ \<rho>'')"
+    then have "ttWF ([Tick]\<^sub>E # x # \<rho> @ [X]\<^sub>R # \<sigma>)"
       by auto
     then show "\<sigma>' \<le>\<^sub>C [Tick]\<^sub>E # x # \<rho>"
       by auto
   next
     fix \<rho> \<sigma>'
-    assume "[Tock]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "cttWF (\<sigma>' @ \<rho>'')"
-    then have "cttWF ([Tock]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma>)"
+    assume "[Tock]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma> = \<sigma>' @ \<rho>''" "ttWF (\<sigma>' @ \<rho>'')"
+    then have "ttWF ([Tock]\<^sub>E # \<rho> @ [X]\<^sub>R # \<sigma>)"
       by auto
     then show "\<sigma>' \<le>\<^sub>C [Tock]\<^sub>E # \<rho>"
       by auto
@@ -1135,7 +1135,7 @@ proof auto
       proof (cases "\<sigma> \<noteq> []", auto)
         assume case_assm2: "\<sigma> \<noteq> []"
         have \<sigma>_Tock_start: "\<exists> \<sigma>'. \<sigma> = [Tock]\<^sub>E # \<sigma>'"
-          using assm1 case_assm2 apply (cases \<sigma> rule:cttWF.cases, auto)
+          using assm1 case_assm2 apply (cases \<sigma> rule:ttWF.cases, auto)
           using \<rho>'_\<rho>''_wf \<rho>2_def \<rho>_\<sigma>_split case_assm tocks_append_wf2 by force+
         then have False
           using \<rho>_\<sigma>_split \<rho>2_def case_assm
@@ -1433,13 +1433,13 @@ proof auto
     have \<rho>_Tock_in_tocks: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> tocks UNIV"
       by (metis \<rho>_\<sigma>_split case_assms(1) tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal tocks_mid_refusal_front_in_tocks)
     obtain \<sigma>'' where \<sigma>'_Tock_start: "\<sigma>' = [Tock]\<^sub>E # \<sigma>''"
-      using case_assms apply (cases \<sigma>' rule:cttWF.cases, auto)
+      using case_assms apply (cases \<sigma>' rule:ttWF.cases, auto)
       using CT_CTwf CTwf_cons_end_not_refusal_refusal \<rho>'_in_P_Q assms(1) apply blast
-      using \<rho>_\<sigma>_split cttWF.simps(12) cttWF_dist_cons_refusal tocks_wf apply blast
-      apply (metis \<rho>_\<sigma>_split cttWF.simps(11) tocks_append_wf2 tocks_mid_refusal_front_in_tocks tocks_wf)
-      using \<rho>'_\<rho>''_wf \<rho>_\<sigma>_split cttWF.simps(13) cttWF_prefix_is_cttWF tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply blast
-      using \<rho>'_\<rho>''_wf \<rho>_\<sigma>_split cttWF.simps(12) cttWF_prefix_is_cttWF tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply (blast, blast)
-      using \<rho>'_\<rho>''_wf \<rho>_\<sigma>_split cttWF.simps(13) cttWF_prefix_is_cttWF tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply blast+
+      using \<rho>_\<sigma>_split ttWF.simps(12) ttWF_dist_cons_refusal tocks_wf apply blast
+      apply (metis \<rho>_\<sigma>_split ttWF.simps(11) tocks_append_wf2 tocks_mid_refusal_front_in_tocks tocks_wf)
+      using \<rho>'_\<rho>''_wf \<rho>_\<sigma>_split ttWF.simps(13) ttWF_prefix_is_ttWF tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply blast
+      using \<rho>'_\<rho>''_wf \<rho>_\<sigma>_split ttWF.simps(12) ttWF_prefix_is_ttWF tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply (blast, blast)
+      using \<rho>'_\<rho>''_wf \<rho>_\<sigma>_split ttWF.simps(13) ttWF_prefix_is_ttWF tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply blast+
       done
     then obtain \<sigma>''' where \<sigma>'''_def: "\<sigma> = [Tock]\<^sub>E # \<sigma>'' @ \<sigma>'''"
       using case_assms(3) ctt_prefix_decompose by fastforce
@@ -1807,7 +1807,7 @@ lemma ExtChoiceCTT_comm: "P \<box>\<^sub>C Q = Q \<box>\<^sub>C P"
   unfolding ExtChoiceCTT_def by auto
 
 (*lemma ExtChoiceCTT_aux_assoc: 
-  assumes "\<forall>t\<in>P. cttWF t" "\<forall>t\<in>Q. cttWF t" "\<forall>t\<in>R. cttWF t"
+  assumes "\<forall>t\<in>P. ttWF t" "\<forall>t\<in>Q. ttWF t" "\<forall>t\<in>R. ttWF t"
   shows "P \<box>\<^sup>C (Q \<box>\<^sup>C R) = (P \<box>\<^sup>C Q) \<box>\<^sup>C R"
   (is "?lhs = ?rhs")
 proof -

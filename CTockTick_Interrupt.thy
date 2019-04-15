@@ -10,8 +10,8 @@ fun intersect_refusal_trace :: "'e cttevent set \<Rightarrow> 'e cttobs list \<R
   "intersect_refusal_trace X ([Y]\<^sub>R # s) = [X \<inter> Y]\<^sub>R # intersect_refusal_trace X s"
 
 lemma intersect_refusal_trace_wf:
-  "cttWF t \<Longrightarrow> cttWF (intersect_refusal_trace X t)"
-  by (induct t rule:cttWF.induct, auto)
+  "ttWF t \<Longrightarrow> ttWF (intersect_refusal_trace X t)"
+  by (induct t rule:ttWF.induct, auto)
 
 lemma intersect_refusal_trace_prefix_subset:
   "intersect_refusal_trace X t \<lesssim>\<^sub>C t"
@@ -57,8 +57,8 @@ lemma intersect_refusal_trace_append_prefix_subset:
   by (simp add: ctt_subset_imp_prefix_subset intersect_refusal_trace_append_subset)
 
 lemma intersect_refusal_trace_append_wf:
-  "cttWF (t @ s) \<Longrightarrow> cttWF (intersect_refusal_trace X t @ s)"
-  using ctt_prefix_subset_cttWF intersect_refusal_trace_append_prefix_subset by blast
+  "ttWF (t @ s) \<Longrightarrow> ttWF (intersect_refusal_trace X t @ s)"
+  using ctt_prefix_subset_ttWF intersect_refusal_trace_append_prefix_subset by blast
 
 lemma intersect_refusal_trace_UNIV_identity:
   "intersect_refusal_trace UNIV t = t"
@@ -214,239 +214,239 @@ definition UntimedInterruptCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs li
     \<and> t = p @ q} (* ...and we append the traces *)"
 
 lemma event_append_wf:
-  "\<And>q. \<exists> p' e. p = p' @ [[Event e]\<^sub>E] \<Longrightarrow> cttWF (p) \<Longrightarrow> cttWF (q) \<Longrightarrow> cttWF (p @ q)"
-proof (auto, induct p rule:cttWF.induct, auto)
+  "\<And>q. \<exists> p' e. p = p' @ [[Event e]\<^sub>E] \<Longrightarrow> ttWF (p) \<Longrightarrow> ttWF (q) \<Longrightarrow> ttWF (p @ q)"
+proof (auto, induct p rule:ttWF.induct, auto)
   fix q p' \<sigma> :: "'a cttobs list"
   fix e ea
-  assume assm1: "\<And>q p' e. cttWF (p' @ [[Event e]\<^sub>E]) \<Longrightarrow> cttWF q \<Longrightarrow> \<sigma> = p' @ [[Event e]\<^sub>E] \<Longrightarrow> cttWF (p' @ [Event e]\<^sub>E # q)"
-  assume assm2: "cttWF q"
-  assume assm3: "cttWF (p' @ [[Event ea]\<^sub>E])" "[Event e]\<^sub>E # \<sigma> = p' @ [[Event ea]\<^sub>E]"
+  assume assm1: "\<And>q p' e. ttWF (p' @ [[Event e]\<^sub>E]) \<Longrightarrow> ttWF q \<Longrightarrow> \<sigma> = p' @ [[Event e]\<^sub>E] \<Longrightarrow> ttWF (p' @ [Event e]\<^sub>E # q)"
+  assume assm2: "ttWF q"
+  assume assm3: "ttWF (p' @ [[Event ea]\<^sub>E])" "[Event e]\<^sub>E # \<sigma> = p' @ [[Event ea]\<^sub>E]"
   then have "p' = [] \<or> (\<exists> p''. p' = [Event e]\<^sub>E # p'' \<and> \<sigma> = p'' @ [[Event ea]\<^sub>E])"
-    by (cases p' rule:cttWF.cases, auto)
-  then show "cttWF (p' @ [Event ea]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  then show "ttWF (p' @ [Event ea]\<^sub>E # q)"
     using assm2
   proof auto
     fix p''
     assume case_assm1: "\<sigma> = p'' @ [[Event ea]\<^sub>E]"
     assume case_assm2: "p' = [Event e]\<^sub>E # p''"
-    have "cttWF (p'' @ [[Event ea]\<^sub>E])"
+    have "ttWF (p'' @ [[Event ea]\<^sub>E])"
       using assm3 case_assm1 by auto
-    then show "cttWF (p'' @ [Event ea]\<^sub>E # q)"
+    then show "ttWF (p'' @ [Event ea]\<^sub>E # q)"
       using assm1 assm2 case_assm1 by simp
   qed
 next
   fix q p' \<sigma> :: "'a cttobs list"
   fix ea X
-  assume assm1: "\<And>q p' e. cttWF (p' @ [[Event e]\<^sub>E]) \<Longrightarrow> cttWF q \<Longrightarrow> \<sigma> = p' @ [[Event e]\<^sub>E] \<Longrightarrow> cttWF (p' @ [Event e]\<^sub>E # q)"
-  assume assm2: "cttWF q"
-  assume assm3: "cttWF (p' @ [[Event ea]\<^sub>E])" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> = p' @ [[Event ea]\<^sub>E]"
+  assume assm1: "\<And>q p' e. ttWF (p' @ [[Event e]\<^sub>E]) \<Longrightarrow> ttWF q \<Longrightarrow> \<sigma> = p' @ [[Event e]\<^sub>E] \<Longrightarrow> ttWF (p' @ [Event e]\<^sub>E # q)"
+  assume assm2: "ttWF q"
+  assume assm3: "ttWF (p' @ [[Event ea]\<^sub>E])" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> = p' @ [[Event ea]\<^sub>E]"
   then have "p' = [] \<or> (\<exists> p''. p' = [X]\<^sub>R # [Tock]\<^sub>E # p'' \<and> \<sigma> = p'' @ [[Event ea]\<^sub>E])"
-    by (cases p' rule:cttWF.cases, auto)
-  then show "cttWF (p' @ [Event ea]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  then show "ttWF (p' @ [Event ea]\<^sub>E # q)"
     using assm2
   proof auto
     fix p''
     assume case_assm1: "\<sigma> = p'' @ [[Event ea]\<^sub>E]"
     assume case_assm2: "p' = [X]\<^sub>R # [Tock]\<^sub>E # p''"
-    have "cttWF (p'' @ [[Event ea]\<^sub>E])"
+    have "ttWF (p'' @ [[Event ea]\<^sub>E])"
       using assm3 case_assm1 by auto
-    then show "cttWF (p'' @ [Event ea]\<^sub>E # q)"
+    then show "ttWF (p'' @ [Event ea]\<^sub>E # q)"
       using assm1 assm2 case_assm1 by simp
   qed
 next
   fix va q p' e
   assume "[Tock]\<^sub>E # va = p' @ [[Event e]\<^sub>E]"
   then obtain vb where "p' = [Tock]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[Event e]\<^sub>E])"
-  then show "cttWF (p' @ [Event e]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[Event e]\<^sub>E])"
+  then show "ttWF (p' @ [Event e]\<^sub>E # q)"
     using calculation by auto
 next
   fix va q p' e
   assume "[Tock]\<^sub>E # va = p' @ [[Event e]\<^sub>E]"
   then obtain vb where "p' = [Tock]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[Event e]\<^sub>E])"
-  then show "cttWF (p' @ [Event e]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[Event e]\<^sub>E])"
+  then show "ttWF (p' @ [Event e]\<^sub>E # q)"
     using calculation by auto
 next
   fix va q p' e
   assume "[Tock]\<^sub>E # va = p' @ [[Event e]\<^sub>E]"
   then obtain vb where "p' = [Tock]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[Event e]\<^sub>E])"
-  then show "cttWF (p' @ [Event e]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[Event e]\<^sub>E])"
+  then show "ttWF (p' @ [Event e]\<^sub>E # q)"
     using calculation by auto
 next
   fix v vc q p' e
   assume "[Tick]\<^sub>E # v # vc = p' @ [[Event e]\<^sub>E]"
   then obtain vb where "p' = [Tick]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[Event e]\<^sub>E])"
-  then show "cttWF (p' @ [Event e]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[Event e]\<^sub>E])"
+  then show "ttWF (p' @ [Event e]\<^sub>E # q)"
     using calculation by (auto, cases vb, auto)
 next
   fix v vc q p' e
   assume "[Tick]\<^sub>E # v # vc = p' @ [[Event e]\<^sub>E]"
   then obtain vb where "p' = [Tick]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[Event e]\<^sub>E])"
-  then show "cttWF (p' @ [Event e]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[Event e]\<^sub>E])"
+  then show "ttWF (p' @ [Event e]\<^sub>E # q)"
     using calculation by (auto, cases vb, auto)
 next
   fix va vd vc q p' e
   assume "[va]\<^sub>R # [Event vd]\<^sub>E # vc = p' @ [[Event e]\<^sub>E]"
   then obtain vb where "p' = [va]\<^sub>R # [Event vd]\<^sub>E # vb \<or> p' = [[va]\<^sub>R]"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[Event e]\<^sub>E])"
-  then show "cttWF (p' @ [Event e]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[Event e]\<^sub>E])"
+  then show "ttWF (p' @ [Event e]\<^sub>E # q)"
     using calculation by (auto)
 next
   fix va vd vc q p' e
   assume "[va]\<^sub>R # [Tick]\<^sub>E # vc = p' @ [[Event e]\<^sub>E]"
   then obtain vb where "p' = [va]\<^sub>R # [Tick]\<^sub>E # vb \<or> p' = [[va]\<^sub>R]"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[Event e]\<^sub>E])"
-  then show "cttWF (p' @ [Event e]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[Event e]\<^sub>E])"
+  then show "ttWF (p' @ [Event e]\<^sub>E # q)"
     using calculation by (auto)
 next
   fix va v vc q p' e
   assume "[va]\<^sub>R # [v]\<^sub>R # vc = p' @ [[Event e]\<^sub>E]"
   then obtain vb where "p' = [va]\<^sub>R # [v]\<^sub>R # vb \<or> p' = [[va]\<^sub>R]"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[Event e]\<^sub>E])"
-  then show "cttWF (p' @ [Event e]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[Event e]\<^sub>E])"
+  then show "ttWF (p' @ [Event e]\<^sub>E # q)"
     using calculation by (auto)
 qed
   
 
 lemma refusal_tock_append_wf:
-  "\<And>q. \<exists> p' X. p = p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<Longrightarrow> cttWF (p) \<Longrightarrow> cttWF (q) \<Longrightarrow> cttWF (p @ q)"
-proof (auto, induct p rule:cttWF.induct, auto)
+  "\<And>q. \<exists> p' X. p = p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<Longrightarrow> ttWF (p) \<Longrightarrow> ttWF (q) \<Longrightarrow> ttWF (p @ q)"
+proof (auto, induct p rule:ttWF.induct, auto)
   fix q p' \<sigma> :: "'a cttobs list"
   fix e X
-  assume assm1: "\<And>q p' X. cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<Longrightarrow> cttWF q \<Longrightarrow> \<sigma> = p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<Longrightarrow> cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
-  assume assm2: "cttWF q"
-  assume assm3: "cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])" "[Event e]\<^sub>E # \<sigma> = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
+  assume assm1: "\<And>q p' X. ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<Longrightarrow> ttWF q \<Longrightarrow> \<sigma> = p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<Longrightarrow> ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+  assume assm2: "ttWF q"
+  assume assm3: "ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])" "[Event e]\<^sub>E # \<sigma> = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   then have "p' = [] \<or> (\<exists> p''. p' = [Event e]\<^sub>E # p'' \<and> \<sigma> = p'' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-    by (cases p' rule:cttWF.cases, auto)
-  then show "cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  then show "ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
     using assm2
   proof auto
     fix p''
     assume case_assm1: "\<sigma> = p'' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
     assume case_assm2: "p' = [Event e]\<^sub>E # p''"
-    have "cttWF (p'' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+    have "ttWF (p'' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
       using assm3 case_assm1 by auto
-    then show "cttWF (p'' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    then show "ttWF (p'' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
       using assm1 assm2 case_assm1 by simp
   qed
 next
   fix q p' \<sigma> :: "'a cttobs list"
   fix X Xa
-  assume assm1: "\<And>q p' X. cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<Longrightarrow> cttWF q \<Longrightarrow> \<sigma> = p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<Longrightarrow> cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
-  assume assm2: "cttWF q"
-  assume assm3: "cttWF (p' @ [[Xa]\<^sub>R, [Tock]\<^sub>E])" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> = p' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] "
+  assume assm1: "\<And>q p' X. ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<Longrightarrow> ttWF q \<Longrightarrow> \<sigma> = p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<Longrightarrow> ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+  assume assm2: "ttWF q"
+  assume assm3: "ttWF (p' @ [[Xa]\<^sub>R, [Tock]\<^sub>E])" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> = p' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] "
   then have "p' = [] \<or> (\<exists> p''. p' = [X]\<^sub>R # [Tock]\<^sub>E # p'' \<and> \<sigma> = p'' @ [[Xa]\<^sub>R, [Tock]\<^sub>E])"
-    by (cases p' rule:cttWF.cases, auto)
-  then show "cttWF (p' @ [Xa]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  then show "ttWF (p' @ [Xa]\<^sub>R # [Tock]\<^sub>E # q)"
     using assm2
   proof auto
     fix p''
     assume case_assm1: "\<sigma> = p'' @ [[Xa]\<^sub>R, [Tock]\<^sub>E]"
     assume case_assm2: "p' = [X]\<^sub>R # [Tock]\<^sub>E # p''"
-    have "cttWF (p'' @ [[Xa]\<^sub>R, [Tock]\<^sub>E])"
+    have "ttWF (p'' @ [[Xa]\<^sub>R, [Tock]\<^sub>E])"
       using assm3 case_assm1 by auto
-    then show "cttWF (p'' @ [Xa]\<^sub>R # [Tock]\<^sub>E # q)"
+    then show "ttWF (p'' @ [Xa]\<^sub>R # [Tock]\<^sub>E # q)"
       using assm1 assm2 case_assm1 by simp
   qed
 next
   fix va q p' X
   assume "[Tock]\<^sub>E # va = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   then obtain vb where "p' = [Tock]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-  then show "cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+  then show "ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
     using calculation by auto
 next
   fix va q p' X
   assume "[Tock]\<^sub>E # va = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   then obtain vb where "p' = [Tock]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-  then show "cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+  then show "ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
     using calculation by auto
 next
   fix va q p' X
   assume "[Tock]\<^sub>E # va = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   then obtain vb where "p' = [Tock]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-  then show "cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+  then show "ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
     using calculation by auto
 next
   fix v vc q p' X
   assume "[Tick]\<^sub>E # v # vc = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   then obtain vb where "p' = [Tick]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-  then show "cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+  then show "ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
     using calculation by (auto, cases vb, auto)
 next
   fix v vc q p' X
   assume "[Tick]\<^sub>E # v # vc = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   then obtain vb where "p' = [Tick]\<^sub>E # vb"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-  then show "cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+  then show "ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
     using calculation by (auto, cases vb, auto)
 next
   fix va vd vc q p' X
   assume "[va]\<^sub>R # [Event vd]\<^sub>E # vc = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   then obtain vb where "p' = [va]\<^sub>R # [Event vd]\<^sub>E # vb \<or> p' = [[va]\<^sub>R]"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-  then show "cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+  then show "ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
     using calculation by (auto)
 next
   fix va vc q p' X
   assume "[va]\<^sub>R # [Tick]\<^sub>E # vc = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   then obtain vb where "p' = [va]\<^sub>R # [Tick]\<^sub>E # vb \<or> p' = [[va]\<^sub>R]"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-  then show "cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+  then show "ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
     using calculation by (auto)
 next
   fix va v vc q p' X
   assume "[va]\<^sub>R # [v]\<^sub>R # vc = p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   then obtain vb where "p' = [va]\<^sub>R # [v]\<^sub>R # vb \<or> p' = [[va]\<^sub>R]"
-    by (cases p' rule:cttWF.cases, auto)
-  also assume "cttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-  then show "cttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
+    by (cases p' rule:ttWF.cases, auto)
+  also assume "ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+  then show "ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
     using calculation by (auto)
 qed
 
 lemma tock_append_wf:
-  "\<exists> p' X. p = p' @ [[Tock]\<^sub>E] \<Longrightarrow> cttWF (p) \<Longrightarrow> cttWF (q) \<Longrightarrow> cttWF (p @ q)"
+  "\<exists> p' X. p = p' @ [[Tock]\<^sub>E] \<Longrightarrow> ttWF (p) \<Longrightarrow> ttWF (q) \<Longrightarrow> ttWF (p @ q)"
 proof auto
   fix p'
-  assume "cttWF (p' @ [[Tock]\<^sub>E])" "p = p' @ [[Tock]\<^sub>E]"
-  also have "\<And> p. cttWF (p' @ [[Tock]\<^sub>E]) \<Longrightarrow> p = p' @ [[Tock]\<^sub>E] \<Longrightarrow> \<exists> X p''. p = p'' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
-    by (induct p' rule:cttWF.induct, auto, fastforce+)
+  assume "ttWF (p' @ [[Tock]\<^sub>E])" "p = p' @ [[Tock]\<^sub>E]"
+  also have "\<And> p. ttWF (p' @ [[Tock]\<^sub>E]) \<Longrightarrow> p = p' @ [[Tock]\<^sub>E] \<Longrightarrow> \<exists> X p''. p = p'' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
+    by (induct p' rule:ttWF.induct, auto, fastforce+)
   then have "\<exists> p'' X. p = p'' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
     using calculation by fastforce
-  then show "cttWF (p' @ [[Tock]\<^sub>E]) \<Longrightarrow> cttWF q \<Longrightarrow> p = p' @ [[Tock]\<^sub>E] \<Longrightarrow> cttWF (p' @ [Tock]\<^sub>E # q)"
+  then show "ttWF (p' @ [[Tock]\<^sub>E]) \<Longrightarrow> ttWF q \<Longrightarrow> p = p' @ [[Tock]\<^sub>E] \<Longrightarrow> ttWF (p' @ [Tock]\<^sub>E # q)"
     using refusal_tock_append_wf by fastforce
 qed
 
 lemma end_refusal_start_refusal_append_wf:
-  "cttWF (p @ [[X]\<^sub>R]) \<Longrightarrow> cttWF ([Y]\<^sub>R # q) \<Longrightarrow> cttWF ((p @ [[Z]\<^sub>R]) @ q)"
-  by (induct p rule:cttWF.induct, auto, induct q rule:cttWF.induct, auto)
+  "ttWF (p @ [[X]\<^sub>R]) \<Longrightarrow> ttWF ([Y]\<^sub>R # q) \<Longrightarrow> ttWF ((p @ [[Z]\<^sub>R]) @ q)"
+  by (induct p rule:ttWF.induct, auto, induct q rule:ttWF.induct, auto)
 
 lemma nontick_event_end_append_wf:
-  assumes "cttWF p" "cttWF q"
+  assumes "ttWF p" "ttWF q"
   assumes "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]"
-  shows "cttWF (p @ q)"
+  shows "ttWF (p @ q)"
 proof -
   have "p = [] \<or> (\<exists> p' x. p = p' @ [x])"
     by (induct p, auto)
@@ -457,30 +457,30 @@ proof -
 qed
     
 lemma UntimedInterruptCTT_wf:
-  assumes "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x"
-  shows "\<forall>x\<in>(P \<triangle>\<^sub>U Q). cttWF x"
+  assumes "\<forall>x\<in>P. ttWF x" "\<forall>x\<in>Q. ttWF x"
+  shows "\<forall>x\<in>(P \<triangle>\<^sub>U Q). ttWF x"
   using assms unfolding UntimedInterruptCTT_def
 proof auto
   fix p X
-  assume "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x" "p @ [[Tick]\<^sub>E] \<in> P" "[[X]\<^sub>R] \<in> Q"
-  then show "cttWF (intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
+  assume "\<forall>x\<in>P. ttWF x" "\<forall>x\<in>Q. ttWF x" "p @ [[Tick]\<^sub>E] \<in> P" "[[X]\<^sub>R] \<in> Q"
+  then show "ttWF (intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
     using intersect_refusal_trace_wf by (blast)
 next
   fix p X Y q
-  assume "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x" "p @ [[X]\<^sub>R] \<in> P" "[Y]\<^sub>R # q \<in> Q"
-  then show "cttWF (intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q)"
+  assume "\<forall>x\<in>P. ttWF x" "\<forall>x\<in>Q. ttWF x" "p @ [[X]\<^sub>R] \<in> P" "[Y]\<^sub>R # q \<in> Q"
+  then show "ttWF (intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q)"
     using end_refusal_start_refusal_append_wf intersect_refusal_trace_append_wf by (blast)
 next
   fix p q X
-  assume "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x" "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "q \<in> Q"
-  then also have "cttWF (p @ q)"
+  assume "\<forall>x\<in>P. ttWF x" "\<forall>x\<in>Q. ttWF x" "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "q \<in> Q"
+  then also have "ttWF (p @ q)"
     using nontick_event_end_append_wf by blast
-  then show "cttWF (intersect_refusal_trace X p @ q)"
+  then show "ttWF (intersect_refusal_trace X p @ q)"
     using intersect_refusal_trace_append_wf by blast
 next
   fix p q
-  assume "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x" "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "q \<in> Q"
-  then show "cttWF (p @ q)"
+  assume "\<forall>x\<in>P. ttWF x" "\<forall>x\<in>Q. ttWF x" "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "q \<in> Q"
+  then show "ttWF (p @ q)"
     using nontick_event_end_append_wf by blast
 qed
 
@@ -503,7 +503,7 @@ proof auto
 qed
 
 lemma CT1_UntimedInterrupt:
-  assumes P_wf: "\<forall>x\<in>P. cttWF x"
+  assumes P_wf: "\<forall>x\<in>P. ttWF x"
   assumes CT1_P: "CT1 P" and CT0_Q: "CT0 Q" and CT1_Q: "CT1 Q"
   shows "CT1 (P \<triangle>\<^sub>U Q)"
   unfolding CT1_def
@@ -627,17 +627,17 @@ proof (auto)
     qed
     then show "\<rho> \<in> P \<triangle>\<^sub>U Q"
     proof auto
-      have cttWF_p_ref: "cttWF (p @ [[X]\<^sub>R])"
+      have ttWF_p_ref: "ttWF (p @ [[X]\<^sub>R])"
         by (simp add: P_wf in_P)
       assume "\<rho> \<lesssim>\<^sub>C intersect_refusal_trace Y (p @ [[X]\<^sub>R])"
       then obtain p' where p'_assms: "p' \<lesssim>\<^sub>C p @ [[X]\<^sub>R] \<and> \<rho> = intersect_refusal_trace Y p'"
         using prefix_subset_of_intersect_refusal_trace by blast
       then have p'_in_P: "p' \<in> P"
         using CT1_P CT1_def in_P by blast
-      then have cttWF_p': "cttWF p'"
+      then have ttWF_p': "ttWF p'"
         using P_wf by blast
       have p'_cases: "(\<exists>p'' Z. p' = p'' @ [[Z]\<^sub>R]) \<or> ((\<nexists>p''. p' = p'' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p'' Z. p' = p'' @ [[Z]\<^sub>R]))"
-        using p'_assms cttWF_p_ref cttWF_end_refusal_prefix_subset by fastforce
+        using p'_assms ttWF_p_ref ttWF_end_refusal_prefix_subset by fastforce
       then show "\<rho> \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptCTT_def
       proof auto
@@ -688,7 +688,7 @@ proof (auto)
     assume q_nonref: "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'"
     assume p_contains_refusal: "contains_refusal p"
     assume p_in_P: "p \<in> P"
-    then have cttWF_p: "cttWF p"
+    then have ttWF_p: "ttWF p"
       using P_wf by blast
     assume "\<rho> \<lesssim>\<^sub>C intersect_refusal_trace X p @ q"
     then have "\<rho> \<lesssim>\<^sub>C intersect_refusal_trace X p \<or>
@@ -705,9 +705,9 @@ proof (auto)
       have "(\<exists> s e. p = s @ [[Event e]\<^sub>E]) \<or> (\<exists> s. p = s @ [[Tock]\<^sub>E]) \<or> p = []"
         using case_assms by (auto, metis cttevent.exhaust cttobs.exhaust rev_exhaust)
       then have "(\<exists> p'' Y. p' = p'' @ [[Y]\<^sub>R]) \<or> ((\<nexists>p''. p' = p'' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p'' Y. p' = p'' @ [[Y]\<^sub>R]))"
-        using cttWF_p p'_assms(1) apply auto
-        using cttWF_end_Event_prefix_subset apply fastforce
-        using cttWF_end_Tock_prefix_subset apply fastforce
+        using ttWF_p p'_assms(1) apply auto
+        using ttWF_end_Event_prefix_subset apply fastforce
+        using ttWF_end_Tock_prefix_subset apply fastforce
         using ctt_prefix_subset.elims(2) by auto
       then show "\<rho> \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptCTT_def
@@ -810,7 +810,7 @@ proof (auto)
     assume q_nonref: "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'"
     assume p_not_contains_refusal: "\<not> contains_refusal p"
     assume p_in_P: "p \<in> P"
-    then have cttWF_p: "cttWF p"
+    then have ttWF_p: "ttWF p"
       using P_wf by blast
     assume "\<rho> \<lesssim>\<^sub>C p @ q"
     then have "\<rho> \<lesssim>\<^sub>C p \<or> (\<exists>t' s'. s' \<subseteq>\<^sub>C p \<and> t' \<lesssim>\<^sub>C q \<and> \<rho> = s' @ t')"
@@ -823,8 +823,8 @@ proof (auto)
       have "(\<exists> s e. p = s @ [[Event e]\<^sub>E]) \<or> (\<exists> s. p = s @ [[Tock]\<^sub>E]) \<or> p = []"
         using case_assms by (auto, metis cttevent.exhaust cttobs.exhaust rev_exhaust)
       then have \<rho>_end_assms: "(\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R])"
-        using cttWF_p \<rho>_assms not_contains_refusal_ctt_prefix_subset_end_nonref p_not_contains_refusal apply auto
-        using cttWF_end_Event_prefix_subset cttWF_end_Tock_prefix_subset ctt_prefix_subset_antisym by fastforce+
+        using ttWF_p \<rho>_assms not_contains_refusal_ctt_prefix_subset_end_nonref p_not_contains_refusal apply auto
+        using ttWF_end_Event_prefix_subset ttWF_end_Tock_prefix_subset ctt_prefix_subset_antisym by fastforce+
       have \<rho>_not_contains_refusal: "\<not> contains_refusal \<rho>"
         using \<rho>_assms not_contains_refusal_ctt_prefix_subset p_not_contains_refusal by auto
       show "\<rho> \<in> P \<triangle>\<^sub>U Q"
@@ -916,7 +916,7 @@ proof (auto)
 qed
 
 lemma CT2_UntimedInterrupt:
-  assumes P_wf: "\<forall> x\<in>P. cttWF x"
+  assumes P_wf: "\<forall> x\<in>P. ttWF x"
   assumes CT0_Q: "CT0 Q"
   assumes CT1_P: "CT1 P" and CT1_Q: "CT1 Q"
   assumes CT2_P: "CT2 P" and CT2_Q: "CT2 Q"
@@ -1144,7 +1144,7 @@ proof (auto)
         using case_assms CT1_P CT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
       have p_end: "(\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R])"
       proof -
-        have "cttWF (p @ [[Z]\<^sub>R])"
+        have "ttWF (p @ [[Z]\<^sub>R])"
           by (simp add: P_wf case_assms(1))
         also have "(\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> (\<exists>p'. p = p' @ [[Tock]\<^sub>E]) \<or> (\<exists>p' e. p = p' @ [[Event e]\<^sub>E]) \<or> p = []"
           by (metis cttevent.exhaust cttobs.exhaust rev_exhaust)
@@ -1152,12 +1152,12 @@ proof (auto)
           using calculation
         proof auto
           fix p'a
-          show "cttWF (p'a @ [[Tick]\<^sub>E, [Z]\<^sub>R]) \<Longrightarrow> False"
-            by (induct p'a rule:cttWF.induct, auto)
+          show "ttWF (p'a @ [[Tick]\<^sub>E, [Z]\<^sub>R]) \<Longrightarrow> False"
+            by (induct p'a rule:ttWF.induct, auto)
         next
           fix p'a Ya
-          show "cttWF (p'a @ [[Ya]\<^sub>R, [Z]\<^sub>R]) \<Longrightarrow> False"
-            by (induct p'a rule:cttWF.induct, auto)
+          show "ttWF (p'a @ [[Ya]\<^sub>R, [Z]\<^sub>R]) \<Longrightarrow> False"
+            by (induct p'a rule:ttWF.induct, auto)
         qed
       qed
       have \<rho>_contains_refusal_imp_p_contains_refusal: "contains_refusal \<rho> \<Longrightarrow> contains_refusal p"
@@ -1391,7 +1391,7 @@ proof (auto)
 qed 
 
 lemma CT2s_UntimedInterrupt:
-  assumes P_wf: "\<forall> x\<in>P. cttWF x" and Q_wf: "\<forall> x\<in>Q. cttWF x"
+  assumes P_wf: "\<forall> x\<in>P. ttWF x" and Q_wf: "\<forall> x\<in>Q. ttWF x"
   assumes CT0_Q: "CT0 Q"
   assumes CT1_P: "CT1 P" and CT1_Q: "CT1 Q"
   assumes CT2_P: "CT2 P" and CT2_Q: "CT2 Q"
@@ -1402,21 +1402,21 @@ proof (auto)
   fix \<rho> \<sigma> X Y
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>U Q"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q} = {}"
-  have \<rho>_X_\<sigma>_wf: "cttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
+  have \<rho>_X_\<sigma>_wf: "ttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
     using P_wf Q_wf UntimedInterruptCTT_wf assm1 by blast
   then have \<sigma>_cases: "\<sigma> = [] \<or> (\<exists> \<sigma>'. \<sigma> = [Tock]\<^sub>E # \<sigma>')"
-    by (cases \<sigma> rule:cttWF.cases, auto, (induct \<rho> rule:cttWF.induct, auto)+)
-  have "cttWF (\<rho> @ [[X]\<^sub>R])"
-    using \<rho>_X_\<sigma>_wf append_self_conv2 cttWF_prefix_is_cttWF by fastforce
+    by (cases \<sigma> rule:ttWF.cases, auto, (induct \<rho> rule:ttWF.induct, auto)+)
+  have "ttWF (\<rho> @ [[X]\<^sub>R])"
+    using \<rho>_X_\<sigma>_wf append_self_conv2 ttWF_prefix_is_ttWF by fastforce
   then have \<rho>_non_tick_refusal: "(\<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R])"
   proof auto
     fix p'
-    show "cttWF (p' @ [[Tick]\<^sub>E, [X]\<^sub>R]) \<Longrightarrow> False"
-      by (induct p' rule:cttWF.induct, auto)
+    show "ttWF (p' @ [[Tick]\<^sub>E, [X]\<^sub>R]) \<Longrightarrow> False"
+      by (induct p' rule:ttWF.induct, auto)
   next
     fix p' Y
-    show "cttWF (p' @ [[Y]\<^sub>R, [X]\<^sub>R]) \<Longrightarrow> False"
-      by (induct p' rule:cttWF.induct, auto)
+    show "ttWF (p' @ [[Y]\<^sub>R, [X]\<^sub>R]) \<Longrightarrow> False"
+      by (induct p' rule:ttWF.induct, auto)
   qed
   show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>U Q"
     using \<sigma>_cases
@@ -1718,7 +1718,7 @@ proof (auto)
         using 1 2 CT2s_P unfolding CT2s_def
         by (erule_tac x="\<rho>" in allE, erule_tac x="\<sigma>'" in allE, erule_tac x="Z" in allE, erule_tac x="Y" in allE, auto)
       obtain \<sigma>'' where \<sigma>'_def: "\<sigma>' = \<sigma>'' @ [[Tick]\<^sub>E]"
-        by (metis (no_types, hide_lams) case_assms(4) cttWF.simps(3) cttWF.simps(6) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace_concat last.simps last_appendR list.distinct(1) rev_exhaust)
+        by (metis (no_types, hide_lams) case_assms(4) ttWF.simps(3) ttWF.simps(6) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace_concat last.simps last_appendR list.distinct(1) rev_exhaust)
       show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptCTT_def
       proof auto
@@ -2832,7 +2832,7 @@ lemma CT3_trace_intersect_refusal_trace:
   by (induct t rule:CT3_trace.induct, auto, case_tac x, auto, case_tac vb, auto)
 
 lemma CT3_UntimedInterrupt:
-  assumes Q_wf: "\<forall>q\<in>Q. cttWF q"
+  assumes Q_wf: "\<forall>q\<in>Q. ttWF q"
   assumes CT1_P: "CT1 P" and CT1_Q: "CT1 Q"
   assumes CT3_P: "CT3 P" and CT3_Q: "CT3 Q"
   shows "CT3 (P \<triangle>\<^sub>U Q)"
@@ -2854,7 +2854,7 @@ next
     by auto
   then have "[X \<inter> Y]\<^sub>R # q \<in> Q"
     by (metis CT1_Q CT1_def Int_commute Int_left_absorb case_assms(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl inf.absorb_iff2)
-  then have 2: "cttWF ([X \<inter> Y]\<^sub>R # q) \<and> CT3_trace ([X \<inter> Y]\<^sub>R # q)"
+  then have 2: "ttWF ([X \<inter> Y]\<^sub>R # q) \<and> CT3_trace ([X \<inter> Y]\<^sub>R # q)"
     using CT3_Q CT3_def Q_wf by blast
   have 3: "CT3_trace p"
     by (meson CT3_P CT3_def CT3_trace_cons_left case_assms(2))
@@ -3012,12 +3012,12 @@ lemma filter_tocks_end_ref_tock:
   by (induct_tac s rule:filter_tocks.induct, auto)
 
 lemma ctt_prefix_subset_filter_tocks:
-  "cttWF s \<Longrightarrow> cttWF t \<Longrightarrow> s \<lesssim>\<^sub>C t \<Longrightarrow> filter_tocks s \<lesssim>\<^sub>C filter_tocks t"
-  by (induct s t rule:cttWF2.induct, auto)
+  "ttWF s \<Longrightarrow> ttWF t \<Longrightarrow> s \<lesssim>\<^sub>C t \<Longrightarrow> filter_tocks s \<lesssim>\<^sub>C filter_tocks t"
+  by (induct s t rule:ttWF2.induct, auto)
 
 lemma ctt_subset_filter_tocks:
-  "cttWF s \<Longrightarrow> cttWF t \<Longrightarrow> s \<subseteq>\<^sub>C t \<Longrightarrow> filter_tocks s \<subseteq>\<^sub>C filter_tocks t"
-  by (induct s t rule:cttWF2.induct, auto)
+  "ttWF s \<Longrightarrow> ttWF t \<Longrightarrow> s \<subseteq>\<^sub>C t \<Longrightarrow> filter_tocks s \<subseteq>\<^sub>C filter_tocks t"
+  by (induct s t rule:ttWF2.induct, auto)
 
 definition TimeSyncInterruptCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<triangle>\<^sub>T" 58) where
   "P \<triangle>\<^sub>T Q = {t. \<exists> p q. p @ [[Tick]\<^sub>E] \<in> P \<and> q \<in> Q \<and> filter_tocks p = q \<and> t = p @ [[Tick]\<^sub>E]}
@@ -3027,23 +3027,23 @@ definition TimeSyncInterruptCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs l
       \<and> filter_tocks p = q1 \<and> q1 @ q2 \<in> Q \<and> (\<nexists> q' Y. q2 = [Y]\<^sub>R # q') \<and> t =  p @ q2}"
 
 lemma TimeSyncInterruptCTT_wf:
-  assumes "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x"
-  shows "\<forall>x\<in>(P \<triangle>\<^sub>T Q). cttWF x"
+  assumes "\<forall>x\<in>P. ttWF x" "\<forall>x\<in>Q. ttWF x"
+  shows "\<forall>x\<in>(P \<triangle>\<^sub>T Q). ttWF x"
   unfolding TimeSyncInterruptCTT_def
 proof (safe, simp_all)
   fix p
-  show "p @ [[Tick]\<^sub>E] \<in> P \<Longrightarrow> cttWF (p @ [[Tick]\<^sub>E])"
+  show "p @ [[Tick]\<^sub>E] \<in> P \<Longrightarrow> ttWF (p @ [[Tick]\<^sub>E])"
     using assms by auto
 next
   fix p X Y Z
-  show "p @ [[X]\<^sub>R] \<in> P \<Longrightarrow> cttWF (p @ [[Z]\<^sub>R])"
+  show "p @ [[X]\<^sub>R] \<in> P \<Longrightarrow> ttWF (p @ [[Z]\<^sub>R])"
     using assms(1) end_refusal_start_refusal_append_wf by fastforce
 next
   fix p q2
   assume "filter_tocks p @ q2 \<in> Q"
-  then have "cttWF q2"
+  then have "ttWF q2"
     using assms(2) filter_tocks_in_tocks tocks_append_wf2 by blast
-  then show "p \<in> P \<Longrightarrow> \<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow> \<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> cttWF (p @ q2)"
+  then show "p \<in> P \<Longrightarrow> \<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow> \<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> ttWF (p @ q2)"
     using assms(1) nontick_event_end_append_wf by blast
 qed
 
@@ -3061,7 +3061,7 @@ proof auto
 qed
 
 lemma CT1_TimeSyncInterrupt:
-  assumes "\<forall>x\<in>P. cttWF x" "\<forall>x\<in>Q. cttWF x"
+  assumes "\<forall>x\<in>P. ttWF x" "\<forall>x\<in>Q. ttWF x"
   assumes "CT1 P" "CT1 Q"
   shows "CT1 (P \<triangle>\<^sub>T Q)"
   unfolding CT1_def
@@ -3104,21 +3104,21 @@ proof (auto)
         using filter_tocks_\<rho>_in_Q by auto
     next
       fix p' X
-      have cttWF_\<sigma>: "cttWF (p @ [[Tick]\<^sub>E])"
+      have ttWF_\<sigma>: "ttWF (p @ [[Tick]\<^sub>E])"
         by (simp add: assms(1) case_assms(1))
       assume "\<rho> = p' @ [[X]\<^sub>R]"
       then have "p' @ [[X]\<^sub>R] \<lesssim>\<^sub>C p @ [[Tick]\<^sub>E]"
         using case_assms assm1 by auto
       then have "p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Tick]\<^sub>E]"
-        using cttWF_\<sigma> apply - 
-        apply (induct p' p rule:cttWF2.induct, auto)
-        using cttWF.simps(12) ctt_prefix_subset_cttWF apply blast
-        apply (meson cttWF.simps(11) ctt_prefix_subset_cttWF)
-        using cttWF.simps(13) ctt_prefix_subset_cttWF apply blast
-        using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
-        using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
+        using ttWF_\<sigma> apply - 
+        apply (induct p' p rule:ttWF2.induct, auto)
+        using ttWF.simps(12) ctt_prefix_subset_ttWF apply blast
+        apply (meson ttWF.simps(11) ctt_prefix_subset_ttWF)
+        using ttWF.simps(13) ctt_prefix_subset_ttWF apply blast
+        using ttWF.simps(8) ctt_prefix_subset_ttWF apply blast
+        using ttWF.simps(6) ctt_prefix_subset_ttWF by blast
       then have 1: "filter_tocks (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<lesssim>\<^sub>C filter_tocks (p @ [[Tick]\<^sub>E])"
-        using cttWF_\<sigma> ctt_prefix_subset_cttWF ctt_prefix_subset_filter_tocks by blast
+        using ttWF_\<sigma> ctt_prefix_subset_ttWF ctt_prefix_subset_filter_tocks by blast
       have 2: "filter_tocks (p @ [[Tick]\<^sub>E]) = filter_tocks (p)"
         by (induct p rule:filter_tocks.induct, auto)
       have 3: "filter_tocks (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) = filter_tocks p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
@@ -3190,44 +3190,44 @@ proof (auto)
             apply (induct p'a \<rho>' rule:ctt_subset.induct, auto, case_tac v, auto)
             using ctt_subset.elims(2) by fastforce+
         qed
-        then obtain p'a' where "cttWF (p'a' @ [[Tick]\<^sub>E] @ p' @ [[X]\<^sub>R])"
-          using 1 assms(1) case_assms(1) cttWF_prefix_is_cttWF by fastforce
+        then obtain p'a' where "ttWF (p'a' @ [[Tick]\<^sub>E] @ p' @ [[X]\<^sub>R])"
+          using 1 assms(1) case_assms(1) ttWF_prefix_is_ttWF by fastforce
         then show False
-          by (induct p'a' rule:cttWF.induct, auto, induct p' rule:cttWF.induct, auto)
+          by (induct p'a' rule:ttWF.induct, auto, induct p' rule:ttWF.induct, auto)
       qed
       then show "\<rho> \<in> P \<triangle>\<^sub>T Q"
         unfolding TimeSyncInterruptCTT_def
       proof auto
         fix p' X'
-        have cttWF_\<sigma>: "cttWF (p @ [[Z]\<^sub>R])"
+        have ttWF_\<sigma>: "ttWF (p @ [[Z]\<^sub>R])"
           using TimeSyncInterruptCTT_wf assm2 assms(1) assms(2) case_assms(2) by blast
         assume case_assms3: "\<rho> = p' @ [[X']\<^sub>R]"
         then have \<rho>_prefix_subset_\<sigma>: "p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
           using assm1 case_assms(2) by blast
         then have 1: "p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
-          using cttWF_\<sigma> case_assms2 case_assms3
+          using ttWF_\<sigma> case_assms2 case_assms3
         proof auto
-          show "p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> cttWF (p @ [[Z]\<^sub>R]) \<Longrightarrow> p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p \<Longrightarrow> p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
-            apply (induct p' p rule:cttWF2.induct, auto)
-            using cttWF.simps(12) ctt_prefix_subset_cttWF apply blast
-            apply (meson cttWF.simps(11) ctt_prefix_subset_cttWF)
-            using cttWF.simps(13) ctt_prefix_subset_cttWF apply blast
-            using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
-            using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
+          show "p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> ttWF (p @ [[Z]\<^sub>R]) \<Longrightarrow> p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p \<Longrightarrow> p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
+            apply (induct p' p rule:ttWF2.induct, auto)
+            using ttWF.simps(12) ctt_prefix_subset_ttWF apply blast
+            apply (meson ttWF.simps(11) ctt_prefix_subset_ttWF)
+            using ttWF.simps(13) ctt_prefix_subset_ttWF apply blast
+            using ttWF.simps(8) ctt_prefix_subset_ttWF apply blast
+            using ttWF.simps(6) ctt_prefix_subset_ttWF by blast
         qed
         then have 2: "p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
-          using cttWF_\<sigma> case_assms3 case_assms2
+          using ttWF_\<sigma> case_assms3 case_assms2
         proof auto
-          show "p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> cttWF (p @ [[Z]\<^sub>R]) \<Longrightarrow> p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p \<Longrightarrow> p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
-            apply (induct p' p rule:cttWF2.induct, auto)
-            using cttWF.simps(12) ctt_prefix_subset_cttWF apply blast
-            apply (meson cttWF.simps(11) ctt_prefix_subset_cttWF)
-            using cttWF.simps(13) ctt_prefix_subset_cttWF apply blast
-            using cttWF.simps(8) ctt_prefix_subset_cttWF apply blast
-            using cttWF.simps(6) ctt_prefix_subset_cttWF by blast
+          show "p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> ttWF (p @ [[Z]\<^sub>R]) \<Longrightarrow> p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p \<Longrightarrow> p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
+            apply (induct p' p rule:ttWF2.induct, auto)
+            using ttWF.simps(12) ctt_prefix_subset_ttWF apply blast
+            apply (meson ttWF.simps(11) ctt_prefix_subset_ttWF)
+            using ttWF.simps(13) ctt_prefix_subset_ttWF apply blast
+            using ttWF.simps(8) ctt_prefix_subset_ttWF apply blast
+            using ttWF.simps(6) ctt_prefix_subset_ttWF by blast
         qed
         then have 3: "filter_tocks (p' @ [[X']\<^sub>R, [Tock]\<^sub>E]) \<lesssim>\<^sub>C filter_tocks p"
-          using cttWF_\<sigma> cttWF_prefix_is_cttWF ctt_prefix_subset_cttWF ctt_prefix_subset_filter_tocks by blast
+          using ttWF_\<sigma> ttWF_prefix_is_ttWF ctt_prefix_subset_ttWF ctt_prefix_subset_filter_tocks by blast
         have 4: "filter_tocks (p' @ [[X']\<^sub>R, [Tock]\<^sub>E]) = filter_tocks p' @ [[X']\<^sub>R, [Tock]\<^sub>E]"
           by (induct p' rule:filter_tocks.induct, auto)
         have 5: "filter_tocks p' @ [[X']\<^sub>R, [Tock]\<^sub>E]  \<lesssim>\<^sub>C filter_tocks p"
@@ -3256,7 +3256,7 @@ proof (auto)
       then have p'_X_in_P: "p' @ [[X]\<^sub>R] \<in> P"
         using assms(3) case_assms(1) ctt_subset_imp_prefix_subset unfolding CT1_def by blast
       have "filter_tocks p' \<subseteq>\<^sub>C filter_tocks p"
-        using assms(1) case_assms(1) case_assms2(2) cttWF_prefix_is_cttWF ctt_prefix_subset_cttWF ctt_subset_filter_tocks ctt_subset_imp_prefix_subset by blast
+        using assms(1) case_assms(1) case_assms2(2) ttWF_prefix_is_ttWF ctt_prefix_subset_ttWF ctt_subset_filter_tocks ctt_subset_imp_prefix_subset by blast
       then have "filter_tocks p' @ [[Y]\<^sub>R] \<subseteq>\<^sub>C filter_tocks p @ [[Y]\<^sub>R]"
         by (simp add: ctt_subset_combine)
       then have "filter_tocks p' @ [[Y]\<^sub>R] \<lesssim>\<^sub>C filter_tocks p @ [[Y]\<^sub>R]"
@@ -3279,15 +3279,15 @@ proof (auto)
       have "(\<exists>p' Y. \<rho> = p' @ [[Y]\<^sub>R]) \<or> ((\<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R]))"
       proof auto
         fix p'
-        have p_wf: "cttWF p"
+        have p_wf: "ttWF p"
           by (simp add: assms(1) case_assms(1))
         assume "\<rho> = p' @ [[Tick]\<^sub>E]"
         then have 1: "p' @ [[Tick]\<^sub>E] \<lesssim>\<^sub>C p"
           using case_assms2 by auto
-        then have "cttWF (p' @ [[Tick]\<^sub>E])"
-          using ctt_prefix_subset_cttWF p_wf by blast
+        then have "ttWF (p' @ [[Tick]\<^sub>E])"
+          using ctt_prefix_subset_ttWF p_wf by blast
         then show False
-          using case_assms(2) p_wf 1 by (induct p' p rule:cttWF2.induct, auto, fastforce+)
+          using case_assms(2) p_wf 1 by (induct p' p rule:ttWF2.induct, auto, fastforce+)
       qed
       then show " \<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
           (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> \<noteq> p @ q2) \<Longrightarrow>
@@ -3298,16 +3298,16 @@ proof (auto)
         assume case_assms3: "\<rho> = p' @ [[Y]\<^sub>R]"
         have "filter_tocks p' @ [[Y]\<^sub>R] \<in> Q"
         proof -
-          have p_wf: "cttWF p"
+          have p_wf: "ttWF p"
             by (simp add: assms(1) case_assms(1))
-          have p'_wf: "cttWF (p' @ [[Y]\<^sub>R])"
-            using case_assms2 case_assms3 ctt_prefix_subset_cttWF p_wf by blast
+          have p'_wf: "ttWF (p' @ [[Y]\<^sub>R])"
+            using case_assms2 case_assms3 ctt_prefix_subset_ttWF p_wf by blast
           have "p' @ [[Y]\<^sub>R] \<lesssim>\<^sub>C p"
             using case_assms2 case_assms3 by auto
           then have "p' @ [[Y]\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
-            using case_assms(3) p_wf p'_wf by (induct p' p rule:cttWF2.induct, auto, fastforce+)
+            using case_assms(3) p_wf p'_wf by (induct p' p rule:ttWF2.induct, auto, fastforce+)
           then have 1: "filter_tocks (p' @ [[Y]\<^sub>R, [Tock]\<^sub>E]) \<lesssim>\<^sub>C filter_tocks p"
-            using ctt_prefix_subset_cttWF ctt_prefix_subset_filter_tocks p_wf by blast
+            using ctt_prefix_subset_ttWF ctt_prefix_subset_filter_tocks p_wf by blast
           have "filter_tocks (p' @ [[Y]\<^sub>R, [Tock]\<^sub>E]) = filter_tocks p' @ [[Y]\<^sub>R, [Tock]\<^sub>E]"
             by (induct p' rule:filter_tocks.induct, auto)
           then have "filter_tocks p' @ [[Y]\<^sub>R]  \<lesssim>\<^sub>C filter_tocks (p' @ [[Y]\<^sub>R, [Tock]\<^sub>E])"
@@ -3322,7 +3322,7 @@ proof (auto)
       next
         assume case_assms3: "\<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R]"
         have "filter_tocks \<rho> \<lesssim>\<^sub>C filter_tocks p"
-          using assms(1) case_assms(1) case_assms2 ctt_prefix_subset_cttWF ctt_prefix_subset_filter_tocks by blast
+          using assms(1) case_assms(1) case_assms2 ctt_prefix_subset_ttWF ctt_prefix_subset_filter_tocks by blast
         then have "filter_tocks \<rho> \<in> Q"
           by (meson CT1_def assms(4) case_assms(4) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
         also have "\<rho> \<in> P"
@@ -3357,7 +3357,7 @@ proof (auto)
 qed
 
 lemma CT2_TimeSyncInterrupt:
-  assumes P_wf: "\<forall>x\<in>P. cttWF x"
+  assumes P_wf: "\<forall>x\<in>P. ttWF x"
   assumes CT1_P: "CT1 P" and CT1_Q: "CT1 Q"
   assumes CT2_P: "CT2 P" and CT2_Q: "CT2 Q"
   assumes CT3_P: "CT3 P" and CT3_Q: "CT3 Q"
@@ -3397,17 +3397,17 @@ proof auto
     proof auto
       fix \<rho>'
       assume "\<rho> = \<rho>' @ [[Tick]\<^sub>E]"
-      then have "cttWF (\<rho>' @ [[Tick]\<^sub>E, [Z]\<^sub>R])"
+      then have "ttWF (\<rho>' @ [[Tick]\<^sub>E, [Z]\<^sub>R])"
         using case_assms(1) P_wf by auto
       then show False
-        by (induct \<rho>' rule:cttWF.induct, auto)
+        by (induct \<rho>' rule:ttWF.induct, auto)
     next
       fix \<rho>' X
       assume "\<rho> = \<rho>' @ [[X]\<^sub>R]"
-      then have "cttWF (\<rho>' @ [[X]\<^sub>R, [Z]\<^sub>R])"
+      then have "ttWF (\<rho>' @ [[X]\<^sub>R, [Z]\<^sub>R])"
         using case_assms(1) P_wf by auto
       then show False
-        by (induct \<rho>' rule:cttWF.induct, auto)
+        by (induct \<rho>' rule:ttWF.induct, auto)
     qed
     have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P} \<union> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q}
           \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
@@ -3551,7 +3551,7 @@ proof auto
 qed
 
 lemma CT2s_TimeSyncInterrupt:
-  assumes P_wf: "\<forall>x\<in>P. cttWF x" assumes Q_wf: "\<forall>x\<in>Q. cttWF x"
+  assumes P_wf: "\<forall>x\<in>P. ttWF x" assumes Q_wf: "\<forall>x\<in>Q. ttWF x"
   assumes CT1_P: "CT1 P" and CT1_Q: "CT1 Q"
   assumes CT2_P: "CT2 P" and CT2_Q: "CT2 Q"
   assumes CT2s_P: "CT2s P" and CT2s_Q: "CT2s Q"
@@ -3562,10 +3562,10 @@ proof auto
   fix \<rho> \<sigma> X Y
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>T Q"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q} = {}"
-  have "cttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
+  have "ttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
     using P_wf Q_wf TimeSyncInterruptCTT_wf assm1 by blast
   then have "\<sigma> = [] \<or> (\<exists> \<sigma>'. \<sigma> = [Tock]\<^sub>E # \<sigma>')"
-    by (induct \<rho> rule:cttWF.induct, auto, cases \<sigma> rule:cttWF.cases, auto)
+    by (induct \<rho> rule:ttWF.induct, auto, cases \<sigma> rule:ttWF.cases, auto)
   then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>T Q"
   proof auto
     assume "\<sigma> = []"
@@ -3587,7 +3587,7 @@ proof auto
       fix p
       assume case_assms2: "p @ [[Tick]\<^sub>E] \<in> P" "filter_tocks p \<in> Q" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ [[Tick]\<^sub>E]" "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
       obtain \<sigma>'' where 1: "p = \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>''"
-        by (metis butlast.simps(2) butlast_append butlast_snoc case_assms2(3) cttWF.simps(3) cttWF.simps(6) last.simps last_appendR list.distinct(1))
+        by (metis butlast.simps(2) butlast_append butlast_snoc case_assms2(3) ttWF.simps(3) ttWF.simps(6) last.simps last_appendR list.distinct(1))
       have 2: "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'')"
           by (induct \<rho> rule:filter_tocks.induct, auto)
       show "\<forall>\<sigma>''. \<sigma>' = \<sigma>'' @ [[Tick]\<^sub>E] \<longrightarrow> filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' \<notin> Q \<Longrightarrow>
@@ -3637,23 +3637,23 @@ proof auto
           assume "q21 = p' @ [[Tick]\<^sub>E]"
           then have "filter_tocks p @ p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # q22 \<in> Q"
             using 1 case_assms3 by auto
-          then have "cttWF (filter_tocks p @ p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
+          then have "ttWF (filter_tocks p @ p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
             using Q_wf by blast
-          then have "cttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
+          then have "ttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
             by (induct p rule:filter_tocks.induct, auto)
           then show "False"
-            by (induct p' rule:cttWF.induct, auto)
+            by (induct p' rule:ttWF.induct, auto)
         next
           fix p' Y
           assume "q21 = p' @ [[Y]\<^sub>R]"
           then have "filter_tocks p @ p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # q22 \<in> Q"
             using 1 case_assms3 by auto
-          then have "cttWF (filter_tocks p @ p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
+          then have "ttWF (filter_tocks p @ p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
             using Q_wf by blast
-          then have "cttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
+          then have "ttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # q22)"
             by (induct p rule:filter_tocks.induct, auto)
           then show "False"
-            by (induct p' rule:cttWF.induct, auto)
+            by (induct p' rule:ttWF.induct, auto)
         qed
         show "\<forall>pa q2. filter_tocks pa @ q2 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q \<longrightarrow> pa \<in> P \<longrightarrow>
             p @ q21 = pa @ q2 \<longrightarrow> (\<exists>Ya q'. q2 = [Ya]\<^sub>R # q') \<or> q2 = [] \<or> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<Longrightarrow>
@@ -3672,19 +3672,19 @@ proof auto
         assume "\<rho> = p' @ [[Tick]\<^sub>E]"
         then have "p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E] \<in> P"
           using case_assms2 by auto
-        then have "cttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E])"
+        then have "ttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E])"
           using P_wf by blast
         then show False
-          by (induct p' rule:cttWF.induct, auto)
+          by (induct p' rule:ttWF.induct, auto)
       next
         fix p' Y
         assume "\<rho> = p' @ [[Y]\<^sub>R]"
         then have "p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E] \<in> P"
           using case_assms2 by auto
-        then have "cttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E])"
+        then have "ttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E])"
           using P_wf by blast
         then show False
-          by (induct p' rule:cttWF.induct, auto)
+          by (induct p' rule:ttWF.induct, auto)
       qed
       have 2: "\<rho> \<in> P"
         using CT1_P CT1_def case_assms2(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
@@ -3808,19 +3808,19 @@ proof auto
         assume "\<rho> = p' @ [[Tick]\<^sub>E]"
         then have "p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R] \<in> P"
           using case_assms2 by auto
-        then have "cttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R])"
+        then have "ttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R])"
           using P_wf by blast
         then show False
-          by (induct p' rule:cttWF.induct, auto)
+          by (induct p' rule:ttWF.induct, auto)
       next
         fix p' Y
         assume "\<rho> = p' @ [[Y]\<^sub>R]"
         then have "p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R] \<in> P"
           using case_assms2 by auto
-        then have "cttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R])"
+        then have "ttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R])"
           using P_wf by blast
         then show False
-          by (induct p' rule:cttWF.induct, auto)
+          by (induct p' rule:ttWF.induct, auto)
       qed
       have 2: "\<rho> \<in> P"
         using CT1_P CT1_def case_assms2(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
@@ -3944,19 +3944,19 @@ proof auto
         assume "\<rho> = p' @ [[Tick]\<^sub>E]"
         then have "p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P"
           using case_assms2 by auto
-        then have "cttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # p2)"
+        then have "ttWF (p' @ [Tick]\<^sub>E # [X]\<^sub>R # [Tock]\<^sub>E # p2)"
           using P_wf by blast
         then show False
-          by (induct p' rule:cttWF.induct, auto)
+          by (induct p' rule:ttWF.induct, auto)
       next
         fix p' Y
         assume "\<rho> = p' @ [[Y]\<^sub>R]"
         then have "p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P"
           using case_assms2 by auto
-        then have "cttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # p2)"
+        then have "ttWF (p' @ [Y]\<^sub>R # [X]\<^sub>R # [Tock]\<^sub>E # p2)"
           using P_wf by blast
         then show False
-          by (induct p' rule:cttWF.induct, auto)
+          by (induct p' rule:ttWF.induct, auto)
       qed
       have 2: "\<rho> \<in> P"
         using CT1_P CT1_def case_assms2(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
@@ -4139,7 +4139,7 @@ proof auto
 qed
 
 lemma CT3_TimeSyncInterrupt:
-  assumes "CT3 P" "CT3 Q" "\<forall>x\<in>Q. cttWF x"
+  assumes "CT3 P" "CT3 Q" "\<forall>x\<in>Q. ttWF x"
   shows "CT3 (P \<triangle>\<^sub>T Q)"
   unfolding CT3_def TimeSyncInterruptCTT_def
 proof (safe, simp_all)

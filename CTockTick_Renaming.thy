@@ -21,16 +21,16 @@ fun rename_trace :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a cttobs list \<Righta
   "rename_trace f ([e]\<^sub>E # t) = {s. \<exists>s'. s = [lift_renaming_func f e]\<^sub>E # s' \<and> s' \<in> rename_trace f t}" |
   "rename_trace f ([X]\<^sub>R # t) = {s. \<exists>s' Y. s = [Y]\<^sub>R # s' \<and> X = (lift_renaming_func f) -` Y \<and> s' \<in> rename_trace f t}"
 
-lemma rename_trace_cttWF: "cttWF t \<Longrightarrow> \<forall>s\<in>(rename_trace f t). cttWF s"
-  by (induct t rule:cttWF.induct, auto)
+lemma rename_trace_ttWF: "ttWF t \<Longrightarrow> \<forall>s\<in>(rename_trace f t). ttWF s"
+  by (induct t rule:ttWF.induct, auto)
    
 definition RenamingCTT :: "'a cttobs list set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b cttobs list set" where
   "RenamingCTT P f = {t. \<exists>x\<in>P. t \<in> rename_trace f x}"
 
 lemma RenamingCTT_wf: 
-  assumes "\<forall>x\<in>P. cttWF x"
-  shows "\<forall>x\<in>RenamingCTT P f. cttWF x"
-  unfolding RenamingCTT_def using assms rename_trace_cttWF by auto
+  assumes "\<forall>x\<in>P. ttWF x"
+  shows "\<forall>x\<in>RenamingCTT P f. ttWF x"
+  unfolding RenamingCTT_def using assms rename_trace_ttWF by auto
 
 lemma CT0_Renaming:
   assumes "CT1 P" "CT0 P"
@@ -53,7 +53,7 @@ proof auto
     assume ind_hyp: "\<And>P \<rho> \<sigma>. CT1 P \<Longrightarrow> \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> t \<in> P \<Longrightarrow> \<sigma> \<in> rename_trace f t \<Longrightarrow> \<exists>x\<in>P. \<rho> \<in> rename_trace f x"
     assume case_assms: "CT1 P" "\<rho> \<lesssim>\<^sub>C [lift_renaming_func f e]\<^sub>E # s'" "[e]\<^sub>E # t \<in> P" "s' \<in> rename_trace f t"
     have "\<rho> = [] \<or> (\<exists> s. \<rho> = [lift_renaming_func f e]\<^sub>E # s)"
-      using case_assms(2) by (cases \<rho> rule:cttWF.cases, auto)
+      using case_assms(2) by (cases \<rho> rule:ttWF.cases, auto)
     then show "\<exists>x\<in>P. \<rho> \<in> rename_trace f x"
     proof auto
       show "\<rho> = [] \<Longrightarrow> \<exists>x\<in>P. [] \<in> rename_trace f x"
@@ -75,7 +75,7 @@ proof auto
     assume ind_hyp: "\<And>P \<rho> \<sigma>. CT1 P \<Longrightarrow> \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> t \<in> P \<Longrightarrow> \<sigma> \<in> rename_trace f t \<Longrightarrow> \<exists>x\<in>P. \<rho> \<in> rename_trace f x"
     assume case_assms: "CT1 P" "\<rho> \<lesssim>\<^sub>C [Y]\<^sub>R # s'" "[lift_renaming_func f -` Y]\<^sub>R # t \<in> P" "s' \<in> rename_trace f t"
     have "\<rho> = [] \<or> (\<exists> s Z. \<rho> = [Z]\<^sub>R # s \<and> Z \<subseteq> Y)"
-      using case_assms(2) by (cases \<rho> rule:cttWF.cases, auto)
+      using case_assms(2) by (cases \<rho> rule:ttWF.cases, auto)
     then show "\<exists>x\<in>P. \<rho> \<in> rename_trace f x"
     proof auto
       show "\<rho> = [] \<Longrightarrow> \<exists>x\<in>P. [] \<in> rename_trace f x"
@@ -117,7 +117,7 @@ proof (auto)
     assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x\<in>P. \<rho> @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>P. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)} = {}"
        "CT2s P" "[e]\<^sub>E # t \<in> P" "\<exists>s'. \<rho> @ [X]\<^sub>R # \<sigma> = [lift_renaming_func f e]\<^sub>E # s' \<and> s' \<in> rename_trace f t"
     obtain \<rho>' where \<rho>_def: "\<rho> = [lift_renaming_func f e]\<^sub>E # \<rho>'"
-      using case_assms(4) by (cases \<rho> rule:cttWF.cases, auto)
+      using case_assms(4) by (cases \<rho> rule:ttWF.cases, auto)
     have 1: "CT2s {x. [e]\<^sub>E # x \<in> P}"
       using case_assms(2) unfolding CT2s_def by (auto, erule_tac x="[e]\<^sub>E # \<rho>" in allE, auto)
     have "{ea. ea \<noteq> Tock \<and> (\<exists>x\<in>{x. [e]\<^sub>E # x \<in> P}. \<rho>' @ [[ea]\<^sub>E] \<in> rename_trace f x) \<or> ea = Tock \<and> (\<exists>x\<in>{x. [e]\<^sub>E # x \<in> P}. \<rho>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> rename_trace f x)}
@@ -142,7 +142,7 @@ proof (auto)
     obtain Z s' where Z_assms: "\<rho> @ [X]\<^sub>R # \<sigma> = [Z]\<^sub>R # s' \<and> Xa = lift_renaming_func f -` Z \<and> s' \<in> rename_trace f t"
       using case_assms(4) by auto
     then have "(\<exists>\<rho>'. \<rho> = [Z]\<^sub>R # \<rho>') \<or> (X = Z \<and> \<rho> = [])"
-      by (cases \<rho> rule:cttWF.cases, auto)
+      by (cases \<rho> rule:ttWF.cases, auto)
     then show "\<exists>x\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> rename_trace f x"
     proof auto
       fix \<rho>''
@@ -213,7 +213,7 @@ proof (simp, safe)
     assume ind_hyp: "\<And>P x. Ball P CT3_trace \<Longrightarrow> \<rho> \<in> P \<Longrightarrow> x \<in> rename_trace f \<rho> \<Longrightarrow> CT3_trace x"
     assume case_assms: "Ball P CT3_trace" "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P" "x \<in> rename_trace f ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>)"
     obtain x' Y where x_def: "x = [Y]\<^sub>R # [Tock]\<^sub>E # x' \<and> X = lift_renaming_func f -` Y"
-      using case_assms(3) by (cases x rule:cttWF.cases, auto)
+      using case_assms(3) by (cases x rule:ttWF.cases, auto)
     have 1: "Ball {x. [X]\<^sub>R # [Tock]\<^sub>E # x \<in> P} CT3_trace"
       using case_assms(1) by auto
     have 2: "\<rho> \<in> {x. [X]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
@@ -241,7 +241,7 @@ proof (simp, safe)
     assume ind_hyp: "\<And>P x. Ball P CT3_trace \<Longrightarrow> [Event vd]\<^sub>E # vc \<in> P \<Longrightarrow> x \<in> rename_trace f ([Event vd]\<^sub>E # vc) \<Longrightarrow> CT3_trace x"
     assume case_assms: "Ball P CT3_trace" "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> P" "x \<in> rename_trace f ([va]\<^sub>R # [Event vd]\<^sub>E # vc)"
     obtain va' vd' x' where x_def: "x = [va']\<^sub>R # [Event vd']\<^sub>E # x'"
-      using case_assms(3) by (cases x rule:cttWF.cases, auto)
+      using case_assms(3) by (cases x rule:ttWF.cases, auto)
     have 1: "Ball {x. [va]\<^sub>R # x \<in> P} CT3_trace"
       using case_assms(1) by auto
     have "CT3_trace ([Event vd']\<^sub>E # x')"
@@ -253,7 +253,7 @@ proof (simp, safe)
     assume ind_hyp: "\<And>P x. Ball P CT3_trace \<Longrightarrow> [Tick]\<^sub>E # vc \<in> P \<Longrightarrow> x \<in> rename_trace f ([Tick]\<^sub>E # vc) \<Longrightarrow> CT3_trace x"
     assume case_assms: "Ball P CT3_trace" "[va]\<^sub>R # [Tick]\<^sub>E # vc \<in> P" "x \<in> rename_trace f ([va]\<^sub>R # [Tick]\<^sub>E # vc)"
     obtain va' x' where x_def: "x = [va']\<^sub>R # [Tick]\<^sub>E # x'"
-      using case_assms(3) by (cases x rule:cttWF.cases, auto)
+      using case_assms(3) by (cases x rule:ttWF.cases, auto)
     have 1: "Ball {x. [va]\<^sub>R # x \<in> P} CT3_trace"
       using case_assms(1) by auto
     have "CT3_trace ([Tick]\<^sub>E # x')"
@@ -265,7 +265,7 @@ proof (simp, safe)
     assume ind_hyp: "\<And>P x. Ball P CT3_trace \<Longrightarrow> [va]\<^sub>R # vc \<in> P \<Longrightarrow> x \<in> rename_trace f ([va]\<^sub>R # vc) \<Longrightarrow> CT3_trace x"
     assume case_assms: "Ball P CT3_trace" "[vb]\<^sub>R # [va]\<^sub>R # vc \<in> P" "x \<in> rename_trace f ([vb]\<^sub>R # [va]\<^sub>R # vc)"
     obtain va' vb' x' where x_def: "x = [vb']\<^sub>R # [va']\<^sub>R # x'"
-      using case_assms(3) by (cases x rule:cttWF.cases, auto)
+      using case_assms(3) by (cases x rule:ttWF.cases, auto)
     have 1: "Ball {x. [vb]\<^sub>R # x \<in> P} CT3_trace"
       using case_assms(1) by auto
     have "CT3_trace ([va']\<^sub>R # x')"

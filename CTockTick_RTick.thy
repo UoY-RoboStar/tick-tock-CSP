@@ -36,8 +36,8 @@ lemma
   shows "P \<subseteq> mkCT1 (unCT1 P)"
   using assms unfolding mkCT1_def unCT1_def apply auto oops
 
-lemma cttWF_Refusal_ctt_prefix:
-  assumes "cttWF \<sigma>"
+lemma ttWF_Refusal_ctt_prefix:
+  assumes "ttWF \<sigma>"
   shows "[[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma> = (\<exists>Y z. \<sigma> = ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y)"
   using assms apply auto
   apply (case_tac \<sigma>, auto)
@@ -67,8 +67,8 @@ lemma ctt_prefix_gt_length_imp:
   using assms apply(induct xs ys rule:ctt_prefix_subset.induct, auto)
   using ctt_singleton_prefix_nonempty by blast 
 
-lemma cttWF_ctt_prefix_subset_exists_three_part:
-  assumes "cttWF \<sigma>" "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>"
+lemma ttWF_ctt_prefix_subset_exists_three_part:
+  assumes "ttWF \<sigma>" "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>"
   shows "\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>"
   using assms proof (induct \<sigma> arbitrary:X \<rho> rule:rev_induct)
   case Nil
@@ -111,7 +111,7 @@ next
     then have "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C xs"
       using snoc ctt_prefix_gt_length_imp by metis
     then have "\<exists>Y z \<rho>\<^sub>2. xs = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
-      using snoc cttWF_prefix_is_cttWF by blast
+      using snoc ttWF_prefix_is_ttWF by blast
     then have "\<exists>Y z \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z @ [x] \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
       by auto
     then have "\<exists>Y z \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
@@ -120,7 +120,7 @@ next
   qed
 qed
 
-lemma cttWF_ctt_prefix_subset_exists_three_part_concat:
+lemma ttWF_ctt_prefix_subset_exists_three_part_concat:
   assumes "\<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>"
   shows "\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> s \<lesssim>\<^sub>C z \<and> size \<rho>\<^sub>2 = size \<rho>"
   using assms proof (induct \<rho> \<sigma> arbitrary:X s rule:ctt_prefix_subset.induct)
@@ -159,17 +159,17 @@ lemma ctt_prefix_subset_eq_length_common_prefix_eq:
   shows "((xs @ z) \<lesssim>\<^sub>C (ys @ s)) = (xs \<lesssim>\<^sub>C ys \<and> z \<lesssim>\<^sub>C s)"
   using assms by(induct xs ys rule:ctt_prefix_subset.induct, auto)
 
-lemma cttWF_ctt_prefix_subset_exists_three_part':
-  assumes "\<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>" "cttWF \<sigma>"
+lemma ttWF_ctt_prefix_subset_exists_three_part':
+  assumes "\<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>" "ttWF \<sigma>"
   shows "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>"
   using assms apply auto 
   by (simp add: ctt_prefix_subset_eq_length_common_prefix_eq)
 
-lemma cttWF_ctt_prefix_subset_exists_three_part_iff:
-  assumes "cttWF \<sigma>"
+lemma ttWF_ctt_prefix_subset_exists_three_part_iff:
+  assumes "ttWF \<sigma>"
   shows "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma> = (\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>)"
   using assms
-  by (meson cttWF_ctt_prefix_subset_exists_three_part cttWF_ctt_prefix_subset_exists_three_part')
+  by (meson ttWF_ctt_prefix_subset_exists_three_part ttWF_ctt_prefix_subset_exists_three_part')
  
 lemma CT2_mkCT1_part:
   assumes "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} = {}"
@@ -181,7 +181,7 @@ proof -
     using assms ctt_prefix_subset_length by fastforce
   then obtain \<rho>\<^sub>2 X\<^sub>2 z where X2:"\<sigma> = \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z \<and> X \<subseteq> X\<^sub>2 \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R]) = size (\<rho> @ [[X]\<^sub>R]) \<and> (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z) \<in> P"
     using assms(2,3,4)
-    cttWF_ctt_prefix_subset_exists_three_part_iff
+    ttWF_ctt_prefix_subset_exists_three_part_iff
     by (metis CTwf_def assms(5) length_append_singleton)
   then have "\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P"
     by (metis CT1c_prefix_concat_in append.assoc assms(4))
@@ -227,7 +227,7 @@ proof -
     using assms ctt_prefix_subset_length by fastforce
   then obtain \<rho>\<^sub>2 X\<^sub>2 z where X2:"\<sigma> = \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z \<and> X \<subseteq> X\<^sub>2 \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R]) = size (\<rho> @ [[X]\<^sub>R]) \<and> (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z) \<in> P"
     using assms(2,3,4)
-    cttWF_ctt_prefix_subset_exists_three_part_concat
+    ttWF_ctt_prefix_subset_exists_three_part_concat
     by (metis length_append_singleton)
     (* by (metis CTwf_def assms(5) length_append_singleton) *)
   then have "\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z \<in> P"
@@ -571,7 +571,7 @@ lemma mkCTM2b_in_mkCT1c_for_CT1c:
   apply (rule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in exI, auto)
   apply (simp add: ctt_prefix_refl)
   using CT1c_def assms apply blast
-  by (smt CT1c_prefix_concat_in Nil_is_append_conv append_Cons append_Nil2 append_eq_append_conv2 append_self_conv2 assms cttWF.simps(1) ctt_prefix_append_split ctt_prefix_notfront_is_whole ctt_prefix_refl ctt_prefix_same_front same_append_eq split_tocks)
+  by (smt CT1c_prefix_concat_in Nil_is_append_conv append_Cons append_Nil2 append_eq_append_conv2 append_self_conv2 assms ttWF.simps(1) ctt_prefix_append_split ctt_prefix_notfront_is_whole ctt_prefix_refl ctt_prefix_same_front same_append_eq split_tocks)
 
 lemma mkCTM2b_mkCT1c_commute:
   assumes "CT1c P"
@@ -796,10 +796,10 @@ fun prirelRef2 :: "('e cttevent) partialorder \<Rightarrow> ('e cttobs) list \<R
 lemma CTwf_no_ill_Tock [simp]:
   assumes "CTwf P" "e \<noteq> Tock"
   shows "sa @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> P"
-  using assms unfolding CTwf_def apply (induct sa rule:cttWF.induct, auto)
+  using assms unfolding CTwf_def apply (induct sa rule:ttWF.induct, auto)
     apply (cases e, auto)
-  apply (metis assms(2) cttWF.simps(11) cttWF.simps(12) cttWF.simps(4) cttWF_dist_cons_refusal cttevent.exhaust cttobs.inject(1) cttobs.inject(2) list.inject)
-  by (metis append.left_neutral append_Cons cttWF.simps(11) cttWF.simps(12) cttWF_dist_cons_refusal' cttevent.exhaust)
+  apply (metis assms(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(4) ttWF_dist_cons_refusal cttevent.exhaust cttobs.inject(1) cttobs.inject(2) list.inject)
+  by (metis append.left_neutral append_Cons ttWF.simps(11) ttWF.simps(12) ttWF_dist_cons_refusal' cttevent.exhaust)
 
 (* Problem below is from 's' how to achieve target 's'? Need a way to construct it
    explicitly, then just need to show that x \<lesssim>\<^sub>C t. *)
@@ -848,7 +848,7 @@ qed
 
 (*
 lemma
-  assumes "CTMPick xs (s @ [[X]\<^sub>R]) P" "CTwf P" "cttWF (xs)" "cttWF (s @ [[X]\<^sub>R])"
+  assumes "CTMPick xs (s @ [[X]\<^sub>R]) P" "CTwf P" "ttWF (xs)" "ttWF (s @ [[X]\<^sub>R])"
   shows "CTMPick xs (s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}]\<^sub>R]) P"
   using assms nitpick 
   apply (induct xs arbitrary:X s, auto)
@@ -859,16 +859,16 @@ lemma
 *)
 (*
 lemma
-  assumes "CTMPick z (s @ [[X]\<^sub>R]) P" "cttWF (s @ [[X]\<^sub>R] @ z)"
+  assumes "CTMPick z (s @ [[X]\<^sub>R]) P" "ttWF (s @ [[X]\<^sub>R] @ z)"
   shows "CTMPick z (s @ [[insert Tick (X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P})]\<^sub>R]) P"
   using assms apply(induct z _ P arbitrary:X s rule:CTMPick.induct)
     apply auto[1]*)
- (* apply (metis (no_types) append_Cons append_Nil cttWF.simps(13) cttWF_dist_cons_refusal')
+ (* apply (metis (no_types) append_Cons append_Nil ttWF.simps(13) ttWF_dist_cons_refusal')
 *)
 
 (*
 lemma
-  assumes "CTMPick zs (s @ [[X]\<^sub>R,[Tock]\<^sub>E]) P" "cttWF (s @ [[X]\<^sub>R,[Tock]\<^sub>E] @ zs)"
+  assumes "CTMPick zs (s @ [[X]\<^sub>R,[Tock]\<^sub>E]) P" "ttWF (s @ [[X]\<^sub>R,[Tock]\<^sub>E] @ zs)"
   shows "CTMPick zs (s @ [[insert Tick (X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P})]\<^sub>R,[Tock]\<^sub>E]) P"
   using assms apply(induct zs s P arbitrary:X rule:CTMPick.induct, auto)
 *)
@@ -973,8 +973,8 @@ next
       by auto
   then have CTMPick_prefix:"CTMPick xs (s @ [[X]\<^sub>R]) P"
     using snoc CTMPick_imp_prefix by blast
-  (*then have "cttWF (s @ [[X]\<^sub>R] @ xs)"
-    using snoc by (metis (no_types, hide_lams) append_assoc cttWF_prefix_is_cttWF)*)
+  (*then have "ttWF (s @ [[X]\<^sub>R] @ xs)"
+    using snoc by (metis (no_types, hide_lams) append_assoc ttWF_prefix_is_ttWF)*)
   then have "CTMPick xs (s @ [[insert Tick (X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P})]\<^sub>R]) P"
     using snoc CTMPick_prefix by blast
   then have CTMPick_xs_z:"CTMPick xs z P"

@@ -71,13 +71,13 @@ lemma CTRMax_CT4_CT1c_CTTickTrace:
   using ctt_prefix_concat apply blast
   using CTRMax_CT4_Tick by blast
 
-lemma flt2cttobs_is_cttWF:
+lemma flt2cttobs_is_ttWF:
   assumes "tickWF Tick fltrace"
-  shows "cttWF (flt2cttobs fltrace)"
+  shows "ttWF (flt2cttobs fltrace)"
   using assms
   apply (induct fltrace rule:flt2cttobs.induct, auto)
   apply (case_tac A, auto, case_tac a, auto, case_tac b, auto)
-  by (metis cttWF.simps(4) cttWF2.simps(1) cttWF2.simps(23) cttWF2_cttWF cttevent.exhaust flt2cttobs.simps(1))
+  by (metis ttWF.simps(4) ttWF2.simps(1) ttWF2.simps(23) ttWF2_ttWF cttevent.exhaust flt2cttobs.simps(1))
 
 definition fl2ctt :: "('e cttevent) fltrace set \<Rightarrow> ('e cttobs) list set" where
 "fl2ctt P = {flt2cttobs fl|fl. fl \<in> P}"
@@ -129,7 +129,7 @@ lemma fl_le_CT1c_Tick:
    apply (case_tac a, auto)
   by (case_tac x22, auto, case_tac x1, auto)
 
-(*declare cttWF_prefix_is_cttWF [simp]*)
+(*declare ttWF_prefix_is_ttWF [simp]*)
 
 lemma last_flt2cttobs_eq_ref_imp_last:
   assumes "flt2cttobs (xs) \<noteq> []" "List.last(flt2cttobs (xs)) = Ref r" 
@@ -507,30 +507,30 @@ lemma CTwf_concat_two_events_not_Tick_butlast:
   assumes "ys @ [[e1]\<^sub>E] @ [[e2]\<^sub>E] \<in> P" "CTwf P" 
   shows "e1 \<noteq> Tick"
 proof -
-  have "cttWF (ys @ [[e1]\<^sub>E] @ [[e2]\<^sub>E])"
+  have "ttWF (ys @ [[e1]\<^sub>E] @ [[e2]\<^sub>E])"
     using assms unfolding CTwf_def by auto
   then show ?thesis
-    by (induct ys rule:cttWF.induct, auto)
+    by (induct ys rule:ttWF.induct, auto)
 qed
 
 lemma CTwf_concat_prefix_set_no_Tick:
   assumes "ys @ [[e1]\<^sub>E] \<in> P" "CTwf P" 
   shows "[Tick]\<^sub>E \<notin> set ys"
 proof -
-  have "cttWF (ys @ [[e1]\<^sub>E])"
+  have "ttWF (ys @ [[e1]\<^sub>E])"
     using assms unfolding CTwf_def by auto
   then show ?thesis
-    by (induct ys rule:cttWF.induct, auto)
+    by (induct ys rule:ttWF.induct, auto)
 qed
 
 lemma CTwf_concat_prefix_of_ref_set_no_Tick:
   assumes "ys @ [[e1]\<^sub>R] \<in> P" "CTwf P" 
   shows "[Tick]\<^sub>E \<notin> set ys"
 proof -
-  have "cttWF (ys @ [[e1]\<^sub>R])"
+  have "ttWF (ys @ [[e1]\<^sub>R])"
     using assms unfolding CTwf_def by auto
   then show ?thesis
-    by (induct ys rule:cttWF.induct, auto)
+    by (induct ys rule:ttWF.induct, auto)
 qed
 
 lemma event_not_in_set_of_flt2cttobs_imp_not_in_events:
@@ -576,7 +576,7 @@ proof(induct x rule:rev_induct)
     by (case_tac s, auto, case_tac x1, auto)
 next
   case (snoc x xs)
-  then have xs_in_P:"xs \<in> P" "cttWF (xs @ [x])"
+  then have xs_in_P:"xs \<in> P" "ttWF (xs @ [x])"
      apply auto
     using CT1c_def ctt_prefix_concat apply blast
     using CTwf_def by blast
@@ -627,11 +627,11 @@ next
           using ObsEvent Nil by (simp add: fl_le_CT1c_Event)
       next
         case Tock
-        text \<open> There cannot be a Tock without a refusal before it following cttWF,
+        text \<open> There cannot be a Tock without a refusal before it following ttWF,
                so this case is automatically solved. \<close>
         then show ?thesis
           using Nil.prems(3) ObsEvent
-          by (metis CTwf_def Nil.prems(2) append_Nil cttWF.simps(6))
+          by (metis CTwf_def Nil.prems(2) append_Nil ttWF.simps(6))
       next
         case Tick
         then show ?thesis
@@ -663,8 +663,8 @@ next
       then show ?thesis
       proof (cases x)
         case (Ref r2) text \<open>Not allowed\<close>
-        then have "\<not>cttWF (ys @ [Ref r1, Ref r2])"
-          by (induct ys rule:cttWF.induct, auto)
+        then have "\<not>ttWF (ys @ [Ref r1, Ref r2])"
+          by (induct ys rule:ttWF.induct, auto)
         then have "ys @ [Ref r1, Ref r2] \<notin> P"
           using assms unfolding CTwf_def by auto
         then show ?thesis using Ref r1 yys by auto
@@ -673,8 +673,8 @@ next
         then show ?thesis
         proof (cases e1)
           case (Event e2)
-          then have "\<not>cttWF (ys @ [Ref r1, [Event e2]\<^sub>E])"
-            by (induct ys rule:cttWF.induct, auto)
+          then have "\<not>ttWF (ys @ [Ref r1, [Event e2]\<^sub>E])"
+            by (induct ys rule:ttWF.induct, auto)
           then show ?thesis
             using assms unfolding CTwf_def
             by (metis Cons_eq_append_conv Event ObsEvent append_eq_appendI r1 ys_y_x yys.prems(2))
@@ -754,8 +754,8 @@ next
           then show ?thesis using Tock ObsEvent r1 by auto
         next
           case Tick
-          then have "\<not>cttWF (ys @ [Ref r1, [Tick]\<^sub>E])"
-            by (induct ys rule:cttWF.induct, auto)
+          then have "\<not>ttWF (ys @ [Ref r1, [Tick]\<^sub>E])"
+            by (induct ys rule:ttWF.induct, auto)
           then show ?thesis
             using CTwf_healthy unfolding CTwf_def
             by (metis ObsEvent Tick append.assoc append_Cons append_Nil r1 ys_y_x yys.prems(2))
@@ -862,9 +862,9 @@ next
          then show ?thesis using Event e1 e2 by auto
         next
           case Tock
-          then have "\<not>cttWF (ys @ [[e1]\<^sub>E, [Tock]\<^sub>E])"
-            apply (induct ys rule:cttWF.induct, auto)
-            using cttWF.elims(2) cttWF.simps(6) by blast+
+          then have "\<not>ttWF (ys @ [[e1]\<^sub>E, [Tock]\<^sub>E])"
+            apply (induct ys rule:ttWF.induct, auto)
+            using ttWF.elims(2) ttWF.simps(6) by blast+
           then show ?thesis
             using e1 e2 CTwf_healthy unfolding CTwf_def
             by (metis Tock append_eq_Cons_conv fl ys_e1_x yys.prems(2))
@@ -2101,13 +2101,13 @@ proof -
   finally show ?thesis by auto
 qed
 
-lemma cttWF_dist_cons_refusal': 
-  assumes "cttWF (s @ [[S]\<^sub>R] @ t)"
-  shows "cttWF ([[S]\<^sub>R] @ t)"
-  using assms by(induct s rule:cttWF.induct, auto)
+lemma ttWF_dist_cons_refusal': 
+  assumes "ttWF (s @ [[S]\<^sub>R] @ t)"
+  shows "ttWF ([[S]\<^sub>R] @ t)"
+  using assms by(induct s rule:ttWF.induct, auto)
 
 lemma flt2cttobs_split_cons:
-  assumes "ys @ xs = flt2cttobs fl" "flt2goodTock fl" "cttWF ys" "cttWF xs"
+  assumes "ys @ xs = flt2cttobs fl" "flt2goodTock fl" "ttWF ys" "ttWF xs"
   shows "\<exists>fl\<^sub>1 fl\<^sub>0. ys = flt2cttobs fl\<^sub>0 \<and> xs = flt2cttobs fl\<^sub>1 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1"
   using assms
 proof (induct fl arbitrary:xs ys rule:flt2cttobs.induct)
@@ -2147,7 +2147,7 @@ next
           using eA ys_xs by auto
         then have "\<exists>fl\<^sub>1 fl\<^sub>0. ys = flt2cttobs fl\<^sub>0 \<and> xs = flt2cttobs fl\<^sub>1 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1"
           using ObsEvent Cons
-          by (metis Event cttWF.simps(4) flt2goodTock.simps(2))
+          by (metis Event ttWF.simps(4) flt2goodTock.simps(2))
         then have "\<exists>fl\<^sub>1 fl\<^sub>0. [Event e1]\<^sub>E # ys = flt2cttobs (\<langle>(eA, e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs fl\<^sub>0 \<and> xs = flt2cttobs fl\<^sub>1 
                                 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1" 
           using e1_flt2cttobs by auto
@@ -2164,7 +2164,7 @@ next
       next
         case Tock
         then show ?thesis using Cons
-          by (metis ObsEvent cttWF.simps(6))
+          by (metis ObsEvent ttWF.simps(6))
       next
         case Tick
         then have ys_xs:"([Tick]\<^sub>E # ys) @ xs = flt2cttobs ((eA, e)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> fl)"
@@ -2176,7 +2176,7 @@ next
           using eA ys_xs by auto
         then have "\<exists>fl\<^sub>1 fl\<^sub>0. ys = flt2cttobs fl\<^sub>0 \<and> xs = flt2cttobs fl\<^sub>1 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1"
           using ObsEvent Cons
-          by (metis Tick append_Nil bullet_left_zero2 cttWF.simps(8) flt2cttobs.simps(1) flt2goodTock.simps(1) flt2goodTock.simps(2) neq_Nil_conv)
+          by (metis Tick append_Nil bullet_left_zero2 ttWF.simps(8) flt2cttobs.simps(1) flt2goodTock.simps(1) flt2goodTock.simps(2) neq_Nil_conv)
         then have "\<exists>fl\<^sub>1 fl\<^sub>0. [Tick]\<^sub>E # ys = flt2cttobs (\<langle>(eA, e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs fl\<^sub>0 \<and> xs = flt2cttobs fl\<^sub>1 
                                 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1" 
           using e1_flt2cttobs by auto
@@ -2209,17 +2209,17 @@ next
             then have b_Tock:"b = [Tock]\<^sub>E"
               using Ref apply (auto, cases A, auto, case_tac aa, auto, case_tac ba, auto)
               by (case_tac ba, auto)
-            then have "\<not> cttWF (b # zs)"
+            then have "\<not> ttWF (b # zs)"
               by auto
             then show ?case using Cons_xs by blast
           qed
         next
           case Cons_ys:(Cons b zs)
-          then have "cttWF (a # b # zs)"
+          then have "ttWF (a # b # zs)"
             using Cons_ys.prems(7) by blast
           then have b_Tock:"b = [Tock]\<^sub>E"
             using Cons Ref
-            by (metis cttWF.simps(11) cttWF.simps(12) cttWF.simps(13) cttevent.exhaust cttobs.distinct(1) cttobs.exhaust cttobs.inject(1) last_snoc)
+            by (metis ttWF.simps(11) ttWF.simps(12) ttWF.simps(13) cttevent.exhaust cttobs.distinct(1) cttobs.exhaust cttobs.inject(1) last_snoc)
           then have "([x2]\<^sub>R # [Tock]\<^sub>E # zs) @ xs = flt2cttobs (A #\<^sub>\<F>\<^sub>\<L> fl)"
             using Cons_ys.prems(5) Ref by blast 
           then have ys_xs:"([x2]\<^sub>R # [Tock]\<^sub>E # zs) @ xs = flt2cttobs ((eA, e)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> fl)"
@@ -2237,7 +2237,7 @@ next
             by auto
           then have "\<exists>fl\<^sub>1 fl\<^sub>0. zs = flt2cttobs fl\<^sub>0 \<and> xs = flt2cttobs fl\<^sub>1 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1"
             using Cons e1_flt2cttobs
-            by (metis Cons_ys.prems(7) Ref b_Tock cttWF.simps(5) flt2goodTock.simps(2))
+            by (metis Cons_ys.prems(7) Ref b_Tock ttWF.simps(5) flt2goodTock.simps(2))
           then have "\<exists>fl\<^sub>1 fl\<^sub>0. [x2]\<^sub>R # [Tock]\<^sub>E # zs = flt2cttobs (\<langle>(eA, e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ flt2cttobs fl\<^sub>0 \<and> xs = flt2cttobs fl\<^sub>1 
                                 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1" 
           using e1_flt2cttobs
@@ -2275,41 +2275,41 @@ next
   case (Cons a list)
   then have "a = [Tock]\<^sub>E"
   proof -
-    have "cttWF(\<rho> @ [[X]\<^sub>R] @ \<sigma>)"
-      using flt2cttobs_is_cttWF assms
+    have "ttWF(\<rho> @ [[X]\<^sub>R] @ \<sigma>)"
+      using flt2cttobs_is_ttWF assms
       by (metis FLTick0_def)
-    then have "cttWF([[X]\<^sub>R] @ \<sigma>)"
-      using cttWF_dist_cons_refusal' by blast
-    then have "cttWF([[X]\<^sub>R] @ (a # list))"
+    then have "ttWF([[X]\<^sub>R] @ \<sigma>)"
+      using ttWF_dist_cons_refusal' by blast
+    then have "ttWF([[X]\<^sub>R] @ (a # list))"
       using Cons by auto
-    then have "cttWF([X]\<^sub>R # a # list)"
+    then have "ttWF([X]\<^sub>R # a # list)"
       by auto
     then show ?thesis
-      using cttWF.elims(2) by blast
+      using ttWF.elims(2) by blast
   qed
 
-  then have cttWF_cons:"cttWF(\<rho> @ [[X]\<^sub>R,a])"
+  then have ttWF_cons:"ttWF(\<rho> @ [[X]\<^sub>R,a])"
   proof -
-    have "cttWF(\<rho> @ [X]\<^sub>R # a # list)"
-      by (metis Cons_eq_append_conv FLTick0_def assms(4) assms(6) assms(7) cttWF_dist_cons_refusal' flt2cttobs_is_cttWF local.Cons)
-    then have "cttWF(\<rho> @ [[X]\<^sub>R,a])"
-      by (metis (no_types, hide_lams) Cons_eq_append_conv append_eq_appendI cttWF_prefix_is_cttWF self_append_conv2)
+    have "ttWF(\<rho> @ [X]\<^sub>R # a # list)"
+      by (metis Cons_eq_append_conv FLTick0_def assms(4) assms(6) assms(7) ttWF_dist_cons_refusal' flt2cttobs_is_ttWF local.Cons)
+    then have "ttWF(\<rho> @ [[X]\<^sub>R,a])"
+      by (metis (no_types, hide_lams) Cons_eq_append_conv append_eq_appendI ttWF_prefix_is_ttWF self_append_conv2)
     then show ?thesis .
   qed
 
-  then have cttWF_list:"cttWF(list)"
+  then have ttWF_list:"ttWF(list)"
   proof -
-    have "cttWF(\<rho> @ [X]\<^sub>R # a # list)"
-      by (metis Cons_eq_append_conv FLTick0_def assms(4) assms(6) assms(7) cttWF_dist_cons_refusal' flt2cttobs_is_cttWF local.Cons)
-    then have "cttWF(list)"
-      by (metis \<open>a = [Tock]\<^sub>E\<close> append_eq_Cons_conv cttWF.simps(5) cttWF_dist_cons_refusal' local.Cons)
+    have "ttWF(\<rho> @ [X]\<^sub>R # a # list)"
+      by (metis Cons_eq_append_conv FLTick0_def assms(4) assms(6) assms(7) ttWF_dist_cons_refusal' flt2cttobs_is_ttWF local.Cons)
+    then have "ttWF(list)"
+      by (metis \<open>a = [Tock]\<^sub>E\<close> append_eq_Cons_conv ttWF.simps(5) ttWF_dist_cons_refusal' local.Cons)
     then show ?thesis .
   qed
 
   have "\<rho> @ [[X]\<^sub>R,a] @ list = \<rho> @ [[X]\<^sub>R] @ \<sigma>"
     by (simp add: local.Cons)
   then obtain fl\<^sub>0 fl\<^sub>1 where fls:"\<rho> @ [[X]\<^sub>R,a] = flt2cttobs fl\<^sub>0 \<and> flt2goodTock fl\<^sub>0 \<and> flt2goodTock fl\<^sub>1 \<and> list = flt2cttobs fl\<^sub>1 \<and> fl\<^sub>0 &\<^sub>\<F>\<^sub>\<L> fl\<^sub>1 = fl"
-    using assms flt2cttobs_split_cons cttWF_cons cttWF_list 
+    using assms flt2cttobs_split_cons ttWF_cons ttWF_list 
     by (metis (no_types, lifting) append_assoc)
   then have "fl\<^sub>0 \<in> P"
     using assms x_le_concat2_FL1 by blast
@@ -2350,7 +2350,7 @@ lemma CTwf_fl2ctt:
   assumes "FLTick0 Tick P" 
   shows "CTwf(fl2ctt(P))"
   using assms unfolding fl2ctt_def CTwf_def
-  by (auto simp add: FLTick0_def flt2cttobs_is_cttWF)
+  by (auto simp add: FLTick0_def flt2cttobs_is_ttWF)
 
 lemma CT1c_fl2ctt_part:
   assumes "\<rho> \<le>\<^sub>C flt2cttobs fl"

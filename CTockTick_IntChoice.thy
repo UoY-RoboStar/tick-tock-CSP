@@ -7,7 +7,7 @@ subsection {* Internal Choice *}
 definition IntChoiceCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<sqinter>\<^sub>C" 56) where
   "P \<sqinter>\<^sub>C Q = P \<union> Q"
 
-lemma IntChoiceCTT_wf: "\<forall> t\<in>P. cttWF t \<Longrightarrow> \<forall> t\<in>Q. cttWF t \<Longrightarrow> \<forall> t\<in>P \<sqinter>\<^sub>C Q. cttWF t"
+lemma IntChoiceCTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t\<in>P \<sqinter>\<^sub>C Q. ttWF t"
   unfolding IntChoiceCTT_def by auto
 
 lemma CT2s_IntChoice:
@@ -26,7 +26,7 @@ lemma CT_IntChoice:
   unfolding CT_defs
 proof auto
   fix x
-  show "x \<in> P \<sqinter>\<^sub>C Q \<Longrightarrow> cttWF x"
+  show "x \<in> P \<sqinter>\<^sub>C Q \<Longrightarrow> ttWF x"
     by (metis CT_wf IntChoiceCTT_def Un_iff assms(1) assms(2))
 next
   show "P \<sqinter>\<^sub>C Q = {} \<Longrightarrow> False"

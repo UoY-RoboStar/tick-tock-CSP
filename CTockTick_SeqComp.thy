@@ -7,25 +7,25 @@ subsection {* Sequential Composition *}
 definition SeqCompCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl ";\<^sub>C" 60) where
   "P ;\<^sub>C Q = {\<rho>\<in>P. \<nexists> s. \<rho> = s @ [[Tick]\<^sub>E]} \<union> {\<rho>. \<exists> s t. s @ [[Tick]\<^sub>E] \<in> P \<and> t \<in> Q \<and> \<rho> = s @ t}"
 
-lemma SeqComp_wf: "\<forall> t\<in>P. cttWF t \<Longrightarrow> \<forall> t\<in>Q. cttWF t \<Longrightarrow> \<forall> t \<in> P ;\<^sub>C Q. cttWF t"
+lemma SeqComp_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t \<in> P ;\<^sub>C Q. ttWF t"
   unfolding SeqCompCTT_def
 proof auto
   fix s ta
-  assume "\<forall>x\<in>P. cttWF x" "s @ [[Tick]\<^sub>E] \<in> P"
-  then have 1: "cttWF (s @ [[Tick]\<^sub>E])"
+  assume "\<forall>x\<in>P. ttWF x" "s @ [[Tick]\<^sub>E] \<in> P"
+  then have 1: "ttWF (s @ [[Tick]\<^sub>E])"
     by auto
-  assume "\<forall>x\<in>Q. cttWF x" "ta \<in> Q"
-  then have 2: "cttWF ta"
+  assume "\<forall>x\<in>Q. ttWF x" "ta \<in> Q"
+  then have 2: "ttWF ta"
     by auto
-  from 1 2 show "cttWF (s @ ta)"
-    by (induct s rule:cttWF.induct, auto)
+  from 1 2 show "ttWF (s @ ta)"
+    by (induct s rule:ttWF.induct, auto)
 qed
 
 lemma CT0_SeqComp: "CT0 P \<Longrightarrow> CT0 Q \<Longrightarrow> CT0 (P ;\<^sub>C Q)"
   unfolding SeqCompCTT_def CT0_def by blast
 
 lemma CT1_SeqComp: 
-  assumes "\<forall>t\<in>P. cttWF t" "CT1 P" "CT1 Q"
+  assumes "\<forall>t\<in>P. ttWF t" "CT1 P" "CT1 Q"
   shows "CT1 (P ;\<^sub>C Q)"
   unfolding SeqCompCTT_def CT1_def
 proof (auto)
@@ -40,11 +40,11 @@ next
   then have "\<exists> s'' x. s' = s'' @ x \<and> [[Tick]\<^sub>E] \<subseteq>\<^sub>C x"
     using ctt_subset_split2 by blast
   then obtain s'' where "\<sigma> = s'' @ [[Tick]\<^sub>E] @ t"
-    by (auto, case_tac x rule:cttWF.cases, auto simp add: \<sigma>_assms)
-  then have "cttWF \<sigma> \<Longrightarrow> \<sigma> = s'' @ [[Tick]\<^sub>E]"
+    by (auto, case_tac x rule:ttWF.cases, auto simp add: \<sigma>_assms)
+  then have "ttWF \<sigma> \<Longrightarrow> \<sigma> = s'' @ [[Tick]\<^sub>E]"
   proof auto
-    show "cttWF (s'' @ [Tick]\<^sub>E # t) \<Longrightarrow> t = []"
-      by (induct s'' rule:cttWF.induct, auto, cases t, auto)
+    show "ttWF (s'' @ [Tick]\<^sub>E # t) \<Longrightarrow> t = []"
+      by (induct s'' rule:ttWF.induct, auto, cases t, auto)
   qed
   then have "\<sigma> = s'' @ [[Tick]\<^sub>E]"
     using assms(1) case_assms(2) by blast
@@ -105,14 +105,14 @@ next
     have "\<exists> r1 r2. r = r1 @ r2 \<and> sa \<subseteq>\<^sub>C r1 \<and> [[Tick]\<^sub>E] \<subseteq>\<^sub>C r2"
       by (simp add: "1" ctt_subset_split2)
     then obtain r' where "r = r' @ [[Tick]\<^sub>E]"
-      by (auto, case_tac r2 rule:cttWF.cases, auto)
+      by (auto, case_tac r2 rule:ttWF.cases, auto)
     also assume "r \<le>\<^sub>C s"
     then obtain s' where "r' @ [[Tick]\<^sub>E] @ s' @ [[Tick]\<^sub>E] \<in> P"
       using calculation case_assms(2) ctt_prefix_split by fastforce
-    then have "cttWF (r' @ [[Tick]\<^sub>E] @ s' @ [[Tick]\<^sub>E])"
+    then have "ttWF (r' @ [[Tick]\<^sub>E] @ s' @ [[Tick]\<^sub>E])"
       using assms(1) by blast
     then show "False"
-      by (induct r' rule:cttWF.induct, auto, induct s' rule:cttWF.induct, auto)
+      by (induct r' rule:ttWF.induct, auto, induct s' rule:ttWF.induct, auto)
   qed
 qed
 
@@ -181,10 +181,10 @@ next
       by (simp add: assm7)
     then have "\<rho> @ [[X]\<^sub>R, [Tick]\<^sub>E] \<in> P"
       using assm5 by auto
-    then have "cttWF (\<rho> @ [[X]\<^sub>R, [Tick]\<^sub>E])"
+    then have "ttWF (\<rho> @ [[X]\<^sub>R, [Tick]\<^sub>E])"
       using CT_wf assm2 by blast
     then have "False"
-      by (induct \<rho> rule:cttWF.induct, auto)
+      by (induct \<rho> rule:ttWF.induct, auto)
     then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
       by auto
   next
@@ -415,7 +415,7 @@ next
   then have 1: "CT3_trace s"
     by (meson CT1_def CT3_def CT_CT1 CT_CT3 assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
   assume "t \<in> Q"
-  then have 2: "CT3_trace t \<and> cttWF t"
+  then have 2: "CT3_trace t \<and> ttWF t"
     using CT3_def CT_CT3 CT_wf assms(2) by blast
   show "CT3_trace (s @ t)"
     using 1 2 CT3_append by auto

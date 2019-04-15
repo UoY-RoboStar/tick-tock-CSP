@@ -26,17 +26,17 @@ definition HidingCTT :: "'a cttobs list set \<Rightarrow> 'a cttevent set \<Righ
   "HidingCTT P X = \<Union> {hide_trace X p | p. p \<in> P}"
 
 lemma HidingCTT_wf:
-  assumes "\<forall>x\<in>P. cttWF x"
-  shows "\<forall>x\<in>(P \<setminus>\<^sub>C X). cttWF x"
+  assumes "\<forall>x\<in>P. ttWF x"
+  shows "\<forall>x\<in>(P \<setminus>\<^sub>C X). ttWF x"
   using assms unfolding HidingCTT_def
 proof auto
   fix x p
-  show "\<And> P x. \<forall>x\<in>P. cttWF x \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> cttWF x"
+  show "\<And> P x. \<forall>x\<in>P. ttWF x \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> ttWF x"
     apply (induct p rule:hide_trace.induct, simp_all)
-    apply (metis cttWF.simps(4) mem_Collect_eq)
-    using cttWF.simps(1) apply blast
-    apply (metis cttWF.simps(5) mem_Collect_eq)
-    using cttWF.simps(2) by blast
+    apply (metis ttWF.simps(4) mem_Collect_eq)
+    using ttWF.simps(1) apply blast
+    apply (metis ttWF.simps(5) mem_Collect_eq)
+    using ttWF.simps(2) by blast
 qed
 
 lemma CT0_Hiding:
@@ -149,7 +149,7 @@ proof auto
     have 2: "s \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
       by (simp add: case_assms(3))
     have "(\<exists> \<rho>' W. \<rho> = [W]\<^sub>R # [Tock]\<^sub>E # \<rho>' \<and> W \<subseteq> Z) \<or> (\<exists> W. \<rho> = [[W]\<^sub>R] \<and> W \<subseteq> Z) \<or> (\<rho> = [])"
-      using case_assms(2) by (cases \<rho> rule:cttWF.cases, simp_all)
+      using case_assms(2) by (cases \<rho> rule:ttWF.cases, simp_all)
     then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> \<in> x"
     proof auto
       fix \<rho>' W
@@ -176,7 +176,7 @@ proof auto
     fix X Y P \<rho> Z
     assume case_assms: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P" "\<rho> \<lesssim>\<^sub>C [[Z]\<^sub>R]" "[[Y]\<^sub>R] \<in> P" "Z \<subseteq> Y" "X \<subseteq> Y "
     then have "(\<exists> W. \<rho> = [[W]\<^sub>R] \<and> W \<subseteq> Z) \<or> (\<rho> = [])"
-      using case_assms(2) by (cases \<rho> rule:cttWF.cases, simp_all)
+      using case_assms(2) by (cases \<rho> rule:ttWF.cases, simp_all)
     then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> \<in> x"
       apply auto apply (rule_tac x="hide_trace X ([[Y]\<^sub>R])" in exI, safe)
       using case_assms apply (rule_tac x="[[Y]\<^sub>R]" in exI, auto)
@@ -199,7 +199,7 @@ proof auto
     show "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
         e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
       \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> CT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
-    proof (induct p rule:cttWF.induct, simp_all, safe, simp_all)
+    proof (induct p rule:ttWF.induct, simp_all, safe, simp_all)
       fix Xb P
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [[e]\<^sub>E] \<in> x) \<or>
                       e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
@@ -265,7 +265,7 @@ proof auto
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
         "[Event e]\<^sub>E # \<sigma> \<in> P" "CT2 P" "Event e \<notin> X" "s' \<in> hide_trace X \<sigma>" "\<rho> @ [[Xa]\<^sub>R] = [Event e]\<^sub>E # s'"
       then obtain \<rho>' where \<rho>'_assms: "\<rho> = [Event e]\<^sub>E # \<rho>' \<and> \<rho>' @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma>"
-        by (cases \<rho> rule:cttWF.cases, simp_all, blast)
+        by (cases \<rho> rule:ttWF.cases, simp_all, blast)
       have "{ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[ea]\<^sub>E] \<in> x) \<or>
           ea = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[Xa]\<^sub>R, [ea]\<^sub>E] \<in> x)} \<subseteq>
         {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
@@ -315,7 +315,7 @@ proof auto
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
         "[Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "CT2 P" "Z \<subseteq> Xb" "Tock \<notin> X" "X \<subseteq> Xb" "\<rho> @ [[Xa]\<^sub>R] = [Z]\<^sub>R # [Tock]\<^sub>E # s'" "s' \<in> hide_trace X \<sigma>"
       then obtain \<rho>' where \<rho>'_assms: "\<rho> = [Z]\<^sub>R # [Tock]\<^sub>E # \<rho>' \<and> \<rho>' @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma>"
-        by (cases \<rho> rule:cttWF.cases, simp_all, blast)
+        by (cases \<rho> rule:ttWF.cases, simp_all, blast)
       have "{e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} \<subseteq>
         {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
@@ -354,7 +354,7 @@ proof auto
     show "\<And>P \<rho> \<sigma>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                    e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
            \<rho> @ [Xa]\<^sub>R # \<sigma> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> CT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
-    proof (induct p rule:cttWF.induct, simp_all, safe)
+    proof (induct p rule:ttWF.induct, simp_all, safe)
       fix Xb P \<rho> \<sigma> Z
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
@@ -424,7 +424,7 @@ proof auto
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
         "[Event e]\<^sub>E # \<sigma> \<in> P" "CT2s P" "Event e \<notin> X" "s' \<in> hide_trace X \<sigma>" "\<rho> @ [Xa]\<^sub>R # \<sigma>' = [Event e]\<^sub>E # s'"
       obtain \<rho>' where s'_def: "s' = \<rho>' @ [Xa]\<^sub>R # \<sigma>'"
-        using case_assms(6) by (cases \<rho> rule:cttWF.cases, auto)
+        using case_assms(6) by (cases \<rho> rule:ttWF.cases, auto)
       have "{ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {x. [Event e]\<^sub>E # x \<in> P}) \<and> \<rho>' @ [[ea]\<^sub>E] \<in> x) \<or>
           ea = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {x. [Event e]\<^sub>E # x \<in> P}) \<and> \<rho>' @ [[Xa]\<^sub>R, [ea]\<^sub>E] \<in> x)}
         \<subseteq> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
@@ -464,7 +464,7 @@ proof auto
       have 1: "CT2s {x. [Xb]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
           using CT2s_init_tock case_assms(3) by blast
       have "(\<exists> \<rho>'. s' = \<rho>' @ [Xa]\<^sub>R # \<sigma>') \<or> (\<rho> = [] \<and> Z = Xa \<and> \<sigma>' = [Tock]\<^sub>E # s')"
-        using case_assms(7) by (cases \<rho> rule:cttWF.cases, auto)
+        using case_assms(7) by (cases \<rho> rule:ttWF.cases, auto)
       then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
       proof auto
         fix \<rho>'
@@ -508,7 +508,7 @@ lemma CT3_Hiding:
 proof (safe, simp_all)
   fix p
   show "\<And>P x. Ball P CT3_trace \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> CT3_trace x"
-  proof (induct p rule:cttWF.induct)
+  proof (induct p rule:ttWF.induct)
     fix P x
     show "Ball P CT3_trace \<Longrightarrow> x \<in> hide_trace X [] \<Longrightarrow> [] \<in> P \<Longrightarrow> CT3_trace x"
       by (cases x, simp_all)
