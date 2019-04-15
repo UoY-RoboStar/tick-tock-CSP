@@ -6,7 +6,7 @@ imports
   TickTock_Prioritise
 begin
 
-definition mkTT1 :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" where
+definition mkTT1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTT1 P = P \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
 
 lemma TT1_fixpoint_mkTT1:
@@ -16,14 +16,14 @@ lemma TT1_fixpoint_mkTT1:
 lemma mkTT1_simp:
   "mkTT1 P = {\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
   unfolding mkTT1_def apply auto
-  using ctt_prefix_subset_refl by blast
+  using tt_prefix_subset_refl by blast
 
 lemma mkTT1_mono:
   assumes "P \<subseteq> Q"
   shows "mkTT1 P \<subseteq> mkTT1 Q"
   using assms unfolding mkTT1_def by auto
 
-definition unTT1 :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" where
+definition unTT1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "unTT1 P = \<Union>{x. TTM2a x \<and> TTM2b x \<and> TTickAll x \<and> TT1c x \<and> (mkTT1 x) \<subseteq> P}"
 
 lemma unTT1_mono:
@@ -36,43 +36,43 @@ lemma
   shows "P \<subseteq> mkTT1 (unTT1 P)"
   using assms unfolding mkTT1_def unTT1_def apply auto oops
 
-lemma ttWF_Refusal_ctt_prefix:
+lemma ttWF_Refusal_tt_prefix:
   assumes "ttWF \<sigma>"
   shows "[[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma> = (\<exists>Y z. \<sigma> = ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y)"
   using assms apply auto
   apply (case_tac \<sigma>, auto)
   by (case_tac a, auto)
 
-lemma ctt_prefix_eq_length_imp:
+lemma tt_prefix_eq_length_imp:
   assumes "xs @ [x] \<lesssim>\<^sub>C ys @ [y]"
           "List.length (xs @ [x]) = List.length (ys @ [y])"
     shows "[x] \<lesssim>\<^sub>C [y]"
-  using assms by(induct xs ys rule:ctt_prefix_subset.induct, auto)
+  using assms by(induct xs ys rule:tt_prefix_subset.induct, auto)
 
-lemma ctt_prefix_eq_length_common_prefix:
+lemma tt_prefix_eq_length_common_prefix:
   assumes "xs @ [x] \<lesssim>\<^sub>C ys @ [y]" "List.length (xs @ [x]) = List.length (ys @ [y])"
   shows "xs \<lesssim>\<^sub>C ys"
-  using assms by(induct xs ys rule:ctt_prefix_subset.induct, auto)
+  using assms by(induct xs ys rule:tt_prefix_subset.induct, auto)
 
-lemma ctt_singleton_prefix_nonempty:
+lemma tt_singleton_prefix_nonempty:
   assumes "[x] \<lesssim>\<^sub>C xa @ z" "xa \<noteq> []"
   shows "[x] \<lesssim>\<^sub>C xa"
   using assms apply (induct xa, auto)
   by (case_tac x, auto, case_tac a, auto, case_tac a, auto)
 
-lemma ctt_prefix_gt_length_imp:
+lemma tt_prefix_gt_length_imp:
   assumes "xs @ [x] \<lesssim>\<^sub>C ys @ [y]"
           "List.length (xs @ [x]) < List.length (ys @ [y])"
     shows "xs @ [x] \<lesssim>\<^sub>C ys"
-  using assms apply(induct xs ys rule:ctt_prefix_subset.induct, auto)
-  using ctt_singleton_prefix_nonempty by blast 
+  using assms apply(induct xs ys rule:tt_prefix_subset.induct, auto)
+  using tt_singleton_prefix_nonempty by blast 
 
-lemma ttWF_ctt_prefix_subset_exists_three_part:
+lemma ttWF_tt_prefix_subset_exists_three_part:
   assumes "ttWF \<sigma>" "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>"
   shows "\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>"
   using assms proof (induct \<sigma> arbitrary:X \<rho> rule:rev_induct)
   case Nil
-  then show ?case using ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym by blast
+  then show ?case using tt_prefix_subset.simps(1) tt_prefix_subset_antisym by blast
 next
   case (snoc x xs)
   then show ?case
@@ -84,13 +84,13 @@ next
     proof (cases x)
       case (ObsEvent x1)
       then show ?thesis using snoc True
-        by (meson ctt_prefix_eq_length_imp ctt_prefix_subset.simps(5))
+        by (meson tt_prefix_eq_length_imp tt_prefix_subset.simps(5))
     next
       case (Ref x2)
       then have xX2:"[[X]\<^sub>R] \<lesssim>\<^sub>C [[x2]\<^sub>R]"
                     "\<rho> \<lesssim>\<^sub>C xs"
-        using True ctt_prefix_eq_length_imp snoc.prems(2) apply blast
-        using True snoc ctt_prefix_eq_length_common_prefix by metis
+        using True tt_prefix_eq_length_imp snoc.prems(2) apply blast
+        using True snoc tt_prefix_eq_length_common_prefix by metis
       then have "X \<subseteq> x2" 
         by auto
       then have "xs @ [x] = xs @ [[x2]\<^sub>R] @ [] \<and> X \<subseteq> x2 \<and> \<rho> \<lesssim>\<^sub>C xs \<and> List.length (xs) = List.length (\<rho>)"
@@ -107,9 +107,9 @@ next
     case False
     then have "List.length (\<rho> @ [[X]\<^sub>R]) < List.length (xs @ [x])"
       using snoc 
-      by (meson ctt_prefix_subset_length le_neq_trans)
+      by (meson tt_prefix_subset_length le_neq_trans)
     then have "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C xs"
-      using snoc ctt_prefix_gt_length_imp by metis
+      using snoc tt_prefix_gt_length_imp by metis
     then have "\<exists>Y z \<rho>\<^sub>2. xs = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
       using snoc ttWF_prefix_is_ttWF by blast
     then have "\<exists>Y z \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z @ [x] \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
@@ -120,10 +120,10 @@ next
   qed
 qed
 
-lemma ttWF_ctt_prefix_subset_exists_three_part_concat:
+lemma ttWF_tt_prefix_subset_exists_three_part_concat:
   assumes "\<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>"
   shows "\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> s \<lesssim>\<^sub>C z \<and> size \<rho>\<^sub>2 = size \<rho>"
-  using assms proof (induct \<rho> \<sigma> arbitrary:X s rule:ctt_prefix_subset.induct)
+  using assms proof (induct \<rho> \<sigma> arbitrary:X s rule:tt_prefix_subset.induct)
 case (1 x)
   then show ?case 
     apply auto
@@ -138,11 +138,11 @@ next
     using 2 by auto
   then show ?case 
     apply auto
-    by (metis "2.prems" append_Cons ctt_prefix_subset.simps(2) length_Cons)
+    by (metis "2.prems" append_Cons tt_prefix_subset.simps(2) length_Cons)
 next
   case (3 x xa y ya)
   then show ?case apply auto
-    by (metis append_Cons ctt_prefix_subset.simps(3) length_Cons)
+    by (metis append_Cons tt_prefix_subset.simps(3) length_Cons)
 next
   case ("4_1" v xa va ya)
   then show ?case by auto
@@ -154,22 +154,22 @@ next
   then show ?case by auto
 qed
 
-lemma ctt_prefix_subset_eq_length_common_prefix_eq:
+lemma tt_prefix_subset_eq_length_common_prefix_eq:
   assumes "List.length xs = List.length ys"
   shows "((xs @ z) \<lesssim>\<^sub>C (ys @ s)) = (xs \<lesssim>\<^sub>C ys \<and> z \<lesssim>\<^sub>C s)"
-  using assms by(induct xs ys rule:ctt_prefix_subset.induct, auto)
+  using assms by(induct xs ys rule:tt_prefix_subset.induct, auto)
 
-lemma ttWF_ctt_prefix_subset_exists_three_part':
+lemma ttWF_tt_prefix_subset_exists_three_part':
   assumes "\<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>" "ttWF \<sigma>"
   shows "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>"
   using assms apply auto 
-  by (simp add: ctt_prefix_subset_eq_length_common_prefix_eq)
+  by (simp add: tt_prefix_subset_eq_length_common_prefix_eq)
 
-lemma ttWF_ctt_prefix_subset_exists_three_part_iff:
+lemma ttWF_tt_prefix_subset_exists_three_part_iff:
   assumes "ttWF \<sigma>"
   shows "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma> = (\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>)"
   using assms
-  by (meson ttWF_ctt_prefix_subset_exists_three_part ttWF_ctt_prefix_subset_exists_three_part')
+  by (meson ttWF_tt_prefix_subset_exists_three_part ttWF_tt_prefix_subset_exists_three_part')
  
 lemma TT2_mkTT1_part:
   assumes "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} = {}"
@@ -178,10 +178,10 @@ lemma TT2_mkTT1_part:
 proof -
   have "size (\<rho> @ [[X]\<^sub>R]) \<le> size \<sigma>"
     apply auto
-    using assms ctt_prefix_subset_length by fastforce
+    using assms tt_prefix_subset_length by fastforce
   then obtain \<rho>\<^sub>2 X\<^sub>2 z where X2:"\<sigma> = \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z \<and> X \<subseteq> X\<^sub>2 \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R]) = size (\<rho> @ [[X]\<^sub>R]) \<and> (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z) \<in> P"
     using assms(2,3,4)
-    ttWF_ctt_prefix_subset_exists_three_part_iff
+    ttWF_tt_prefix_subset_exists_three_part_iff
     by (metis TTwf_def assms(5) length_append_singleton)
   then have "\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P"
     by (metis TT1c_prefix_concat_in append.assoc assms(4))
@@ -195,9 +195,9 @@ proof -
   then have "\<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] \<in> P"
     using assms by (simp add: TT2_def \<open>\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P\<close>)
   then have "\<forall>e. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[e]\<^sub>E]"
-    by (metis Suc_le_mono X2 antisym_conv ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_length ctt_prefix_subset_refl length_append_singleton)
+    by (metis Suc_le_mono X2 antisym_conv tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_length tt_prefix_subset_refl length_append_singleton)
   then have "\<forall>e. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E]"
-    by (metis X2 ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq length_append_singleton nat.simps(1))
+    by (metis X2 tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq length_append_singleton nat.simps(1))
   then have "{e. (e \<noteq> Tock \<and> \<rho>\<^sub>2 @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] \<in> P) }
              \<subseteq>
              {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)}
@@ -210,7 +210,7 @@ proof -
     apply blast (* FIXME: The next step deserves a better understanding. *)
     by (smt CollectI \<open>\<forall>e. \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P \<and> e \<notin> X\<^sub>2 \<and> e = Tock \<longrightarrow> \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] \<in> P\<close> \<open>\<forall>e. \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P \<and> e \<notin> X\<^sub>2 \<and> e \<noteq> Tock \<longrightarrow> \<rho>\<^sub>2 @ [[e]\<^sub>E] \<in> P\<close> \<open>\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P\<close> assms(1) disjoint_iff_not_equal subsetCE)
   then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R]"
-    by (metis X2 ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_refl length_append_singleton nat.simps(1))
+    by (metis X2 tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl length_append_singleton nat.simps(1))
   then show ?thesis
     using \<open>\<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] \<in> P\<close> by blast
 qed
@@ -224,10 +224,10 @@ lemma TT2s_mkTT1_part:
 proof -
   have "size (\<rho> @ [[X]\<^sub>R]) \<le> size \<sigma>"
     apply auto
-    using assms ctt_prefix_subset_length by fastforce
+    using assms tt_prefix_subset_length by fastforce
   then obtain \<rho>\<^sub>2 X\<^sub>2 z where X2:"\<sigma> = \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z \<and> X \<subseteq> X\<^sub>2 \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R]) = size (\<rho> @ [[X]\<^sub>R]) \<and> (\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z) \<in> P"
     using assms(2,3,4)
-    ttWF_ctt_prefix_subset_exists_three_part_concat
+    ttWF_tt_prefix_subset_exists_three_part_concat
     by (metis length_append_singleton)
     (* by (metis TTwf_def assms(5) length_append_singleton) *)
   then have "\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] @ z \<in> P"
@@ -244,34 +244,34 @@ proof -
     using assms TT2s_def
     by (simp add: TT2s_def Z X2)
   then have "\<forall>e. \<rho> @ [[e]\<^sub>E] @ z \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[e]\<^sub>E] @ z"
-    by (metis Suc_le_mono X2 antisym_conv ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_length ctt_prefix_subset_refl length_append_singleton)
+    by (metis Suc_le_mono X2 antisym_conv tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_length tt_prefix_subset_refl length_append_singleton)
   then have "\<forall>e. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] @ z \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] @ z"
-    by (metis X2 append_Cons ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq length_append_singleton nat.simps(1))
+    by (metis X2 append_Cons tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq length_append_singleton nat.simps(1))
   then have "{e. (e \<noteq> Tock \<and> \<rho>\<^sub>2 @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] \<in> P) }
              \<subseteq>
              {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)}
              "
     apply auto 
-    apply (metis X2 ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_refl length_append_singleton nat.simps(1))
-      apply (metis X2 ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_refl length_append_singleton nat.simps(1))
-      apply (metis X2 \<open>\<forall>e. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] @ z \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] @ z\<close> ctt_prefix_subset_eq_length_common_prefix_eq length_Cons length_append_singleton nat.simps(1))
-      by (metis X2 ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_refl length_append_singleton nat.simps(1))
+    apply (metis X2 tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl length_append_singleton nat.simps(1))
+      apply (metis X2 tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl length_append_singleton nat.simps(1))
+      apply (metis X2 \<open>\<forall>e. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] @ z \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] @ z\<close> tt_prefix_subset_eq_length_common_prefix_eq length_Cons length_append_singleton nat.simps(1))
+      by (metis X2 tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl length_append_singleton nat.simps(1))
   then have "X \<union> Y \<subseteq> X\<^sub>2 \<union> Z"
     using X2 apply safe
     apply blast (* FIXME: The next step deserves a better understanding. *)
     by (smt CollectI \<open>\<forall>e. \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P \<and> e \<notin> X\<^sub>2 \<and> e = Tock \<longrightarrow> \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R, [e]\<^sub>E] \<in> P\<close> \<open>\<forall>e. \<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P \<and> e \<notin> X\<^sub>2 \<and> e \<noteq> Tock \<longrightarrow> \<rho>\<^sub>2 @ [[e]\<^sub>E] \<in> P\<close> \<open>\<rho>\<^sub>2 @ [[X\<^sub>2]\<^sub>R] \<in> P\<close> assms(1) disjoint_iff_not_equal subsetCE)
   then have "\<rho> @ [[X \<union> Y]\<^sub>R] @ s \<lesssim>\<^sub>C \<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] @ s"
-    by (metis X2 append_Cons ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq ctt_prefix_subset_refl length_append_singleton nat.simps(1))
+    by (metis X2 append_Cons tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl length_append_singleton nat.simps(1))
   then show ?thesis
   proof -
-    have f1: "\<forall>cs c. [c::'a cttobs] @ cs = c # cs"
+    have f1: "\<forall>cs c. [c::'a ttobs] @ cs = c # cs"
     by simp
       have "\<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>"
         using assms(2) by force
       then have "s \<lesssim>\<^sub>C z"
-        by (metis (no_types) X2 append.assoc ctt_prefix_subset_eq_length_common_prefix_eq)
+        by (metis (no_types) X2 append.assoc tt_prefix_subset_eq_length_common_prefix_eq)
       then show ?thesis
-        using f1 by (metis (no_types) X2 \<open>X \<union> Y \<subseteq> X\<^sub>2 \<union> Z\<close> \<open>\<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] @ z \<in> P\<close> ctt_prefix_subset.simps(2) ctt_prefix_subset_eq_length_common_prefix_eq length_append_singleton nat.simps(1))
+        using f1 by (metis (no_types) X2 \<open>X \<union> Y \<subseteq> X\<^sub>2 \<union> Z\<close> \<open>\<rho>\<^sub>2 @ [[X\<^sub>2 \<union> Z]\<^sub>R] @ z \<in> P\<close> tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq length_append_singleton nat.simps(1))
     qed
 qed
 
@@ -299,22 +299,22 @@ proof -
   then show ?thesis using calculation by auto
 qed
 
-lemma ctt_prefix_of_TT3_trace:
+lemma tt_prefix_of_TT3_trace:
   assumes "x \<lesssim>\<^sub>C \<sigma>" "TT3_trace \<sigma>"
   shows "TT3_trace x"
   using assms 
-proof (induct x \<sigma> rule:ctt_prefix_subset.induct)
+proof (induct x \<sigma> rule:tt_prefix_subset.induct)
   case (1 x)
   then show ?case by auto
 next
   case (2 X xa Y ya)
   then show ?case
-    apply (induct xa ya rule:ctt_prefix_subset.induct, auto)
+    apply (induct xa ya rule:tt_prefix_subset.induct, auto)
     apply (case_tac y, auto)
     using TT3_trace.simps(3) TT3_trace_cons_imp_cons by blast
 next
   case (3 x xa y ya)
-  then show ?case by (induct xa ya rule:ctt_prefix_subset.induct, auto)
+  then show ?case by (induct xa ya rule:tt_prefix_subset.induct, auto)
 next
   case ("4_1" v xa va ya)
   then show ?case by auto
@@ -330,18 +330,18 @@ lemma TT3_mkTT1:
   assumes "TT3 P"
   shows "TT3(mkTT1(P))"
   using assms unfolding mkTT1_def TT3_def apply auto
-  using ctt_prefix_of_TT3_trace by blast
+  using tt_prefix_of_TT3_trace by blast
 
-lemma add_Tick_refusal_trace_ctt_prefix_subset_mono:
+lemma add_Tick_refusal_trace_tt_prefix_subset_mono:
   assumes "\<rho> \<lesssim>\<^sub>C \<sigma>"
   shows   "add_Tick_refusal_trace \<rho> \<lesssim>\<^sub>C add_Tick_refusal_trace \<sigma>"
-  using assms by(induct \<rho> \<sigma> rule:ctt_prefix_subset.induct, auto)
+  using assms by(induct \<rho> \<sigma> rule:tt_prefix_subset.induct, auto)
 
 lemma TT4s_mkTT1:
   assumes "TT4s P"
   shows "TT4s(mkTT1(P))"
   using assms unfolding mkTT1_def TT4s_def apply auto
-  using add_Tick_refusal_trace_ctt_prefix_subset_mono by blast
+  using add_Tick_refusal_trace_tt_prefix_subset_mono by blast
 
 lemma
   "TTM2a(unTT1 P)"
@@ -354,7 +354,7 @@ lemma
 
 (* A wild guess below: *)
 
-fun RprirelRef :: "('e cttevent) partialorder \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list set \<Rightarrow> bool" where
+fun RprirelRef :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list set \<Rightarrow> bool" where
 "RprirelRef p [] [] s Q = True" |
 "RprirelRef p [[R]\<^sub>R] [[S]\<^sub>R] s Q = (R \<subseteq> prirelref p S)" |
 "RprirelRef p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q = ((R \<subseteq> prirelref p S) \<and> Tock \<notin> R \<and> RprirelRef p aa zz (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) Q)" |
@@ -366,7 +366,7 @@ fun RprirelRef :: "('e cttevent) partialorder \<Rightarrow> ('e cttobs) list \<R
   (\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))))" |
 "RprirelRef p x y s Q = False"
 
-definition mkTT4 :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" where
+definition mkTT4 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTT4 P = P \<union> {\<rho> @ [[R \<union> {Tick}]\<^sub>R]|\<rho> R. \<rho> @ [[R]\<^sub>R] \<in> P}"
 
 lemma TT4_fixpoint_mkTT4:
@@ -388,7 +388,7 @@ lemma TT1_mkTT1_simp:
   using mkTT1_def apply fastforce
   using TT1_fixpoint_mkTT1 by blast
 
-fun mkTTick_Trace :: "'e cttobs list \<Rightarrow> 'e cttobs list" where
+fun mkTTick_Trace :: "'e ttobs list \<Rightarrow> 'e ttobs list" where
 "mkTTick_Trace [] = []" |
 "mkTTick_Trace ([x]\<^sub>R # xs) = (if xs = [] then ([x \<union> {Tick}]\<^sub>R # xs) else ([x]\<^sub>R # mkTTick_Trace xs))" |
 "mkTTick_Trace ([e]\<^sub>E # xs) = ([e]\<^sub>E # mkTTick_Trace xs)"
@@ -412,7 +412,7 @@ lemma TTick_mkTT1_simp:
   unfolding mkTT1_def apply auto
   using TT1_def by blast
 
-fun TTMPick :: "'e cttobs list \<Rightarrow> 'e cttobs list \<Rightarrow> 'e cttobs list set \<Rightarrow> bool" where
+fun TTMPick :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> 'e ttobs list set \<Rightarrow> bool" where
 "TTMPick [] s P = True" |
 "TTMPick ([X]\<^sub>R # xs) s P = ((\<forall>e. e \<notin> X \<and> e \<noteq> Tock \<longrightarrow> s @ [[e]\<^sub>E] \<in> P)
                            \<and>
@@ -453,7 +453,7 @@ next
     
     have a:"Tick \<in> x2"
       using snoc Ref
-      by (metis TTickAll_def TTickTrace.elims(2) TTickTrace_dist_concat cttobs.distinct(1) cttobs.inject(2) list.inject not_Cons_self2)
+      by (metis TTickAll_def TTickTrace.elims(2) TTickTrace_dist_concat ttobs.distinct(1) ttobs.inject(2) list.inject not_Cons_self2)
     have b:"\<forall>e. e \<noteq> Tock \<and> e \<notin> x2 \<longrightarrow> zs @ [[e]\<^sub>E] \<in> P"  
       using TTM2a_def Ref mkTT1_def snoc.prems(1) snoc.prems(2) snoc.prems(5) by fastforce
     have c:"Tock \<notin> x2 \<longrightarrow> zs @ [[x2]\<^sub>R, [Tock]\<^sub>E] \<in> P"
@@ -466,10 +466,10 @@ next
    qed
 qed
 
-definition mkTTM2a :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" where
+definition mkTTM2a :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTTM2a P = P \<union> {\<rho> @ [[e]\<^sub>E]|\<rho> X e. \<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e \<noteq> Tock}"
 
-definition mkTTM2b :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" where
+definition mkTTM2b :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTTM2b P = P \<union> {\<rho> @ [[X]\<^sub>R,[Tock]\<^sub>E]|\<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<and> Tock \<notin> X}"
 
 lemma TTM2a_mkTTM2a [simp]: "TTM2a (mkTTM2a P)"
@@ -481,7 +481,7 @@ lemma TTM2b_mkTTM2b [simp]: "TTM2b (mkTTM2b P)"
 lemma mkTTM2b_mkTTM2a_commute: "mkTTM2b (mkTTM2a P) = mkTTM2a (mkTTM2b P)"
   unfolding mkTTM2b_def mkTTM2a_def by auto
 
-definition mkTT1c :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" where
+definition mkTT1c :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTT1c P = P \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
 
 lemma TT1c_fixpoint_mkTT1c:
@@ -497,7 +497,7 @@ lemma TTMPick_imp_in_prefix_mkTTM2b_mkTTM2a:
   assumes "TTMPick s [] P" 
   shows "s \<in> mkTTM2b (mkTTM2a {x. x \<le>\<^sub>C s})"
   using assms unfolding mkTTM2b_def mkTTM2a_def apply auto
-  by (simp add: ctt_prefix_refl)
+  by (simp add: tt_prefix_refl)
 
 lemma TTMPick_imp_in_prefix_mkTTM2b_mkTTM2a_TT1c:
   assumes "TTMPick s [] P" 
@@ -512,7 +512,7 @@ lemma TTick_imp_TTick_mkTTM2a_mkTTM2b:
 lemma TTickTrace_prefix:
   assumes "TTickTrace s" "t \<le>\<^sub>C s" 
   shows "TTickTrace t"
-  using assms apply (induct t s rule:ctt_prefix.induct, auto)
+  using assms apply (induct t s rule:tt_prefix.induct, auto)
   by (case_tac y, auto)
 
 lemma TTickAll_singleton_imp_prefixes:
@@ -557,7 +557,7 @@ lemma TT1c_mkTTM2a:
   assumes "TT1c P"
   shows "TT1c (mkTTM2a P)"
   using assms unfolding mkTTM2a_def TT1c_def apply auto
-  by (meson ctt_prefix_concat ctt_prefix_notfront_is_whole)
+  by (meson tt_prefix_concat tt_prefix_notfront_is_whole)
 
 
 lemma mkTTM2b_dist_union:
@@ -569,9 +569,9 @@ lemma mkTTM2b_in_mkTT1c_for_TT1c:
   shows "mkTTM2b({\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}) = ({\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> mkTTM2b(P)})"
   unfolding mkTTM2b_def apply auto
   apply (rule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in exI, auto)
-  apply (simp add: ctt_prefix_refl)
+  apply (simp add: tt_prefix_refl)
   using TT1c_def assms apply blast
-  by (smt TT1c_prefix_concat_in Nil_is_append_conv append_Cons append_Nil2 append_eq_append_conv2 append_self_conv2 assms ttWF.simps(1) ctt_prefix_append_split ctt_prefix_notfront_is_whole ctt_prefix_refl ctt_prefix_same_front same_append_eq split_tocks)
+  by (smt TT1c_prefix_concat_in Nil_is_append_conv append_Cons append_Nil2 append_eq_append_conv2 append_self_conv2 assms ttWF.simps(1) tt_prefix_append_split tt_prefix_notfront_is_whole tt_prefix_refl tt_prefix_same_front same_append_eq split_tocks)
 
 lemma mkTTM2b_mkTT1c_commute:
   assumes "TT1c P"
@@ -605,7 +605,7 @@ qed
 
 lemma TT1c_mkTT1c [simp]: "TT1c (mkTT1c P)"
   unfolding mkTT1c_def TT1c_def apply auto
-  using ctt_prefix_trans by blast
+  using tt_prefix_trans by blast
 
 lemma TT1c_mkTTM2a_mkTTM2b_mkTT1c:
   "TT1c (mkTTM2a (mkTTM2b (mkTT1c P)))"
@@ -636,12 +636,12 @@ lemma
 lemma
   assumes "b \<noteq> []"
   shows "x \<le>\<^sub>C \<rho> @ b \<Longrightarrow> \<not> x \<le>\<^sub>C \<rho> \<Longrightarrow> x = \<rho> @ b"
-  using assms apply (induct x \<rho> arbitrary:b rule:ctt_prefix.induct, auto)
+  using assms apply (induct x \<rho> arbitrary:b rule:tt_prefix.induct, auto)
     apply (case_tac x, auto, case_tac y, auto)
   apply (case_tac y, auto)
-    apply (metis append.right_neutral ctt_prefix_subset_front ctt_prefix_subset_same_front)
+    apply (metis append.right_neutral tt_prefix_subset_front tt_prefix_subset_same_front)
    apply (case_tac y, auto)
-    apply (metis ctt_prefix_subset.simps(3) ctt_prefix_subset.simps(5) cttobs.exhaust)
+    apply (metis tt_prefix_subset.simps(3) tt_prefix_subset.simps(5) ttobs.exhaust)
    apply (case_tac x, auto)
   apply (case_tac x, auto)
 *)
@@ -680,21 +680,21 @@ lemma TTickAll_mkTT1_simp:
   using TT1c_mkTTM2b TT1c_mkTTM2a assms 
   unfolding mkTTM2a_def mkTTM2b_def mkTT1_def apply auto
   unfolding mkTT1c_def apply auto 
-  using TT1_def ctt_prefix_imp_prefix_subset apply blast
+  using TT1_def tt_prefix_imp_prefix_subset apply blast
   using TTMPick_imp_RefTock_in apply fastforce
-  using TTMPick_imp_RefTock_in append_assoc ctt_prefix_split apply fastforce
+  using TTMPick_imp_RefTock_in append_assoc tt_prefix_split apply fastforce
   using TTMPick_imp_Event_in apply fastforce
-  using TTMPick_imp_Event_in append_assoc ctt_prefix_split apply fastforce
+  using TTMPick_imp_Event_in append_assoc tt_prefix_split apply fastforce
 
   using TT1_def apply blast
-      apply (smt TT1_TT1c TT1_def TT1c_prefix_concat_in ctt_prefix_split)
+      apply (smt TT1_TT1c TT1_def TT1c_prefix_concat_in tt_prefix_split)
   apply (case_tac "x \<lesssim>\<^sub>C \<rho> @ [[X]\<^sub>R]")
   using TT1_def apply blast
      apply (case_tac "x = \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]", auto)
   using TTMPick_imp_RefTock_in apply fastforce
   apply (smt TT1_def TTMPick_extend_event_imp TTMPick_imp_RefTock_in append.left_neutral append_assoc assms(1))
     
-    apply (smt TT1_def TTMPick_imp_RefTock_in append_Nil append_assoc ctt_prefix_split)
+    apply (smt TT1_def TTMPick_imp_RefTock_in append_Nil append_assoc tt_prefix_split)
     
      apply (case_tac "x \<lesssim>\<^sub>C \<rho>")
   apply (smt TT1_TT1c TT1_def TT1c_prefix_concat_in)
@@ -702,7 +702,7 @@ lemma TTickAll_mkTT1_simp:
  
   using TTMPick_imp_Event_in Cons_eq_appendI append.assoc self_append_conv2 apply fastforce
 proof -
-  fix x :: "'a cttobs list" and \<rho> :: "'a cttobs list" and X :: "'a cttevent set" and e :: "'a cttevent"
+  fix x :: "'a ttobs list" and \<rho> :: "'a ttobs list" and X :: "'a ttevent set" and e :: "'a ttevent"
   assume a1: "TTMPick (\<rho> @ [[X]\<^sub>R]) [] P"
   assume a2: "x \<lesssim>\<^sub>C \<rho> @ [[e]\<^sub>E]"
   assume a3: "e \<notin> X"
@@ -713,7 +713,7 @@ proof -
   then show "x \<in> P"
     using a2 TT1_fixpoint_mkTT1 assms(1) mkTT1_def by fastforce
 next  
-  fix x :: "'a cttobs list" and \<rho> :: "'a cttobs list" and X :: "'a cttevent set" and e :: "'a cttevent"
+  fix x :: "'a ttobs list" and \<rho> :: "'a ttobs list" and X :: "'a ttevent set" and e :: "'a ttevent"
   assume 
       a0: "TT1 P"
   and a1: "TTMPick s [] P"
@@ -723,10 +723,10 @@ next
   and a5:"\<rho> @ [[X]\<^sub>R] \<le>\<^sub>C s"
   then show "x \<in> P"
     apply (case_tac "x \<lesssim>\<^sub>C \<rho>")
-    apply (smt TT1_def TTMPick_imp_Event_in a1 a2 a3 a4 append_assoc append_self_conv2 assms(1) ctt_prefix_decompose)
+    apply (smt TT1_def TTMPick_imp_Event_in a1 a2 a3 a4 append_assoc append_self_conv2 assms(1) tt_prefix_decompose)
     apply (case_tac "x = \<rho> @ [[e]\<^sub>E]", auto)  
-    using TTMPick_imp_Event_in ctt_prefix_split apply fastforce
-  by (smt TT1_def TTMPick_imp_Event_in append_Nil append_assoc ctt_prefix_decompose)
+    using TTMPick_imp_Event_in tt_prefix_split apply fastforce
+  by (smt TT1_def TTMPick_imp_Event_in append_Nil append_assoc tt_prefix_decompose)
 qed
 
 lemma TT14_TTick_mkTT1_exists:
@@ -764,7 +764,7 @@ lemma
   nitpick
   oops
 
-definition prirelrefSub :: "('e cttevent) partialorder \<Rightarrow> ('e cttevent) set \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list set \<Rightarrow> ('e cttevent) set" where
+definition prirelrefSub :: "('e ttevent) partialorder \<Rightarrow> ('e ttevent) set \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list set \<Rightarrow> ('e ttevent) set" where
 "prirelrefSub pa S sa Q = 
   {z. ((z = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<in> Q) \<longrightarrow> (\<exists>b. b \<notin> S \<and> sa @ [[b]\<^sub>E] \<in> Q \<and> b \<noteq> Tock \<and> b \<noteq> Tick \<and> z <\<^sup>*pa b))
         \<and>
@@ -773,7 +773,7 @@ definition prirelrefSub :: "('e cttevent) partialorder \<Rightarrow> ('e ctteven
             \<or>
            (\<exists>b. b \<notin> S \<and> sa @ [[b]\<^sub>E] \<in> Q \<and> b \<noteq> Tock \<and> b \<noteq> Tick \<and> z <\<^sup>*pa b)))}"
 
-fun prirelRef2 :: "('e cttevent) partialorder \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list \<Rightarrow> ('e cttobs) list set \<Rightarrow> bool" where
+fun prirelRef2 :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list set \<Rightarrow> bool" where
 "prirelRef2 p [] [] s Q = True" |
 "prirelRef2 p [[R]\<^sub>R] [[S]\<^sub>R] s Q = (R \<subseteq> prirelrefSub p S s Q)" |
 "prirelRef2 p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q =
@@ -798,12 +798,12 @@ lemma TTwf_no_ill_Tock [simp]:
   shows "sa @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> P"
   using assms unfolding TTwf_def apply (induct sa rule:ttWF.induct, auto)
     apply (cases e, auto)
-  apply (metis assms(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(4) ttWF_dist_cons_refusal cttevent.exhaust cttobs.inject(1) cttobs.inject(2) list.inject)
-  by (metis append.left_neutral append_Cons ttWF.simps(11) ttWF.simps(12) ttWF_dist_cons_refusal' cttevent.exhaust)
+  apply (metis assms(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(4) ttWF_dist_cons_refusal ttevent.exhaust ttobs.inject(1) ttobs.inject(2) list.inject)
+  by (metis append.left_neutral append_Cons ttWF.simps(11) ttWF.simps(12) ttWF_dist_cons_refusal' ttevent.exhaust)
 
 (* Problem below is from 's' how to achieve target 's'? Need a way to construct it
    explicitly, then just need to show that x \<lesssim>\<^sub>C t. *)
-fun mkTTMP :: "'e cttobs list \<Rightarrow> 'e cttobs list \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list" where
+fun mkTTMP :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list" where
 "mkTTMP [] s P = []" |
 "mkTTMP ([X]\<^sub>R # xs) s P =
         ([X \<union> {e. (e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P) \<or> (e = Tock \<and> s @ [[X]\<^sub>R,[Tock]\<^sub>E] \<notin> P)} \<union> {Tick}]\<^sub>R # 
@@ -826,9 +826,9 @@ proof (auto)
   then have "add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E] \<in> P"
     by auto
   also have "s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E] \<subseteq>\<^sub>C add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E]"
-    by (simp add: add_Tick_refusal_trace_ctt_subset ctt_subset_combine)
+    by (simp add: add_Tick_refusal_trace_tt_subset tt_subset_combine)
   then show "s @ [[insert Tick X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-    using TT1_P calculation ctt_subset_imp_prefix_subset by auto
+    using TT1_P calculation tt_subset_imp_prefix_subset by auto
 qed
 
 lemma TT2s_Ref_Tock_augment:
@@ -901,19 +901,19 @@ proof -
   then show ?thesis using Y by auto
 qed
 
-lemma ctt_prefix_common_concat:
+lemma tt_prefix_common_concat:
   assumes "zs \<lesssim>\<^sub>C ys"
   shows "xs @ zs \<lesssim>\<^sub>C xs @ ys"
-  using assms apply (induct zs ys arbitrary:xs rule:ctt_prefix_subset.induct, auto)
-  using ctt_prefix_concat ctt_prefix_imp_prefix_subset apply blast
-  apply (meson ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front)
-  by (meson ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front)
+  using assms apply (induct zs ys arbitrary:xs rule:tt_prefix_subset.induct, auto)
+  using tt_prefix_concat tt_prefix_imp_prefix_subset apply blast
+  apply (meson tt_prefix_subset.simps(2) tt_prefix_subset_same_front)
+  by (meson tt_prefix_subset.simps(3) tt_prefix_subset_same_front)
 
-lemma ctt_prefix_common_concat_eq_size:
+lemma tt_prefix_common_concat_eq_size:
   assumes "zs \<lesssim>\<^sub>C ys" "size zs = size ys"
   shows "zs @ xs \<lesssim>\<^sub>C ys @ xs"
-  using assms apply (induct zs ys arbitrary:xs rule:ctt_prefix_subset.induct, auto)
-  by (simp add: ctt_prefix_subset_refl)
+  using assms apply (induct zs ys arbitrary:xs rule:tt_prefix_subset.induct, auto)
+  by (simp add: tt_prefix_subset_refl)
 
 lemma TT4s_middle_Ref_with_Tick:
   assumes "s @ [[X]\<^sub>R] @ xs \<in> P" "TT1 P" "TT4s P"
@@ -927,17 +927,17 @@ proof -
     by (simp add: add_Tick_refusal_trace_concat add_Tick_refusal_trace_end_refusal)
   
   have s_le_addTick:"s \<lesssim>\<^sub>C add_Tick_refusal_trace s"
-    by (simp add: add_Tick_refusal_trace_ctt_subset ctt_subset_imp_prefix_subset)
+    by (simp add: add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset)
   have "xs \<lesssim>\<^sub>C add_Tick_refusal_trace(xs)"
-    by (simp add: add_Tick_refusal_trace_ctt_subset ctt_subset_imp_prefix_subset)
+    by (simp add: add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset)
 
   then have a:"add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ xs
               \<lesssim>\<^sub>C
               add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ add_Tick_refusal_trace(xs)"
-  using add_Tick_in_P add_Tick_dist ctt_prefix_common_concat
+  using add_Tick_in_P add_Tick_dist tt_prefix_common_concat
     by blast
   then have b:"s @ [[X \<union> {Tick}]\<^sub>R] @ xs \<lesssim>\<^sub>C add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ xs"
-    using ctt_prefix_common_concat_eq_size add_Tick_refusal_trace_same_length s_le_addTick by blast
+    using tt_prefix_common_concat_eq_size add_Tick_refusal_trace_same_length s_le_addTick by blast
 
   have "s @ [[X \<union> {Tick}]\<^sub>R] @ xs \<in> P"
     using a b add_Tick_in_P assms
@@ -1262,7 +1262,7 @@ lemma
   shows "prirelRef pa (mkTTMP aa i P) (mkTTMP zz i P) i (unTT1 P)"
   using assms proof(induct pa aa zz i P rule:prirelRef2.induct, simp_all)
   fix p 
-  fix R::"'a cttevent set"
+  fix R::"'a ttevent set"
   fix S s Q
   assume TT4s_healthy: "TT4s Q"
      and TT3_healthy:  "TT3 Q"
@@ -1372,7 +1372,7 @@ proof -
   have "xs \<lesssim>\<^sub>C mkTTMP xs [] P"
     using assms prefix_mkTTMP by auto
   then have "xs @ [[x2]\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C mkTTMP xs [] P @ [[x2]\<^sub>R, [Tock]\<^sub>E]"
-    using mkTTMP_eq_size ctt_prefix_common_concat_eq_size by blast
+    using mkTTMP_eq_size tt_prefix_common_concat_eq_size by blast
   then show ?thesis using assms
     using TT1_def by blast
 qed
@@ -1528,7 +1528,7 @@ lemma prirelRef_start_Ref_extends:
   shows "prirelRef pa t s (sa @ [[S \<union> {e. e \<noteq> Tock \<and> sa @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E] @ z) (unTT1 Q)"
   using assms proof(induct pa t s z Q arbitrary:S sa rule:prirelRef.induct, auto)
   fix p 
-  fix aa::"'a cttobs list" 
+  fix aa::"'a ttobs list" 
   fix e\<^sub>2 zz sb Qa Sa saa Z
   assume 
     hyp:  "(\<And>S sa.
@@ -1569,7 +1569,7 @@ lemma prirelRef_start_Ref_extends:
   shows "prirelRef pa t s (zs @ z) (unTT1 Q)"
   using assms proof(induct pa t s z Q arbitrary:zs rule:prirelRef.induct, auto)
   fix p 
-  fix aa::"'a cttobs list" 
+  fix aa::"'a ttobs list" 
   fix e\<^sub>2 zz sa Qa zsa Z
   assume 
     hyp:  "(\<And>zs. prirelRef p aa zz (mkTTMP zs [] Qa @ sa @ [[e\<^sub>2]\<^sub>E]) (unTT1 Qa) \<Longrightarrow> prirelRef p aa zz (zs @ sa @ [[e\<^sub>2]\<^sub>E]) (unTT1 Qa))"
@@ -1626,7 +1626,7 @@ proof (induct s arbitrary:P rule:rev_induct)
 next
   case (snoc x xs)
   then have "(mkTTMP xs [] P) \<in> P"
-    by (meson TT1_def ctt_prefix_subset_front ctt_prefix_subset_refl)
+    by (meson TT1_def tt_prefix_subset_front tt_prefix_subset_refl)
   then have "TTMPick (mkTTMP xs [] P) [] P"
     by (simp add: TT2s_imp_TTMPick_mkTTMP snoc.prems(2) snoc.prems(4) snoc.prems(5))
 (*  then have "\<forall>e X. (e \<notin> X \<and> e \<noteq> Tock \<and> ((mkTTMP xs [] P) @ [[X]\<^sub>R])) \<longrightarrow> ((mkTTMP xs [] P) @ [[e]\<^sub>E]) \<in> P"
@@ -1717,7 +1717,7 @@ proof -
   also have "... = True"
     using assms proof (induct p x s i P rule:prirelRef2.induct, auto)
     fix pa sa 
-    fix Q::"'a cttobs list set"
+    fix Q::"'a ttobs list set"
     assume TT4s_healthy: "TT4s Q"
      and    TT3_healthy: "TT3 Q"
      and   TT2s_healthy: "TT2s Q"
@@ -1726,7 +1726,7 @@ proof -
       using prirelRef.simps(1) by blast
   next
     fix pa 
-    fix R::"'a cttevent set"
+    fix R::"'a ttevent set"
     fix S sa Q
     assume R_subset:"R \<subseteq> prirelrefSub pa S sa Q"
      and  TT4s_healthy: "TT4s Q"
@@ -1750,9 +1750,9 @@ proof -
     qed
   next
     fix pa 
-    fix R S::"'a cttevent set"
-    fix aa zz sa t::"'a cttobs list"
-    fix Q::"'a cttobs list set"
+    fix R S::"'a ttevent set"
+    fix aa zz sa t::"'a ttobs list"
+    fix Q::"'a ttobs list set"
     assume R_subset:"R \<subseteq> prirelrefSub pa S sa Q"
      and  TT4s_healthy: "TT4s Q"
      and   TT3_healthy: "TT3 Q"
@@ -1814,9 +1814,9 @@ proof -
     qed
   next
     fix pa 
-    fix aa zz::"'a cttobs list"
+    fix aa zz::"'a ttobs list"
     fix e\<^sub>2 sa t 
-    fix Q::"'a cttobs list set"
+    fix Q::"'a ttobs list set"
     assume 
         TT4s_healthy: "TT4s Q"
     and TT3_healthy:  "TT3 Q"
@@ -1824,11 +1824,11 @@ proof -
     and TT1_healthy:  "TT1 Q"
     and prirelRef2:   "prirelRef2 pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
     and maximal:      "maximal(pa,e\<^sub>2)"
-    and subsetctt:    "aa \<lesssim>\<^sub>C t"
+    and subsettt:    "aa \<lesssim>\<^sub>C t"
     and prirelRef:    "prirelRef pa t (mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP (sa @ [[e\<^sub>2]\<^sub>E]) [] Q) (unTT1 Q)"
     then show "\<exists>t. [e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C t \<and> prirelRef pa t ([e\<^sub>2]\<^sub>E # mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP sa [] Q) (unTT1 Q)"
     proof -
-      from subsetctt have e2_aa_t:"[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t"
+      from subsettt have e2_aa_t:"[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t"
         by auto
       have "prirelRef pa t (mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP (sa @ [[e\<^sub>2]\<^sub>E]) [] Q) (unTT1 Q)"
         using prirelRef by auto
@@ -1844,9 +1844,9 @@ proof -
     qed
   next
     fix pa 
-    fix aa zz::"'a cttobs list"
+    fix aa zz::"'a ttobs list"
     fix e\<^sub>2 sa Z t
-    fix Q::"'a cttobs list set"
+    fix Q::"'a ttobs list set"
     assume 
         TT4s_healthy: "TT4s Q"
     and TT3_healthy:  "TT3 Q"
@@ -1861,11 +1861,11 @@ proof -
     and no_pri_Z:     "\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*pa b"
     and not_prirelRef:"\<forall>t. [e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C t \<longrightarrow> \<not> prirelRef pa t ([e\<^sub>2]\<^sub>E # mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP sa [] Q) (unTT1 Q)"
     and Tock_in_Z:    "Tock \<in> Z"
-    and subsetctt:    "aa \<lesssim>\<^sub>C t"
+    and subsettt:    "aa \<lesssim>\<^sub>C t"
     and prirelRef:    "prirelRef pa t (mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP (sa @ [[e\<^sub>2]\<^sub>E]) [] Q) (unTT1 Q)"
     then show "False"
    proof -
-      from subsetctt have e2_aa_t:"[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t"
+      from subsettt have e2_aa_t:"[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t"
         by auto
 
       have TT4_healthy:"TT4 Q"
@@ -1878,7 +1878,7 @@ proof -
         using  Tick_in_Z e2_not_in_Z events_in_Z no_pri_Z sa_Z Tock_in_Z by blast
       
       then have "(mkTTMP sa [] Q) \<in> Q"
-        by (meson TT1_def TT1_healthy TT2s_healthy TT3_healthy TT4s_healthy TTs_mkTTMP_in_P ctt_prefix_subset_front ctt_prefix_subset_refl)
+        by (meson TT1_def TT1_healthy TT2s_healthy TT3_healthy TT4s_healthy TTs_mkTTMP_in_P tt_prefix_subset_front tt_prefix_subset_refl)
       then have b:"(mkTTMP sa [] Q) @ [[Z]\<^sub>R] \<in> unTT1 Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*pa b)"
         using a TT1_healthy TT4_healthy  
         by (simp add: prirelRef_unTT1_case_specific TT2s_healthy TT3_healthy TT4s_healthy mkTTMP_in_P)
@@ -1890,7 +1890,7 @@ proof -
       then have prirelRef_pa_t:"prirelRef pa ([e\<^sub>2]\<^sub>E # t) ([e\<^sub>2]\<^sub>E # mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP sa [] Q) (unTT1 Q)"
         using prirelRef sa_Z e2_not_in_Z events_in_Z b by auto
       then have "[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t"
-        using subsetctt by auto
+        using subsettt by auto
       then have not_prirelRef_pa_t:"\<not> prirelRef pa ([e\<^sub>2]\<^sub>E # t) ([e\<^sub>2]\<^sub>E # mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP sa [] Q) (unTT1 Q)"
         using not_prirelRef by blast
       then show ?thesis
@@ -1898,9 +1898,9 @@ proof -
     qed
   next
     fix pa 
-    fix aa zz::"'a cttobs list"
+    fix aa zz::"'a ttobs list"
     fix e\<^sub>2 sa t Z
-    fix Q::"'a cttobs list set"
+    fix Q::"'a ttobs list set"
     assume 
         TT4s_healthy: "TT4s Q"
     and TT3_healthy:  "TT3 Q"
@@ -1911,14 +1911,14 @@ proof -
   (*  and TTMPick_sa:   "TTMPick sa [] Q"*)
     and e2_not_in_Z:   "e\<^sub>2 \<notin> Z"
     and nohigherpri:  "\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*pa b"
-    and subsetctt:    "aa \<lesssim>\<^sub>C t"
+    and subsettt:    "aa \<lesssim>\<^sub>C t"
     and events_in_Z:  "\<forall>e. e \<notin> Z \<and> e \<noteq> Tock \<longrightarrow> sa @ [[e]\<^sub>E] \<in> Q"
     and Tick_in_Z:    "Tick \<in> Z"
     and Tock_Z_in_Q:  "sa @ [[Z]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
     and prirelRef:    "prirelRef pa t (mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP (sa @ [[e\<^sub>2]\<^sub>E]) [] Q) (unTT1 Q)"
     then show "\<exists>t. [e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C t \<and> prirelRef pa t ([e\<^sub>2]\<^sub>E # mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP sa [] Q) (unTT1 Q)"
     proof -
-      from subsetctt have e2_aa_t:"[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t"
+      from subsettt have e2_aa_t:"[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t"
         by auto
 
       have TT4_healthy:"TT4 Q"
@@ -1930,7 +1930,7 @@ proof -
           \<and> (Tock \<notin> Z \<longrightarrow> sa @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> Q) \<and> Tick \<in> Z)"
         by (simp add:  Tick_in_Z Tock_Z_in_Q e2_not_in_Z events_in_Z nohigherpri sa_Z)
       then have "(mkTTMP sa [] Q) \<in> Q"
-        by (meson TT1_def TT1_healthy TT2s_healthy TT3_healthy TT4s_healthy TTs_mkTTMP_in_P ctt_prefix_subset_front ctt_prefix_subset_refl)
+        by (meson TT1_def TT1_healthy TT2s_healthy TT3_healthy TT4s_healthy TTs_mkTTMP_in_P tt_prefix_subset_front tt_prefix_subset_refl)
       then have b:"(mkTTMP sa [] Q) @ [[Z]\<^sub>R] \<in> unTT1 Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*pa b)"
         using a TT1_healthy TT4_healthy  
         by (simp add: prirelRef_unTT1_case_specific TT2s_healthy TT3_healthy TT4s_healthy mkTTMP_in_P)
@@ -1941,7 +1941,7 @@ proof -
       then have prirelRef_pa_t:"prirelRef pa ([e\<^sub>2]\<^sub>E # t) ([e\<^sub>2]\<^sub>E # mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP sa [] Q) (unTT1 Q)"
         using prirelRef sa_Z e2_not_in_Z events_in_Z b by auto
       then have "[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t \<and> prirelRef pa ([e\<^sub>2]\<^sub>E # t) ([e\<^sub>2]\<^sub>E # mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP sa [] Q) (unTT1 Q)"
-        using subsetctt by auto
+        using subsettt by auto
       then show ?thesis by blast
     qed
   qed
@@ -1988,14 +1988,14 @@ lemma prirelRef_imp_prirelRef2:
   using assms 
 proof (induct p t s i P arbitrary:x rule:prirelRef.induct, auto)
   fix pa sa Q 
-  fix xa::"'a cttobs list"
+  fix xa::"'a ttobs list"
   assume "xa \<lesssim>\<^sub>C []"
   then show "\<exists>z. prirelRef2 pa xa z sa Q \<and> z \<lesssim>\<^sub>C []"
     apply (cases xa, auto)
     by (rule_tac x="[]" in exI, auto)
 next
   fix pa S sa Q
-  fix xa::"'a cttobs list"
+  fix xa::"'a ttobs list"
   assume 
       prirelref:    "xa \<lesssim>\<^sub>C [[prirelref pa S]\<^sub>R]"
   and events_in_Q:  "\<forall>e. e \<notin> S \<and> e \<noteq> Tock \<longrightarrow> sa @ [[e]\<^sub>E] \<in> Q"
@@ -2010,16 +2010,16 @@ next
   proof(cases xa)
     case Nil
     then show ?thesis
-      using ctt_prefix_subset.simps(1) prirelRef2 prirelRef2.simps(1) by blast
+      using tt_prefix_subset.simps(1) prirelRef2 prirelRef2.simps(1) by blast
   next
     case (Cons a list)
     then obtain Z where "a = [Z]\<^sub>R"
-      using ctt_prefix_subset.elims(2) prirelref by blast
+      using tt_prefix_subset.elims(2) prirelref by blast
     then have "[Z]\<^sub>R # list \<lesssim>\<^sub>C [[prirelref pa S]\<^sub>R]"
       using prirelref Cons by auto
     then have "list = []"
               "Z \<subseteq> prirelref pa S"
-      using ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym init_refusal_ctt_prefix_subset apply blast
+      using tt_prefix_subset.simps(1) tt_prefix_subset_antisym init_refusal_tt_prefix_subset apply blast
       using \<open>a = [Z]\<^sub>R\<close> local.Cons prirelref by auto
     then have "prirelRef2 pa [[Z]\<^sub>R] [[S]\<^sub>R] sa Q"
       apply auto
@@ -2030,7 +2030,7 @@ next
   qed
 next
   fix pa S sa Q
-  fix xa::"'a cttobs list"
+  fix xa::"'a ttobs list"
   assume 
       prirelref:     "xa \<lesssim>\<^sub>C [[prirelref pa S]\<^sub>R]"
   and events_in_Q:   "\<forall>e. e \<notin> S \<and> e \<noteq> Tock \<longrightarrow> sa @ [[e]\<^sub>E] \<in> Q"
@@ -2044,16 +2044,16 @@ next
   proof(cases xa)
     case Nil
     then show ?thesis
-      using ctt_prefix_subset.simps(1) prirelRef2.simps(1) by blast
+      using tt_prefix_subset.simps(1) prirelRef2.simps(1) by blast
   next
     case (Cons a list)
     then obtain Z where "a = [Z]\<^sub>R"
-      using ctt_prefix_subset.elims(2) prirelref by blast
+      using tt_prefix_subset.elims(2) prirelref by blast
     then have "[Z]\<^sub>R # list \<lesssim>\<^sub>C [[prirelref pa S]\<^sub>R]"
       using prirelref Cons by auto
     then have "list = []"
               "Z \<subseteq> prirelref pa S"
-      using ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym init_refusal_ctt_prefix_subset apply blast
+      using tt_prefix_subset.simps(1) tt_prefix_subset_antisym init_refusal_tt_prefix_subset apply blast
       using \<open>a = [Z]\<^sub>R\<close> local.Cons prirelref by auto
     then have "prirelRef2 pa [[Z]\<^sub>R] [[S]\<^sub>R] sa Q"
       apply auto
@@ -2064,7 +2064,7 @@ next
   qed
 next
   fix pa aa S zz sa Q
-  fix xa::"'a cttobs list"
+  fix xa::"'a ttobs list"
   assume
       hyp:          "(\<And>x. x \<lesssim>\<^sub>C aa \<Longrightarrow> \<exists>z. prirelRef2 pa x z (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz)"
   and xa_aa:        "xa \<lesssim>\<^sub>C [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # aa"
@@ -2083,7 +2083,7 @@ next
   proof (cases xa)
     case Nil
     then show ?thesis
-      using ctt_prefix_subset.simps(1) hyp_False prirelRef2.simps(1) by blast
+      using tt_prefix_subset.simps(1) hyp_False prirelRef2.simps(1) by blast
   next
     case a_list:(Cons a list)
     then have "xa = a # list"
@@ -2092,7 +2092,7 @@ next
     proof (cases a)
       case (ObsEvent x1)
       then show ?thesis
-        using ctt_prefix_subset.simps(4) a_list xa_aa by blast
+        using tt_prefix_subset.simps(4) a_list xa_aa by blast
     next
       case (Ref x2)
       then show ?thesis 
@@ -2113,7 +2113,7 @@ next
           using a_list Cons Ref by auto
         then have xa:"xa = [x2]\<^sub>R # [Tock]\<^sub>E # list'"
           using xa_aa
-          by (metis ctt_prefix_subset.simps(3) ctt_prefix_subset.simps(5) cttobs.exhaust init_refusal_ctt_prefix_subset)
+          by (metis tt_prefix_subset.simps(3) tt_prefix_subset.simps(5) ttobs.exhaust init_refusal_tt_prefix_subset)
         then have "[x2]\<^sub>R # [Tock]\<^sub>E # list' \<lesssim>\<^sub>C [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # aa"
           using Cons xa_aa by auto
         then have "list' \<lesssim>\<^sub>C aa"
@@ -2131,7 +2131,7 @@ next
   qed
 next
   fix pa aa S zz sa Q
-  fix xa::"'a cttobs list"
+  fix xa::"'a ttobs list"
   assume
       hyp:          "(\<And>x. x \<lesssim>\<^sub>C aa \<Longrightarrow> \<exists>z. prirelRef2 pa x z (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz)"
   and xa_aa:        "xa \<lesssim>\<^sub>C [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # aa"
@@ -2149,7 +2149,7 @@ next
   proof (cases xa)
     case Nil
     then show ?thesis
-      using ctt_prefix_subset.simps(1) prirelRef2.simps(1) by blast
+      using tt_prefix_subset.simps(1) prirelRef2.simps(1) by blast
   next
     case a_list:(Cons a list)
     then have "xa = a # list"
@@ -2158,7 +2158,7 @@ next
     proof (cases a)
       case (ObsEvent x1)
       then show ?thesis
-        using ctt_prefix_subset.simps(4) a_list xa_aa by blast
+        using tt_prefix_subset.simps(4) a_list xa_aa by blast
     next
       case (Ref x2)
       then show ?thesis 
@@ -2177,7 +2177,7 @@ next
           using a_list Cons Ref by auto
         then have xa:"xa = [x2]\<^sub>R # [Tock]\<^sub>E # list'"
           using xa_aa
-          by (metis ctt_prefix_subset.simps(3) ctt_prefix_subset.simps(5) cttobs.exhaust init_refusal_ctt_prefix_subset)
+          by (metis tt_prefix_subset.simps(3) tt_prefix_subset.simps(5) ttobs.exhaust init_refusal_tt_prefix_subset)
         then have list'_aa:"[x2]\<^sub>R # [Tock]\<^sub>E # list' \<lesssim>\<^sub>C [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # aa"
           using Cons xa_aa by auto
         then have x2_subset:"x2 \<subseteq> prirelrefSub pa S sa Q"
@@ -2196,7 +2196,7 @@ next
   qed
 next
   fix pa aa e\<^sub>2 zz sa Q
-  fix xa::"'a cttobs list"
+  fix xa::"'a ttobs list"
   assume
       hyp:          "(\<And>x. x \<lesssim>\<^sub>C aa \<Longrightarrow> \<exists>z. prirelRef2 pa x z (sa @ [[e\<^sub>2]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz)"
   and xa_aa:        "xa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # aa"
@@ -2211,7 +2211,7 @@ next
   proof (cases xa)
     case Nil
     then show ?thesis
-      using ctt_prefix_subset.simps(1) prirelRef2.simps(1) by blast
+      using tt_prefix_subset.simps(1) prirelRef2.simps(1) by blast
   next
     case a_list:(Cons a list)
     then have "xa = a # list"
@@ -2221,15 +2221,15 @@ next
         case (ObsEvent x1)
         then have xa:"xa = [x1]\<^sub>E # list"
            using a_list ObsEvent by simp
-        then have x1_list_subsetctt:"[x1]\<^sub>E # list \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # aa"
+        then have x1_list_subsettt:"[x1]\<^sub>E # list \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # aa"
            using Cons xa_aa by auto
         then have "x1 = e\<^sub>2" and xa_e2:"xa = [e\<^sub>2]\<^sub>E # list"
            using xa by auto+
         then have "\<exists>z. prirelRef2 pa list z (sa @ [[e\<^sub>2]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz"
-           using hyp x1_list_subsetctt by auto
+           using hyp x1_list_subsettt by auto
         then have "\<exists>z. prirelRef2 pa ([e\<^sub>2]\<^sub>E # list) ([e\<^sub>2]\<^sub>E # z) sa Q \<and> [e\<^sub>2]\<^sub>E # z \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # zz"
            using maximal by auto
-           then show ?thesis using xa_e2 ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(3) by blast
+           then show ?thesis using xa_e2 tt_prefix_subset.simps(1) tt_prefix_subset.simps(3) by blast
       next
         case (Ref x2)
         then show ?thesis
@@ -2238,7 +2238,7 @@ next
     qed
 next
   fix pa aa e\<^sub>2 zz sa Q Z
-  fix xa::"'a cttobs list"
+  fix xa::"'a ttobs list"
   assume
       hyp:          "(\<And>x. x \<lesssim>\<^sub>C aa \<Longrightarrow> \<exists>z. prirelRef2 pa x z (sa @ [[e\<^sub>2]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz)"
   and xa_aa:        "xa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # aa"
@@ -2254,7 +2254,7 @@ next
   then show "\<exists>z. prirelRef2 pa xa z sa Q \<and> z \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # zz"
   proof (cases xa)
     case Nil
-    then show ?thesis using ctt_prefix_subset.simps(1) prirelRef2.simps(1) by blast
+    then show ?thesis using tt_prefix_subset.simps(1) prirelRef2.simps(1) by blast
   next
     case a_list:(Cons a list)
     then have "xa = a # list"
@@ -2264,12 +2264,12 @@ next
         case (ObsEvent x1)
         then have xa:"xa = [x1]\<^sub>E # list"
            using a_list ObsEvent by simp
-        then have x1_list_subsetctt:"[x1]\<^sub>E # list \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # aa"
+        then have x1_list_subsettt:"[x1]\<^sub>E # list \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # aa"
            using Cons xa_aa by auto
         then have "x1 = e\<^sub>2" and xa_e2:"xa = [e\<^sub>2]\<^sub>E # list"
            using xa by auto+
         then have exists_prirelRef2:"\<exists>z. prirelRef2 pa list z (sa @ [[e\<^sub>2]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz"
-          using hyp x1_list_subsetctt by auto
+          using hyp x1_list_subsettt by auto
         then have "\<exists>z. prirelRef2 pa ([e\<^sub>2]\<^sub>E # list) ([e\<^sub>2]\<^sub>E # z) sa Q \<and> [e\<^sub>2]\<^sub>E # z \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # zz"
         proof -
           have TT4_healthy:"TT4 Q"
@@ -2293,7 +2293,7 @@ next
   qed
 qed
 
-definition priTT :: "('e cttevent) partialorder \<Rightarrow> ('e cttobs) list set \<Rightarrow> ('e cttobs) list set" where
+definition priTT :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list set \<Rightarrow> ('e ttobs) list set" where
 "priTT p P = {\<rho>|\<rho> s. prirelRef2 p \<rho> s [] P \<and> s \<in> P}"
 
 lemma mkTT1_priNS_unTT1_priTT:
@@ -2340,7 +2340,7 @@ lemma TTick_Refusal_Tock [simp]:
   assumes "TTick {saa}"
   shows "TTick {[S]\<^sub>R # [Tock]\<^sub>E # saa}"
   using assms unfolding TTick_def apply auto                               
-  by (metis (no_types, hide_lams) append.left_neutral append1_eq_conv append_Cons cttobs.distinct(1) rev_exhaust)                            
+  by (metis (no_types, hide_lams) append.left_neutral append1_eq_conv append_Cons ttobs.distinct(1) rev_exhaust)                            
 
 lemma TTick_Refusal_Tock':
   assumes "TTick {[S]\<^sub>R # [Tock]\<^sub>E # saa}"
@@ -2351,7 +2351,7 @@ lemma TTick_event [simp]:
   assumes "TTick {saa}"
   shows "TTick {[e]\<^sub>E # saa}"
   using assms unfolding TTick_def apply auto  
-  by (metis Cons_eq_append_conv cttobs.distinct(1) list.inject)                            
+  by (metis Cons_eq_append_conv ttobs.distinct(1) list.inject)                            
 
 lemma
   assumes "R \<subseteq> prirelref pa S" "Tick \<in> S"

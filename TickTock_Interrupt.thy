@@ -4,7 +4,7 @@ begin
 
 subsection {* Untimed Interrupt *}
 
-fun intersect_refusal_trace :: "'e cttevent set \<Rightarrow> 'e cttobs list \<Rightarrow> 'e cttobs list" where
+fun intersect_refusal_trace :: "'e ttevent set \<Rightarrow> 'e ttobs list \<Rightarrow> 'e ttobs list" where
   "intersect_refusal_trace X [] = []" |
   "intersect_refusal_trace X ([e]\<^sub>E # s) = [e]\<^sub>E # intersect_refusal_trace X s" |
   "intersect_refusal_trace X ([Y]\<^sub>R # s) = [X \<inter> Y]\<^sub>R # intersect_refusal_trace X s"
@@ -19,19 +19,19 @@ lemma intersect_refusal_trace_prefix_subset:
 
 lemma prefix_subset_of_intersect_refusal_trace:
   "s \<lesssim>\<^sub>C intersect_refusal_trace X t \<Longrightarrow> \<exists> r. r \<lesssim>\<^sub>C t \<and> s = intersect_refusal_trace X r"
-  apply (induct s t rule:ctt_prefix_subset.induct, auto)
-  using ctt_prefix_subset.simps(1) apply fastforce
-  apply (metis Int_absorb1 ctt_prefix_subset.simps(2) intersect_refusal_trace.simps(3))
-  apply (metis ctt_prefix_subset.simps(3) intersect_refusal_trace.simps(2))
+  apply (induct s t rule:tt_prefix_subset.induct, auto)
+  using tt_prefix_subset.simps(1) apply fastforce
+  apply (metis Int_absorb1 tt_prefix_subset.simps(2) intersect_refusal_trace.simps(3))
+  apply (metis tt_prefix_subset.simps(3) intersect_refusal_trace.simps(2))
   done
 
-lemma ctt_subset_of_intersect_refusal_trace:
+lemma tt_subset_of_intersect_refusal_trace:
   "s \<subseteq>\<^sub>C intersect_refusal_trace X t \<Longrightarrow> \<exists> r. r \<subseteq>\<^sub>C t \<and> s = intersect_refusal_trace X r"
-  apply (induct s t rule:ctt_subset.induct, auto)
-  using ctt_subset.simps(1) apply fastforce
-  apply (metis Int_absorb1 ctt_subset.simps(2) intersect_refusal_trace.simps(3))
-  apply (metis ctt_subset.simps(3) intersect_refusal_trace.simps(2))
-  using ctt_subset_refl ctt_subset_same_length apply force
+  apply (induct s t rule:tt_subset.induct, auto)
+  using tt_subset.simps(1) apply fastforce
+  apply (metis Int_absorb1 tt_subset.simps(2) intersect_refusal_trace.simps(3))
+  apply (metis tt_subset.simps(3) intersect_refusal_trace.simps(2))
+  using tt_subset_refl tt_subset_same_length apply force
   done
   
 lemma intersect_refusal_trace_subset:
@@ -40,25 +40,25 @@ lemma intersect_refusal_trace_subset:
 
 lemma intersect_refusal_trace_UNIV_subset_imp_subset:
   "intersect_refusal_trace UNIV s \<subseteq>\<^sub>C intersect_refusal_trace X t \<Longrightarrow> s \<subseteq>\<^sub>C t"
-  apply (induct s t rule:ctt_subset.induct, auto)
-  apply (metis ctt_subset.simps(6) ctt_subset.simps(8) intersect_refusal_trace_subset list.exhaust)
-  using ctt_subset.simps(8) ctt_subset_trans intersect_refusal_trace_subset by blast
+  apply (induct s t rule:tt_subset.induct, auto)
+  apply (metis tt_subset.simps(6) tt_subset.simps(8) intersect_refusal_trace_subset list.exhaust)
+  using tt_subset.simps(8) tt_subset_trans intersect_refusal_trace_subset by blast
 
 lemma intersect_refusal_trace_append_subset:
   "intersect_refusal_trace X t @ s \<subseteq>\<^sub>C t @ s"
-  by (simp add: ctt_subset_combine ctt_subset_refl intersect_refusal_trace_subset)
+  by (simp add: tt_subset_combine tt_subset_refl intersect_refusal_trace_subset)
 
 lemma intersect_refusal_trace_eq_imp_subset:
   "s = intersect_refusal_trace X t \<Longrightarrow> s \<subseteq>\<^sub>C t"
-  by (induct s t rule:ctt_subset.induct, auto, case_tac v, auto)
+  by (induct s t rule:tt_subset.induct, auto, case_tac v, auto)
 
 lemma intersect_refusal_trace_append_prefix_subset:
   "intersect_refusal_trace X t @ s \<lesssim>\<^sub>C t @ s"
-  by (simp add: ctt_subset_imp_prefix_subset intersect_refusal_trace_append_subset)
+  by (simp add: tt_subset_imp_prefix_subset intersect_refusal_trace_append_subset)
 
 lemma intersect_refusal_trace_append_wf:
   "ttWF (t @ s) \<Longrightarrow> ttWF (intersect_refusal_trace X t @ s)"
-  using ctt_prefix_subset_ttWF intersect_refusal_trace_append_prefix_subset by blast
+  using tt_prefix_subset_ttWF intersect_refusal_trace_append_prefix_subset by blast
 
 lemma intersect_refusal_trace_UNIV_identity:
   "intersect_refusal_trace UNIV t = t"
@@ -70,18 +70,18 @@ lemma intersect_refusal_trace_idempotent:
 
 lemma eq_intersect_refusal_trace_identity:
   "s = intersect_refusal_trace X t \<Longrightarrow> s = intersect_refusal_trace X s"
-  by (induct s t rule:ctt_subset.induct, auto)
+  by (induct s t rule:tt_subset.induct, auto)
 
 lemma intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_event:
   "s @ [[X]\<^sub>R] = intersect_refusal_trace Z (t @ [[Y]\<^sub>R]) \<Longrightarrow> s @ [[e]\<^sub>E] = intersect_refusal_trace Z (t @ [[e]\<^sub>E])"
-  by (induct s t rule:ctt_subset.induct, auto, case_tac v, auto, case_tac va, auto, case_tac a, auto)
+  by (induct s t rule:tt_subset.induct, auto, case_tac v, auto, case_tac va, auto, case_tac a, auto)
 
 lemma intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock:
   "s @ [[X]\<^sub>R] = intersect_refusal_trace Z (t @ [[Y]\<^sub>R]) \<Longrightarrow> s @ [[X]\<^sub>R, [Tock]\<^sub>E] = intersect_refusal_trace Z (t @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-  by (induct s t rule:ctt_subset.induct, auto, case_tac v, auto, case_tac va, auto, case_tac a, auto)
+  by (induct s t rule:tt_subset.induct, auto, case_tac v, auto, case_tac va, auto, case_tac a, auto)
 
 lemma intersect_refusal_trace_refusal_subset: "\<rho> @ [X]\<^sub>R # \<sigma> = intersect_refusal_trace Y t \<Longrightarrow> X \<subseteq> Y"
-  by (induct \<rho> t rule:ctt_subset.induct, auto, case_tac v, auto)
+  by (induct \<rho> t rule:tt_subset.induct, auto, case_tac v, auto)
 
 lemma subset_intersect_refusal_trace_idempotent:
   "Y \<subseteq> Z \<Longrightarrow> intersect_refusal_trace Y t = intersect_refusal_trace Z (intersect_refusal_trace Y t)"
@@ -89,38 +89,38 @@ lemma subset_intersect_refusal_trace_idempotent:
 
 lemma intersect_refusal_trace_refusal_subset_idempotent:
   "\<rho> @ [X]\<^sub>R # \<sigma> = intersect_refusal_trace Y t \<Longrightarrow> \<rho> @ [X \<union> Z]\<^sub>R # \<sigma> = intersect_refusal_trace (Y \<union> Z) (\<rho> @ [X \<union> Z]\<^sub>R # \<sigma>)"
-  by (induct \<rho> t rule:ctt_subset.induct, auto, case_tac v, auto, case_tac v, auto simp add: subset_intersect_refusal_trace_idempotent)
+  by (induct \<rho> t rule:tt_subset.induct, auto, case_tac v, auto, case_tac v, auto simp add: subset_intersect_refusal_trace_idempotent)
 
-lemma ctt_prefix_subset_intersect_refusal_trace_concat:
+lemma tt_prefix_subset_intersect_refusal_trace_concat:
   "r \<lesssim>\<^sub>C intersect_refusal_trace Y s @ t \<Longrightarrow>
     r \<lesssim>\<^sub>C intersect_refusal_trace Y s
     \<or> (\<exists> t' s'. intersect_refusal_trace UNIV s' \<subseteq>\<^sub>C intersect_refusal_trace Y s \<and> t' \<lesssim>\<^sub>C t \<and> r = intersect_refusal_trace Y s' @ t')"
-  using ctt_prefix_subset_concat2[where r="r", where t="t", where s="intersect_refusal_trace Y s"]
+  using tt_prefix_subset_concat2[where r="r", where t="t", where s="intersect_refusal_trace Y s"]
 proof (auto, erule_tac x="t'" in allE, auto, erule_tac x="s'" in allE, auto)
   fix t' s' t'a s'a t'b s'b
   assume "s' \<subseteq>\<^sub>C intersect_refusal_trace Y s" "\<not> intersect_refusal_trace UNIV s' \<subseteq>\<^sub>C intersect_refusal_trace Y s"
   then have "False"
-    by (induct s' s rule:ctt_subset.induct, auto)
+    by (induct s' s rule:tt_subset.induct, auto)
   then show "s'b @ t'b \<lesssim>\<^sub>C intersect_refusal_trace Y s"
     by auto
 next
   fix t' s' t'a s'a t'b s'b
   assume "s' \<subseteq>\<^sub>C intersect_refusal_trace Y s" "s' \<noteq> intersect_refusal_trace Y s'"
   then have "False"
-    by (induct s' s rule:ctt_subset.induct, auto)
+    by (induct s' s rule:tt_subset.induct, auto)
   then show "s'b @ t'b \<lesssim>\<^sub>C intersect_refusal_trace Y s"
     by auto
 qed
 
 lemma eq_intersect_refusal_trace_append:
   "s @ t = intersect_refusal_trace X (s' @ t) \<Longrightarrow> s = intersect_refusal_trace X s'"
-proof (induct s s' rule:ctt_subset.induct, auto)
+proof (induct s s' rule:tt_subset.induct, auto)
   fix vb va
   assume "[vb]\<^sub>E # va @ t = intersect_refusal_trace X t"
   then have "[vb]\<^sub>E # va @ t \<subseteq>\<^sub>C t"
     using intersect_refusal_trace_eq_imp_subset by auto
   then have "length ([vb]\<^sub>E # va @ t) = length t"
-    using ctt_subset_same_length by blast
+    using tt_subset_same_length by blast
   then show "False"
     by auto
 next
@@ -129,7 +129,7 @@ next
   then have "v # va @ t \<subseteq>\<^sub>C t"
     using intersect_refusal_trace_eq_imp_subset by auto
   then have "length (v # va @ t) = length t"
-    using ctt_subset_same_length by blast
+    using tt_subset_same_length by blast
   then show "False"
     by auto
 next
@@ -138,7 +138,7 @@ next
   then have "t \<subseteq>\<^sub>C v # va @ t"
     using intersect_refusal_trace_eq_imp_subset by auto
   then have "length t = length (v # va @ t)"
-    using ctt_subset_same_length by blast
+    using tt_subset_same_length by blast
   then show "[] = intersect_refusal_trace X (v # va)"
     by auto
 next
@@ -149,7 +149,7 @@ next
   then have "vc \<subseteq>\<^sub>C va @ t"
     using intersect_refusal_trace_eq_imp_subset by auto
   then have "length vc = length (va @ t)"
-    using ctt_subset_same_length by blast
+    using tt_subset_same_length by blast
   then show "False"
     using vc_assms by (auto, metis case_assm diff_Suc_less length_greater_0_conv list.simps(3) not_add_less2)
 qed
@@ -164,20 +164,20 @@ lemma intersect_refusal_trace_idempotent_widen_refusal:
 
 lemma intersect_refusal_trace_concat:
   "s = intersect_refusal_trace X s' \<Longrightarrow> t = intersect_refusal_trace X t' \<Longrightarrow> s @ t = intersect_refusal_trace X (s' @ t') "
-  by (induct s s' rule:ctt_subset.induct, auto, case_tac v, auto)
+  by (induct s s' rule:tt_subset.induct, auto, case_tac v, auto)
 
-fun contains_refusal :: "'e cttobs list \<Rightarrow> bool" where
+fun contains_refusal :: "'e ttobs list \<Rightarrow> bool" where
   "contains_refusal [] = False" |
   "contains_refusal ([X]\<^sub>R # s) = True" |
   "contains_refusal ([e]\<^sub>E # s) = contains_refusal s"
 
-lemma not_contains_refusal_ctt_prefix_subset:
+lemma not_contains_refusal_tt_prefix_subset:
   "\<not> contains_refusal t \<Longrightarrow> s \<lesssim>\<^sub>C t \<Longrightarrow> \<not> contains_refusal s"
-  by (induct s t rule:ctt_prefix_subset.induct, auto)
+  by (induct s t rule:tt_prefix_subset.induct, auto)
 
-lemma not_contains_refusal_ctt_prefix_subset_end_nonref:
+lemma not_contains_refusal_tt_prefix_subset_end_nonref:
   "\<not> contains_refusal t \<Longrightarrow> s \<lesssim>\<^sub>C t \<Longrightarrow> \<nexists> s' X. s = s' @ [[X]\<^sub>R]"
-  by (induct s t rule:ctt_prefix_subset.induct, auto simp add: Cons_eq_append_conv)
+  by (induct s t rule:tt_prefix_subset.induct, auto simp add: Cons_eq_append_conv)
 
 lemma not_contains_refusal_intersect_refusal_trace:
   "\<not> contains_refusal t \<Longrightarrow> intersect_refusal_trace X t = t"
@@ -187,15 +187,15 @@ lemma not_contains_refusal_append_event:
   "\<not> contains_refusal t \<Longrightarrow> \<not> contains_refusal (t @ [[e]\<^sub>E])"
   by (induct t rule:contains_refusal.induct, auto)
 
-lemma contains_refusal_ctt_subset:
+lemma contains_refusal_tt_subset:
   "contains_refusal t \<Longrightarrow> s \<subseteq>\<^sub>C t \<Longrightarrow> contains_refusal s"
-  by (induct s t rule:ctt_subset.induct, auto)
+  by (induct s t rule:tt_subset.induct, auto)
 
-lemma not_contains_refusal_ctt_subset:
+lemma not_contains_refusal_tt_subset:
   "\<not> contains_refusal t \<Longrightarrow> s \<subseteq>\<^sub>C t \<Longrightarrow> \<not> contains_refusal s"
-  by (induct s t rule:ctt_subset.induct, auto)
+  by (induct s t rule:tt_subset.induct, auto)
 
-definition UntimedInterruptTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<triangle>\<^sub>U" 58) where
+definition UntimedInterruptTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" (infixl "\<triangle>\<^sub>U" 58) where
   "P \<triangle>\<^sub>U Q = {t. \<exists> p X. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p (* if something in P ends in tick and contains a refusal...*)
       \<and> [[X]\<^sub>R] \<in> Q \<and> t = intersect_refusal_trace X (p @ [[Tick]\<^sub>E])} (* ...then we require a refusal in Q and intersect refusals *)
     \<union> {t. \<exists> p. p @ [[Tick]\<^sub>E] \<in> P \<and> \<not> contains_refusal p (* if something in P ends in tick and does not contain a refusal...*)
@@ -216,7 +216,7 @@ definition UntimedInterruptTT :: "'e cttobs list set \<Rightarrow> 'e cttobs lis
 lemma event_append_wf:
   "\<And>q. \<exists> p' e. p = p' @ [[Event e]\<^sub>E] \<Longrightarrow> ttWF (p) \<Longrightarrow> ttWF (q) \<Longrightarrow> ttWF (p @ q)"
 proof (auto, induct p rule:ttWF.induct, auto)
-  fix q p' \<sigma> :: "'a cttobs list"
+  fix q p' \<sigma> :: "'a ttobs list"
   fix e ea
   assume assm1: "\<And>q p' e. ttWF (p' @ [[Event e]\<^sub>E]) \<Longrightarrow> ttWF q \<Longrightarrow> \<sigma> = p' @ [[Event e]\<^sub>E] \<Longrightarrow> ttWF (p' @ [Event e]\<^sub>E # q)"
   assume assm2: "ttWF q"
@@ -235,7 +235,7 @@ proof (auto, induct p rule:ttWF.induct, auto)
       using assm1 assm2 case_assm1 by simp
   qed
 next
-  fix q p' \<sigma> :: "'a cttobs list"
+  fix q p' \<sigma> :: "'a ttobs list"
   fix ea X
   assume assm1: "\<And>q p' e. ttWF (p' @ [[Event e]\<^sub>E]) \<Longrightarrow> ttWF q \<Longrightarrow> \<sigma> = p' @ [[Event e]\<^sub>E] \<Longrightarrow> ttWF (p' @ [Event e]\<^sub>E # q)"
   assume assm2: "ttWF q"
@@ -323,7 +323,7 @@ qed
 lemma refusal_tock_append_wf:
   "\<And>q. \<exists> p' X. p = p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<Longrightarrow> ttWF (p) \<Longrightarrow> ttWF (q) \<Longrightarrow> ttWF (p @ q)"
 proof (auto, induct p rule:ttWF.induct, auto)
-  fix q p' \<sigma> :: "'a cttobs list"
+  fix q p' \<sigma> :: "'a ttobs list"
   fix e X
   assume assm1: "\<And>q p' X. ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<Longrightarrow> ttWF q \<Longrightarrow> \<sigma> = p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<Longrightarrow> ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
   assume assm2: "ttWF q"
@@ -342,7 +342,7 @@ proof (auto, induct p rule:ttWF.induct, auto)
       using assm1 assm2 case_assm1 by simp
   qed
 next
-  fix q p' \<sigma> :: "'a cttobs list"
+  fix q p' \<sigma> :: "'a ttobs list"
   fix X Xa
   assume assm1: "\<And>q p' X. ttWF (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<Longrightarrow> ttWF q \<Longrightarrow> \<sigma> = p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<Longrightarrow> ttWF (p' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
   assume assm2: "ttWF q"
@@ -574,11 +574,11 @@ proof (auto)
     assume \<rho>_assm: "\<rho> \<lesssim>\<^sub>C p @ [[Tick]\<^sub>E]"
     then have \<rho>_cases: "(\<exists>p'. \<rho> = p' @ [[Tick]\<^sub>E])
         \<or> ((\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R]))"
-      using not_contains_refusal_append_event not_contains_refusal_ctt_prefix_subset_end_nonref not_contains_refusal_p by (auto, blast)
+      using not_contains_refusal_append_event not_contains_refusal_tt_prefix_subset_end_nonref not_contains_refusal_p by (auto, blast)
     have \<rho>_in_P: "\<rho> \<in> P"
       using \<rho>_assm TT1_P in_P unfolding TT1_def by auto
     have not_contains_refusal_\<rho>: "\<not> contains_refusal \<rho>"
-      using \<rho>_assm not_contains_refusal_append_event not_contains_refusal_ctt_prefix_subset not_contains_refusal_p by auto
+      using \<rho>_assm not_contains_refusal_append_event not_contains_refusal_tt_prefix_subset not_contains_refusal_p by auto
     show "\<rho> \<in> P \<triangle>\<^sub>U Q"
       using \<rho>_cases \<rho>_in_P \<rho>_assm unfolding UntimedInterruptTT_def
     proof auto
@@ -586,7 +586,7 @@ proof (auto)
       assume "p' @ [[Tick]\<^sub>E] \<in> P" "contains_refusal p'" "\<rho> = p' @ [[Tick]\<^sub>E]"
       then show "\<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p 
         \<and> (\<exists>q X. [[X]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> p' @ [[Tick]\<^sub>E] = intersect_refusal_trace X p @ q)"
-        using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_\<rho> not_contains_refusal_ctt_prefix_subset by blast
+        using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_\<rho> not_contains_refusal_tt_prefix_subset by blast
     next
       assume "\<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R]"
       then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> 
@@ -602,12 +602,12 @@ proof (auto)
     assume in_P: "p @ [[X]\<^sub>R] \<in> P"
     assume in_Q: "[Y]\<^sub>R # q \<in> Q"
     then have Y_in_Q: "[[Y]\<^sub>R] \<in> Q"
-      by (meson TT1_Q TT1_def ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+      by (meson TT1_Q TT1_def tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
     assume "\<rho> \<lesssim>\<^sub>C intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q"
     then have  "\<rho> \<lesssim>\<^sub>C intersect_refusal_trace Y (p @ [[X]\<^sub>R])
       \<or> (\<exists> q' p'. intersect_refusal_trace UNIV p' \<subseteq>\<^sub>C intersect_refusal_trace Y (p @ [[X]\<^sub>R]) 
         \<and> q' \<lesssim>\<^sub>C q \<and> \<rho> = intersect_refusal_trace Y p' @ q')"
-      using ctt_prefix_subset_intersect_refusal_trace_concat by auto
+      using tt_prefix_subset_intersect_refusal_trace_concat by auto
     then have  "\<rho> \<lesssim>\<^sub>C intersect_refusal_trace Y (p @ [[X]\<^sub>R])
       \<or> (\<exists> q' p' X'. intersect_refusal_trace Y (p' @ [[X']\<^sub>R]) \<subseteq>\<^sub>C intersect_refusal_trace Y (p @ [[X]\<^sub>R]) 
         \<and> p' @ [[X']\<^sub>R] \<subseteq>\<^sub>C p @ [[X]\<^sub>R] \<and> q' \<lesssim>\<^sub>C q \<and> \<rho> = intersect_refusal_trace Y (p' @ [[X']\<^sub>R]) @ q')"
@@ -617,13 +617,13 @@ proof (auto)
       then have 1: "p' \<subseteq>\<^sub>C p @ [[X]\<^sub>R]"
         using intersect_refusal_trace_UNIV_subset_imp_subset by blast
       then obtain p'' X' where "p' = p'' @ [[X']\<^sub>R]"
-        using ctt_subset_same_length by (-, induct p' p rule:ctt_subset.induct, auto, case_tac v, auto, fastforce)
+        using tt_subset_same_length by (-, induct p' p rule:tt_subset.induct, auto, case_tac v, auto, fastforce)
       then show "\<forall>p'a X'. p'a @ [[X']\<^sub>R] \<subseteq>\<^sub>C p @ [[X]\<^sub>R] \<longrightarrow>
                 intersect_refusal_trace Y (p'a @ [[X']\<^sub>R]) \<subseteq>\<^sub>C intersect_refusal_trace Y (p @ [[X]\<^sub>R]) \<longrightarrow>
                 intersect_refusal_trace Y p' \<noteq> intersect_refusal_trace Y (p'a @ [[X']\<^sub>R]) \<Longrightarrow>
         intersect_refusal_trace Y p'a @ q'a \<lesssim>\<^sub>C intersect_refusal_trace Y (p @ [[X]\<^sub>R])"
         using case_assm 1 apply (erule_tac x="p''" in allE, auto, erule_tac x="X'" in allE, auto)
-        by (metis ctt_subset_trans intersect_refusal_trace_UNIV_identity intersect_refusal_trace_subset)
+        by (metis tt_subset_trans intersect_refusal_trace_UNIV_identity intersect_refusal_trace_subset)
     qed
     then show "\<rho> \<in> P \<triangle>\<^sub>U Q"
     proof auto
@@ -657,7 +657,7 @@ proof (auto)
           using p'_in_P Y_in_Q p'_assms case_assm
           apply (cases "contains_refusal p'", auto)
           apply (rule_tac x="p'" in exI, auto)
-          apply (metis TT1_Q TT1_def append_Nil2 ctt_prefix_concat ctt_prefix_imp_prefix_subset list.distinct(1) self_append_conv2)
+          apply (metis TT1_Q TT1_def append_Nil2 tt_prefix_concat tt_prefix_imp_prefix_subset list.distinct(1) self_append_conv2)
           apply (erule_tac x="p'" in allE, auto)
           by (metis TT0_TT1_empty TT0_Q TT1_Q append_Nil2 contains_refusal.simps(1) contains_refusal.simps(2) not_contains_refusal_intersect_refusal_trace)
       qed
@@ -665,7 +665,7 @@ proof (auto)
       fix q' p' X'
       assume case_assms: "intersect_refusal_trace Y (p' @ [[X']\<^sub>R]) \<subseteq>\<^sub>C intersect_refusal_trace Y (p @ [[X]\<^sub>R])" "q' \<lesssim>\<^sub>C q" "p' @ [[X']\<^sub>R] \<subseteq>\<^sub>C p @ [[X]\<^sub>R]"
       then have "p' @ [[X']\<^sub>R] \<in> P"
-        using TT1_P TT1_def ctt_subset_imp_prefix_subset in_P by blast
+        using TT1_P TT1_def tt_subset_imp_prefix_subset in_P by blast
       then show "intersect_refusal_trace Y (p' @ [[X']\<^sub>R]) @ q' \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptTT_def using case_assms in_Q
       proof (auto)
@@ -676,11 +676,11 @@ proof (auto)
           \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
             (\<exists>q X. [[X]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> 
               intersect_refusal_trace Y (p' @ [[X']\<^sub>R]) @ q' = intersect_refusal_trace X p @ q)"
-          by (metis TT1_Q TT1_def append.left_neutral append_Cons ctt_prefix_subset_same_front)+
+          by (metis TT1_Q TT1_def append.left_neutral append_Cons tt_prefix_subset_same_front)+
       qed
     qed
   next
-    fix p q :: "'a cttobs list"
+    fix p q :: "'a ttobs list"
     fix X
     assume case_assms: "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]"
     assume ref_in_Q: "[[X]\<^sub>R] \<in> Q"
@@ -694,7 +694,7 @@ proof (auto)
     then have "\<rho> \<lesssim>\<^sub>C intersect_refusal_trace X p \<or>
       (\<exists>t' s'. intersect_refusal_trace UNIV s' \<subseteq>\<^sub>C intersect_refusal_trace X p \<and>
          t' \<lesssim>\<^sub>C q \<and> \<rho> = intersect_refusal_trace X s' @ t')"
-      using ctt_prefix_subset_intersect_refusal_trace_concat by fastforce
+      using tt_prefix_subset_intersect_refusal_trace_concat by fastforce
     then show "\<rho> \<in> P \<triangle>\<^sub>U Q"
     proof auto
       assume "\<rho> \<lesssim>\<^sub>C intersect_refusal_trace X p"
@@ -703,12 +703,12 @@ proof (auto)
       then have p'_in_P: "p' \<in> P"
         using TT1_P TT1_def p_in_P by blast
       have "(\<exists> s e. p = s @ [[Event e]\<^sub>E]) \<or> (\<exists> s. p = s @ [[Tock]\<^sub>E]) \<or> p = []"
-        using case_assms by (auto, metis cttevent.exhaust cttobs.exhaust rev_exhaust)
+        using case_assms by (auto, metis ttevent.exhaust ttobs.exhaust rev_exhaust)
       then have "(\<exists> p'' Y. p' = p'' @ [[Y]\<^sub>R]) \<or> ((\<nexists>p''. p' = p'' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p'' Y. p' = p'' @ [[Y]\<^sub>R]))"
         using ttWF_p p'_assms(1) apply auto
         using ttWF_end_Event_prefix_subset apply fastforce
         using ttWF_end_Tock_prefix_subset apply fastforce
-        using ctt_prefix_subset.elims(2) by auto
+        using tt_prefix_subset.elims(2) by auto
       then show "\<rho> \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptTT_def
       proof auto
@@ -735,13 +735,13 @@ proof (auto)
       then have t'_assms: "t' \<in> Q \<and> (\<nexists>q' Y. t' = [Y]\<^sub>R # q')"
         apply auto
         using TT1_Q TT1_def q_in_Q apply blast
-        using ctt_prefix_subset.elims(2) q_nonref by blast
+        using tt_prefix_subset.elims(2) q_nonref by blast
       assume "intersect_refusal_trace UNIV s' \<subseteq>\<^sub>C intersect_refusal_trace X p"
-      then have s'_ctt_subset: "s' \<subseteq>\<^sub>C p"
+      then have s'_tt_subset: "s' \<subseteq>\<^sub>C p"
         using intersect_refusal_trace_UNIV_subset_imp_subset by blast
       then have s'_assms: "(\<nexists>p'. s' = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. s' = p' @ [[Y]\<^sub>R])"
         using case_assms apply -
-      proof (induct s' p rule:ctt_subset.induct,auto)
+      proof (induct s' p rule:tt_subset.induct,auto)
         fix X xa Y ya p'
         assume "\<forall>p'. [Y]\<^sub>R # ya \<noteq> p' @ [[Tick]\<^sub>E]"
         then have 1: "\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E]"
@@ -752,7 +752,7 @@ proof (auto)
         show "(\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow>
           \<forall>p' Y. ya \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> (\<forall>p'. xa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. xa \<noteq> p' @ [[Y]\<^sub>R])) \<Longrightarrow>
           X \<subseteq> Y \<Longrightarrow> xa \<subseteq>\<^sub>C ya \<Longrightarrow> [X]\<^sub>R # xa = p' @ [[Tick]\<^sub>E] \<Longrightarrow> False"
-          using 1 2 by (auto, metis append_eq_Cons_conv cttobs.distinct(1) list.inject)
+          using 1 2 by (auto, metis append_eq_Cons_conv ttobs.distinct(1) list.inject)
       next
         fix X xa Y ya p' Ya
         assume "\<forall>p'. [Y]\<^sub>R # ya \<noteq> p' @ [[Tick]\<^sub>E]"
@@ -764,7 +764,7 @@ proof (auto)
         show "(\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow>
           \<forall>p' Y. ya \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> (\<forall>p'. xa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. xa \<noteq> p' @ [[Y]\<^sub>R])) \<Longrightarrow>
           X \<subseteq> Y \<Longrightarrow> xa \<subseteq>\<^sub>C ya \<Longrightarrow> [X]\<^sub>R # xa = p' @ [[Ya]\<^sub>R] \<Longrightarrow> False"
-          using 1 2 3 by (auto, metis (no_types, lifting) append_eq_Cons_conv ctt_subset_same_length length_0_conv list.inject)
+          using 1 2 3 by (auto, metis (no_types, lifting) append_eq_Cons_conv tt_subset_same_length length_0_conv list.inject)
       next
         fix xa y ya p'
         assume 1: "\<forall>p'. [y]\<^sub>E # ya \<noteq> p' @ [[Tick]\<^sub>E]"
@@ -776,7 +776,7 @@ proof (auto)
         show "(\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow>
           \<forall>p' Y. ya \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> (\<forall>p'. xa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. xa \<noteq> p' @ [[Y]\<^sub>R])) \<Longrightarrow>
           xa \<subseteq>\<^sub>C ya \<Longrightarrow> [y]\<^sub>E # xa = p' @ [[Tick]\<^sub>E] \<Longrightarrow> False"
-          using 1 2 3 4 by (metis append_eq_Cons_conv ctt_subset_same_length length_0_conv list.inject)
+          using 1 2 3 4 by (metis append_eq_Cons_conv tt_subset_same_length length_0_conv list.inject)
       next
         fix xa y ya p' Y
         assume 1: "\<forall>p'. [y]\<^sub>E # ya \<noteq> p' @ [[Tick]\<^sub>E]"
@@ -788,12 +788,12 @@ proof (auto)
         show "(\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow>
           \<forall>p' Y. ya \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> (\<forall>p'. xa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. xa \<noteq> p' @ [[Y]\<^sub>R])) \<Longrightarrow>
           xa \<subseteq>\<^sub>C ya \<Longrightarrow> [y]\<^sub>E # xa = p' @ [[Y]\<^sub>R] \<Longrightarrow> False"
-          using 1 2 3 4 by (metis append_eq_Cons_conv ctt_subset_same_length length_0_conv list.inject)
+          using 1 2 3 4 by (metis append_eq_Cons_conv tt_subset_same_length length_0_conv list.inject)
       qed
       have s'_in_P: "s' \<in> P"
-        using s'_ctt_subset TT1_P TT1_def ctt_subset_imp_prefix_subset p_in_P by blast 
+        using s'_tt_subset TT1_P TT1_def tt_subset_imp_prefix_subset p_in_P by blast 
       have s'_contains_refusal: "contains_refusal s'"
-        using contains_refusal_ctt_subset p_contains_refusal s'_ctt_subset by auto
+        using contains_refusal_tt_subset p_contains_refusal s'_tt_subset by auto
       show  "\<rho> = intersect_refusal_trace X s' @ t' \<Longrightarrow> intersect_refusal_trace X s' @ t' \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptTT_def
       proof auto
@@ -804,7 +804,7 @@ proof (auto)
       qed
     qed
   next
-    fix p q :: "'a cttobs list"
+    fix p q :: "'a ttobs list"
     assume case_assms: "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]"
     assume q_in_Q: "q \<in> Q"
     assume q_nonref: "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'"
@@ -814,19 +814,19 @@ proof (auto)
       using P_wf by blast
     assume "\<rho> \<lesssim>\<^sub>C p @ q"
     then have "\<rho> \<lesssim>\<^sub>C p \<or> (\<exists>t' s'. s' \<subseteq>\<^sub>C p \<and> t' \<lesssim>\<^sub>C q \<and> \<rho> = s' @ t')"
-      by (simp add: ctt_prefix_subset_concat2)
+      by (simp add: tt_prefix_subset_concat2)
     then show "\<rho> \<in> P \<triangle>\<^sub>U Q"
     proof auto
       assume \<rho>_assms: "\<rho> \<lesssim>\<^sub>C p"
       then have \<rho>_in_P: "\<rho> \<in> P"
         using TT1_P TT1_def p_in_P by blast
       have "(\<exists> s e. p = s @ [[Event e]\<^sub>E]) \<or> (\<exists> s. p = s @ [[Tock]\<^sub>E]) \<or> p = []"
-        using case_assms by (auto, metis cttevent.exhaust cttobs.exhaust rev_exhaust)
+        using case_assms by (auto, metis ttevent.exhaust ttobs.exhaust rev_exhaust)
       then have \<rho>_end_assms: "(\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R])"
-        using ttWF_p \<rho>_assms not_contains_refusal_ctt_prefix_subset_end_nonref p_not_contains_refusal apply auto
-        using ttWF_end_Event_prefix_subset ttWF_end_Tock_prefix_subset ctt_prefix_subset_antisym by fastforce+
+        using ttWF_p \<rho>_assms not_contains_refusal_tt_prefix_subset_end_nonref p_not_contains_refusal apply auto
+        using ttWF_end_Event_prefix_subset ttWF_end_Tock_prefix_subset tt_prefix_subset_antisym by fastforce+
       have \<rho>_not_contains_refusal: "\<not> contains_refusal \<rho>"
-        using \<rho>_assms not_contains_refusal_ctt_prefix_subset p_not_contains_refusal by auto
+        using \<rho>_assms not_contains_refusal_tt_prefix_subset p_not_contains_refusal by auto
       show "\<rho> \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptTT_def
       proof auto
@@ -843,11 +843,11 @@ proof (auto)
       then have t'_assms: "t' \<in> Q \<and> (\<nexists>q' Y. t' = [Y]\<^sub>R # q')"
         apply auto
         using TT1_Q TT1_def q_in_Q apply blast
-        using ctt_prefix_subset.elims(2) q_nonref by blast
-      assume s'_ctt_subset: "s' \<subseteq>\<^sub>C p"
+        using tt_prefix_subset.elims(2) q_nonref by blast
+      assume s'_tt_subset: "s' \<subseteq>\<^sub>C p"
       then have s'_assms: "(\<nexists>p'. s' = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. s' = p' @ [[Y]\<^sub>R])"
         using case_assms apply -
-      proof (induct s' p rule:ctt_subset.induct,auto)
+      proof (induct s' p rule:tt_subset.induct,auto)
         fix X xa Y ya p'
         assume "\<forall>p'. [Y]\<^sub>R # ya \<noteq> p' @ [[Tick]\<^sub>E]"
         then have 1: "\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E]"
@@ -858,7 +858,7 @@ proof (auto)
         show "(\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow>
           \<forall>p' Y. ya \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> (\<forall>p'. xa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. xa \<noteq> p' @ [[Y]\<^sub>R])) \<Longrightarrow>
           X \<subseteq> Y \<Longrightarrow> xa \<subseteq>\<^sub>C ya \<Longrightarrow> [X]\<^sub>R # xa = p' @ [[Tick]\<^sub>E] \<Longrightarrow> False"
-          using 1 2 by (auto, metis append_eq_Cons_conv cttobs.distinct(1) list.inject)
+          using 1 2 by (auto, metis append_eq_Cons_conv ttobs.distinct(1) list.inject)
       next
         fix X xa Y ya p' Ya
         assume "\<forall>p'. [Y]\<^sub>R # ya \<noteq> p' @ [[Tick]\<^sub>E]"
@@ -870,7 +870,7 @@ proof (auto)
         show "(\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow>
           \<forall>p' Y. ya \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> (\<forall>p'. xa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. xa \<noteq> p' @ [[Y]\<^sub>R])) \<Longrightarrow>
           X \<subseteq> Y \<Longrightarrow> xa \<subseteq>\<^sub>C ya \<Longrightarrow> [X]\<^sub>R # xa = p' @ [[Ya]\<^sub>R] \<Longrightarrow> False"
-          using 1 2 3 by (auto, metis (no_types, lifting) append_eq_Cons_conv ctt_subset_same_length length_0_conv list.inject)
+          using 1 2 3 by (auto, metis (no_types, lifting) append_eq_Cons_conv tt_subset_same_length length_0_conv list.inject)
       next
         fix xa y ya p'
         assume 1: "\<forall>p'. [y]\<^sub>E # ya \<noteq> p' @ [[Tick]\<^sub>E]"
@@ -882,7 +882,7 @@ proof (auto)
         show "(\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow>
           \<forall>p' Y. ya \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> (\<forall>p'. xa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. xa \<noteq> p' @ [[Y]\<^sub>R])) \<Longrightarrow>
           xa \<subseteq>\<^sub>C ya \<Longrightarrow> [y]\<^sub>E # xa = p' @ [[Tick]\<^sub>E] \<Longrightarrow> False"
-          using 1 2 3 4 by (metis append_eq_Cons_conv ctt_subset_same_length length_0_conv list.inject)
+          using 1 2 3 4 by (metis append_eq_Cons_conv tt_subset_same_length length_0_conv list.inject)
       next
         fix xa y ya p' Y
         assume 1: "\<forall>p'. [y]\<^sub>E # ya \<noteq> p' @ [[Tick]\<^sub>E]"
@@ -894,12 +894,12 @@ proof (auto)
         show "(\<forall>p'. ya \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow>
           \<forall>p' Y. ya \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> (\<forall>p'. xa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. xa \<noteq> p' @ [[Y]\<^sub>R])) \<Longrightarrow>
           xa \<subseteq>\<^sub>C ya \<Longrightarrow> [y]\<^sub>E # xa = p' @ [[Y]\<^sub>R] \<Longrightarrow> False"
-          using 1 2 3 4 by (metis append_eq_Cons_conv ctt_subset_same_length length_0_conv list.inject)
+          using 1 2 3 4 by (metis append_eq_Cons_conv tt_subset_same_length length_0_conv list.inject)
       qed
       have s'_not_contains_refusal: "\<not> contains_refusal s'"
-        using not_contains_refusal_ctt_subset p_not_contains_refusal s'_ctt_subset by auto
+        using not_contains_refusal_tt_subset p_not_contains_refusal s'_tt_subset by auto
       have s'_in_P: "s' \<in> P"
-        using s'_ctt_subset TT1_P TT1_def ctt_subset_imp_prefix_subset p_in_P by blast 
+        using s'_tt_subset TT1_P TT1_def tt_subset_imp_prefix_subset p_in_P by blast 
       show  "\<rho> = s' @ t' \<Longrightarrow> s' @ t' \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptTT_def
         (*using s'_assms t'_assms ref_in_Q s'_in_P*)
@@ -937,7 +937,7 @@ proof (auto)
     then have "\<rho> @ [[X]\<^sub>R] \<subseteq>\<^sub>C p @ [[Tick]\<^sub>E]"
       by (simp add: intersect_refusal_trace_subset)
     then have "False"
-      using ctt_subset_same_length by (induct \<rho> p rule:ctt_subset.induct, auto, fastforce+)
+      using tt_subset_same_length by (induct \<rho> p rule:tt_subset.induct, auto, fastforce+)
     then show "\<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
       (\<exists>q Z. [[Z]\<^sub>R] \<in> Q \<and> q @ [[X]\<^sub>R] \<in> Q \<and> q \<noteq> [] \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> \<rho> = intersect_refusal_trace Z p @ q)"
       by auto
@@ -954,7 +954,7 @@ proof (auto)
       then have "\<rho> @ [[X]\<^sub>R] \<subseteq>\<^sub>C p"
         by (simp add: case_assms(7) intersect_refusal_trace_subset)
       then obtain p' Z where "p = p' @ [[Z]\<^sub>R]"
-        using ctt_subset_same_length by (induct \<rho> p rule:ctt_subset.induct, auto, case_tac v, auto, fastforce)
+        using tt_subset_same_length by (induct \<rho> p rule:tt_subset.induct, auto, case_tac v, auto, fastforce)
       then show "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> False"
         by auto
     qed
@@ -1003,8 +1003,8 @@ proof (auto)
           show "x = Event e \<Longrightarrow> \<rho> @ [[Event e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
             unfolding UntimedInterruptTT_def apply auto
             using case_assms case_assms2 case_assms3 apply (rule_tac x="\<rho> @ [[Event e]\<^sub>E]" in exI, auto)
-            apply (meson ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset)
-            by (metis (no_types, hide_lams) TT1_Q TT1_def append_Nil2 ctt_prefix_subset.simps(1) intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_event intersect_refusal_trace_idempotent list.distinct(1))
+            apply (meson tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset)
+            by (metis (no_types, hide_lams) TT1_Q TT1_def append_Nil2 tt_prefix_subset.simps(1) intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_event intersect_refusal_trace_idempotent list.distinct(1))
         qed
       next
         fix x
@@ -1022,8 +1022,8 @@ proof (auto)
           show "x = Event e \<Longrightarrow> \<rho> @ [[Event e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
             unfolding UntimedInterruptTT_def apply auto
             using case_assms case_assms2 case_assms3 apply (rule_tac x="\<rho> @ [[Event e]\<^sub>E]" in exI, auto)
-            apply (meson ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset)
-            by (metis (no_types, hide_lams) TT1_Q TT1_def append_Nil2 ctt_prefix_subset.simps(1) intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_event intersect_refusal_trace_idempotent list.distinct(1))
+            apply (meson tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset)
+            by (metis (no_types, hide_lams) TT1_Q TT1_def append_Nil2 tt_prefix_subset.simps(1) intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_event intersect_refusal_trace_idempotent list.distinct(1))
         qed
       next
         fix x
@@ -1086,7 +1086,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> 
                 \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q)) \<Longrightarrow> False"
             using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+            using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
             apply (erule_tac x="[]" in allE, auto)
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             by (metis intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
@@ -1100,7 +1100,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> 
                 \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q)) \<Longrightarrow> False"
             using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+            using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
             apply (erule_tac x="[]" in allE, auto)
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             by (metis intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
@@ -1116,7 +1116,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> 
                 \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q)) \<Longrightarrow> False"
             using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            apply (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+            apply (metis append.assoc append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset_end_nonref)
             apply (erule_tac x="[]" in allE, auto)
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             by (metis intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
@@ -1130,7 +1130,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>Xa. [[Xa]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> 
                 \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Xa p @ q)) \<Longrightarrow> False"
             using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            apply (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+            apply (metis append.assoc append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset_end_nonref)
             apply (erule_tac x="[]" in allE, auto)
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             by (metis intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
@@ -1141,13 +1141,13 @@ proof (auto)
       then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
         using assm2 by auto
       have p_in_P: "p \<in> P"
-        using case_assms TT1_P TT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        using case_assms TT1_P TT1_def tt_prefix_concat tt_prefix_imp_prefix_subset by blast
       have p_end: "(\<nexists>p'. p = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. p = p' @ [[Y]\<^sub>R])"
       proof -
         have "ttWF (p @ [[Z]\<^sub>R])"
           by (simp add: P_wf case_assms(1))
         also have "(\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> (\<exists>p'. p = p' @ [[Tock]\<^sub>E]) \<or> (\<exists>p' e. p = p' @ [[Event e]\<^sub>E]) \<or> p = []"
-          by (metis cttevent.exhaust cttobs.exhaust rev_exhaust)
+          by (metis ttevent.exhaust ttobs.exhaust rev_exhaust)
         then show ?thesis
           using calculation
         proof auto
@@ -1161,9 +1161,9 @@ proof (auto)
         qed
       qed
       have \<rho>_contains_refusal_imp_p_contains_refusal: "contains_refusal \<rho> \<Longrightarrow> contains_refusal p"
-        by (metis append_Nil2 case_assms(3) case_assms2 ctt_prefix_concat ctt_prefix_imp_prefix_subset intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_event not_contains_refusal_append_event not_contains_refusal_ctt_prefix_subset not_contains_refusal_intersect_refusal_trace)
+        by (metis append_Nil2 case_assms(3) case_assms2 tt_prefix_concat tt_prefix_imp_prefix_subset intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_event not_contains_refusal_append_event not_contains_refusal_tt_prefix_subset not_contains_refusal_intersect_refusal_trace)
       have \<rho>_not_contains_refusal_imp_p_not_contains_refusal: "\<not> contains_refusal \<rho> \<Longrightarrow> \<not> contains_refusal p"
-        by (metis append_Nil2 case_assms(3) case_assms2 contains_refusal_ctt_subset ctt_prefix_concat ctt_prefix_imp_prefix_subset intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_event intersect_refusal_trace_subset not_contains_refusal_append_event not_contains_refusal_ctt_prefix_subset)
+        by (metis append_Nil2 case_assms(3) case_assms2 contains_refusal_tt_subset tt_prefix_concat tt_prefix_imp_prefix_subset intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_event intersect_refusal_trace_subset not_contains_refusal_append_event not_contains_refusal_tt_prefix_subset)
       have "{e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[W]\<^sub>R, [e]\<^sub>E] \<in> Q}
         \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
         unfolding UntimedInterruptTT_def
@@ -1440,9 +1440,9 @@ proof (auto)
       fix p
       assume case_assm2: "p @ [[Tick]\<^sub>E] \<in> P" "\<not> contains_refusal p" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ [[Tick]\<^sub>E]"
       obtain \<sigma>'' where "p = \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>''"
-        by (metis butlast.simps(2) butlast_append butlast_snoc case_assm2(3) cttevent.distinct(5) cttobs.simps(1) last.simps last_appendR list.simps(3))
+        by (metis butlast.simps(2) butlast_append butlast_snoc case_assm2(3) ttevent.distinct(5) ttobs.simps(1) last.simps last_appendR list.simps(3))
       then have "contains_refusal p"
-        by (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+        by (metis append.assoc append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset_end_nonref)
       then show "\<exists>pa. pa \<in> P \<and> (\<forall>p'. pa \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. pa \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal pa \<and>
               (\<exists>q Z. [[Z]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> p @ [[Tick]\<^sub>E] = intersect_refusal_trace Z pa @ q)"
         using case_assm2(2) by auto
@@ -1451,19 +1451,19 @@ proof (auto)
     proof auto
       fix p Z
       assume case_assms: "p @ [[Tick]\<^sub>E] \<in> P" "contains_refusal p" "[[Z]\<^sub>R] \<in> Q" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z (p @ [[Tick]\<^sub>E])"
-      have \<rho>_X_\<sigma>_ctt_subset_p: "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<subseteq>\<^sub>C p @ [[Tick]\<^sub>E]"
+      have \<rho>_X_\<sigma>_tt_subset_p: "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<subseteq>\<^sub>C p @ [[Tick]\<^sub>E]"
         using case_assms(4) intersect_refusal_trace_eq_imp_subset by blast
       have "\<exists> W \<rho>' \<sigma>''. p = \<rho>' @ [W]\<^sub>R # [Tock]\<^sub>E # \<sigma>''"
-        using \<rho>_X_\<sigma>_ctt_subset_p apply -
-        apply (induct \<rho> p rule:ctt_subset.induct, auto, metis append_Cons, metis append_Cons)
-        using ctt_subset_same_length apply force
-        apply (metis Nil_is_append_conv ctt_subset.simps(3) ctt_subset.simps(6) ctt_subset.simps(7) cttobs.exhaust neq_Nil_conv)
+        using \<rho>_X_\<sigma>_tt_subset_p apply -
+        apply (induct \<rho> p rule:tt_subset.induct, auto, metis append_Cons, metis append_Cons)
+        using tt_subset_same_length apply force
+        apply (metis Nil_is_append_conv tt_subset.simps(3) tt_subset.simps(6) tt_subset.simps(7) ttobs.exhaust neq_Nil_conv)
         apply (case_tac v, auto, case_tac va, auto, case_tac a, auto)
         by (rule_tac x="x2" in exI, rule_tac x="[]" in exI, rule_tac x="list" in exI, auto)
       then obtain W \<rho>' \<sigma>'' where p_def: "p = \<rho>' @ [W]\<^sub>R # [Tock]\<^sub>E # \<sigma>''"
         by auto
       have 1: "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P"
-        using TT1_P TT1_def case_assms(1) \<rho>_X_\<sigma>_ctt_subset_p ctt_subset_imp_prefix_subset by blast
+        using TT1_P TT1_def case_assms(1) \<rho>_X_\<sigma>_tt_subset_p tt_subset_imp_prefix_subset by blast
       have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
           \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
       proof (auto)
@@ -1478,7 +1478,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
             \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
             apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
-            using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+            using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
             apply (erule_tac x="[]" in allE, auto, simp add: TT0_TT1_empty TT0_Q TT1_Q)
             apply (erule_tac x="Z" in allE, auto)
             using case_assms(3) apply blast
@@ -1509,7 +1509,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
             \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
             apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
-            using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+            using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
             apply (erule_tac x="[]" in allE, auto, simp add: TT0_TT1_empty TT0_Q TT1_Q)
             apply (erule_tac x="Z" in allE, auto)
             using case_assms(3) apply blast
@@ -1537,7 +1537,7 @@ proof (auto)
           using case_assms2(2) unfolding UntimedInterruptTT_def by (auto)
         then show "False"
           using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-          apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+          apply (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front not_contains_refusal_tt_prefix_subset_end_nonref subsetI)
           apply (erule_tac x="[]" in allE, auto)+
           using TT0_TT1_empty TT0_Q TT1_Q apply blast
           apply (erule_tac x="Z" in allE, auto)
@@ -1551,7 +1551,7 @@ proof (auto)
           using case_assms2(2) unfolding UntimedInterruptTT_def by (auto)
         then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
           using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-          apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+          apply (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front not_contains_refusal_tt_prefix_subset_end_nonref subsetI)
           apply (erule_tac x="[]" in allE, auto)+
           using TT0_TT1_empty TT0_Q TT1_Q apply blast
           apply (erule_tac x="Z" in allE, auto)
@@ -1574,7 +1574,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<rho> @ [[Tick]\<^sub>E] \<in> P"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal apply (blast, blast)
               apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
               by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
@@ -1583,7 +1583,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               False"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal apply (blast, blast)
               apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
               by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
@@ -1592,7 +1592,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               x = Tick"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal apply (blast, blast)
               apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
               by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
@@ -1605,19 +1605,19 @@ proof (auto)
             show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
               (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> \<rho> @ [[Tick]\<^sub>E] \<in> P"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal by (blast, blast)
           next
             show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
               (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> False"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal by (blast, blast)
           next
             show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
               (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> x = Tick"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal by (blast, blast)
           qed
         qed
@@ -1634,7 +1634,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<rho> @ [[Tick]\<^sub>E] \<in> P"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal apply (blast, blast)
               apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
               by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
@@ -1643,7 +1643,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               False"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal apply (blast, blast)
               apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
               by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
@@ -1652,7 +1652,7 @@ proof (auto)
               (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               x = Tick"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal apply (blast, blast)
               apply (erule_tac x="[[x]\<^sub>E]" in allE, auto) apply (erule_tac x="Z" in allE, auto)
               by (metis eq_intersect_refusal_trace_append intersect_refusal_trace_idempotent)
@@ -1665,19 +1665,19 @@ proof (auto)
             show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
               (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> \<rho> @ [[Tick]\<^sub>E] \<in> P"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal by (blast, blast)
           next
             show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
               (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> False"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal by (blast, blast)
           next
             show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or> contains_refusal p \<or>
               (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow> x = Tick"
               using case_assms case_assms2 case_assms3 apply (erule_tac x="\<rho>" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) ctt_prefix_subset_front intersect_refusal_trace_prefix_subset)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms(4) tt_prefix_subset_front intersect_refusal_trace_prefix_subset)
               using \<rho>_non_tick_refusal by (blast, blast)
           qed
         qed
@@ -1690,7 +1690,7 @@ proof (auto)
           show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
             False"
             using case_assms case_assms2 apply (erule_tac x="\<rho>" in allE, auto, erule_tac x="X" in allE, auto)
-            apply (meson TT1_P TT1_def \<rho>_X_\<sigma>_ctt_subset_p ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front ctt_subset_imp_prefix_subset subsetI)
+            apply (meson TT1_P TT1_def \<rho>_X_\<sigma>_tt_subset_p tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front tt_subset_imp_prefix_subset subsetI)
             apply (erule_tac x="Z" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
             by (metis (no_types, lifting) eq_intersect_refusal_trace_append eq_intersect_refusal_trace_same_front intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat intersect_refusal_trace_idempotent list.inject)
         qed
@@ -1704,7 +1704,7 @@ proof (auto)
             \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
             (\<exists>q X. [[X]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [[Tock]\<^sub>E] = intersect_refusal_trace X p @ q)"
             using case_assms case_assms2 apply (erule_tac x="\<rho>" in allE, auto, erule_tac x="X" in allE, auto)
-            apply (meson TT1_P TT1_def \<rho>_X_\<sigma>_ctt_subset_p ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front ctt_subset_imp_prefix_subset subsetI)
+            apply (meson TT1_P TT1_def \<rho>_X_\<sigma>_tt_subset_p tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front tt_subset_imp_prefix_subset subsetI)
             apply (erule_tac x="Z" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
             by (metis (no_types, lifting) eq_intersect_refusal_trace_append eq_intersect_refusal_trace_same_front intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat intersect_refusal_trace_idempotent list.inject)
         qed
@@ -1726,7 +1726,7 @@ proof (auto)
           \<exists>p. p \<in> P \<and> (\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]) \<and> contains_refusal p \<and>
             (\<exists>q Xa. [[Xa]\<^sub>R] \<in> Q \<and> q \<in> Q \<and> (\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q') \<and> \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Xa p @ q)"
           using 5 \<sigma>'_def apply (erule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>''" in allE, auto)
-          apply (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+          apply (metis append.assoc append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset_end_nonref)
           apply (erule_tac x="Z \<union> Y" in allE, auto simp add: 4)
           using case_assms(4) intersect_refusal_trace_refusal_subset_idempotent by blast
       qed
@@ -1737,7 +1737,7 @@ proof (auto)
         \<or> (\<exists> \<rho>1 \<rho>2 A. p = \<rho>1 @ [A]\<^sub>R # \<rho>2 \<and> X = A \<inter> W \<and> intersect_refusal_trace W \<rho>1 = \<rho> \<and> [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace W (\<rho>2 @ [[Z]\<^sub>R]) @ q)
         \<or> (\<exists> \<sigma>1 \<sigma>2. q = \<sigma>1 @ [X]\<^sub>R # \<sigma>2 \<and> \<rho> = intersect_refusal_trace W (p @ [[Z]\<^sub>R]) @ \<sigma>1 \<and> \<sigma>2 = [Tock]\<^sub>E # \<sigma>')"
         using case_assms(3) apply -
-        apply (induct \<rho> p rule:ctt_subset.induct, simp_all, safe, simp_all)
+        apply (induct \<rho> p rule:tt_subset.induct, simp_all, safe, simp_all)
         apply (metis append_Cons intersect_refusal_trace.simps(3))
         apply (metis append_Cons intersect_refusal_trace.simps(3))
         apply (metis append_Cons intersect_refusal_trace.simps(3))
@@ -1769,10 +1769,10 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
-              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
               apply (erule_tac x="[]" in allE, auto, simp add: TT0_TT1_empty TT0_Q TT1_Q)
               apply (erule_tac x="W" in allE, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               by (simp add: case_assms2(1) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
           next
             fix x1
@@ -1786,7 +1786,7 @@ proof (auto)
             assume "\<rho> @ [[Tick]\<^sub>E] \<in> P" "contains_refusal \<rho>"
             then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tick]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="W" in exI, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               by (simp add: case_assms2(1) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
           qed
         next
@@ -1801,10 +1801,10 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
-              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
               apply (erule_tac x="[]" in allE, auto, simp add: TT0_TT1_empty TT0_Q TT1_Q)
               apply (erule_tac x="W" in allE, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               by (simp add: case_assms2(1) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
           next
             fix x1
@@ -1818,7 +1818,7 @@ proof (auto)
             assume "\<rho> @ [[Tick]\<^sub>E] \<in> P" "contains_refusal \<rho>"
             then show "\<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tick]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="W" in exI, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               by (simp add: case_assms2(1) intersect_refusal_trace_concat intersect_refusal_trace_idempotent)
           qed
         next
@@ -1828,12 +1828,12 @@ proof (auto)
             using case_assms3(2) unfolding UntimedInterruptTT_def by (auto)
           then show "False"
             using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+            apply (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front not_contains_refusal_tt_prefix_subset_end_nonref subsetI)
             using case_assms3(1) apply blast
             apply (erule_tac x="[]" in allE, auto)+
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             apply (erule_tac x="W" in allE, auto)
-            apply (metis TT1_Q TT1_def append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+            apply (metis TT1_Q TT1_def append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset)
             by (simp add: intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
         next
           assume case_assms3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
@@ -1842,19 +1842,19 @@ proof (auto)
             using case_assms3(2) unfolding UntimedInterruptTT_def by (auto)
           then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
             using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+            apply (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front not_contains_refusal_tt_prefix_subset_end_nonref subsetI)
             using case_assms3(1) apply blast
             apply (erule_tac x="[]" in allE, auto)+
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             apply (erule_tac x="W" in allE, auto)
-            apply (metis TT1_Q TT1_def append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+            apply (metis TT1_Q TT1_def append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset)
             by (simp add: intersect_refusal_trace_end_ref_imp_intersect_refusal_trace_end_ref_tock intersect_refusal_trace_idempotent)
         qed
         then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
           using assm2 by auto
 
         have p_in_P: "p \<in> P"
-          using TT1_P TT1_def case_assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+          using TT1_P TT1_def case_assms(1) tt_prefix_concat tt_prefix_imp_prefix_subset by blast
         have \<rho>_in_P: "\<rho> \<in> P"
           using TT1_P TT1_def case_assms2(1) intersect_refusal_trace_prefix_subset p_in_P by blast
         have \<rho>_intersect_refusal_trace_idempotent: "\<rho> = intersect_refusal_trace W \<rho>"
@@ -1881,7 +1881,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             next
               show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
@@ -1890,7 +1890,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             next
               show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
@@ -1899,7 +1899,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             qed
           next
@@ -1938,7 +1938,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             next
               show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
@@ -1947,7 +1947,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             next
               show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
@@ -1956,7 +1956,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             qed
           next
@@ -2043,10 +2043,10 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="\<rho>1 @ [[Event x1]\<^sub>E]" in allE, auto)
-              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
               apply (erule_tac x="[]" in allE, auto, simp add: TT0_TT1_empty TT0_Q TT1_Q)
               apply (erule_tac x="W" in allE, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               by (simp add: case_assms2(4) intersect_refusal_trace_concat)
           next
             fix x1
@@ -2064,11 +2064,11 @@ proof (auto)
               apply (rule_tac x="\<rho>1" in exI, auto)
               using case_assms2(4) not_contains_refusal_intersect_refusal_trace apply fastforce
               apply (rule_tac x="W" in exI, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               apply (simp add: case_assms2(4) intersect_refusal_trace_concat)
               using case_assms2(4) not_contains_refusal_intersect_refusal_trace apply fastforce
               apply (rule_tac x="W" in exI, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               apply (simp add: case_assms2(4) intersect_refusal_trace_concat)
               done
           qed
@@ -2084,10 +2084,10 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[Event x1]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Event x1]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="\<rho>1 @ [[Event x1]\<^sub>E]" in allE, auto)
-              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
               apply (erule_tac x="[]" in allE, auto, simp add: TT0_TT1_empty TT0_Q TT1_Q)
               apply (erule_tac x="W" in allE, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               by (simp add: case_assms2(4) intersect_refusal_trace_concat)
           next
             fix x1
@@ -2105,11 +2105,11 @@ proof (auto)
               apply (rule_tac x="\<rho>1" in exI, auto)
               using case_assms2(4) not_contains_refusal_intersect_refusal_trace apply fastforce
               apply (rule_tac x="W" in exI, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               apply (simp add: case_assms2(4) intersect_refusal_trace_concat)
               using case_assms2(4) not_contains_refusal_intersect_refusal_trace apply fastforce
               apply (rule_tac x="W" in exI, auto)
-              apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) subset_iff)
+              apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) subset_iff)
               apply (simp add: case_assms2(4) intersect_refusal_trace_concat)
               done
           qed
@@ -2117,7 +2117,7 @@ proof (auto)
           assume case_assms3: "\<rho>1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
           have A: "intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R, [Tock]\<^sub>E] = intersect_refusal_trace W (intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R, [Tock]\<^sub>E])"
           proof -
-            have "\<And>C Ca. intersect_refusal_trace C [[Ca]\<^sub>R::'a cttobs] = [[Ca \<inter> C]\<^sub>R]"
+            have "\<And>C Ca. intersect_refusal_trace C [[Ca]\<^sub>R::'a ttobs] = [[Ca \<inter> C]\<^sub>R]"
               by (simp add: Int_commute)
             then have "\<exists>C. intersect_refusal_trace W (\<rho>1 @ [[C]\<^sub>R]) = intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R]"
               by (metis (full_types) intersect_refusal_trace_concat)
@@ -2129,18 +2129,18 @@ proof (auto)
             using case_assms3(2) unfolding UntimedInterruptTT_def by (auto)
           then show "False"
             using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+            apply (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front not_contains_refusal_tt_prefix_subset_end_nonref subsetI)
             apply (metis TT1_P TT1_def case_assms3(1) intersect_refusal_trace_append_prefix_subset)
             apply (erule_tac x="[]" in allE, auto)+
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             apply (erule_tac x="W" in allE, auto)
-             apply (metis TT1_Q TT1_def append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+             apply (metis TT1_Q TT1_def append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset)
             using case_assms case_assms2 A by (auto)
         next
           assume case_assms3: "\<rho>1 @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>U Q"
           have A: "intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R, [Tock]\<^sub>E] = intersect_refusal_trace W (intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R, [Tock]\<^sub>E])"
           proof -
-            have "\<And>C Ca. intersect_refusal_trace C [[Ca]\<^sub>R::'a cttobs] = [[Ca \<inter> C]\<^sub>R]"
+            have "\<And>C Ca. intersect_refusal_trace C [[Ca]\<^sub>R::'a ttobs] = [[Ca \<inter> C]\<^sub>R]"
               by (simp add: Int_commute)
             then have "\<exists>C. intersect_refusal_trace W (\<rho>1 @ [[C]\<^sub>R]) = intersect_refusal_trace W \<rho>1 @ [[A \<inter> W]\<^sub>R]"
               by (metis (full_types) intersect_refusal_trace_concat)
@@ -2152,30 +2152,30 @@ proof (auto)
             using case_assms3(2) unfolding UntimedInterruptTT_def by (auto)
           then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
             using case_assms case_assms2 apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            apply (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front not_contains_refusal_ctt_prefix_subset_end_nonref subsetI)
+            apply (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front not_contains_refusal_tt_prefix_subset_end_nonref subsetI)
             apply (metis TT1_P TT1_def case_assms3(1) intersect_refusal_trace_append_prefix_subset)
             apply (erule_tac x="[]" in allE, auto)+
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             apply (erule_tac x="W" in allE, auto)
-             apply (metis TT1_Q TT1_def append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+             apply (metis TT1_Q TT1_def append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset)
             using case_assms case_assms2 A by (auto)
         qed
         then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>1 @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho>1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
           using assm2 by auto
 
         have p_in_P: "p \<in> P"
-          using TT1_P TT1_def case_assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+          using TT1_P TT1_def case_assms(1) tt_prefix_concat tt_prefix_imp_prefix_subset by blast
         have \<rho>1_in_P: "\<rho>1 \<in> P"
-          using TT1_P TT1_def case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset p_in_P by blast
+          using TT1_P TT1_def case_assms2(1) tt_prefix_concat tt_prefix_imp_prefix_subset p_in_P by blast
         have \<rho>_in_P: "\<rho> \<in> P"
           using TT1_P TT1_def \<rho>1_in_P case_assms2(4) intersect_refusal_trace_prefix_subset by blast
         have \<rho>_intersect_refusal_trace_idempotent: "\<rho> = intersect_refusal_trace W \<rho>"
           by (simp add: case_assms2(4) intersect_refusal_trace_idempotent)
         have \<rho>1_A_in_P: "\<rho>1 @ [[A]\<^sub>R] \<in> P"
-          by (metis TT1_P TT1_def case_assms2(1) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front p_in_P subsetI)
+          by (metis TT1_P TT1_def case_assms2(1) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front p_in_P subsetI)
         have \<rho>_X_in_P: "\<rho>1 @ [[X]\<^sub>R] \<in> P"
           using TT1_P unfolding TT1_def apply auto apply (erule_tac x="\<rho>1 @ [[X]\<^sub>R]" in allE, auto, erule_tac x="\<rho>1 @ [[A]\<^sub>R]" in allE, auto)
-          using \<rho>1_A_in_P case_assms2(2) ctt_prefix_subset_same_front by fastforce+
+          using \<rho>1_A_in_P case_assms2(2) tt_prefix_subset_same_front by fastforce+
         have \<rho>1_A_intersect_refusal_trace: "\<rho> @ [[X]\<^sub>R] = intersect_refusal_trace W (\<rho>1 @ [[A]\<^sub>R])"
           by (simp add: Int_commute case_assms2(2) case_assms2(4) intersect_refusal_trace_concat)
         have \<rho>1_X_intersect_refusal_trace_idempotent: "\<rho> @ [[X]\<^sub>R] = intersect_refusal_trace W (\<rho> @ [[X]\<^sub>R])"
@@ -2198,7 +2198,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             next
               show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
@@ -2207,7 +2207,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             next
               show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
@@ -2216,7 +2216,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             qed
           next
@@ -2255,7 +2255,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             next
               show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
@@ -2264,7 +2264,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             next
               show "\<forall>p. contains_refusal p \<longrightarrow> p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
@@ -2273,7 +2273,7 @@ proof (auto)
                 apply (erule_tac x="\<rho>" in allE, auto simp add: case_assms3 \<rho>_in_P \<rho>_non_tick_refusal)
                 apply (erule_tac x="[[x]\<^sub>E]" in allE, auto simp add: case_assms2)
                 apply (erule_tac x="W" in allE, auto)
-                apply (meson TT1_Q TT1_def case_assms(2) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl)
+                apply (meson TT1_Q TT1_def case_assms(2) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl)
                 using \<rho>_intersect_refusal_trace_idempotent by blast
             qed
           next
@@ -2332,12 +2332,12 @@ proof (auto)
           using case_assms(1) case_assms2(1) by auto
         have 4: "\<rho>1 @ [X]\<^sub>R # \<rho>2 @ [[Z]\<^sub>R] \<in> P"
           using TT1_P 3 unfolding TT1_def apply auto apply (erule_tac x="\<rho>1 @ [X]\<^sub>R # \<rho>2 @ [[Z]\<^sub>R]" in allE, auto)
-          by (metis case_assms2(2) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl ctt_prefix_subset_same_front inf_le1)
+          by (metis case_assms2(2) tt_prefix_subset.simps(2) tt_prefix_subset_refl tt_prefix_subset_same_front inf_le1)
         have 5: "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z]\<^sub>R] \<in> P"
           using 1 4 TT2s_P unfolding TT2s_def by auto
         have 6: "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z \<inter> W]\<^sub>R] \<in> P"
           using 5 TT1_P unfolding TT1_def apply auto apply (erule_tac x="\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z \<inter> W]\<^sub>R]" in allE, auto)
-          by (metis append_Cons ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front inf_le1)
+          by (metis append_Cons tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front inf_le1)
         have 7: "[W \<union> Y]\<^sub>R # q \<in> Q"
           using case_assms(2) 2 TT2s_Q unfolding TT2s_def apply auto
           apply (erule_tac x="[]" in allE, erule_tac x="q" in allE)
@@ -2345,9 +2345,9 @@ proof (auto)
         obtain \<rho>3 where 8: "\<rho>3 = intersect_refusal_trace W \<rho>2"
           by auto
         have 11: "\<rho> @ [X \<union> Y]\<^sub>R # \<rho>3 @ [[Z \<inter> W]\<^sub>R] \<subseteq>\<^sub>C \<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z \<inter> W]\<^sub>R]"
-          by (simp add: "8" case_assms2(4) ctt_subset_combine intersect_refusal_trace_subset)
+          by (simp add: "8" case_assms2(4) tt_subset_combine intersect_refusal_trace_subset)
         have 12: "\<rho> @ [X \<union> Y]\<^sub>R # \<rho>3 @ [[Z \<inter> W]\<^sub>R] \<in> P"
-          using TT1_P ctt_subset_imp_prefix_subset 6 11 unfolding TT1_def by auto
+          using TT1_P tt_subset_imp_prefix_subset 6 11 unfolding TT1_def by auto
         have 13: "intersect_refusal_trace W \<rho>1 @ [A \<inter> W \<union> Y]\<^sub>R # intersect_refusal_trace W (\<rho>2 @ [[Z]\<^sub>R]) =
           intersect_refusal_trace (W \<union> Y) (\<rho> @ [X \<union> Y]\<^sub>R # \<rho>3 @ [[Z \<inter> W]\<^sub>R])"
           by (smt "8" Int_commute Un_Int_distrib2 \<rho>_intersect_refusal_trace_idempotent case_assms2(2) case_assms2(4)
@@ -2420,7 +2420,7 @@ proof (auto)
 
       have "(\<exists> p1 p2 A. p = p1 @ [A]\<^sub>R # p2 \<and> \<rho> = intersect_refusal_trace Z p1 \<and> X = A \<inter> Z \<and> [Tock]\<^sub>E # \<sigma>' = intersect_refusal_trace Z p2 @ q)
         \<or> (\<exists> q1 q2. q = q1 @ [X]\<^sub>R # q2 \<and> q2 = [Tock]\<^sub>E # \<sigma>' \<and> \<rho> = intersect_refusal_trace Z p @ q1)"
-        using case_assms(8) apply - apply (induct \<rho> p rule:ctt_subset.induct, auto)
+        using case_assms(8) apply - apply (induct \<rho> p rule:tt_subset.induct, auto)
         apply (rule_tac x="[Y]\<^sub>R # p1" in exI, auto)
         apply (rule_tac x="[y]\<^sub>E # p1" in exI, auto)
         apply (rule_tac x="[]" in exI, auto, case_tac v, auto)
@@ -2444,7 +2444,7 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               using case_assms3 apply (erule_tac x="p1 @ [[x]\<^sub>E]" in allE, auto)
-              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
               apply (erule_tac x="[]" in allE, auto)
               using TT0_TT1_empty TT0_Q TT1_Q apply blast
               by (metis case_assms(5) case_assms2(2) contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
@@ -2480,7 +2480,7 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               using case_assms3 apply (erule_tac x="p1 @ [[x]\<^sub>E]" in allE, auto)
-              using ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset apply blast
+              using tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset apply blast
               apply (erule_tac x="[]" in allE, auto)
               using TT0_TT1_empty TT0_Q TT1_Q apply blast
               by (metis case_assms(5) case_assms2(2) contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
@@ -2511,7 +2511,7 @@ proof (auto)
             using case_assms3(2) unfolding UntimedInterruptTT_def by auto
           then show "False"
             using case_assms3 apply (erule_tac x="p1 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            apply (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+            apply (metis append.assoc append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset_end_nonref)
             apply ((erule_tac x="[]" in allE)+, auto)
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             apply (erule_tac x="Z" in allE, auto)
@@ -2525,7 +2525,7 @@ proof (auto)
             using case_assms3(2) unfolding UntimedInterruptTT_def by auto
           then show "\<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>U Q"
             using case_assms3 apply (erule_tac x="p1 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
-            apply (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+            apply (metis append.assoc append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset_end_nonref)
             apply ((erule_tac x="[]" in allE)+, auto)
             using TT0_TT1_empty TT0_Q TT1_Q apply blast
             apply (erule_tac x="Z" in allE, auto)
@@ -2539,7 +2539,7 @@ proof (auto)
           using TT2s_P unfolding TT2s_def apply auto
           apply (erule_tac x="p1" in allE, erule_tac x="p2" in allE)
           apply (erule_tac x="X" in allE, erule_tac x="Y" in allE, auto)
-          by (metis TT1_P TT1_def case_assms(1) case_assms2(1) case_assms2(4) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl ctt_prefix_subset_same_front inf_le1)
+          by (metis TT1_P TT1_def case_assms(1) case_assms2(1) case_assms2(4) tt_prefix_subset.simps(2) tt_prefix_subset_refl tt_prefix_subset_same_front inf_le1)
         
         have "{e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> Q}
           \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
@@ -2554,7 +2554,7 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="p1" in allE, auto)
-              using TT1_P TT1_def case_assms(1) case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset apply fastforce
+              using TT1_P TT1_def case_assms(1) case_assms2(1) tt_prefix_concat tt_prefix_imp_prefix_subset apply fastforce
               apply (metis (no_types, lifting) \<rho>_non_tick_refusal case_assms2(2) contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
               apply (metis \<rho>_non_tick_refusal case_assms2(2) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat)
               using case_assms(5) case_assms2(2) case_assms3(1) by blast
@@ -2564,7 +2564,7 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="p1" in allE, auto)
-              using TT1_P TT1_def case_assms(1) case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset apply fastforce
+              using TT1_P TT1_def case_assms(1) case_assms2(1) tt_prefix_concat tt_prefix_imp_prefix_subset apply fastforce
               apply (metis (no_types, lifting) \<rho>_non_tick_refusal case_assms2(2) not_contains_refusal_intersect_refusal_trace)
               apply (metis \<rho>_non_tick_refusal case_assms2(2) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat)
               using case_assms2(2) case_assms3(1) not_contains_refusal_intersect_refusal_trace by blast
@@ -2580,7 +2580,7 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<forall>X. [[X]\<^sub>R] \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> intersect_refusal_trace X p @ q)) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="p1" in allE, auto)
-              using TT1_P TT1_def case_assms(1) case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset apply fastforce
+              using TT1_P TT1_def case_assms(1) case_assms2(1) tt_prefix_concat tt_prefix_imp_prefix_subset apply fastforce
               apply (metis (no_types, lifting) \<rho>_non_tick_refusal case_assms2(2) contains_refusal.simps(1) contains_refusal.simps(3) intersect_refusal_trace_concat not_contains_refusal_intersect_refusal_trace)
               apply (metis \<rho>_non_tick_refusal case_assms2(2) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat)
               using case_assms(5) case_assms2(2) case_assms3(1) by blast
@@ -2590,7 +2590,7 @@ proof (auto)
                 (\<forall>q. q \<in> Q \<longrightarrow> (\<exists>q' Y. q = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[x]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="p1" in allE, auto)
-              using TT1_P TT1_def case_assms(1) case_assms2(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset apply fastforce
+              using TT1_P TT1_def case_assms(1) case_assms2(1) tt_prefix_concat tt_prefix_imp_prefix_subset apply fastforce
               apply (metis (no_types, lifting) \<rho>_non_tick_refusal case_assms2(2) not_contains_refusal_intersect_refusal_trace)
               apply (metis \<rho>_non_tick_refusal case_assms2(2) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(3) intersect_refusal_trace_concat)
               using case_assms2(2) case_assms3(1) not_contains_refusal_intersect_refusal_trace by blast
@@ -2603,7 +2603,7 @@ proof (auto)
             show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>Xa. [[Xa]\<^sub>R] \<in> Q \<and> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] = intersect_refusal_trace Xa (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="p1" in allE, erule_tac x="A" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms2(1) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front subset_iff)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms2(1) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front subset_iff)
               using case_assms3 apply (erule_tac x="Z" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
               by (simp add: Int_commute case_assms2(2) case_assms2(4) intersect_refusal_trace_concat)
           qed
@@ -2615,7 +2615,7 @@ proof (auto)
             show "\<forall>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y q. [Y]\<^sub>R # q \<in> Q \<longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> intersect_refusal_trace Y (p @ [[Xa]\<^sub>R]) @ q) \<Longrightarrow>
               \<exists>p. p @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal p \<and> (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> \<rho> @ [[Tock]\<^sub>E] = intersect_refusal_trace X (p @ [[Tick]\<^sub>E]))"
               apply (erule_tac x="p1" in allE, erule_tac x="A" in allE, auto)
-              apply (metis TT1_P TT1_def case_assms(1) case_assms2(1) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front subset_iff)
+              apply (metis TT1_P TT1_def case_assms(1) case_assms2(1) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front subset_iff)
               using case_assms3 apply (erule_tac x="Z" in allE, erule_tac x="[[Tock]\<^sub>E]" in allE, auto)
               by (simp add: Int_commute case_assms2(2) case_assms2(4) intersect_refusal_trace_concat)
           qed
@@ -2629,11 +2629,11 @@ proof (auto)
        
         have 3: "(\<forall>p'. p1 @ [X \<union> Y]\<^sub>R # p2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. p1 @ [X \<union> Y]\<^sub>R # p2 \<noteq> p' @ [[Y]\<^sub>R])"
           using case_assms(1) case_assms(2) apply auto
-          apply (metis append_butlast_last_id append_is_Nil_conv case_assms2(1) cttobs.simps(4) last.simps last_appendR list.simps(3))
+          apply (metis append_butlast_last_id append_is_Nil_conv case_assms2(1) ttobs.simps(4) last.simps last_appendR list.simps(3))
           by (metis append_butlast_last_id append_is_Nil_conv case_assms(3) case_assms2(1) last.simps last_appendR list.distinct(1))
 
         have 4: "contains_refusal (p1 @ [X \<union> Y]\<^sub>R # p2)"
-          by (metis append.assoc append.left_neutral append_Cons ctt_prefix_concat ctt_prefix_imp_prefix_subset not_contains_refusal_ctt_prefix_subset_end_nonref)
+          by (metis append.assoc append.left_neutral append_Cons tt_prefix_concat tt_prefix_imp_prefix_subset not_contains_refusal_tt_prefix_subset_end_nonref)
 
         obtain \<rho>1 where \<rho>1_def: "\<rho>1 = intersect_refusal_trace Z p1"
           by auto
@@ -2643,22 +2643,22 @@ proof (auto)
         have 5: "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 \<in> P"
           using TT1_P unfolding TT1_def apply auto
           apply (erule_tac x="\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2" in allE, auto, erule_tac x="p1 @ [X \<union> Y]\<^sub>R # p2" in allE, auto)
-          by (simp_all add: 1 \<rho>1_def \<rho>2_def ctt_subset_combine ctt_subset_imp_prefix_subset intersect_refusal_trace_subset)
+          by (simp_all add: 1 \<rho>1_def \<rho>2_def tt_subset_combine tt_subset_imp_prefix_subset intersect_refusal_trace_subset)
   
         have 6: "contains_refusal (\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2)"
-          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_same_front inf_le1 not_contains_refusal_ctt_prefix_subset_end_nonref)
+          by (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front inf_le1 not_contains_refusal_tt_prefix_subset_end_nonref)
 
         have 7: "(\<forall>p'. \<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y1. \<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 \<noteq> p' @ [[Y1]\<^sub>R])"
         proof auto
           fix p'
           assume "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 = p' @ [[Tick]\<^sub>E]"
           then obtain \<rho>2' where "\<rho>2 = \<rho>2' @ [[Tick]\<^sub>E]"
-            by (metis append_butlast_last_id cttobs.distinct(1) last.simps last_appendR list.distinct(1))
+            by (metis append_butlast_last_id ttobs.distinct(1) last.simps last_appendR list.distinct(1))
           then have "\<rho>2' @ [[Tick]\<^sub>E] \<subseteq>\<^sub>C p2"
             by (simp add: \<rho>2_def intersect_refusal_trace_subset, metis intersect_refusal_trace_subset)
           then have "\<exists> p2'. p2 = p2' @ [[Tick]\<^sub>E]"
-            apply (induct \<rho>2' p2 rule:ctt_subset.induct, auto, case_tac v, auto)
-            by (metis Cons_eq_append_conv ctt_subset_same_length length_0_conv)+
+            apply (induct \<rho>2' p2 rule:tt_subset.induct, auto, case_tac v, auto)
+            by (metis Cons_eq_append_conv tt_subset_same_length length_0_conv)+
           then show False
             using "3" by auto
         next
@@ -2670,8 +2670,8 @@ proof (auto)
             by (simp add: \<rho>2_def intersect_refusal_trace_subset, metis intersect_refusal_trace_subset)
           then have "\<exists> p2' X. p2 = p2' @ [[X]\<^sub>R]"
             apply -
-            apply (induct \<rho>2' p2 rule:ctt_subset.induct, auto, case_tac v, auto)
-            using ctt_subset.elims(2) by fastforce
+            apply (induct \<rho>2' p2 rule:tt_subset.induct, auto, case_tac v, auto)
+            using tt_subset.elims(2) by fastforce
           then show False
             using case_assms(3) case_assms2(1) by auto
         qed 
@@ -2759,7 +2759,7 @@ proof (auto)
       assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "\<not> contains_refusal p"
         "q \<in> Q" "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ q"
       obtain q1 where "q = q1 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<and> \<rho> = p @ q1"
-        using case_assms(4) case_assms(7) apply - by (induct \<rho> p rule:ctt_subset.induct, auto)
+        using case_assms(4) case_assms(7) apply - by (induct \<rho> p rule:tt_subset.induct, auto)
       also have "{e. e \<noteq> Tock \<and> q1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> q1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}
         \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>U Q}"
       proof auto
@@ -2853,7 +2853,7 @@ next
   then have 1: "intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q = intersect_refusal_trace Y p @ [X \<inter> Y]\<^sub>R # q"
     by auto
   then have "[X \<inter> Y]\<^sub>R # q \<in> Q"
-    by (metis TT1_Q TT1_def Int_commute Int_left_absorb case_assms(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl inf.absorb_iff2)
+    by (metis TT1_Q TT1_def Int_commute Int_left_absorb case_assms(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl inf.absorb_iff2)
   then have 2: "ttWF ([X \<inter> Y]\<^sub>R # q) \<and> TT3_trace ([X \<inter> Y]\<^sub>R # q)"
     using TT3_Q TT3_def Q_wf by blast
   have 3: "TT3_trace p"
@@ -2882,7 +2882,7 @@ lemma add_Tick_refusal_trace_not_end_tick:
   "\<nexists> s. t = s  @ [[Tick]\<^sub>E] \<Longrightarrow> \<nexists> s. add_Tick_refusal_trace t = s  @ [[Tick]\<^sub>E]"
   apply (auto, induct t rule:add_Tick_refusal_trace.induct, auto)
   apply (metis (no_types, hide_lams) add_Tick_refusal_trace.simps(2) append_Cons append_butlast_last_id contains_refusal.elims(3) contains_refusal.simps(1) contains_refusal_add_Tick_refusal_trace last.simps last_appendR list.distinct(1))
-  by (metis append.left_neutral append_Cons append_butlast_last_id cttobs.distinct(1) last_snoc)
+  by (metis append.left_neutral append_Cons append_butlast_last_id ttobs.distinct(1) last_snoc)
 
 lemma add_Tick_refusal_trace_not_end_refusal:
   "\<nexists> s X. t = s  @ [[X]\<^sub>R] \<Longrightarrow> \<nexists> s X. add_Tick_refusal_trace t = s  @ [[X]\<^sub>R]"
@@ -2987,7 +2987,7 @@ lemma TT_UntimedInterrupt:
 
 subsection {* Time-synchronising Interrupt *}
 
-fun filter_tocks :: "'e cttobs list \<Rightarrow> 'e cttobs list" where
+fun filter_tocks :: "'e ttobs list \<Rightarrow> 'e ttobs list" where
   "filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # t) = [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks t" |
   "filter_tocks [] = []" |
   "filter_tocks (x # t) = filter_tocks t"
@@ -3011,15 +3011,15 @@ lemma filter_tocks_end_ref_tock:
   "filter_tocks (s @ [[X]\<^sub>R, [Tock]\<^sub>E]) = filter_tocks s @ [[X]\<^sub>R, [Tock]\<^sub>E]"
   by (induct_tac s rule:filter_tocks.induct, auto)
 
-lemma ctt_prefix_subset_filter_tocks:
+lemma tt_prefix_subset_filter_tocks:
   "ttWF s \<Longrightarrow> ttWF t \<Longrightarrow> s \<lesssim>\<^sub>C t \<Longrightarrow> filter_tocks s \<lesssim>\<^sub>C filter_tocks t"
   by (induct s t rule:ttWF2.induct, auto)
 
-lemma ctt_subset_filter_tocks:
+lemma tt_subset_filter_tocks:
   "ttWF s \<Longrightarrow> ttWF t \<Longrightarrow> s \<subseteq>\<^sub>C t \<Longrightarrow> filter_tocks s \<subseteq>\<^sub>C filter_tocks t"
   by (induct s t rule:ttWF2.induct, auto)
 
-definition TimeSyncInterruptTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<triangle>\<^sub>T" 58) where
+definition TimeSyncInterruptTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" (infixl "\<triangle>\<^sub>T" 58) where
   "P \<triangle>\<^sub>T Q = {t. \<exists> p q. p @ [[Tick]\<^sub>E] \<in> P \<and> q \<in> Q \<and> filter_tocks p = q \<and> t = p @ [[Tick]\<^sub>E]}
     \<union> {t. \<exists> p X Y Z q. p @ [[X]\<^sub>R] \<in> P \<and> filter_tocks p = q \<and> q @ [[Y]\<^sub>R] \<in> Q
       \<and> Z \<subseteq> X \<union> Y \<and> {e\<in>X. e \<noteq> Tock} = {e\<in>Y. e \<noteq> Tock} \<and> t = p @ [[Z]\<^sub>R]}
@@ -3066,7 +3066,7 @@ lemma TT1_TimeSyncInterrupt:
   shows "TT1 (P \<triangle>\<^sub>T Q)"
   unfolding TT1_def
 proof (auto)
-  fix \<rho> \<sigma> :: "'a cttobs list"
+  fix \<rho> \<sigma> :: "'a ttobs list"
   assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
   assume assm2: "\<sigma> \<in> P \<triangle>\<^sub>T Q"
   then have "(\<exists>p q. p @ [[Tick]\<^sub>E] \<in> P \<and> q \<in> Q \<and> filter_tocks p = q \<and> \<sigma> = p @ [[Tick]\<^sub>E])
@@ -3082,7 +3082,7 @@ proof (auto)
     then have \<rho>_in_P: "\<rho> \<in> P"
       using TT1_def assm1 assms(3) by blast
     have 1: "filter_tocks \<rho> \<lesssim>\<^sub>C filter_tocks \<sigma>"
-      using \<rho>_in_P assm1 assms(1) case_assms(1) case_assms(3) ctt_prefix_subset_filter_tocks by blast
+      using \<rho>_in_P assm1 assms(1) case_assms(1) case_assms(3) tt_prefix_subset_filter_tocks by blast
     have 2: "filter_tocks \<sigma> = filter_tocks p"
       by (simp add: case_assms, induct p rule:filter_tocks.induct, auto)
     have filter_tocks_\<rho>_in_Q: "filter_tocks \<rho> \<in> Q"
@@ -3112,13 +3112,13 @@ proof (auto)
       then have "p' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Tick]\<^sub>E]"
         using ttWF_\<sigma> apply - 
         apply (induct p' p rule:ttWF2.induct, auto)
-        using ttWF.simps(12) ctt_prefix_subset_ttWF apply blast
-        apply (meson ttWF.simps(11) ctt_prefix_subset_ttWF)
-        using ttWF.simps(13) ctt_prefix_subset_ttWF apply blast
-        using ttWF.simps(8) ctt_prefix_subset_ttWF apply blast
-        using ttWF.simps(6) ctt_prefix_subset_ttWF by blast
+        using ttWF.simps(12) tt_prefix_subset_ttWF apply blast
+        apply (meson ttWF.simps(11) tt_prefix_subset_ttWF)
+        using ttWF.simps(13) tt_prefix_subset_ttWF apply blast
+        using ttWF.simps(8) tt_prefix_subset_ttWF apply blast
+        using ttWF.simps(6) tt_prefix_subset_ttWF by blast
       then have 1: "filter_tocks (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<lesssim>\<^sub>C filter_tocks (p @ [[Tick]\<^sub>E])"
-        using ttWF_\<sigma> ctt_prefix_subset_ttWF ctt_prefix_subset_filter_tocks by blast
+        using ttWF_\<sigma> tt_prefix_subset_ttWF tt_prefix_subset_filter_tocks by blast
       have 2: "filter_tocks (p @ [[Tick]\<^sub>E]) = filter_tocks (p)"
         by (induct p rule:filter_tocks.induct, auto)
       have 3: "filter_tocks (p' @ [[X]\<^sub>R, [Tock]\<^sub>E]) = filter_tocks p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
@@ -3128,7 +3128,7 @@ proof (auto)
       have 5: "filter_tocks p' @ [[X]\<^sub>R]  \<lesssim>\<^sub>C filter_tocks p' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
         by (induct p' rule:filter_tocks.induct, auto)
       then have "filter_tocks p' @ [[X]\<^sub>R]  \<lesssim>\<^sub>C filter_tocks p"
-        using 4 ctt_prefix_subset_trans by blast
+        using 4 tt_prefix_subset_trans by blast
       then have "filter_tocks p' @ [[X]\<^sub>R] \<in> Q"
         using TT1_def assms(4) case_assms(2) by blast
       then show "\<rho> = p' @ [[X]\<^sub>R] \<Longrightarrow>
@@ -3150,26 +3150,26 @@ proof (auto)
     assume case_assms: "p @ [[X]\<^sub>R] \<in> P" "\<sigma> = p @ [[Z]\<^sub>R]" "filter_tocks p @ [[Y]\<^sub>R] \<in> Q" "Z \<subseteq> X \<union> Y" "{e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock}"
     then have "\<rho> \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
       using assm1 by auto
-    thm ctt_prefix_subset_filter_tocks
+    thm tt_prefix_subset_filter_tocks
     then have "\<rho> \<lesssim>\<^sub>C p \<or> \<rho> \<subseteq>\<^sub>C p @ [[Z]\<^sub>R]"
-      apply (induct \<rho> p rule:ctt_prefix_subset.induct, auto, case_tac x, auto)
-      using ctt_prefix_subset.simps(1) ctt_prefix_subset_antisym ctt_subset_refl by blast
+      apply (induct \<rho> p rule:tt_prefix_subset.induct, auto, case_tac x, auto)
+      using tt_prefix_subset.simps(1) tt_prefix_subset_antisym tt_subset_refl by blast
     also have "\<rho> \<subseteq>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> \<exists> p' Z'. Z' \<subseteq> X \<union> Y \<and> \<rho> = p' @ [[Z']\<^sub>R] \<and> p' \<subseteq>\<^sub>C p"
-      apply (induct \<rho> p rule:ctt_subset.induct, auto, rule_tac x="[]" in exI, simp, case_tac v, auto)
-      using case_assms(4) ctt_subset_same_length by (auto, force)
+      apply (induct \<rho> p rule:tt_subset.induct, auto, rule_tac x="[]" in exI, simp, case_tac v, auto)
+      using case_assms(4) tt_subset_same_length by (auto, force)
     then have "\<rho> \<lesssim>\<^sub>C p \<or> (\<exists> p' Z'. Z' \<subseteq> X \<union> Y \<and> \<rho> = p' @ [[Z']\<^sub>R] \<and> p' \<subseteq>\<^sub>C p)"
       using calculation by auto
     then show "\<rho> \<in> P \<triangle>\<^sub>T Q"
     proof auto
       assume case_assms2: "\<rho> \<lesssim>\<^sub>C p"
       then have \<rho>_in_P: "\<rho> \<in> P"
-        using assms(3) case_assms(1) unfolding TT1_def by (meson ctt_prefix_concat ctt_prefix_imp_prefix_subset) 
+        using assms(3) case_assms(1) unfolding TT1_def by (meson tt_prefix_concat tt_prefix_imp_prefix_subset) 
       have 1: "filter_tocks \<rho> \<lesssim>\<^sub>C filter_tocks \<sigma>"
-        by (metis TimeSyncInterruptTT_wf \<rho>_in_P assm1 assm2 assms(1) assms(2) ctt_prefix_subset_filter_tocks)
+        by (metis TimeSyncInterruptTT_wf \<rho>_in_P assm1 assm2 assms(1) assms(2) tt_prefix_subset_filter_tocks)
       have 2: "filter_tocks \<sigma> = filter_tocks p"
         by (simp add: case_assms, induct p rule:filter_tocks.induct, auto)
       have filter_tocks_\<rho>_in_Q: "filter_tocks \<rho> \<in> Q"
-        by (metis "1" "2" TT1_def assms(4) case_assms(3) ctt_prefix_concat ctt_prefix_subset_ctt_prefix_trans)
+        by (metis "1" "2" TT1_def assms(4) case_assms(3) tt_prefix_concat tt_prefix_subset_tt_prefix_trans)
       have \<rho>_cases: "(\<exists> p' X. \<rho> = p' @ [[Tick]\<^sub>E]) \<or> (\<exists> p' X. \<rho> = p' @ [[X]\<^sub>R]) \<or> ((\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R]))"
         by auto
       then have \<rho>_cases: " (\<exists> p' X. \<rho> = p' @ [[X]\<^sub>R]) \<or> ((\<nexists>p'. \<rho> = p' @ [[Tick]\<^sub>E]) \<and> (\<nexists>p' Y. \<rho> = p' @ [[Y]\<^sub>R]))"
@@ -3177,9 +3177,9 @@ proof (auto)
         fix p'a
         assume case_assm3: "\<rho> = p'a @ [[Tick]\<^sub>E]"
         have "\<exists> \<rho>'. \<rho>' \<le>\<^sub>C p \<and> \<rho> \<subseteq>\<^sub>C \<rho>'"
-          using case_assms2 ctt_prefix_subset_imp_ctt_subset_ctt_prefix by blast
+          using case_assms2 tt_prefix_subset_imp_tt_subset_tt_prefix by blast
         then have "\<exists> \<rho>' p'. p = \<rho>' @ p' \<and> \<rho> \<subseteq>\<^sub>C \<rho>'"
-          using ctt_prefix_decompose by blast
+          using tt_prefix_decompose by blast
         then obtain \<rho>' p' where 1: "p = \<rho>' @ p' \<and> \<rho> \<subseteq>\<^sub>C \<rho>'"
           by auto
         then have "\<exists> p'a'. \<rho>' = p'a' @ [[Tick]\<^sub>E]"
@@ -3187,8 +3187,8 @@ proof (auto)
         proof auto
           fix \<rho>' p'
           show "p'a @ [[Tick]\<^sub>E] \<subseteq>\<^sub>C \<rho>' \<Longrightarrow> \<exists>p'a'. \<rho>' = p'a' @ [[Tick]\<^sub>E]"
-            apply (induct p'a \<rho>' rule:ctt_subset.induct, auto, case_tac v, auto)
-            using ctt_subset.elims(2) by fastforce+
+            apply (induct p'a \<rho>' rule:tt_subset.induct, auto, case_tac v, auto)
+            using tt_subset.elims(2) by fastforce+
         qed
         then obtain p'a' where "ttWF (p'a' @ [[Tick]\<^sub>E] @ p' @ [[X]\<^sub>R])"
           using 1 assms(1) case_assms(1) ttWF_prefix_is_ttWF by fastforce
@@ -3209,25 +3209,25 @@ proof (auto)
         proof auto
           show "p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> ttWF (p @ [[Z]\<^sub>R]) \<Longrightarrow> p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p \<Longrightarrow> p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R]"
             apply (induct p' p rule:ttWF2.induct, auto)
-            using ttWF.simps(12) ctt_prefix_subset_ttWF apply blast
-            apply (meson ttWF.simps(11) ctt_prefix_subset_ttWF)
-            using ttWF.simps(13) ctt_prefix_subset_ttWF apply blast
-            using ttWF.simps(8) ctt_prefix_subset_ttWF apply blast
-            using ttWF.simps(6) ctt_prefix_subset_ttWF by blast
+            using ttWF.simps(12) tt_prefix_subset_ttWF apply blast
+            apply (meson ttWF.simps(11) tt_prefix_subset_ttWF)
+            using ttWF.simps(13) tt_prefix_subset_ttWF apply blast
+            using ttWF.simps(8) tt_prefix_subset_ttWF apply blast
+            using ttWF.simps(6) tt_prefix_subset_ttWF by blast
         qed
         then have 2: "p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
           using ttWF_\<sigma> case_assms3 case_assms2
         proof auto
           show "p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p @ [[Z]\<^sub>R] \<Longrightarrow> ttWF (p @ [[Z]\<^sub>R]) \<Longrightarrow> p' @ [[X']\<^sub>R] \<lesssim>\<^sub>C p \<Longrightarrow> p' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
             apply (induct p' p rule:ttWF2.induct, auto)
-            using ttWF.simps(12) ctt_prefix_subset_ttWF apply blast
-            apply (meson ttWF.simps(11) ctt_prefix_subset_ttWF)
-            using ttWF.simps(13) ctt_prefix_subset_ttWF apply blast
-            using ttWF.simps(8) ctt_prefix_subset_ttWF apply blast
-            using ttWF.simps(6) ctt_prefix_subset_ttWF by blast
+            using ttWF.simps(12) tt_prefix_subset_ttWF apply blast
+            apply (meson ttWF.simps(11) tt_prefix_subset_ttWF)
+            using ttWF.simps(13) tt_prefix_subset_ttWF apply blast
+            using ttWF.simps(8) tt_prefix_subset_ttWF apply blast
+            using ttWF.simps(6) tt_prefix_subset_ttWF by blast
         qed
         then have 3: "filter_tocks (p' @ [[X']\<^sub>R, [Tock]\<^sub>E]) \<lesssim>\<^sub>C filter_tocks p"
-          using ttWF_\<sigma> ttWF_prefix_is_ttWF ctt_prefix_subset_ttWF ctt_prefix_subset_filter_tocks by blast
+          using ttWF_\<sigma> ttWF_prefix_is_ttWF tt_prefix_subset_ttWF tt_prefix_subset_filter_tocks by blast
         have 4: "filter_tocks (p' @ [[X']\<^sub>R, [Tock]\<^sub>E]) = filter_tocks p' @ [[X']\<^sub>R, [Tock]\<^sub>E]"
           by (induct p' rule:filter_tocks.induct, auto)
         have 5: "filter_tocks p' @ [[X']\<^sub>R, [Tock]\<^sub>E]  \<lesssim>\<^sub>C filter_tocks p"
@@ -3235,9 +3235,9 @@ proof (auto)
         have 6: "filter_tocks p' @ [[X']\<^sub>R]  \<lesssim>\<^sub>C filter_tocks p' @ [[X']\<^sub>R, [Tock]\<^sub>E]"
           by (induct p' rule:filter_tocks.induct, auto)
         then have "filter_tocks p' @ [[X']\<^sub>R]  \<lesssim>\<^sub>C filter_tocks p"
-          using 5 ctt_prefix_subset_trans by blast
+          using 5 tt_prefix_subset_trans by blast
         then have "filter_tocks p' @ [[X']\<^sub>R] \<in> Q"
-          by (meson TT1_def assms(4) case_assms(3) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+          by (meson TT1_def assms(4) case_assms(3) tt_prefix_concat tt_prefix_imp_prefix_subset)
         then show "\<rho> = p' @ [[X']\<^sub>R] \<Longrightarrow>
           \<exists>p Xa. p @ [[Xa]\<^sub>R] \<in> P \<and> (\<exists>Y. filter_tocks p @ [[Y]\<^sub>R] \<in> Q \<and> X' \<subseteq> Xa \<union> Y \<and> {e \<in> Xa. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<and> p' = p)"
           using \<rho>_in_P by (rule_tac x="p'" in exI, rule_tac x="X'" in exI, auto)
@@ -3252,17 +3252,17 @@ proof (auto)
       thm case_assms
       assume case_assms2: "Z' \<subseteq> X \<union> Y" "p' \<subseteq>\<^sub>C p" "\<rho> = p' @ [[Z']\<^sub>R]"
       have "p' @ [[X]\<^sub>R] \<subseteq>\<^sub>C p @ [[X]\<^sub>R]"
-        by (simp add: case_assms2(2) ctt_subset_combine)
+        by (simp add: case_assms2(2) tt_subset_combine)
       then have p'_X_in_P: "p' @ [[X]\<^sub>R] \<in> P"
-        using assms(3) case_assms(1) ctt_subset_imp_prefix_subset unfolding TT1_def by blast
+        using assms(3) case_assms(1) tt_subset_imp_prefix_subset unfolding TT1_def by blast
       have "filter_tocks p' \<subseteq>\<^sub>C filter_tocks p"
-        using assms(1) case_assms(1) case_assms2(2) ttWF_prefix_is_ttWF ctt_prefix_subset_ttWF ctt_subset_filter_tocks ctt_subset_imp_prefix_subset by blast
+        using assms(1) case_assms(1) case_assms2(2) ttWF_prefix_is_ttWF tt_prefix_subset_ttWF tt_subset_filter_tocks tt_subset_imp_prefix_subset by blast
       then have "filter_tocks p' @ [[Y]\<^sub>R] \<subseteq>\<^sub>C filter_tocks p @ [[Y]\<^sub>R]"
-        by (simp add: ctt_subset_combine)
+        by (simp add: tt_subset_combine)
       then have "filter_tocks p' @ [[Y]\<^sub>R] \<lesssim>\<^sub>C filter_tocks p @ [[Y]\<^sub>R]"
-        using ctt_subset_imp_prefix_subset by blast 
+        using tt_subset_imp_prefix_subset by blast 
       then have "filter_tocks p' @ [[Y]\<^sub>R] \<in> Q"
-        using assms(4) case_assms(3) ctt_subset_imp_prefix_subset unfolding TT1_def by blast
+        using assms(4) case_assms(3) tt_subset_imp_prefix_subset unfolding TT1_def by blast
       then show "p' @ [[Z']\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
         unfolding TimeSyncInterruptTT_def using p'_X_in_P case_assms case_assms2 by auto
     qed
@@ -3271,7 +3271,7 @@ proof (auto)
     assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]"
         "filter_tocks p @ q2 \<in> Q" "\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q'" "\<sigma> = p @ q2"
     have "\<rho> \<lesssim>\<^sub>C p \<or> (\<exists> p' q'. q' \<lesssim>\<^sub>C q2 \<and> p' \<subseteq>\<^sub>C p \<and> \<rho> = p' @ q')"
-      using assm1 case_assms(6) ctt_prefix_subset_concat2 by blast
+      using assm1 case_assms(6) tt_prefix_subset_concat2 by blast
     then show "\<rho> \<in> P \<triangle>\<^sub>T Q"
       unfolding TimeSyncInterruptTT_def
     proof auto
@@ -3285,7 +3285,7 @@ proof (auto)
         then have 1: "p' @ [[Tick]\<^sub>E] \<lesssim>\<^sub>C p"
           using case_assms2 by auto
         then have "ttWF (p' @ [[Tick]\<^sub>E])"
-          using ctt_prefix_subset_ttWF p_wf by blast
+          using tt_prefix_subset_ttWF p_wf by blast
         then show False
           using case_assms(2) p_wf 1 by (induct p' p rule:ttWF2.induct, auto, fastforce+)
       qed
@@ -3301,30 +3301,30 @@ proof (auto)
           have p_wf: "ttWF p"
             by (simp add: assms(1) case_assms(1))
           have p'_wf: "ttWF (p' @ [[Y]\<^sub>R])"
-            using case_assms2 case_assms3 ctt_prefix_subset_ttWF p_wf by blast
+            using case_assms2 case_assms3 tt_prefix_subset_ttWF p_wf by blast
           have "p' @ [[Y]\<^sub>R] \<lesssim>\<^sub>C p"
             using case_assms2 case_assms3 by auto
           then have "p' @ [[Y]\<^sub>R, [Tock]\<^sub>E] \<lesssim>\<^sub>C p"
             using case_assms(3) p_wf p'_wf by (induct p' p rule:ttWF2.induct, auto, fastforce+)
           then have 1: "filter_tocks (p' @ [[Y]\<^sub>R, [Tock]\<^sub>E]) \<lesssim>\<^sub>C filter_tocks p"
-            using ctt_prefix_subset_ttWF ctt_prefix_subset_filter_tocks p_wf by blast
+            using tt_prefix_subset_ttWF tt_prefix_subset_filter_tocks p_wf by blast
           have "filter_tocks (p' @ [[Y]\<^sub>R, [Tock]\<^sub>E]) = filter_tocks p' @ [[Y]\<^sub>R, [Tock]\<^sub>E]"
             by (induct p' rule:filter_tocks.induct, auto)
           then have "filter_tocks p' @ [[Y]\<^sub>R]  \<lesssim>\<^sub>C filter_tocks (p' @ [[Y]\<^sub>R, [Tock]\<^sub>E])"
-            using ctt_prefix_subset_same_front by fastforce
+            using tt_prefix_subset_same_front by fastforce
           then have "filter_tocks p' @ [[Y]\<^sub>R] \<lesssim>\<^sub>C filter_tocks p"
-            using "1" ctt_prefix_subset_trans by blast
+            using "1" tt_prefix_subset_trans by blast
           then show "filter_tocks p' @ [[Y]\<^sub>R] \<in> Q"
-            by (meson TT1_def assms(4) case_assms(4) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+            by (meson TT1_def assms(4) case_assms(4) tt_prefix_concat tt_prefix_imp_prefix_subset)
         qed
         then show "\<exists>p X. p @ [[X]\<^sub>R] \<in> P \<and> (\<exists>Ya. filter_tocks p @ [[Ya]\<^sub>R] \<in> Q \<and> Y \<subseteq> X \<union> Ya \<and> {e \<in> X. e \<noteq> Tock} = {e \<in> Ya. e \<noteq> Tock} \<and> p' = p)"
           using TT1_def assms(3) case_assms(1) case_assms2 case_assms3 by blast
       next
         assume case_assms3: "\<forall>p'. \<rho> \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. \<rho> \<noteq> p' @ [[Y]\<^sub>R]"
         have "filter_tocks \<rho> \<lesssim>\<^sub>C filter_tocks p"
-          using assms(1) case_assms(1) case_assms2 ctt_prefix_subset_ttWF ctt_prefix_subset_filter_tocks by blast
+          using assms(1) case_assms(1) case_assms2 tt_prefix_subset_ttWF tt_prefix_subset_filter_tocks by blast
         then have "filter_tocks \<rho> \<in> Q"
-          by (meson TT1_def assms(4) case_assms(4) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+          by (meson TT1_def assms(4) case_assms(4) tt_prefix_concat tt_prefix_imp_prefix_subset)
         also have "\<rho> \<in> P"
           using TT1_def assms(3) case_assms(1) case_assms2 by blast
         then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
@@ -3335,23 +3335,23 @@ proof (auto)
       fix p' q'
       assume case_assms2: "q' \<lesssim>\<^sub>C q2" "p' \<subseteq>\<^sub>C p" "\<rho> = p' @ q'"
       have 1: "(\<forall>p''. p' \<noteq> p'' @ [[Tick]\<^sub>E]) \<and> (\<forall>p'' Y. p' \<noteq> p'' @ [[Y]\<^sub>R])"
-        using case_assms2(2) case_assms(2) case_assms(3) apply (induct p' p rule:ctt_subset.induct, auto)
-        by (smt append_butlast_last_id ctt_subset_same_length last.simps last_appendR length_0_conv list.distinct(1))+
+        using case_assms2(2) case_assms(2) case_assms(3) apply (induct p' p rule:tt_subset.induct, auto)
+        by (smt append_butlast_last_id tt_subset_same_length last.simps last_appendR length_0_conv list.distinct(1))+
       have p'_in_P: "p' \<in> P"
-        using TT1_def assms(3) case_assms(1) case_assms2(2) ctt_subset_imp_prefix_subset by blast
+        using TT1_def assms(3) case_assms(1) case_assms2(2) tt_subset_imp_prefix_subset by blast
       then have 2: "filter_tocks p' \<subseteq>\<^sub>C filter_tocks p"
-        by (simp add: assms(1) case_assms(1) case_assms2(2) ctt_subset_filter_tocks)
+        by (simp add: assms(1) case_assms(1) case_assms2(2) tt_subset_filter_tocks)
       then have "filter_tocks p' @ q' \<lesssim>\<^sub>C filter_tocks p' @ q2"
-        using case_assms2(1) ctt_prefix_subset_same_front by blast
+        using case_assms2(1) tt_prefix_subset_same_front by blast
       then have "filter_tocks p' @ q' \<lesssim>\<^sub>C filter_tocks p @ q2"
-        using "2" ctt_prefix_subset_trans ctt_subset_combine ctt_subset_imp_prefix_subset ctt_subset_refl by blast
+        using "2" tt_prefix_subset_trans tt_subset_combine tt_subset_imp_prefix_subset tt_subset_refl by blast
       then have "filter_tocks p' @ q' \<in> Q"
         using TT1_def assms(4) case_assms(4) by blast
       then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
           (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> p' @ q' \<noteq> p @ q2) \<Longrightarrow>
         \<exists>p X. p @ [[X]\<^sub>R] \<in> P \<and> (\<exists>Y. filter_tocks p @ [[Y]\<^sub>R] \<in> Q \<and> (\<exists>Z\<subseteq>X \<union> Y. {e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<and> p' @ q' = p @ [[Z]\<^sub>R]))"
         using p'_in_P 1 apply (erule_tac x="p'" in allE, auto, erule_tac x="q'" in allE, auto)
-        by (metis case_assms(5) case_assms2(1) contains_refusal.cases ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(5) ctt_prefix_subset_antisym)
+        by (metis case_assms(5) case_assms2(1) contains_refusal.cases tt_prefix_subset.simps(1) tt_prefix_subset.simps(5) tt_prefix_subset_antisym)
     qed
   qed
 qed
@@ -3392,7 +3392,7 @@ proof auto
     fix Z W
     assume case_assms: "\<rho> @ [[Z]\<^sub>R] \<in> P" "filter_tocks \<rho> @ [[W]\<^sub>R] \<in> Q" "X \<subseteq> Z \<union> W" "{e \<in> Z. e \<noteq> Tock} = {e \<in> W. e \<noteq> Tock}"
     have \<rho>_in_P: "\<rho> \<in> P"
-      using TT1_P TT1_def case_assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+      using TT1_P TT1_def case_assms(1) tt_prefix_concat tt_prefix_imp_prefix_subset by blast
     have \<rho>_end_assms: "(\<nexists> \<rho>'. \<rho> = \<rho>' @ [[Tick]\<^sub>E]) \<and> (\<nexists> \<rho>' X. \<rho> = \<rho>' @ [[X]\<^sub>R])"
     proof auto
       fix \<rho>'
@@ -3419,8 +3419,8 @@ proof auto
           (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> @ [[x]\<^sub>E] \<noteq> p @ q2) \<Longrightarrow>
         \<rho> @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks \<rho> \<in> Q \<and> x = Tick"
         apply (cases x, auto, erule_tac x="\<rho> @ [[Event x1]\<^sub>E]" in allE, auto)
-        apply (metis TT1_Q TT1_def append_Nil2 case_assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset filter_tocks_end_event list.simps(3))
-        by (meson TT1_Q TT1_def case_assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+        apply (metis TT1_Q TT1_def append_Nil2 case_assms(2) tt_prefix_concat tt_prefix_imp_prefix_subset filter_tocks_end_event list.simps(3))
+        by (meson TT1_Q TT1_def case_assms(2) tt_prefix_concat tt_prefix_imp_prefix_subset)
     next
       fix x
       assume "filter_tocks \<rho> @ [[x]\<^sub>E] \<in> Q" "x \<noteq> Tock"
@@ -3446,8 +3446,8 @@ proof auto
         using Collect_mono Collect_mono_iff case_assms(4) by auto
       then have "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
         using case_assms(3) apply auto
-        apply (metis TT1_P TT1_def assm(1) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl ctt_prefix_subset_same_front)
-        by (metis TT1_Q TT1_def assm(2) ctt_prefix_subset.simps(2) ctt_prefix_subset_refl ctt_prefix_subset_same_front)
+        apply (metis TT1_P TT1_def assm(1) tt_prefix_subset.simps(2) tt_prefix_subset_refl tt_prefix_subset_same_front)
+        by (metis TT1_Q TT1_def assm(2) tt_prefix_subset.simps(2) tt_prefix_subset_refl tt_prefix_subset_same_front)
       then show "\<forall>p. p \<in> P \<longrightarrow> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<or>
         (\<forall>q2. filter_tocks p @ q2 \<in> Q \<longrightarrow> (\<exists>q' Y. q2 = [Y]\<^sub>R # q') \<or> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<noteq> p @ q2) \<Longrightarrow> False"
         by (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto, erule_tac x="[]" in allE, auto simp add: case_assms(4) filter_tocks_end_ref_tock)
@@ -3599,7 +3599,7 @@ proof auto
       assume case_assms2: "p @ [[Xa]\<^sub>R] \<in> P" "filter_tocks p @ [[Y]\<^sub>R] \<in> Q" "Z \<subseteq> Xa \<union> Y" "{e \<in> Xa. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock}"
         "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ [[Z]\<^sub>R]" "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
       obtain \<sigma>'' where 1: "\<sigma>' = \<sigma>'' @ [[Z]\<^sub>R]"
-        by (metis append_butlast_last_id case_assms2(5) cttobs.distinct(1) last.simps last_appendR list.simps(3))
+        by (metis append_butlast_last_id case_assms2(5) ttobs.distinct(1) last.simps last_appendR list.simps(3))
       have 2: "filter_tocks (\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>''"
         by (induct \<rho> rule:filter_tocks.induct, auto)
       show "\<forall>\<sigma>'' Y Z W. W \<subseteq> Y \<union> Z \<longrightarrow> filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' @ [[Z]\<^sub>R] \<in> Q \<longrightarrow>
@@ -3613,7 +3613,7 @@ proof auto
         "\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q'" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = p @ q2" "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
       have "(\<exists> p2. p = \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<and> \<sigma>' = p2 @ q2)
         \<or> (\<exists> q21 q22. \<rho> = p @ q21 \<and> q2 = q21 @ [X]\<^sub>R # [Tock]\<^sub>E # q22)"
-        using case_assms2(6) by (induct \<rho> p rule:ctt_subset.induct, auto, metis Cons_eq_append_conv case_assms2(3))
+        using case_assms2(6) by (induct \<rho> p rule:tt_subset.induct, auto, metis Cons_eq_append_conv case_assms2(3))
       then show "\<forall>p q2. filter_tocks p @ q2 @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q \<longrightarrow>
           p \<in> P \<longrightarrow> \<rho> = p @ q2 \<longrightarrow> (\<exists>Ya q'. q2 = [Ya]\<^sub>R # q') \<or> q2 = [] \<or> (\<exists>p'. p = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. p = p' @ [[Y]\<^sub>R]) \<Longrightarrow>
         \<exists>p2 q3. \<sigma>' = p2 @ q3 \<and> \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P \<and> (\<forall>Ya q'. q3 \<noteq> [Ya]\<^sub>R # q') \<and> filter_tocks \<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2 @ q3 \<in> Q \<and>
@@ -3687,9 +3687,9 @@ proof auto
           by (induct p' rule:ttWF.induct, auto)
       qed
       have 2: "\<rho> \<in> P"
-        using TT1_P TT1_def case_assms2(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        using TT1_P TT1_def case_assms2(2) tt_prefix_concat tt_prefix_imp_prefix_subset by blast
       have 3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-        using TT1_P case_assms2(2) ctt_prefix_subset_same_front unfolding TT1_def by fastforce
+        using TT1_P case_assms2(2) tt_prefix_subset_same_front unfolding TT1_def by fastforce
       have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
         \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
       proof auto
@@ -3700,7 +3700,7 @@ proof auto
         then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') \<in> Q"
           using case_assms2(3) by auto
         then have 1: "filter_tocks \<rho> \<in> Q"
-          using TT1_Q TT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+          using TT1_Q TT1_def tt_prefix_concat tt_prefix_imp_prefix_subset by blast
         show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
           using case_assms3 unfolding TimeSyncInterruptTT_def
         proof (cases x, auto)
@@ -3721,7 +3721,7 @@ proof auto
         then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') \<in> Q"
           using case_assms2(3) by auto
         then have 1: "filter_tocks \<rho> \<in> Q"
-          using TT1_Q TT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+          using TT1_Q TT1_def tt_prefix_concat tt_prefix_imp_prefix_subset by blast
         show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
           using case_assms3 unfolding TimeSyncInterruptTT_def
         proof (cases x, auto)
@@ -3742,7 +3742,7 @@ proof auto
           using case_assms2(3) by auto
         then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
           using TT1_Q unfolding TT1_def apply auto
-          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+          by (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset.simps(3) tt_prefix_subset_same_front subsetI) 
         then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
           unfolding TimeSyncInterruptTT_def apply (auto)
           apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
@@ -3755,7 +3755,7 @@ proof auto
           using case_assms2(3) by auto
         then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
           using TT1_Q unfolding TT1_def apply auto
-          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+          by (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset.simps(3) tt_prefix_subset_same_front subsetI) 
         then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
           unfolding TimeSyncInterruptTT_def apply (auto)
           apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
@@ -3823,9 +3823,9 @@ proof auto
           by (induct p' rule:ttWF.induct, auto)
       qed
       have 2: "\<rho> \<in> P"
-        using TT1_P TT1_def case_assms2(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        using TT1_P TT1_def case_assms2(2) tt_prefix_concat tt_prefix_imp_prefix_subset by blast
       have 3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-        using TT1_P case_assms2(2) ctt_prefix_subset_same_front unfolding TT1_def by fastforce
+        using TT1_P case_assms2(2) tt_prefix_subset_same_front unfolding TT1_def by fastforce
       have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
         \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
       proof auto
@@ -3836,7 +3836,7 @@ proof auto
         then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') @ [[Z]\<^sub>R] \<in> Q"
           using case_assms2 by auto
         then have 1: "filter_tocks \<rho> \<in> Q"
-          using TT1_Q TT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+          using TT1_Q TT1_def tt_prefix_concat tt_prefix_imp_prefix_subset by blast
         show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
           using case_assms3 unfolding TimeSyncInterruptTT_def
         proof (cases x, auto)
@@ -3857,7 +3857,7 @@ proof auto
         then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') @ [[Z]\<^sub>R] \<in> Q"
           using case_assms2 by auto
         then have 1: "filter_tocks \<rho> \<in> Q"
-          using TT1_Q TT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+          using TT1_Q TT1_def tt_prefix_concat tt_prefix_imp_prefix_subset by blast
         show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
           using case_assms3 unfolding TimeSyncInterruptTT_def
         proof (cases x, auto)
@@ -3878,7 +3878,7 @@ proof auto
           using case_assms2(3) case_assms2(4) by auto
         then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
           using TT1_Q unfolding TT1_def apply auto
-          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+          by (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset.simps(3) tt_prefix_subset_same_front subsetI) 
         then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
           unfolding TimeSyncInterruptTT_def apply (auto)
           apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
@@ -3891,7 +3891,7 @@ proof auto
           using case_assms2(3) case_assms2(4) by auto
         then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
           using TT1_Q unfolding TT1_def apply auto
-          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+          by (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset.simps(3) tt_prefix_subset_same_front subsetI) 
         then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
           unfolding TimeSyncInterruptTT_def apply (auto)
           apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
@@ -3959,9 +3959,9 @@ proof auto
           by (induct p' rule:ttWF.induct, auto)
       qed
       have 2: "\<rho> \<in> P"
-        using TT1_P TT1_def case_assms2(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+        using TT1_P TT1_def case_assms2(2) tt_prefix_concat tt_prefix_imp_prefix_subset by blast
       have 3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-        using TT1_P case_assms2(2) ctt_prefix_subset_same_front unfolding TT1_def by fastforce
+        using TT1_P case_assms2(2) tt_prefix_subset_same_front unfolding TT1_def by fastforce
       have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
         \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q}"
       proof auto
@@ -3972,7 +3972,7 @@ proof auto
         then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2) @ q3 \<in> Q"
           using case_assms2 by auto
         then have 1: "filter_tocks \<rho> \<in> Q"
-          using TT1_Q TT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+          using TT1_Q TT1_def tt_prefix_concat tt_prefix_imp_prefix_subset by blast
         show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
           using case_assms3 unfolding TimeSyncInterruptTT_def
         proof (cases x, auto)
@@ -3993,7 +3993,7 @@ proof auto
         then have "filter_tocks \<rho> @ filter_tocks ([X]\<^sub>R # [Tock]\<^sub>E # p2) @ q3 \<in> Q"
           using case_assms2 by auto
         then have 1: "filter_tocks \<rho> \<in> Q"
-          using TT1_Q TT1_def ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
+          using TT1_Q TT1_def tt_prefix_concat tt_prefix_imp_prefix_subset by blast
         show "\<rho> @ [[x]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
           using case_assms3 unfolding TimeSyncInterruptTT_def
         proof (cases x, auto)
@@ -4014,7 +4014,7 @@ proof auto
           using case_assms2(3) case_assms2(4) by auto
         then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
           using TT1_Q unfolding TT1_def apply auto
-          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+          by (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset.simps(3) tt_prefix_subset_same_front subsetI) 
         then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> False"
           unfolding TimeSyncInterruptTT_def apply (auto)
           apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
@@ -4027,7 +4027,7 @@ proof auto
           using case_assms2(3) case_assms2(4) by auto
         then have "filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
           using TT1_Q unfolding TT1_def apply auto
-          by (meson ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_prefix_subset_same_front subsetI) 
+          by (meson tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset.simps(3) tt_prefix_subset_same_front subsetI) 
         then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<triangle>\<^sub>T Q \<Longrightarrow> \<rho> @ [[Tock]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
           unfolding TimeSyncInterruptTT_def apply (auto)
           apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto simp add: case_assms3)
@@ -4073,14 +4073,14 @@ proof auto
         fix p'
         assume "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 = p' @ [[Tick]\<^sub>E]"
         then have "\<exists> p''. p2 = p'' @ [[Tick]\<^sub>E]"
-          by (metis append_butlast_last_id cttevent.simps(7) cttobs.inject(1) last.simps last_appendR list.distinct(1))
+          by (metis append_butlast_last_id ttevent.simps(7) ttobs.inject(1) last.simps last_appendR list.distinct(1))
         then show False
           using case_assms2(4) by auto
       next
         fix p' Ya
         assume "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 = p' @ [[Ya]\<^sub>R]"
         then have "\<exists> p''. p2 = p'' @ [[Ya]\<^sub>R]"
-          by (metis append_butlast_last_id cttobs.distinct(1) last.simps last_appendR list.distinct(1))
+          by (metis append_butlast_last_id ttobs.distinct(1) last.simps last_appendR list.distinct(1))
         then show False
           using case_assms2(5) by auto
       qed
@@ -4208,7 +4208,7 @@ next
   have 3: "filter_tocks (add_Tick_refusal_trace p) @ add_Tick_refusal_trace q2 \<in> Q"
     by (metis TT4s_Q TT4s_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_tocks case_assms(4))
   have 4: "\<forall>q' Y. add_Tick_refusal_trace q2 \<noteq> [Y]\<^sub>R # q'"
-    by (metis add_Tick_refusal_trace.simps(2) case_assms(5) contains_refusal.elims(2) contains_refusal.elims(3) contains_refusal_add_Tick_refusal_trace cttobs.distinct(1) list.inject)
+    by (metis add_Tick_refusal_trace.simps(2) case_assms(5) contains_refusal.elims(2) contains_refusal.elims(3) contains_refusal_add_Tick_refusal_trace ttobs.distinct(1) list.inject)
   show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<or>
       (\<forall>q2a. filter_tocks pa @ q2a \<in> Q \<longrightarrow> (\<exists>q' Y. q2a = [Y]\<^sub>R # q') \<or> add_Tick_refusal_trace (p @ q2) \<noteq> pa @ q2a) \<Longrightarrow>
     \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks pa \<in> Q \<and> add_Tick_refusal_trace (p @ q2) = pa @ [[Tick]\<^sub>E]"

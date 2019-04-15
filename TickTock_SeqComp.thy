@@ -4,7 +4,7 @@ begin
 
 subsection {* Sequential Composition *}
 
-definition SeqCompTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl ";\<^sub>C" 60) where
+definition SeqCompTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" (infixl ";\<^sub>C" 60) where
   "P ;\<^sub>C Q = {\<rho>\<in>P. \<nexists> s. \<rho> = s @ [[Tick]\<^sub>E]} \<union> {\<rho>. \<exists> s t. s @ [[Tick]\<^sub>E] \<in> P \<and> t \<in> Q \<and> \<rho> = s @ t}"
 
 lemma SeqComp_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t \<in> P ;\<^sub>C Q. ttWF t"
@@ -29,16 +29,16 @@ lemma TT1_SeqComp:
   shows "TT1 (P ;\<^sub>C Q)"
   unfolding SeqCompTT_def TT1_def
 proof (auto)
-  fix \<rho> \<sigma> :: "'a cttobs list"
+  fix \<rho> \<sigma> :: "'a ttobs list"
   show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> \<rho> \<in> P"
     using TT1_def assms(2) by blast
 next
-  fix \<sigma> s :: "'a cttobs list"
+  fix \<sigma> s :: "'a ttobs list"
   assume case_assms: "s @ [[Tick]\<^sub>E] \<lesssim>\<^sub>C \<sigma>" "\<sigma> \<in> P"
   then obtain s' t where \<sigma>_assms: "\<sigma> = s' @ t \<and> s @ [[Tick]\<^sub>E] \<subseteq>\<^sub>C s'"
-    by (meson ctt_prefix_split ctt_prefix_subset_imp_ctt_subset_ctt_prefix)
+    by (meson tt_prefix_split tt_prefix_subset_imp_tt_subset_tt_prefix)
   then have "\<exists> s'' x. s' = s'' @ x \<and> [[Tick]\<^sub>E] \<subseteq>\<^sub>C x"
-    using ctt_subset_split2 by blast
+    using tt_subset_split2 by blast
   then obtain s'' where "\<sigma> = s'' @ [[Tick]\<^sub>E] @ t"
     by (auto, case_tac x rule:ttWF.cases, auto simp add: \<sigma>_assms)
   then have "ttWF \<sigma> \<Longrightarrow> \<sigma> = s'' @ [[Tick]\<^sub>E]"
@@ -51,7 +51,7 @@ next
   then show "\<forall>s. \<sigma> \<noteq> s @ [[Tick]\<^sub>E] \<Longrightarrow> False"
     by auto
 next
-  fix \<rho> \<sigma> s t :: "'a cttobs list"
+  fix \<rho> \<sigma> s t :: "'a ttobs list"
   have assm1: "\<forall>\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P \<longrightarrow> \<rho> \<in> P"
     using TT1_def assms(2) by blast
   have assm2: "\<forall>\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> Q \<longrightarrow> \<rho> \<in> Q"
@@ -61,54 +61,54 @@ next
   assume assm5: "s @ [[Tick]\<^sub>E] \<in> P"
   assume assm6: "t \<in> Q"
   obtain r where 1: "\<rho> \<subseteq>\<^sub>C r \<and> r \<le>\<^sub>C s @ t"
-    using assm4 ctt_prefix_subset_imp_ctt_subset_ctt_prefix by blast
+    using assm4 tt_prefix_subset_imp_tt_subset_tt_prefix by blast
   then obtain t' where 2: "(r = s @ t' \<and> t' \<le>\<^sub>C t) \<or> r \<le>\<^sub>C s"
-    using ctt_prefix_append_split by blast
+    using tt_prefix_append_split by blast
   then show "\<rho> \<in> P"
   proof auto
     assume case_assms: "r = s @ t'" "t' \<le>\<^sub>C t"
     obtain s' t'' where \<rho>_assms: "\<rho> = s' @ t'' \<and> s' \<subseteq>\<^sub>C s \<and> t'' \<subseteq>\<^sub>C t'"
-      using "1" case_assms(1) ctt_subset_split by blast
+      using "1" case_assms(1) tt_subset_split by blast
     have "s' @ [[Tick]\<^sub>E] \<in> P"
-      using \<rho>_assms assm1 assm5 ctt_subset_end_event ctt_subset_imp_prefix_subset by blast
+      using \<rho>_assms assm1 assm5 tt_subset_end_event tt_subset_imp_prefix_subset by blast
     also have "t'' \<in> Q"
-      using \<rho>_assms assm2 assm6 case_assms(2) ctt_prefix_imp_prefix_subset ctt_subset_imp_prefix_subset by blast
+      using \<rho>_assms assm2 assm6 case_assms(2) tt_prefix_imp_prefix_subset tt_subset_imp_prefix_subset by blast
     then show "\<rho> \<in> P"
       using \<rho>_assms assm3 calculation by blast
   next
     show "r \<le>\<^sub>C s \<Longrightarrow> \<rho> \<in> P"
-      by (meson "1" assm1 assm5 ctt_prefix_concat ctt_prefix_imp_prefix_subset ctt_subset_imp_prefix_subset)
+      by (meson "1" assm1 assm5 tt_prefix_concat tt_prefix_imp_prefix_subset tt_subset_imp_prefix_subset)
   qed
 next
-  fix s t sa :: "'a cttobs list"
+  fix s t sa :: "'a ttobs list"
   have assm1: "\<forall>\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P \<longrightarrow> \<rho> \<in> P"
     using TT1_def assms(2) by blast
   have assm2: "\<forall>\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> Q \<longrightarrow> \<rho> \<in> Q"
     using TT1_def assms(3) by blast
   assume case_assms: "sa @ [[Tick]\<^sub>E] \<lesssim>\<^sub>C s @ t" "s @ [[Tick]\<^sub>E] \<in> P" "t \<in> Q"
   obtain r where 1: "sa @ [[Tick]\<^sub>E] \<subseteq>\<^sub>C r \<and> r \<le>\<^sub>C s @ t"
-    using case_assms(1) ctt_prefix_subset_imp_ctt_subset_ctt_prefix by blast
+    using case_assms(1) tt_prefix_subset_imp_tt_subset_tt_prefix by blast
   then obtain t' where 2: "(r = s @ t' \<and> t' \<le>\<^sub>C t) \<or> r \<le>\<^sub>C s"
-    using ctt_prefix_append_split by blast
+    using tt_prefix_append_split by blast
   then show "\<forall>s. s @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>t. t \<in> Q \<longrightarrow> sa @ [[Tick]\<^sub>E] \<noteq> s @ t) \<Longrightarrow> False"
   proof auto
     assume case_assms2: "r = s @ t'" "t' \<le>\<^sub>C t"
     obtain s' t'' where \<rho>_assms: "sa @ [[Tick]\<^sub>E] = s' @ t'' \<and> s' \<subseteq>\<^sub>C s \<and> t'' \<subseteq>\<^sub>C t'"
-      using "1" case_assms2(1) ctt_subset_split by blast
+      using "1" case_assms2(1) tt_subset_split by blast
     have "s' @ [[Tick]\<^sub>E] \<in> P"
-      using \<rho>_assms assm1 case_assms(2) ctt_subset_end_event ctt_subset_imp_prefix_subset by blast
+      using \<rho>_assms assm1 case_assms(2) tt_subset_end_event tt_subset_imp_prefix_subset by blast
     also have "t'' \<in> Q"
-      using \<rho>_assms assm2 case_assms(3) case_assms2(2) ctt_prefix_imp_prefix_subset ctt_subset_imp_prefix_subset by blast
+      using \<rho>_assms assm2 case_assms(3) case_assms2(2) tt_prefix_imp_prefix_subset tt_subset_imp_prefix_subset by blast
     then show "\<forall>s. s @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>t. t \<in> Q \<longrightarrow> sa @ [[Tick]\<^sub>E] \<noteq> s @ t) \<Longrightarrow> False"
       using \<rho>_assms case_assms calculation by blast
   next
     have "\<exists> r1 r2. r = r1 @ r2 \<and> sa \<subseteq>\<^sub>C r1 \<and> [[Tick]\<^sub>E] \<subseteq>\<^sub>C r2"
-      by (simp add: "1" ctt_subset_split2)
+      by (simp add: "1" tt_subset_split2)
     then obtain r' where "r = r' @ [[Tick]\<^sub>E]"
       by (auto, case_tac r2 rule:ttWF.cases, auto)
     also assume "r \<le>\<^sub>C s"
     then obtain s' where "r' @ [[Tick]\<^sub>E] @ s' @ [[Tick]\<^sub>E] \<in> P"
-      using calculation case_assms(2) ctt_prefix_split by fastforce
+      using calculation case_assms(2) tt_prefix_split by fastforce
     then have "ttWF (r' @ [[Tick]\<^sub>E] @ s' @ [[Tick]\<^sub>E])"
       using assms(1) by blast
     then show "False"
@@ -348,22 +348,22 @@ proof auto
         using case_assms case_assms2 by auto
     qed
   next
-    fix s :: "'a cttobs list"
+    fix s :: "'a ttobs list"
     assume "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = s @ [[Tick]\<^sub>E]"
     then obtain \<sigma>' where "\<sigma> = \<sigma>' @ [[Tick]\<^sub>E]"
-      by (induct \<rho> s rule:ctt_subset.induct, auto)
+      by (induct \<rho> s rule:tt_subset.induct, auto)
     then show "\<forall>s. \<rho> @ [X]\<^sub>R # \<sigma> \<noteq> s @ [[Tick]\<^sub>E] \<Longrightarrow> False"
       by simp
   next
-    fix s t sa :: "'a cttobs list"
+    fix s t sa :: "'a ttobs list"
     assume case_assms: "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> = sa @ [[Tick]\<^sub>E]" "s @ [[Tick]\<^sub>E] \<in> P" "t \<in> Q" "\<rho> @ [X]\<^sub>R # \<sigma> = s @ t"
     obtain \<sigma>' where "\<sigma> = \<sigma>' @ [[Tick]\<^sub>E]"
-      using case_assms(1) by (induct \<rho> sa rule:ctt_subset.induct, auto)
+      using case_assms(1) by (induct \<rho> sa rule:tt_subset.induct, auto)
     have "(\<exists> \<rho>2. \<rho> = s @ \<rho>2 \<and> t = \<rho>2 @ [X]\<^sub>R # \<sigma>) \<or> (\<exists> \<sigma>1. s = \<rho> @ [X]\<^sub>R # \<sigma>1 \<and> \<sigma> = \<sigma>1 @ t)"
-      using case_assms(4) by (induct s \<rho> rule:ctt_subset.induct, auto)
+      using case_assms(4) by (induct s \<rho> rule:tt_subset.induct, auto)
     then show "\<forall>s. s @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>t. t \<in> Q \<longrightarrow> sa @ [[Tick]\<^sub>E] \<noteq> s @ t) \<Longrightarrow> False"
     proof auto
-      fix \<rho>2 :: "'a cttobs list"
+      fix \<rho>2 :: "'a ttobs list"
       assume case_assms2: "\<rho> = s @ \<rho>2" "t = \<rho>2 @ [X]\<^sub>R # \<sigma>"
       have "{e. e \<noteq> Tock \<and> \<rho>2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} \<subseteq>
       {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P ;\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P ;\<^sub>C Q}"
@@ -375,7 +375,7 @@ proof auto
       then show "\<forall>s. s @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>t. t \<in> Q \<longrightarrow> sa @ [[Tick]\<^sub>E] \<noteq> s @ t) \<Longrightarrow> False"
         using case_assms by (erule_tac x="s" in allE, auto, erule_tac x="\<rho>2 @ [X \<union> Y]\<^sub>R # \<sigma>" in allE, auto simp add: case_assms2)
     next
-      fix \<sigma>1 :: "'a cttobs list"
+      fix \<sigma>1 :: "'a ttobs list"
       assume case_assms2: "s = \<rho> @ [X]\<^sub>R # \<sigma>1" "\<sigma> = \<sigma>1 @ t"
       then have "\<rho> @ [X \<union> {e\<in>Y. e \<noteq> Tick}]\<^sub>R # \<sigma>1 @ [[Tick]\<^sub>E] \<in> P"
         using TT2s_P P_assm2 case_assms case_assms2 unfolding TT2s_def by auto
@@ -413,7 +413,7 @@ next
   fix s t
   assume "s @ [[Tick]\<^sub>E] \<in> P"
   then have 1: "TT3_trace s"
-    by (meson TT1_def TT3_def TT_TT1 TT_TT3 assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
+    by (meson TT1_def TT3_def TT_TT1 TT_TT3 assms(1) tt_prefix_concat tt_prefix_imp_prefix_subset)
   assume "t \<in> Q"
   then have 2: "TT3_trace t \<and> ttWF t"
     using TT3_def TT_TT3 TT_wf assms(2) by blast
@@ -441,7 +441,7 @@ next
   fix \<rho> s
   assume case_assms: "\<rho> \<in> P" "\<forall>s. \<rho> \<noteq> s @ [[Tick]\<^sub>E]" "add_Tick_refusal_trace \<rho> = s @ [[Tick]\<^sub>E]"
   have "\<exists> s'. s = add_Tick_refusal_trace s' \<and> \<rho> = s' @ [[Tick]\<^sub>E]"
-    using case_assms(3) apply (induct \<rho> s rule:ctt_subset.induct, auto)
+    using case_assms(3) apply (induct \<rho> s rule:tt_subset.induct, auto)
     using add_Tick_refusal_trace.elims apply (rule_tac x="[]" in exI, auto)
     by (rule_tac x="[]" in exI, auto, metis list.discI list.sel(3))
   then show "\<forall>sa. sa @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>t. t \<in> Q \<longrightarrow> s @ [[Tick]\<^sub>E] \<noteq> sa @ t) \<Longrightarrow> False"

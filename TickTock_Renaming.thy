@@ -2,7 +2,7 @@ theory TickTock_Renaming
   imports TickTock_Core
 begin
 
-fun lift_renaming_func :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a cttevent \<Rightarrow> 'b cttevent)" where
+fun lift_renaming_func :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a ttevent \<Rightarrow> 'b ttevent)" where
   "lift_renaming_func f (Event e) = Event (f e)" |
   "lift_renaming_func f Tock = Tock" |
   "lift_renaming_func f Tick = Tick"
@@ -16,7 +16,7 @@ lemma lift_renaming_func_subset: "Xa \<subseteq> {lift_renaming_func f e |e. e \
 lemma lift_renaming_func_vimage_insert_Tick: "lift_renaming_func f -` (insert Tick Y) = insert Tick (lift_renaming_func f -` Y)"
   using lift_renaming_func.elims by blast
 
-fun rename_trace :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a cttobs list \<Rightarrow> 'b cttobs list set" where
+fun rename_trace :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a ttobs list \<Rightarrow> 'b ttobs list set" where
   "rename_trace f [] = {[]}" |
   "rename_trace f ([e]\<^sub>E # t) = {s. \<exists>s'. s = [lift_renaming_func f e]\<^sub>E # s' \<and> s' \<in> rename_trace f t}" |
   "rename_trace f ([X]\<^sub>R # t) = {s. \<exists>s' Y. s = [Y]\<^sub>R # s' \<and> X = (lift_renaming_func f) -` Y \<and> s' \<in> rename_trace f t}"
@@ -24,7 +24,7 @@ fun rename_trace :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a cttobs list \<Righta
 lemma rename_trace_ttWF: "ttWF t \<Longrightarrow> \<forall>s\<in>(rename_trace f t). ttWF s"
   by (induct t rule:ttWF.induct, auto)
    
-definition RenamingTT :: "'a cttobs list set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b cttobs list set" where
+definition RenamingTT :: "'a ttobs list set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b ttobs list set" where
   "RenamingTT P f = {t. \<exists>x\<in>P. t \<in> rename_trace f x}"
 
 lemma RenamingTT_wf: 
@@ -47,7 +47,7 @@ proof auto
   proof (induct f x rule:rename_trace.induct, auto)
     fix f P \<rho>                                
     show "\<rho> \<lesssim>\<^sub>C [] \<Longrightarrow> [] \<in> P \<Longrightarrow> \<exists>x\<in>P. \<rho> \<in> rename_trace f x"
-      using ctt_prefix_subset_antisym by force
+      using tt_prefix_subset_antisym by force
   next
     fix f e t P \<rho> s'
     assume ind_hyp: "\<And>P \<rho> \<sigma>. TT1 P \<Longrightarrow> \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> t \<in> P \<Longrightarrow> \<sigma> \<in> rename_trace f t \<Longrightarrow> \<exists>x\<in>P. \<rho> \<in> rename_trace f x"
@@ -62,7 +62,7 @@ proof auto
       fix s
       assume case_assm2: "\<rho> = [lift_renaming_func f e]\<^sub>E # s"
       have 1: "TT1 {x. [e]\<^sub>E # x \<in> P}"
-        using case_assms(1) ctt_prefix_subset.simps(3) unfolding TT1_def by blast
+        using case_assms(1) tt_prefix_subset.simps(3) unfolding TT1_def by blast
       have 2: "s \<lesssim>\<^sub>C s'"
         using case_assm2 case_assms(2) by auto
       have "\<exists>x\<in>{x. [e]\<^sub>E # x \<in> P}. s \<in> rename_trace f x"
@@ -85,11 +85,11 @@ proof auto
       assume case_assms2: "Z \<subseteq> Y" "\<rho> = [Z]\<^sub>R # s"
       thm ind_hyp[where P="{x. [lift_renaming_func f -` Z]\<^sub>R # x \<in> P}", where \<rho>=s, where \<sigma>=s']
       have 1: "TT1 {x. [lift_renaming_func f -` Z]\<^sub>R # x \<in> P}"
-        using case_assms(1) ctt_prefix_subset.simps(2) unfolding TT1_def by blast
+        using case_assms(1) tt_prefix_subset.simps(2) unfolding TT1_def by blast
       have 2: "s \<lesssim>\<^sub>C s'"
         using case_assms2 case_assms(2) by auto
       have "[lift_renaming_func f -` Z]\<^sub>R # t \<lesssim>\<^sub>C [lift_renaming_func f -` Y]\<^sub>R # t"
-        by (simp add: case_assms2(1) ctt_prefix_subset_refl vimage_mono)   
+        by (simp add: case_assms2(1) tt_prefix_subset_refl vimage_mono)   
       then have 3: "t \<in> {x. [lift_renaming_func f -` Z]\<^sub>R # x \<in> P}"
         using case_assms(1) case_assms(3) unfolding TT1_def by fastforce
      have "\<exists>x\<in>{x. [lift_renaming_func f -` Z]\<^sub>R # x \<in> P}. s \<in> rename_trace f x"

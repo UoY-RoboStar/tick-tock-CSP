@@ -4,7 +4,7 @@ begin
 
 subsection {* Hiding *}
 
-fun hide_trace :: "'a cttevent set \<Rightarrow> 'a cttobs list \<Rightarrow> 'a cttobs list set" where
+fun hide_trace :: "'a ttevent set \<Rightarrow> 'a ttobs list \<Rightarrow> 'a ttobs list set" where
   "hide_trace X [] = {[]}" |
   "hide_trace X ([Event e]\<^sub>E # s) =
     {t. (Event e \<in> X \<and> t \<in> hide_trace X s) \<or> (\<exists>s'. Event e \<notin> X \<and> s' \<in> hide_trace X s \<and> t = [Event e]\<^sub>E # s')}" |
@@ -22,7 +22,7 @@ fun hide_trace :: "'a cttevent set \<Rightarrow> 'a cttobs list \<Rightarrow> 'a
   "hide_trace X ([Y]\<^sub>R # [Z]\<^sub>R # t) = {}" |
   "hide_trace X ([Tick]\<^sub>E # x # t) = {}"
 
-definition HidingTT :: "'a cttobs list set \<Rightarrow> 'a cttevent set \<Rightarrow> 'a cttobs list set" (infixl "\<setminus>\<^sub>C" 53) where
+definition HidingTT :: "'a ttobs list set \<Rightarrow> 'a ttevent set \<Rightarrow> 'a ttobs list set" (infixl "\<setminus>\<^sub>C" 53) where
   "HidingTT P X = \<Union> {hide_trace X p | p. p \<in> P}"
 
 lemma HidingTT_wf:
@@ -57,9 +57,9 @@ proof auto
   fix p
   show "\<And>P \<rho> \<sigma>. \<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P \<Longrightarrow> \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> \<in> x"
   proof (induct p rule:hide_trace.induct, simp_all, safe, simp_all)
-    fix X :: "'a cttevent set"
-    fix \<rho> :: "'a cttobs list"
-    fix P :: "'a cttobs list set" 
+    fix X :: "'a ttevent set"
+    fix \<rho> :: "'a ttobs list"
+    fix P :: "'a ttobs list set" 
     assume case_assms: "\<rho> \<lesssim>\<^sub>C []" "[] \<in> P"
     then have "\<rho> = []"
       by (induct \<rho>, auto)
@@ -71,7 +71,7 @@ proof auto
                  \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> \<in> x"
     assume case_assms: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P" "\<rho> \<lesssim>\<^sub>C \<sigma>" "[Event e]\<^sub>E # s \<in> P" "Event e \<in> X" "\<sigma> \<in> hide_trace X s"
     have 1: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> {t. [Event e]\<^sub>E # t \<in> P}) \<longrightarrow> \<rho> \<in> {t. [Event e]\<^sub>E # t \<in> P}"
-      using case_assms(1) ctt_prefix_subset.simps(3) by blast
+      using case_assms(1) tt_prefix_subset.simps(3) by blast
     have 2: "s \<in> {t. [Event e]\<^sub>E # t \<in> P}"
       using case_assms by auto
     obtain x p  where "x = hide_trace X p \<and> p \<in> {t. [Event e]\<^sub>E # t \<in> P} \<and> \<rho> \<in> x"
@@ -92,7 +92,7 @@ proof auto
       fix \<rho>'
       assume case_assms2: "\<rho>' \<lesssim>\<^sub>C s'" "\<rho> = [Event e]\<^sub>E # \<rho>'"
       have 1: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> {t. [Event e]\<^sub>E # t \<in> P}) \<longrightarrow> \<rho> \<in> {t. [Event e]\<^sub>E # t \<in> P}"
-        using case_assms(1) ctt_prefix_subset.simps(3) by blast
+        using case_assms(1) tt_prefix_subset.simps(3) by blast
       have 2: "s \<in> {t. [Event e]\<^sub>E # t \<in> P}"
         by (simp add: case_assms(3))
       obtain x p where "x = hide_trace X p \<and> p \<in> {t. [Event e]\<^sub>E # t \<in> P} \<and> \<rho>' \<in> x"
@@ -102,35 +102,35 @@ proof auto
     next
       show "\<rho> = [] \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [] \<in> x"
         apply (rule_tac x="hide_trace X []" in exI, auto, rule_tac x="[]" in exI, auto)
-        using case_assms(1) case_assms(3) ctt_prefix_subset.simps(1) by blast
+        using case_assms(1) case_assms(3) tt_prefix_subset.simps(1) by blast
     qed
   next
-    fix X :: "'a cttevent set"
-    fix \<rho> :: "'a cttobs list"
-    fix P :: "'a cttobs list set" 
+    fix X :: "'a ttevent set"
+    fix \<rho> :: "'a ttobs list"
+    fix P :: "'a ttobs list set" 
     assume case_assms: "\<rho> \<lesssim>\<^sub>C []" "[[Tick]\<^sub>E] \<in> P" "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P"
     then have "\<rho> = []"
       by (cases \<rho>, auto)
     then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> \<in> x"
       apply (rule_tac x="hide_trace X []" in exI, auto, rule_tac x="[]" in exI, auto)
-      using case_assms(2) case_assms(3) ctt_prefix_subset.simps(1) by blast
+      using case_assms(2) case_assms(3) tt_prefix_subset.simps(1) by blast
   next
-    fix X :: "'a cttevent set"
-    fix \<rho> :: "'a cttobs list"
-    fix P :: "'a cttobs list set" 
+    fix X :: "'a ttevent set"
+    fix \<rho> :: "'a ttobs list"
+    fix P :: "'a ttobs list set" 
     assume case_assms: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P" "\<rho> \<lesssim>\<^sub>C [[Tick]\<^sub>E]" "[[Tick]\<^sub>E] \<in> P" "Tick \<notin> X"
     then have "\<rho> = [] \<or> \<rho> = [[Tick]\<^sub>E]"
       by (cases \<rho>, simp, case_tac a, simp_all, case_tac list, simp_all)
     then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> \<in> x"
       apply (auto, rule_tac x="hide_trace X []" in exI, auto, rule_tac x="[]" in exI, auto)
-      using case_assms ctt_prefix_subset.simps(1) by (blast, auto)
+      using case_assms tt_prefix_subset.simps(1) by (blast, auto)
   next
     fix X Y s P \<rho> \<sigma>
     assume ind_hyp: "\<And>P \<rho> \<sigma>. \<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P \<Longrightarrow>
                  \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> \<in> x"
     assume case_assms: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P" "\<rho> \<lesssim>\<^sub>C \<sigma>" "[Y]\<^sub>R # [Tock]\<^sub>E # s \<in> P" "Tock \<in> X" "\<sigma> \<in> hide_trace X s"
     have 1: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}) \<longrightarrow> \<rho> \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-      by (metis case_assms(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) ctt_subset.simps(2) ctt_subset_refl mem_Collect_eq)
+      by (metis case_assms(1) tt_prefix_subset.simps(2) tt_prefix_subset.simps(3) tt_subset.simps(2) tt_subset_refl mem_Collect_eq)
     have 2: "s \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
       by (simp add: case_assms(3))
     obtain x p where "x = hide_trace X p \<and> p \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P} \<and> \<rho> \<in> x"
@@ -145,7 +145,7 @@ proof auto
     assume case_assms: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P" "\<rho> \<lesssim>\<^sub>C [Z]\<^sub>R # [Tock]\<^sub>E # s'"
       "[Y]\<^sub>R # [Tock]\<^sub>E # s \<in> P" "Z \<subseteq> Y" "Tock \<notin> X" "X \<subseteq> Y" "s' \<in> hide_trace X s"
     have 1: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}) \<longrightarrow> \<rho> \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-      by (metis case_assms(1) ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(3) mem_Collect_eq subset_refl)
+      by (metis case_assms(1) tt_prefix_subset.simps(2) tt_prefix_subset.simps(3) mem_Collect_eq subset_refl)
     have 2: "s \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
       by (simp add: case_assms(3))
     have "(\<exists> \<rho>' W. \<rho> = [W]\<^sub>R # [Tock]\<^sub>E # \<rho>' \<and> W \<subseteq> Z) \<or> (\<exists> W. \<rho> = [[W]\<^sub>R] \<and> W \<subseteq> Z) \<or> (\<rho> = [])"
@@ -167,10 +167,10 @@ proof auto
       then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [[W]\<^sub>R] \<in> x"
         apply (rule_tac x="hide_trace X ([[Y]\<^sub>R])" in exI, safe)
         using case_assms(4) case_assms(5) case_assms(6) apply (rule_tac x="[[Y]\<^sub>R]" in exI, auto)
-        using case_assms(1) case_assms(3) ctt_prefix_subset.simps(1) ctt_prefix_subset.simps(2) by blast
+        using case_assms(1) case_assms(3) tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) by blast
     next
       show "\<rho> = [] \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [] \<in> x"
-        using case_assms(1) case_assms(3) ctt_prefix_subset.simps(1) hide_trace.simps(1) by blast
+        using case_assms(1) case_assms(3) tt_prefix_subset.simps(1) hide_trace.simps(1) by blast
     qed
   next
     fix X Y P \<rho> Z
@@ -181,7 +181,7 @@ proof auto
       apply auto apply (rule_tac x="hide_trace X ([[Y]\<^sub>R])" in exI, safe)
       using case_assms apply (rule_tac x="[[Y]\<^sub>R]" in exI, auto)
       apply (rule_tac x="{[]}" in exI, simp, rule_tac x="[]" in exI, simp)
-      using ctt_prefix_subset.simps(1) by blast
+      using tt_prefix_subset.simps(1) by blast
   qed
 qed
 
@@ -360,7 +360,7 @@ proof auto
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
         "[[Xb]\<^sub>R] \<in> P" "TT2s P" "Z \<subseteq> Xb" "X \<subseteq> Xb" "\<rho> @ [Xa]\<^sub>R # \<sigma> = [[Z]\<^sub>R]"
       have 1: "Z = Xa \<and> \<rho> = [] \<and> \<sigma> = []"
-        by (metis (no_types, lifting) Nil_is_append_conv append_eq_Cons_conv case_assms(6) cttobs.inject(2) list.distinct(1) list.inject)
+        by (metis (no_types, lifting) Nil_is_append_conv append_eq_Cons_conv case_assms(6) ttobs.inject(2) list.distinct(1) list.inject)
       then have "{e. e \<notin> X \<and> (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Xb]\<^sub>R, [e]\<^sub>E] \<in> P)}
         \<subseteq> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)}"
@@ -398,7 +398,7 @@ proof auto
       fix P \<rho> \<sigma>
       assume "\<rho> @ [Xa]\<^sub>R # \<sigma> = [[Tick]\<^sub>E]"
       then have "False"
-        by (meson append_eq_Cons_conv append_is_Nil_conv cttobs.simps(4) list.inject list.simps(3))
+        by (meson append_eq_Cons_conv append_is_Nil_conv ttobs.simps(4) list.inject list.simps(3))
       then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
         by auto
     next

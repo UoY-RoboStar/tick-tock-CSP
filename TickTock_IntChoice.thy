@@ -4,7 +4,7 @@ begin
   
 subsection {* Internal Choice *}
 
-definition IntChoiceTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<sqinter>\<^sub>C" 56) where
+definition IntChoiceTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" (infixl "\<sqinter>\<^sub>C" 56) where
   "P \<sqinter>\<^sub>C Q = P \<union> Q"
 
 lemma IntChoiceTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t\<in>P \<sqinter>\<^sub>C Q. ttWF t"
