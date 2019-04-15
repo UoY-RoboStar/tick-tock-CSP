@@ -4,38 +4,38 @@ begin
 
 subsection {* Div *}
 
-definition DivTTT :: "'e cttobs list set" ("div\<^sub>C") where
+definition DivTT :: "'e cttobs list set" ("div\<^sub>C") where
   "div\<^sub>C = {[]}"
 
-lemma DivTTT_wf: "\<forall> t\<in>div\<^sub>C. ttWF t"
-  unfolding DivTTT_def by auto
+lemma DivTT_wf: "\<forall> t\<in>div\<^sub>C. ttWF t"
+  unfolding DivTT_def by auto
 
 lemma TT2s_Div: "TT2s div\<^sub>C"
-  using DivTTT_wf unfolding DivTTT_def by (rule_tac wf_TT2s_induct, auto)
+  using DivTT_wf unfolding DivTT_def by (rule_tac wf_TT2s_induct, auto)
 
 lemma TT4s_Div: "TT4s div\<^sub>C"
-  unfolding DivTTT_def TT4s_def by auto
+  unfolding DivTT_def TT4s_def by auto
 
 lemma TT_Div: "TT div\<^sub>C"
-  unfolding TT_defs DivTTT_def by (auto simp add: ctt_prefix_subset_antisym)
+  unfolding TT_defs DivTT_def by (auto simp add: ctt_prefix_subset_antisym)
 
 subsection {* Timed Stop *}
 
-definition StopTTT :: "'e cttobs list set" ("STOP\<^sub>C") where
+definition StopTT :: "'e cttobs list set" ("STOP\<^sub>C") where
   "STOP\<^sub>C = {t. \<exists> s\<in>tocks({x. x \<noteq> Tock}). t = s \<or> (\<exists> X. t = s @ [[X]\<^sub>R] \<and> Tock \<notin> X)}
   (*add_pretocks {x. x \<noteq> Tock} ({t. \<exists> Y. Tock \<notin> Y \<and> t = [[Y]\<^sub>R]} \<union> {[]})*)"
 
-lemma StopTTT_wf: "\<forall> t\<in>STOP\<^sub>C. ttWF t"
-  unfolding StopTTT_def by (auto simp add: tocks_append_wf tocks_wf)
+lemma StopTT_wf: "\<forall> t\<in>STOP\<^sub>C. ttWF t"
+  unfolding StopTT_def by (auto simp add: tocks_append_wf tocks_wf)
 
 lemma TT0_Stop: "TT0 STOP\<^sub>C"
-  unfolding TT0_def StopTTT_def by (auto, rule_tac x="[]" in exI, auto simp add: empty_in_tocks)
+  unfolding TT0_def StopTT_def by (auto, rule_tac x="[]" in exI, auto simp add: empty_in_tocks)
 
 lemma TT1_Stop: "TT1 STOP\<^sub>C"
-  unfolding TT1_def StopTTT_def using ctt_prefix_subset_tocks ctt_prefix_subset_tocks_refusal by (auto, fastforce+)
+  unfolding TT1_def StopTT_def using ctt_prefix_subset_tocks ctt_prefix_subset_tocks_refusal by (auto, fastforce+)
 
 lemma TT2_Stop: "TT2 STOP\<^sub>C"
-  unfolding TT2_def StopTTT_def
+  unfolding TT2_def StopTT_def
 proof auto
   fix \<rho> X Y
   assume "\<rho> @ [[X]\<^sub>R] \<in> tocks {x. x \<noteq> Tock}"
@@ -62,7 +62,7 @@ next
 qed
 
 lemma TT2s_Stop: "TT2s STOP\<^sub>C"
-proof (rule_tac wf_TT2s_induct, safe, simp_all add: StopTTT_wf, unfold StopTTT_def, safe, simp_all)
+proof (rule_tac wf_TT2s_induct, safe, simp_all add: StopTT_wf, unfold StopTT_def, safe, simp_all)
   fix X Y :: "'a cttevent set"
   assume "[[X]\<^sub>R] \<in> tocks {x. x \<noteq> Tock}"
   then show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. [[X \<union> Y]\<^sub>R] = s \<or> [] = s \<and> Tock \<notin> X \<and> Tock \<notin> Y"
@@ -170,11 +170,11 @@ proof (auto)
   have "\<forall>s \<in> tocks {x. x \<noteq> Tock}. TT3_trace s"
     by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq)
   then show "x \<in> STOP\<^sub>C \<Longrightarrow> TT3_trace x"
-    unfolding StopTTT_def using TT3_append TT3_trace.simps(2) ttWF.simps(2) by (auto, blast)
+    unfolding StopTT_def using TT3_append TT3_trace.simps(2) ttWF.simps(2) by (auto, blast)
 qed
 
 lemma TT4s_Stop: "TT4s STOP\<^sub>C"
-  unfolding TT4s_def StopTTT_def apply auto
+  unfolding TT4s_def StopTT_def apply auto
   apply (metis (mono_tags, lifting) TT4s_def TT4s_tocks cttevent.distinct(5) mem_Collect_eq)
   apply (rule_tac x="add_Tick_refusal_trace s" in bexI, auto)
   apply (erule_tac x="X \<union> {Tick}" in allE, auto simp add: add_Tick_refusal_trace_end_refusal)
@@ -185,19 +185,19 @@ lemma TT_Stop: "TT STOP\<^sub>C"
 proof (auto)
   fix x
   show "x \<in> STOP\<^sub>C \<Longrightarrow> ttWF x"
-    using StopTTT_wf by auto
+    using StopTT_wf by auto
 next
   show "STOP\<^sub>C = {} \<Longrightarrow> False"
-    unfolding StopTTT_def by (auto, erule_tac x="[]" in allE, erule_tac x="[]" in ballE, auto simp add: empty_in_tocks)
+    unfolding StopTT_def by (auto, erule_tac x="[]" in allE, erule_tac x="[]" in ballE, auto simp add: empty_in_tocks)
 next
   fix \<rho> \<sigma>
   show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> STOP\<^sub>C \<Longrightarrow> \<rho> \<in> STOP\<^sub>C"
-    unfolding StopTTT_def using ctt_prefix_subset_tocks ctt_prefix_subset_tocks_refusal by (auto, fastforce+)
+    unfolding StopTT_def using ctt_prefix_subset_tocks ctt_prefix_subset_tocks_refusal by (auto, fastforce+)
 next
   fix \<rho> X Y
   show "\<rho> @ [[X]\<^sub>R] \<in> STOP\<^sub>C \<Longrightarrow>
              Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> STOP\<^sub>C \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> STOP\<^sub>C} = {} \<Longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> STOP\<^sub>C"
-    unfolding StopTTT_def
+    unfolding StopTT_def
   proof auto
     assume "\<rho> @ [[X]\<^sub>R] \<in> tocks {x. x \<noteq> Tock}"
     then have "False"
@@ -224,58 +224,58 @@ next
   have "\<forall>s \<in> tocks {x. x \<noteq> Tock}. TT3_trace s"
     by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq)
   then show "x \<in> STOP\<^sub>C \<Longrightarrow> TT3_trace x"
-    unfolding StopTTT_def using TT3_append TT3_trace.simps(2) ttWF.simps(2) by (auto, blast)
+    unfolding StopTT_def using TT3_append TT3_trace.simps(2) ttWF.simps(2) by (auto, blast)
 qed
 
 subsection {* Untimed Stop *}
 
-definition UntimedStopTTT :: "'e cttobs list set" ("STOP\<^sub>U") where
+definition UntimedStopTT :: "'e cttobs list set" ("STOP\<^sub>U") where
   "STOP\<^sub>U = {t. t = [] \<or> (\<exists> X. t = [[X]\<^sub>R])}"
 
-lemma UntimedStopTTT_wf: "\<forall> t\<in>STOP\<^sub>U. ttWF t"
-  unfolding UntimedStopTTT_def by auto
+lemma UntimedStopTT_wf: "\<forall> t\<in>STOP\<^sub>U. ttWF t"
+  unfolding UntimedStopTT_def by auto
 
 lemma TT2s_UntimedStop: "TT2s STOP\<^sub>U"
-  unfolding UntimedStopTTT_def TT2s_def by (auto simp add: append_eq_Cons_conv)
+  unfolding UntimedStopTT_def TT2s_def by (auto simp add: append_eq_Cons_conv)
 
 lemma TT4s_UntimedStop: "TT4s STOP\<^sub>U"
-  unfolding UntimedStopTTT_def TT4s_def by auto
+  unfolding UntimedStopTT_def TT4s_def by auto
 
 lemma TT_UntimedStop: "TT STOP\<^sub>U"
-  unfolding UntimedStopTTT_def TT_defs apply (auto simp add: ctt_prefix_subset_antisym)
+  unfolding UntimedStopTT_def TT_defs apply (auto simp add: ctt_prefix_subset_antisym)
   by (metis ctt_prefix_subset.simps(2) ctt_prefix_subset.simps(4) ctt_prefix_subset.simps(6) cttobs.exhaust list.exhaust)
 
 subsection {* Skip *}
 
-definition SkipTTT :: "'e cttobs list set" ("SKIP\<^sub>C") where
+definition SkipTT :: "'e cttobs list set" ("SKIP\<^sub>C") where
   "SKIP\<^sub>C = {[], [[Tick]\<^sub>E]}"
   (*{[], [[Tick]\<^sub>E]} \<union> {t. \<exists> Y. Tick \<notin> Y \<and> t = [[Y]\<^sub>R]} \<union> {t. \<exists> n s. (t = s \<or> t = s @ [[Tick]\<^sub>E]) \<and> s \<in> ntock {x. x \<noteq> Tick} n}*)
 
-lemma SkipTTT_wf: "\<forall> t\<in>SKIP\<^sub>C. ttWF t"
-  unfolding SkipTTT_def by auto
+lemma SkipTT_wf: "\<forall> t\<in>SKIP\<^sub>C. ttWF t"
+  unfolding SkipTT_def by auto
 
 lemma TT2s_Skip: "TT2s SKIP\<^sub>C"
-  unfolding SkipTTT_def TT2s_def by (auto, metis Cons_eq_append_conv append_is_Nil_conv cttobs.distinct(1) list.inject list.simps(3))
+  unfolding SkipTT_def TT2s_def by (auto, metis Cons_eq_append_conv append_is_Nil_conv cttobs.distinct(1) list.inject list.simps(3))
 
 lemma TT4s_Skip: "TT4s SKIP\<^sub>C"
-  unfolding SkipTTT_def TT4s_def by auto
+  unfolding SkipTT_def TT4s_def by auto
 
 lemma TT_Skip: "TT SKIP\<^sub>C"
-  unfolding TT_defs SkipTTT_def 
+  unfolding TT_defs SkipTT_def 
   apply (auto simp add: ctt_prefix_subset_antisym)
   apply (case_tac \<rho> rule:ttWF.cases, auto)
   done
 
 subsection {* Wait *}
 
-definition WaitTTT :: "nat \<Rightarrow> 'e cttobs list set" ("wait\<^sub>C[_]") where
+definition WaitTT :: "nat \<Rightarrow> 'e cttobs list set" ("wait\<^sub>C[_]") where
   "wait\<^sub>C[n] = 
     {t. \<exists> s\<in>tocks({x. x \<noteq> Tock}). length (filter (\<lambda> x. x = [Tock]\<^sub>E) s) < n \<and> (t = s \<or> (\<exists> X. Tock \<notin> X \<and> t = s @ [[X]\<^sub>R]))}
      \<union> {t. \<exists> s\<in>tocks({x. x \<noteq> Tock}). length (filter (\<lambda> x. x = [Tock]\<^sub>E) s) = n \<and> (t = s \<or> t = s @ [[Tick]\<^sub>E])}"
   (*{t. \<exists> s x. t = s @ x \<and> x \<in> {[], [[Tick]\<^sub>E]} \<and> s \<in> ntock {x. x \<noteq> Tock} n}*)
 
-lemma WaitTTT_wf: "\<forall> t\<in>wait\<^sub>C[n]. ttWF t"
-  unfolding WaitTTT_def by (auto simp add: tocks_wf tocks_append_wf)
+lemma WaitTT_wf: "\<forall> t\<in>wait\<^sub>C[n]. ttWF t"
+  unfolding WaitTT_def by (auto simp add: tocks_wf tocks_append_wf)
 
 lemma TT2s_Wait: "TT2s wait\<^sub>C[n]"
   unfolding TT2s_def
@@ -285,7 +285,7 @@ proof auto
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> wait\<^sub>C[n]"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> wait\<^sub>C[n] \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> wait\<^sub>C[n]} = {}"
   have 1: "Tock \<notin> X \<and> (\<forall> Z. Tock \<notin> Z \<longrightarrow> \<rho> @ [Z]\<^sub>R # \<sigma> \<in> wait\<^sub>C[n])"
-    using assm1 unfolding WaitTTT_def
+    using assm1 unfolding WaitTT_def
   proof (auto)
     show "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> Tock \<in> X \<Longrightarrow> False"
       using tocks_mid_refusal by fastforce
@@ -347,13 +347,13 @@ proof auto
       using tocks_mid_refusal_change by fastforce
   qed
   also have \<rho>_in_tocks: "\<rho> \<in> tocks {x. x \<noteq> Tock}"
-    using assm1 unfolding WaitTTT_def apply auto
+    using assm1 unfolding WaitTT_def apply auto
     using tocks_mid_refusal_front_in_tocks apply blast
     apply (metis butlast.simps(2) butlast_append butlast_snoc list.distinct(1) tocks_mid_refusal_front_in_tocks)
     using tocks_mid_refusal_front_in_tocks apply blast
     by (metis butlast.simps(2) butlast_append butlast_snoc list.distinct(1) tocks_mid_refusal_front_in_tocks)
   then have "Tock \<in> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> wait\<^sub>C[n] \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> wait\<^sub>C[n]}"
-    unfolding WaitTTT_def
+    unfolding WaitTT_def
   proof auto
     show "\<rho> \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> tocks {x. x \<noteq> Tock} \<Longrightarrow> False"
       by (metis (mono_tags, lifting) calculation mem_Collect_eq subset_eq tocks.simps tocks_append_tocks)
@@ -365,7 +365,7 @@ proof auto
       by (metis (mono_tags, lifting) calculation mem_Collect_eq subsetI tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
   next
     show "\<rho> \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> Suc (length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E]) \<noteq> n \<Longrightarrow> Suc (length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E]) < n"
-      using assm1 unfolding WaitTTT_def
+      using assm1 unfolding WaitTT_def
     proof auto
       fix s Xa
       assume "\<rho> @ [X]\<^sub>R # \<sigma> = s @ [[Xa]\<^sub>R]"
@@ -397,7 +397,7 @@ proof auto
 qed
 
 lemma TT4s_Wait: "TT4s (wait\<^sub>C[n])"
-  unfolding WaitTTT_def TT4s_def
+  unfolding WaitTT_def TT4s_def
 proof auto
   fix s :: "'a cttobs list"
   assume "s \<in> tocks {x. x \<noteq> Tock}" "length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n"
@@ -444,14 +444,14 @@ lemma TT_Wait: "TT wait\<^sub>C[n]"
 proof auto
   fix x
   show "x \<in> wait\<^sub>C[n] \<Longrightarrow> ttWF x"
-    using WaitTTT_wf by auto
+    using WaitTT_wf by auto
 next
   show "wait\<^sub>C[n] = {} \<Longrightarrow> False"
-    unfolding WaitTTT_def using tocks.empty_in_tocks by fastforce
+    unfolding WaitTT_def using tocks.empty_in_tocks by fastforce
 next
   fix \<rho> \<sigma>
   show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> wait\<^sub>C[n] \<Longrightarrow> \<rho> \<in> wait\<^sub>C[n]"
-    unfolding WaitTTT_def 
+    unfolding WaitTT_def 
   proof auto
     assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
     assume assm2: "\<sigma> \<in> tocks {x. x \<noteq> Tock}"
@@ -518,15 +518,15 @@ next
   assume assm1: "\<rho> @ [[X]\<^sub>R] \<in> wait\<^sub>C[n]"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> wait\<^sub>C[n] \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> wait\<^sub>C[n]} = {}"
   from assm1 have 1: "\<rho>\<in>tocks {x. x \<noteq> Tock}"
-    unfolding WaitTTT_def using end_refusal_notin_tocks by blast
+    unfolding WaitTT_def using end_refusal_notin_tocks by blast
   from assm1 have 2: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] < n \<and> Tock \<notin> X"
-    unfolding WaitTTT_def using end_refusal_notin_tocks by blast
+    unfolding WaitTT_def using end_refusal_notin_tocks by blast
   have 3: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] < n \<longrightarrow> Tock \<notin> Y"
   proof auto
     assume assm3: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] < n"
     assume assm4: "Tock \<in> Y"
     have "Tock \<in> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> wait\<^sub>C[n] \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> wait\<^sub>C[n]}"
-      unfolding WaitTTT_def apply auto
+      unfolding WaitTT_def apply auto
       apply (metis (mono_tags, lifting) "1" "2" assm3 less_not_refl mem_Collect_eq subset_iff tocks.simps tocks_append_tocks)
       apply (metis (mono_tags, lifting) "1" "2" assm3 less_not_refl mem_Collect_eq subset_iff tocks.simps tocks_append_tocks)
       apply (metis (mono_tags, lifting) "1" "2" assm3 less_not_refl mem_Collect_eq subset_iff tocks.simps tocks_append_tocks)
@@ -537,13 +537,13 @@ next
       using assm2 by auto
   qed
   show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> wait\<^sub>C[n]"
-    using 1 2 3 unfolding WaitTTT_def by auto
+    using 1 2 3 unfolding WaitTT_def by auto
 next
   fix x
   have "\<forall>x \<in> tocks {x. x \<noteq> Tock}. TT3_trace x"
     by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq)
   then show "x \<in> wait\<^sub>C[n] \<Longrightarrow> TT3_trace x"
-    unfolding WaitTTT_def apply auto
+    unfolding WaitTT_def apply auto
     using TT3_append TT3_trace.simps(2) ttWF.simps(2) apply blast
     using TT3_append TT3_trace.simps(2) ttWF.simps(3) apply blast
     done
@@ -551,31 +551,31 @@ qed
 
 subsection {* Guard *}
 
-definition GuardTTT :: "bool \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixr "&\<^sub>C" 61) where
+definition GuardTT :: "bool \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixr "&\<^sub>C" 61) where
   "g &\<^sub>C P = {x\<in>P. g} \<union> {x\<in>STOP\<^sub>C. \<not> g}"
 
-lemma GuardTTT_wf: "\<forall>t\<in>P. ttWF t \<Longrightarrow> \<forall>t\<in>(g &\<^sub>C P). ttWF t"
-  unfolding GuardTTT_def using StopTTT_wf by blast
+lemma GuardTT_wf: "\<forall>t\<in>P. ttWF t \<Longrightarrow> \<forall>t\<in>(g &\<^sub>C P). ttWF t"
+  unfolding GuardTT_def using StopTT_wf by blast
 
 lemma TT0_Guard: "TT0 P \<Longrightarrow> TT0 (g &\<^sub>C P)"
-  using TT0_Stop unfolding TT0_def GuardTTT_def by auto
+  using TT0_Stop unfolding TT0_def GuardTT_def by auto
 
 lemma TT1_Guard: "TT1 P \<Longrightarrow> TT1 (g &\<^sub>C P)"
-  using TT1_Stop unfolding TT1_def GuardTTT_def by auto
+  using TT1_Stop unfolding TT1_def GuardTT_def by auto
 
 lemma TT2_Guard: "TT2 P \<Longrightarrow> TT2 (g &\<^sub>C P)"
-  using TT2_Stop unfolding TT2_def GuardTTT_def by (auto, blast+)
+  using TT2_Stop unfolding TT2_def GuardTT_def by (auto, blast+)
 
 lemma TT2s_Guard: "TT2s P \<Longrightarrow> TT2s (g &\<^sub>C P)"
-  using TT2s_Stop unfolding TT2s_def GuardTTT_def by (auto, blast+)
+  using TT2s_Stop unfolding TT2s_def GuardTT_def by (auto, blast+)
 
 lemma TT3_Guard: "TT3 P \<Longrightarrow> TT3 (g &\<^sub>C P)"
-  using TT3_Stop unfolding TT3_def GuardTTT_def by blast
+  using TT3_Stop unfolding TT3_def GuardTT_def by blast
 
 lemma TT4s_Guard: "TT4s P \<Longrightarrow> TT4s (g &\<^sub>C P)"
-  using TT4s_Stop unfolding TT4s_def GuardTTT_def by blast
+  using TT4s_Stop unfolding TT4s_def GuardTT_def by blast
 
 lemma TT_Guard: "TT P \<Longrightarrow> TT (g &\<^sub>C P)"
-  using GuardTTT_wf TT0_Guard TT1_Guard TT2_Guard TT3_Guard  unfolding TT_def GuardTTT_def by auto
+  using GuardTT_wf TT0_Guard TT1_Guard TT2_Guard TT3_Guard  unfolding TT_def GuardTT_def by auto
 
 end

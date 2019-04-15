@@ -22,13 +22,13 @@ fun hide_trace :: "'a cttevent set \<Rightarrow> 'a cttobs list \<Rightarrow> 'a
   "hide_trace X ([Y]\<^sub>R # [Z]\<^sub>R # t) = {}" |
   "hide_trace X ([Tick]\<^sub>E # x # t) = {}"
 
-definition HidingTTT :: "'a cttobs list set \<Rightarrow> 'a cttevent set \<Rightarrow> 'a cttobs list set" (infixl "\<setminus>\<^sub>C" 53) where
-  "HidingTTT P X = \<Union> {hide_trace X p | p. p \<in> P}"
+definition HidingTT :: "'a cttobs list set \<Rightarrow> 'a cttevent set \<Rightarrow> 'a cttobs list set" (infixl "\<setminus>\<^sub>C" 53) where
+  "HidingTT P X = \<Union> {hide_trace X p | p. p \<in> P}"
 
-lemma HidingTTT_wf:
+lemma HidingTT_wf:
   assumes "\<forall>x\<in>P. ttWF x"
   shows "\<forall>x\<in>(P \<setminus>\<^sub>C X). ttWF x"
-  using assms unfolding HidingTTT_def
+  using assms unfolding HidingTT_def
 proof auto
   fix x p
   show "\<And> P x. \<forall>x\<in>P. ttWF x \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> ttWF x"
@@ -42,7 +42,7 @@ qed
 lemma TT0_Hiding:
   assumes "TT0 P" "TT1 P"  
   shows "TT0 (P \<setminus>\<^sub>C X)"
-  unfolding HidingTTT_def TT0_def
+  unfolding HidingTT_def TT0_def
 proof auto
   have "[] \<in> P"
     by (simp add: TT0_TT1_empty assms(1) assms(2))
@@ -52,7 +52,7 @@ qed
 
 lemma TT1_Hiding:
   shows "TT1 P \<Longrightarrow> TT1 (P \<setminus>\<^sub>C X)"
-  unfolding HidingTTT_def TT1_def
+  unfolding HidingTT_def TT1_def
 proof auto
   fix p
   show "\<And>P \<rho> \<sigma>. \<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P \<Longrightarrow> \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> \<in> x"
@@ -188,7 +188,7 @@ qed
 lemma TT2_Hiding:
   assumes "TT2 P"
   shows "TT2 (P \<setminus>\<^sub>C X)"
-  unfolding TT2_def HidingTTT_def
+  unfolding TT2_def HidingTT_def
 proof auto
   fix Xa Y p
   show "\<And> \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
@@ -343,7 +343,7 @@ qed
 lemma TT2s_Hiding:
   assumes "TT2s P"
   shows "TT2s (P \<setminus>\<^sub>C X)"
-  unfolding TT2s_def HidingTTT_def
+  unfolding TT2s_def HidingTT_def
 proof auto
   fix Xa Y p
   show "\<And> \<rho> \<sigma>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
@@ -504,7 +504,7 @@ qed
  
 lemma TT3_Hiding:
   "TT3 P \<Longrightarrow> TT3 (P \<setminus>\<^sub>C X)"
-  unfolding TT3_def HidingTTT_def
+  unfolding TT3_def HidingTT_def
 proof (safe, simp_all)
   fix p
   show "\<And>P x. Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> TT3_trace x"
@@ -605,7 +605,7 @@ qed
 
 lemma TT4s_Hiding:
   "TT1 P \<Longrightarrow> TT4s P \<Longrightarrow> TT4s (P \<setminus>\<^sub>C X)"
-  unfolding TT4s_def HidingTTT_def
+  unfolding TT4s_def HidingTT_def
 proof (safe, simp_all)
   fix p
   show "\<And> \<rho> P. TT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow> \<rho> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow>
@@ -679,4 +679,4 @@ proof (safe, simp_all)
 qed
 
 lemma Hiding_Mono: "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> P \<setminus>\<^sub>C X \<sqsubseteq>\<^sub>C Q \<setminus>\<^sub>C X"
-  unfolding RefinesTTT_def HidingTTT_def by auto
+  unfolding RefinesTT_def HidingTT_def by auto

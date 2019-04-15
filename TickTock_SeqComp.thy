@@ -4,11 +4,11 @@ begin
 
 subsection {* Sequential Composition *}
 
-definition SeqCompTTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl ";\<^sub>C" 60) where
+definition SeqCompTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl ";\<^sub>C" 60) where
   "P ;\<^sub>C Q = {\<rho>\<in>P. \<nexists> s. \<rho> = s @ [[Tick]\<^sub>E]} \<union> {\<rho>. \<exists> s t. s @ [[Tick]\<^sub>E] \<in> P \<and> t \<in> Q \<and> \<rho> = s @ t}"
 
 lemma SeqComp_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t \<in> P ;\<^sub>C Q. ttWF t"
-  unfolding SeqCompTTT_def
+  unfolding SeqCompTT_def
 proof auto
   fix s ta
   assume "\<forall>x\<in>P. ttWF x" "s @ [[Tick]\<^sub>E] \<in> P"
@@ -22,12 +22,12 @@ proof auto
 qed
 
 lemma TT0_SeqComp: "TT0 P \<Longrightarrow> TT0 Q \<Longrightarrow> TT0 (P ;\<^sub>C Q)"
-  unfolding SeqCompTTT_def TT0_def by blast
+  unfolding SeqCompTT_def TT0_def by blast
 
 lemma TT1_SeqComp: 
   assumes "\<forall>t\<in>P. ttWF t" "TT1 P" "TT1 Q"
   shows "TT1 (P ;\<^sub>C Q)"
-  unfolding SeqCompTTT_def TT1_def
+  unfolding SeqCompTT_def TT1_def
 proof (auto)
   fix \<rho> \<sigma> :: "'a cttobs list"
   show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> \<rho> \<in> P"
@@ -118,7 +118,7 @@ qed
 
 
 lemma TT2_SeqComp: "TT4 P \<Longrightarrow> TT P \<Longrightarrow> TT Q \<Longrightarrow> TT2 (P ;\<^sub>C Q)"
-  unfolding SeqCompTTT_def TT2_def
+  unfolding SeqCompTT_def TT2_def
 proof auto
   fix \<rho> X Y
   assume assm1: "Y \<inter> {e. e \<noteq> Tock \<and> (\<rho> @ [[e]\<^sub>E] \<in> P \<and> e \<noteq> Tick \<or> (\<exists>s. s @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>t. t \<in> Q \<and> \<rho> @ [[e]\<^sub>E] = s @ t))) \<or>
@@ -237,13 +237,13 @@ proof auto
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P ;\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P ;\<^sub>C Q} = {}"
   have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<and> e \<noteq> Tick \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} \<subseteq>
       {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P ;\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P ;\<^sub>C Q}"
-    unfolding SeqCompTTT_def by auto
+    unfolding SeqCompTT_def by auto
   then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<and> e \<noteq> Tick \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
     using assm2 subset_iff by auto
   then have P_assm2: "{e\<in>Y. e \<noteq> Tick} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
     using assm2 subset_iff by auto
   show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P ;\<^sub>C Q"
-    using assm1 unfolding SeqCompTTT_def
+    using assm1 unfolding SeqCompTT_def
   proof auto
     assume case_assm: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P"
     then have "\<rho> @ [X \<union> {e\<in>Y. e \<noteq> Tick}]\<^sub>R # \<sigma> \<in> P"
@@ -338,7 +338,7 @@ proof auto
       
       have "{e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} \<subseteq>
       {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P ;\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P ;\<^sub>C Q}"
-        unfolding SeqCompTTT_def using case_assms case_assms2 by auto
+        unfolding SeqCompTT_def using case_assms case_assms2 by auto
       then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         using assm2 subsetCE by auto
       then have "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
@@ -367,7 +367,7 @@ proof auto
       assume case_assms2: "\<rho> = s @ \<rho>2" "t = \<rho>2 @ [X]\<^sub>R # \<sigma>"
       have "{e. e \<noteq> Tock \<and> \<rho>2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} \<subseteq>
       {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P ;\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P ;\<^sub>C Q}"
-        unfolding SeqCompTTT_def using case_assms case_assms2 by auto
+        unfolding SeqCompTT_def using case_assms case_assms2 by auto
       then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         using assm2 subsetCE by auto
       then have "\<rho>2 @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
@@ -404,7 +404,7 @@ qed
 lemma TT3_SeqComp: 
   assumes "TT P" "TT Q"
   shows "TT3 (P ;\<^sub>C Q)"
-  unfolding TT3_def SeqCompTTT_def
+  unfolding TT3_def SeqCompTT_def
 proof auto
   fix x
   show "x \<in> P \<Longrightarrow> TT3_trace x"
@@ -424,7 +424,7 @@ qed
 lemma TT4s_SeqComp:
   assumes "TT4s P" "TT4s Q"
   shows "TT4s (P ;\<^sub>C Q)"
-  unfolding SeqCompTTT_def TT4s_def
+  unfolding SeqCompTT_def TT4s_def
 proof auto
   fix \<rho>
   show "\<rho> \<in> P \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> P"

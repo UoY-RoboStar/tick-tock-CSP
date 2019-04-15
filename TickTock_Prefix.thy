@@ -4,13 +4,13 @@ begin
 
 subsection {* Prefix *}
 
-definition PrefixTTT :: "'e \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixr "\<rightarrow>\<^sub>C" 61) where
-  "PrefixTTT e P = 
+definition PrefixTT :: "'e \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixr "\<rightarrow>\<^sub>C" 61) where
+  "PrefixTT e P = 
     {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Event e}). t = s \<or> (\<exists> X. Tock \<notin> X \<and> Event e \<notin> X \<and> t = s @ [[X]\<^sub>R])}
      \<union> {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Event e}). t = s \<or> (\<exists> \<sigma>\<in>P. t = s @ [[Event e]\<^sub>E] @ \<sigma>)}"
 
-lemma PrefixTTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>PrefixTTT e P. ttWF t"
-  unfolding PrefixTTT_def by (auto simp add: tocks_wf tocks_append_wf)
+lemma PrefixTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>PrefixTT e P. ttWF t"
+  unfolding PrefixTT_def by (auto simp add: tocks_wf tocks_append_wf)
 
 lemma TT2s_Prefix:
   assumes TT0_P: "TT0 P" and TT1_P: "TT1 P"
@@ -22,18 +22,18 @@ proof auto
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> e \<rightarrow>\<^sub>C P"
   assume assm2: "Y \<inter> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P} = {}"
   show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> e \<rightarrow>\<^sub>C P"
-    using assm1 unfolding PrefixTTT_def
+    using assm1 unfolding PrefixTT_def
   proof auto
     assume case_assms: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
     then have 1: "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
       using tocks_mid_refusal_front_in_tocks by blast
     then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-      unfolding PrefixTTT_def apply auto
+      unfolding PrefixTT_def apply auto
       by (metis (no_types, lifting) case_assms tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
     then have 2: "Tock \<notin> Y"
       using assm2 by blast
     then have "Event e \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-      using 1 unfolding PrefixTTT_def apply auto
+      using 1 unfolding PrefixTT_def apply auto
       using TT0_TT1_empty TT0_P TT1_P by (erule_tac x="\<rho>" in ballE, auto)+
     then have 3: "Event e \<notin> Y"
       using assm2 by blast
@@ -52,12 +52,12 @@ proof auto
     then have 1: "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
       using tocks_mid_refusal_front_in_tocks by blast
     then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-      unfolding PrefixTTT_def apply auto
+      unfolding PrefixTT_def apply auto
       by (metis (no_types, lifting) case_assms tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
     then have 2: "Tock \<notin> Y"
       using assm2 by blast
     then have "Event e \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-      using 1 unfolding PrefixTTT_def apply auto
+      using 1 unfolding PrefixTT_def apply auto
       using TT0_TT1_empty TT0_P TT1_P by (erule_tac x="\<rho>" in ballE, auto)+
     then have 3: "Event e \<notin> Y"
       using assm2 by blast
@@ -84,12 +84,12 @@ proof auto
       have 1: "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
         using case_assms(1) case_assms2 tocks_mid_refusal_front_in_tocks by auto
       have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-         unfolding PrefixTTT_def apply auto
+         unfolding PrefixTT_def apply auto
          using case_assms case_assms2 1 by (simp add: empty_in_tocks tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
        then have 2:"Tock \<notin> Y"
          using assm2 by auto
       have "Event e \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-        unfolding PrefixTTT_def using "1" TT0_TT1_empty TT0_P TT1_P by auto
+        unfolding PrefixTT_def using "1" TT0_TT1_empty TT0_P TT1_P by auto
       then have 3: "Event e \<notin> Y"
         using assm2 by auto
       have 4: "Tock \<notin> X"
@@ -103,14 +103,14 @@ proof auto
     next
       assume "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "s = \<rho>" "X = Xa" "\<sigma> = []"
       then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-         unfolding PrefixTTT_def using case_assms apply auto
+         unfolding PrefixTT_def using case_assms apply auto
          by (metis (mono_tags, lifting) CollectI subsetI tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
        then show "Tock \<in> Y \<Longrightarrow> False"
          using assm2 by auto
     next
       assume "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "s = \<rho>" "X = Xa" "\<sigma> = []"
       then have "Event e \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-         unfolding PrefixTTT_def using case_assms TT0_TT1_empty TT0_P TT1_P by auto
+         unfolding PrefixTT_def using case_assms TT0_TT1_empty TT0_P TT1_P by auto
       then show "Event e \<in> Y \<Longrightarrow> False"
         using assm2 by auto
     qed
@@ -134,21 +134,21 @@ proof auto
         fix x
         assume "\<rho> = s @ [Event e]\<^sub>E # \<rho>'" "\<rho>' @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
         then show "s @ [Event e]\<^sub>E # \<rho>' @ [[x]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
-          unfolding PrefixTTT_def using case_assms by auto 
+          unfolding PrefixTT_def using case_assms by auto 
       next
           fix x
         assume "\<rho> = s @ [Event e]\<^sub>E # \<rho>'" "\<rho>' @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
         then show "s @ [Event e]\<^sub>E # \<rho>' @ [[x]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
-          unfolding PrefixTTT_def using case_assms by auto 
+          unfolding PrefixTT_def using case_assms by auto 
       next
         assume "\<rho> = s @ [Event e]\<^sub>E # \<rho>'" "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
         then show "s @ [Event e]\<^sub>E # \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> e \<rightarrow>\<^sub>C P \<Longrightarrow> False"
-          unfolding PrefixTTT_def using case_assms by auto
+          unfolding PrefixTT_def using case_assms by auto
        
       next
         assume "\<rho> = s @ [Event e]\<^sub>E # \<rho>'" "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
         then show "s @ [Event e]\<^sub>E # \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> e \<rightarrow>\<^sub>C P \<Longrightarrow> s @ [Event e]\<^sub>E # \<rho>' @ [[Tock]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
-          unfolding PrefixTTT_def using case_assms by auto
+          unfolding PrefixTT_def using case_assms by auto
       qed
       then have 1: "Y \<inter> {ea. ea \<noteq> Tock \<and> \<rho>' @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> \<rho>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P} = {}"
         using assm2 subsetCE by auto
@@ -168,9 +168,9 @@ proof auto
       then have 2: "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
         using tocks_mid_refusal_front_in_tocks by auto
       then have 3: "\<rho> @ [[Event e]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
-        unfolding PrefixTTT_def using TT0_TT1_empty TT0_P TT1_P by fastforce
+        unfolding PrefixTT_def using TT0_TT1_empty TT0_P TT1_P by fastforce
       have 4: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P"
-        unfolding PrefixTTT_def by (metis (mono_tags, lifting) "1" "2" CollectI UnI2 tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
+        unfolding PrefixTT_def by (metis (mono_tags, lifting) "1" "2" CollectI UnI2 tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
       have 5: "Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
         using assm2 3 4 by auto
       then have "\<rho> @ [X \<union> Y]\<^sub>R # t \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
@@ -184,7 +184,7 @@ qed
 
 lemma TT4s_Prefix:
   "TT4s P \<Longrightarrow> TT4s (e \<rightarrow>\<^sub>C P)"
-  unfolding PrefixTTT_def TT4s_def
+  unfolding PrefixTT_def TT4s_def
 proof auto
   fix s
   assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
@@ -230,14 +230,14 @@ lemma TT_Prefix:
 proof auto
   fix x
   show "x \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> ttWF x"
-    by (meson TT_def PrefixTTT_wf assms)
+    by (meson TT_def PrefixTT_wf assms)
 next
   show "e \<rightarrow>\<^sub>C P = {} \<Longrightarrow> False"
-    unfolding PrefixTTT_def using tocks.empty_in_tocks by (blast)
+    unfolding PrefixTT_def using tocks.empty_in_tocks by (blast)
 next
   fix \<rho> \<sigma> :: "'a cttobs list"
   show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> \<rho> \<in> e \<rightarrow>\<^sub>C P"
-    unfolding PrefixTTT_def
+    unfolding PrefixTT_def
   proof auto
     assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
     assume assm2: "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<rho> \<noteq> s @ [Event e]\<^sub>E # \<sigma>)"
@@ -301,7 +301,7 @@ next
   assume "\<rho> @ [[X]\<^sub>R] \<in> e \<rightarrow>\<^sub>C P"
   then have "(\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e} \<and> Tock \<notin> X \<and> Event e \<notin> X) \<or>
     (\<exists> s \<sigma>. s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e} \<and> \<sigma> \<in> P \<and> \<rho> @ [[X]\<^sub>R] = s @ [Event e]\<^sub>E # \<sigma>)"
-    unfolding PrefixTTT_def using end_refusal_notin_tocks by auto
+    unfolding PrefixTT_def using end_refusal_notin_tocks by auto
   then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> e \<rightarrow>\<^sub>C P"
   proof auto
     assume assm2: "\<rho> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
@@ -309,16 +309,16 @@ next
     assume assm4: "Event e \<notin> X"
 
     have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-      unfolding PrefixTTT_def by (auto, smt assm2 assm3 assm4 mem_Collect_eq subset_iff tocks.simps tocks_append_tocks)
+      unfolding PrefixTT_def by (auto, smt assm2 assm3 assm4 mem_Collect_eq subset_iff tocks.simps tocks_append_tocks)
     then have 1: "Tock \<notin> Y"
       using assm1 by auto
     have "Event e \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-      unfolding PrefixTTT_def apply (auto)
+      unfolding PrefixTT_def apply (auto)
       using TT_empty assm2 assms by blast
     then have 2: "Event e \<notin> Y"
       using assm1 by auto
     show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> e \<rightarrow>\<^sub>C P"
-      unfolding PrefixTTT_def using 1 2 assm2 assm3 assm4 by (auto)
+      unfolding PrefixTT_def using 1 2 assm2 assm3 assm4 by (auto)
   next
     fix s \<sigma>
     assume assm2: "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
@@ -333,7 +333,7 @@ next
     have 2: "s @ [Event e]\<^sub>E # \<sigma>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
       using mid_event_notin_tocks by force
     have "{ea. ea \<noteq> Tock \<and> \<sigma>' @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P} = {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P}"
-      unfolding PrefixTTT_def apply auto
+      unfolding PrefixTT_def apply auto
       using \<sigma>'_assm assm2 assm4  apply (auto simp add: 1 2)
       by (metis (lifting) append_Cons append_Nil equal_traces_imp_equal_tocks)+
     then have "Y \<inter> {ea. ea \<noteq> Tock \<and> \<sigma>' @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P} = {}"
@@ -341,7 +341,7 @@ next
     then have "\<sigma>' @ [[X \<union> Y]\<^sub>R] \<in> P"
       using \<sigma>'_assm assm3 assms by (auto simp add: TT2_def TT_def)
     then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> e \<rightarrow>\<^sub>C P"
-      unfolding PrefixTTT_def using \<rho>_def assm2 by auto
+      unfolding PrefixTT_def using \<rho>_def assm2 by auto
   qed
 next
   fix x
@@ -350,27 +350,27 @@ next
   also have "\<forall>x \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. TT3_trace x"
     by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq) 
   then show "x \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> TT3_trace x"
-    unfolding PrefixTTT_def using calculation apply auto
+    unfolding PrefixTT_def using calculation apply auto
     using TT3_append TT3_trace.simps(2) ttWF.simps(2) apply blast
     by (metis (no_types, lifting) TT3_append TT3_trace.simps(2) TT3_trace.simps(4) TT_wf assms ttWF.elims(2) ttWF.simps(4)) 
 qed
 
-definition TockPrefixTTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" ("tock \<rightarrow>\<^sub>C _") where
-  "TockPrefixTTT P = {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Tock}). t = s \<or> (\<exists> X. Tock \<notin> X \<and> Tock \<notin> X \<and> t = s @ [[X]\<^sub>R])}
+definition TockPrefixTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set" ("tock \<rightarrow>\<^sub>C _") where
+  "TockPrefixTT P = {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Tock}). t = s \<or> (\<exists> X. Tock \<notin> X \<and> Tock \<notin> X \<and> t = s @ [[X]\<^sub>R])}
      \<union> {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Tock}). t = s \<or> (\<exists> \<sigma>\<in>P. \<exists> X. Tock \<notin> X \<and> t = s @ [[X]\<^sub>R, [Tock]\<^sub>E] @ \<sigma>)}"
 
-lemma TockPrefixTTT_wf: "(\<forall> t\<in>P. ttWF t) \<Longrightarrow> \<forall> t\<in>(tock \<rightarrow>\<^sub>C P). ttWF t"
-  unfolding TockPrefixTTT_def using tocks_wf apply auto
+lemma TockPrefixTT_wf: "(\<forall> t\<in>P. ttWF t) \<Longrightarrow> \<forall> t\<in>(tock \<rightarrow>\<^sub>C P). ttWF t"
+  unfolding TockPrefixTT_def using tocks_wf apply auto
   using ttWF.simps(2) ttWF.simps(5) tocks_append_wf by blast+
 
-lemma TT0_TockPrefixTTT: "TT0 P \<Longrightarrow> TT0 (tock \<rightarrow>\<^sub>C P)"
-  unfolding TockPrefixTTT_def TT0_def apply auto
+lemma TT0_TockPrefixTT: "TT0 P \<Longrightarrow> TT0 (tock \<rightarrow>\<^sub>C P)"
+  unfolding TockPrefixTT_def TT0_def apply auto
   using tocks.simps by blast
 
-lemma TT1_TockPrefixTTT:
+lemma TT1_TockPrefixTT:
   assumes "TT1 P"
   shows "TT1 (tock \<rightarrow>\<^sub>C P)"
-  unfolding TT1_def TockPrefixTTT_def
+  unfolding TT1_def TockPrefixTT_def
 proof auto
   fix \<rho> s :: "'a cttobs list"
   show "\<rho> \<lesssim>\<^sub>C s \<Longrightarrow> s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow>
@@ -418,7 +418,7 @@ next
   qed
 qed
 
-thm TockPrefixTTT_def
+thm TockPrefixTT_def
 
 lemma TT2s_TockPrefix: 
   assumes "TT2s P"
@@ -429,18 +429,18 @@ proof auto
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tock \<rightarrow>\<^sub>C P"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P} = {}"
   show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> tock \<rightarrow>\<^sub>C P"
-    using assm1 unfolding TockPrefixTTT_def
+    using assm1 unfolding TockPrefixTT_def
   proof auto
     assume case_assms: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tocks {x. x \<noteq> Tock}"
     then have 1: "\<rho> \<in> tocks {x. x \<noteq> Tock}"
       using tocks_mid_refusal_front_in_tocks by blast
     then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P}"
-      unfolding TockPrefixTTT_def apply auto
+      unfolding TockPrefixTT_def apply auto
       by (metis (no_types, lifting) case_assms tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
     then have 2: "Tock \<notin> Y"
       using assm2 by blast
     then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P}"
-      using 1 unfolding TockPrefixTTT_def apply auto
+      using 1 unfolding TockPrefixTT_def apply auto
       by (metis case_assms tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
     have 3: "Tock \<notin> X"
       using case_assms tocks_mid_refusal by fastforce
@@ -455,7 +455,7 @@ proof auto
     then have 1: "\<rho> \<in> tocks {x. x \<noteq> Tock}"
       using tocks_mid_refusal_front_in_tocks by blast
     then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P}"
-      unfolding TockPrefixTTT_def apply auto
+      unfolding TockPrefixTT_def apply auto
       by (metis (no_types, lifting) case_assms tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
     then have 2: "Tock \<notin> Y"
       using assm2 by blast
@@ -480,7 +480,7 @@ proof auto
       have 1: "\<rho> \<in> tocks {x. x \<noteq> Tock}"
         using case_assms(1) case_assms2 tocks_mid_refusal_front_in_tocks by auto
       have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P}"
-         unfolding TockPrefixTTT_def apply auto
+         unfolding TockPrefixTT_def apply auto
          using case_assms case_assms2 1 by (simp add: empty_in_tocks tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
        then have 2:"Tock \<notin> Y"
          using assm2 by auto
@@ -493,7 +493,7 @@ proof auto
     next
       assume "\<rho> \<in> tocks {x. x \<noteq> Tock}" "s = \<rho>" "X = Xa" "\<sigma> = []"
       then have "Tock \<in> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P}"
-         unfolding TockPrefixTTT_def using case_assms apply auto
+         unfolding TockPrefixTT_def using case_assms apply auto
          by (metis (mono_tags, lifting) CollectI subsetI tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
        then show "Tock \<in> Y \<Longrightarrow> False"
          using assm2 by auto
@@ -516,21 +516,21 @@ proof auto
         fix x :: "'a cttevent"
         assume "\<rho> = s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2'" "\<sigma>' = t2' @ [X]\<^sub>R # \<sigma>" "t2' @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
         then show "s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2' @ [[x]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P"
-          unfolding TockPrefixTTT_def using case_assms by auto
+          unfolding TockPrefixTT_def using case_assms by auto
       next
         fix x :: "'a cttevent"
         assume "\<rho> = s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2'" "\<sigma>' = t2' @ [X]\<^sub>R # \<sigma>" "t2' @ [[x]\<^sub>E] \<in> P" "x \<noteq> Tock"
         then show "s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2' @ [[x]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P"
-          unfolding TockPrefixTTT_def using case_assms by auto
+          unfolding TockPrefixTT_def using case_assms by auto
       next
         assume "\<rho> = s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2'" "t2' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
         then show "s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> tock \<rightarrow>\<^sub>C P \<Longrightarrow> False"
-          unfolding TockPrefixTTT_def using case_assms by auto
+          unfolding TockPrefixTT_def using case_assms by auto
       next
         assume "\<rho> = s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2'" "t2' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
         then show "s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> tock \<rightarrow>\<^sub>C P \<Longrightarrow>
           s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2' @ [[Tock]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P"
-          unfolding TockPrefixTTT_def using case_assms by auto
+          unfolding TockPrefixTT_def using case_assms by auto
       qed
       then have 1: "Y \<inter> {ea. ea \<noteq> Tock \<and> t2' @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> t2' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P} = {}"
         using assm2 subsetCE by auto
@@ -552,7 +552,7 @@ proof auto
       then have 2: "\<rho> \<in> tocks {x. x \<noteq> Tock}"
         using tocks_mid_refusal_front_in_tocks by auto
       have 3: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> tock \<rightarrow>\<^sub>C P"
-        unfolding TockPrefixTTT_def using s2''_cases apply auto
+        unfolding TockPrefixTT_def using s2''_cases apply auto
         apply (metis (no_types, lifting) "2" Nil_is_append_conv butlast.simps(2) butlast_append butlast_snoc case_assms(1) case_assms2(2) tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks tocks_mid_refusal)
         by (metis (mono_tags, lifting) "2" CollectI case_assms(4) subsetI tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
       have 5: "Y \<subseteq> {x. x \<noteq> Tock}"
@@ -594,7 +594,7 @@ qed
 lemma TT3_TockPrefix: 
   assumes "TT3 P"
   shows "TT3 (tock \<rightarrow>\<^sub>C P)"
-  unfolding TockPrefixTTT_def TT3_def
+  unfolding TockPrefixTT_def TT3_def
 proof (safe, simp_all)
   show "\<And>s. s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> TT3_trace s"
     by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq)
@@ -621,7 +621,7 @@ qed
 lemma TT4s_TockPrefix:
   assumes "TT4s P"
   shows "TT4s (tock \<rightarrow>\<^sub>C P)"
-  unfolding TockPrefixTTT_def TT4s_def
+  unfolding TockPrefixTT_def TT4s_def
 proof auto
   fix s :: "'a cttobs list"
   assume "s \<in> tocks {x. x \<noteq> Tock}"   
@@ -669,6 +669,6 @@ lemma TT_TockPrefix:
   assumes "TT P" "TT2s P" "TT4s P"
   shows "TT (tock \<rightarrow>\<^sub>C P)"
   using assms unfolding TT_def
-  using TT0_TockPrefixTTT TT1_TockPrefixTTT TT2s_TockPrefix TT2s_imp_TT2 TT3_TockPrefix TockPrefixTTT_wf by blast
+  using TT0_TockPrefixTT TT1_TockPrefixTT TT2s_TockPrefix TT2s_imp_TT2 TT3_TockPrefix TockPrefixTT_wf by blast
 
 end

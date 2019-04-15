@@ -1836,7 +1836,7 @@ qed
 
 section {* Refinement *}
 
-definition RefinesTTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
+definition RefinesTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
   "P \<sqsubseteq>\<^sub>C Q = (Q \<subseteq> P)"
 
 end

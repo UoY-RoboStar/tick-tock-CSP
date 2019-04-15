@@ -4,7 +4,7 @@ begin
 
 subsection {* External Choice *}
 
-definition ExtChoiceTTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<box>\<^sub>C" 57) where
+definition ExtChoiceTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infixl "\<box>\<^sub>C" 57) where
   "P \<box>\<^sub>C Q = {t. \<exists> \<rho>\<in>tocks(UNIV). \<exists> \<sigma> \<tau>. 
     \<rho> @ \<sigma> \<in> P \<and> \<rho> @ \<tau> \<in> Q \<and>
     (\<forall>\<rho>'\<in>tocks(UNIV). \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
@@ -13,14 +13,14 @@ definition ExtChoiceTTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set 
     (\<forall> X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists> Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall> e. (e \<in> X = (e \<in> Y)) \<or> (e = Tock)))) \<and>
     (t = \<rho> @ \<sigma> \<or> t = \<rho> @ \<tau>)}"
 
-lemma ExtChoiceTTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t\<in>P \<box>\<^sub>C Q. ttWF t"
-  unfolding ExtChoiceTTT_def by auto
+lemma ExtChoiceTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t\<in>P \<box>\<^sub>C Q. ttWF t"
+  unfolding ExtChoiceTT_def by auto
 
 lemma TT0_ExtChoice:
   assumes "TT P" "TT Q"
   shows "TT0 (P \<box>\<^sub>C Q)"
   unfolding TT0_def apply auto
-  unfolding ExtChoiceTTT_def apply auto
+  unfolding ExtChoiceTT_def apply auto
   using TT_empty assms(1) assms(2) tocks.empty_in_tocks by fastforce
 
 lemma TT1_ExtChoice:
@@ -42,7 +42,7 @@ proof auto
     "\<forall>X. s = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. t = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
     "\<forall>X. t = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. s = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
     "\<sigma> = \<sigma>' @ t \<or> \<sigma> = \<sigma>' @ s"
-    unfolding ExtChoiceTTT_def by blast
+    unfolding ExtChoiceTT_def by blast
   from assm2_assms(8) have "\<rho>2 \<in> P \<box>\<^sub>C Q"
   proof (auto)
     assume case_assm: "\<sigma> = \<sigma>' @ s"
@@ -63,7 +63,7 @@ proof auto
       proof auto
         assume case_assm3: "\<rho>2 = \<rho>'"
         then show "\<rho>' \<in> P \<box>\<^sub>C Q"
-          using \<rho>2_in_P \<rho>2_in_Q case_assm3 \<rho>'_assms(1) unfolding ExtChoiceTTT_def apply auto
+          using \<rho>2_in_P \<rho>2_in_Q case_assm3 \<rho>'_assms(1) unfolding ExtChoiceTT_def apply auto
           apply (rule_tac x="\<rho>'" in bexI, auto)
           apply (rule_tac x="[]" in exI, auto)
           apply (rule_tac x="[]" in exI, auto)
@@ -72,7 +72,7 @@ proof auto
         fix Y
         assume case_assm3: "\<rho>2 = \<rho>' @ [[Y]\<^sub>R]"
         then show "\<rho>' @ [[Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-          using \<rho>2_in_P \<rho>2_in_Q \<rho>'_assms(1) unfolding ExtChoiceTTT_def apply auto
+          using \<rho>2_in_P \<rho>2_in_Q \<rho>'_assms(1) unfolding ExtChoiceTT_def apply auto
           apply (rule_tac x="\<rho>'" in bexI, auto)
           apply (rule_tac x="[[Y]\<^sub>R]" in exI, auto)
           apply (rule_tac x="[[Y]\<^sub>R]" in exI, auto)
@@ -115,7 +115,7 @@ proof auto
             using calculation TT1_def TT_TT1 assms(2) by blast
         qed
         then show "\<sigma>' @ [[X]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def apply auto
+          unfolding ExtChoiceTT_def apply auto
           apply (rule_tac x="\<sigma>'" in bexI, simp_all add: assm2_assms(1))
           apply (rule_tac x="[[X]\<^sub>R]" in exI, insert in_P case_assm4, simp)
           apply (rule_tac x="[[{e\<in>X. e \<noteq> Tock}]\<^sub>R]" in exI, insert assm2_assms(4) case_assm5, auto)
@@ -124,7 +124,7 @@ proof auto
         have \<sigma>'_in_Q: "\<sigma>' \<in> Q"
           using TT1_def TT_TT1 assm2_assms(3) assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
         then show "\<forall>X. \<rho>2' \<noteq> [[X]\<^sub>R] \<Longrightarrow> \<sigma>' @ \<rho>2' \<in> P \<box>\<^sub>C Q"
-           unfolding ExtChoiceTTT_def apply auto
+           unfolding ExtChoiceTT_def apply auto
            apply (rule_tac x="\<sigma>'" in bexI, simp_all add: assm2_assms(1))
            apply (rule_tac x="\<rho>2'" in exI, simp add: in_P)
            apply (rule_tac x="[]" in exI, auto)
@@ -150,7 +150,7 @@ proof auto
       proof auto
         assume case_assm3: "\<rho>2 = \<rho>'"
         then show "\<rho>' \<in> P \<box>\<^sub>C Q"
-          using \<rho>2_in_P \<rho>2_in_Q case_assm3 \<rho>'_assms(1) unfolding ExtChoiceTTT_def apply auto
+          using \<rho>2_in_P \<rho>2_in_Q case_assm3 \<rho>'_assms(1) unfolding ExtChoiceTT_def apply auto
           apply (rule_tac x="\<rho>'" in bexI, auto)
           apply (rule_tac x="[]" in exI, auto)
           apply (rule_tac x="[]" in exI, auto)
@@ -159,7 +159,7 @@ proof auto
         fix Y
         assume case_assm3: "\<rho>2 = \<rho>' @ [[Y]\<^sub>R]"
         then show "\<rho>' @ [[Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-          using \<rho>2_in_P \<rho>2_in_Q \<rho>'_assms(1) unfolding ExtChoiceTTT_def apply auto
+          using \<rho>2_in_P \<rho>2_in_Q \<rho>'_assms(1) unfolding ExtChoiceTT_def apply auto
           apply (rule_tac x="\<rho>'" in bexI, auto)
           apply (rule_tac x="[[Y]\<^sub>R]" in exI, auto)
           apply (rule_tac x="[[Y]\<^sub>R]" in exI, auto)
@@ -201,7 +201,7 @@ proof auto
             using calculation TT1_def TT_TT1 assms(1) by blast
         qed
         then show "\<sigma>' @ [[X]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def apply auto
+          unfolding ExtChoiceTT_def apply auto
           apply (rule_tac x="\<sigma>'" in bexI, simp_all add: assm2_assms(1))
           apply (rule_tac x="[[{e\<in>X. e \<noteq> Tock}]\<^sub>R]" in exI, insert assm2_assms(4) case_assm5, auto)
           apply (rule_tac x="[[X]\<^sub>R]" in exI, insert in_Q case_assm4 assm2_assms(5), auto)
@@ -210,7 +210,7 @@ proof auto
         have \<sigma>'_in_P: "\<sigma>' \<in> P"
           using TT1_def TT_TT1 assm2_assms(2) assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset by blast
         then show "\<forall>X. \<rho>2' \<noteq> [[X]\<^sub>R] \<Longrightarrow> \<sigma>' @ \<rho>2' \<in> P \<box>\<^sub>C Q"
-           unfolding ExtChoiceTTT_def apply auto
+           unfolding ExtChoiceTT_def apply auto
            apply (rule_tac x="\<sigma>'" in bexI, simp_all add: assm2_assms(1))
            apply (rule_tac x="[]" in exI, auto)
            apply (rule_tac x="\<rho>2'" in exI, simp add: in_Q)
@@ -227,7 +227,7 @@ proof auto
      "\<forall>X. s2 = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. t2 = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
      "\<forall>X. t2 = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. s2 = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
      "\<rho>2 = \<rho>2' @ t2 \<or> \<rho>2 = \<rho>2' @ s2"
-    unfolding ExtChoiceTTT_def by blast
+    unfolding ExtChoiceTT_def by blast
   then show "\<rho> \<in>  P \<box>\<^sub>C Q"
   proof auto
     assume case_assm: "\<rho>2 = \<rho>2' @ t2"
@@ -265,7 +265,7 @@ proof auto
       have 4: "\<rho>' @ [[Y]\<^sub>R] \<in> Q"
         using "2" TT1_def TT_TT1 \<rho>2_split(3) assms(2) ctt_subset_imp_prefix_subset t2_def by blast
       then show "\<rho> \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_\<rho>''_assms)
         apply (rule_tac x="[[{e. e \<in> Y \<and> e \<noteq> Tock}]\<^sub>R]" in exI, auto simp add: 3)
         apply (rule_tac x="[[Y]\<^sub>R]" in exI, auto simp add: 4 Y_assms)
@@ -276,7 +276,7 @@ proof auto
       then have "\<nexists>X. \<rho>'' = [[X]\<^sub>R]"
         using \<rho>'_\<rho>''_ctt_subset by (auto, cases t2 rule:ttWF.cases, auto)
       then show "\<rho> \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_\<rho>''_assms)
         apply (rule_tac x="[]" in exI, auto simp add: \<rho>'_in_P_Q)
         apply (rule_tac x="\<rho>''" in exI, auto)
@@ -286,7 +286,7 @@ proof auto
   next
     assume case_assm: "\<rho>2 = \<rho>2' @ s2"
     have \<rho>_wf: "ttWF \<rho>"
-      by (metis TT_def ExtChoiceTTT_wf assm1 assm2 assms(1) assms(2) ctt_prefix_subset_ttWF)
+      by (metis TT_def ExtChoiceTT_wf assm1 assm2 assms(1) assms(2) ctt_prefix_subset_ttWF)
     then obtain \<rho>' \<rho>'' where \<rho>'_\<rho>''_assms:
       "\<rho> = \<rho>' @ \<rho>''"
       "\<rho>' \<in> tocks UNIV"
@@ -319,7 +319,7 @@ proof auto
       have 4: "\<rho>' @ [[Y]\<^sub>R] \<in> P"
         using "2" TT1_def TT_TT1 \<rho>2_split(2) assms(1) ctt_subset_imp_prefix_subset s2_def by blast
       then show "\<rho> \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_\<rho>''_assms)
         apply (rule_tac x="[[Y]\<^sub>R]" in exI, auto simp add: 4 Y_assms)
         apply (rule_tac x="[[{e. e \<in> Y \<and> e \<noteq> Tock}]\<^sub>R]" in exI, auto simp add: 3)
@@ -330,7 +330,7 @@ proof auto
       then have "\<nexists>X. \<rho>'' = [[X]\<^sub>R]"
         using \<rho>'_\<rho>''_ctt_subset by (auto, cases s2 rule:ttWF.cases, auto)
       then show "\<rho> \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_\<rho>''_assms)
         apply (rule_tac x="\<rho>''" in exI, auto)
         using TT1_def TT_TT1 \<rho>'_\<rho>''_assms(1) \<rho>2_assms(2) \<rho>2_split(2) assms(1) case_assm ctt_subset_imp_prefix_subset apply blast
@@ -350,11 +350,11 @@ proof auto
   assume assm1: "\<rho> @ [[X]\<^sub>R] \<in> P \<box>\<^sub>C Q"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<box>\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<box>\<^sub>C Q} = {}"
   from assm1 have "ttWF \<rho>"
-    by (metis TT_def ExtChoiceTTT_wf assms(1) assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset ctt_prefix_subset_ttWF)
+    by (metis TT_def ExtChoiceTT_wf assms(1) assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset ctt_prefix_subset_ttWF)
   then obtain \<rho>' \<rho>'' where \<rho>_split: "\<rho>'\<in>tocks UNIV \<and> \<rho> = \<rho>' @ \<rho>'' \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C \<rho> \<longrightarrow> t' \<le>\<^sub>C \<rho>')"
     using split_tocks_longest by blast
   have \<rho>'_in_P_Q: "\<rho>' \<in> P \<and> \<rho>' \<in> Q"
-    using assm1 unfolding ExtChoiceTTT_def apply auto
+    using assm1 unfolding ExtChoiceTT_def apply auto
     apply (metis TT1_def TT_TT1 \<rho>_split assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
     apply (metis TT1_def TT_TT1 \<rho>_split append.assoc assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
     apply (metis TT1_def TT_TT1 \<rho>_split append.assoc assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
@@ -364,14 +364,14 @@ proof auto
     fix x :: "'a cttevent"
     assume "\<rho> @ [[x]\<^sub>E] \<in> P \<box>\<^sub>C Q"
     then have "\<rho> @ [[x]\<^sub>E] \<in> P \<or> \<rho> @ [[x]\<^sub>E] \<in> Q"
-      unfolding ExtChoiceTTT_def by auto
+      unfolding ExtChoiceTT_def by auto
     then show "\<rho> @ [[x]\<^sub>E] \<notin> Q \<Longrightarrow> \<rho> @ [[x]\<^sub>E] \<in> P"
       by auto
   next
     fix x :: "'a cttevent"
     assume "x \<noteq> Tock" "\<rho> @ [[x]\<^sub>E] \<in> P"
     then show "\<rho> @ [[x]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-      unfolding ExtChoiceTTT_def apply auto
+      unfolding ExtChoiceTT_def apply auto
       apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split)
       apply (rule_tac x="\<rho>'' @ [[x]\<^sub>E]" in exI, simp_all)
       apply (rule_tac x="[]" in exI, simp add: \<rho>'_in_P_Q)
@@ -382,7 +382,7 @@ proof auto
     fix x :: "'a cttevent"
     assume "x \<noteq> Tock" "\<rho> @ [[x]\<^sub>E] \<in> Q"
     then show "\<rho> @ [[x]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-      unfolding ExtChoiceTTT_def apply auto
+      unfolding ExtChoiceTT_def apply auto
       apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split)
       apply (rule_tac x="[]" in exI, simp add: \<rho>'_in_P_Q)
       apply (auto, case_tac "\<rho>''' \<le>\<^sub>C \<rho>' @ \<rho>''")
@@ -402,7 +402,7 @@ proof auto
       "\<forall>x\<in>tocks UNIV. x \<le>\<^sub>C r @ s \<longrightarrow> x \<le>\<^sub>C r"
       "\<forall>x\<in>tocks UNIV. x \<le>\<^sub>C r @ t \<longrightarrow> x \<le>\<^sub>C r"
       "(\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] = r @ s \<or> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] = r @ t)"
-      unfolding ExtChoiceTTT_def by auto
+      unfolding ExtChoiceTT_def by auto
     have in_tocks: "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> tocks UNIV"
       by (simp add: \<rho>_split tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
     then have r_def: "r = \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
@@ -422,7 +422,7 @@ proof auto
       "\<forall>x\<in>tocks UNIV. x \<le>\<^sub>C r @ s \<longrightarrow> x \<le>\<^sub>C r"
       "\<forall>x\<in>tocks UNIV. x \<le>\<^sub>C r @ t \<longrightarrow> x \<le>\<^sub>C r"
       "(\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] = r @ s \<or> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] = r @ t)"
-      unfolding ExtChoiceTTT_def by auto
+      unfolding ExtChoiceTT_def by auto
     have in_tocks: "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> tocks UNIV"
       by (simp add: \<rho>_split tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
     then have r_def: "r = \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
@@ -438,7 +438,7 @@ proof auto
     also have "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> tocks UNIV"
       by (simp add: \<rho>_split tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
     then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-      unfolding ExtChoiceTTT_def apply auto
+      unfolding ExtChoiceTT_def apply auto
       apply (rule_tac x="\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all)
       apply (rule_tac x="[]" in exI, simp_all add: calculation)
       apply (rule_tac x="[]" in exI, simp_all add: calculation)
@@ -449,7 +449,7 @@ proof auto
   proof auto
     assume "\<rho>'' \<noteq> []" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<box>\<^sub>C Q"
     then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> Q \<Longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-      unfolding ExtChoiceTTT_def by auto
+      unfolding ExtChoiceTT_def by auto
   next
     assume \<rho>''_nonempty: "\<rho>'' \<noteq> []"
     assume in_P: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
@@ -475,7 +475,7 @@ proof auto
         using full_notin_tocks x_in_tocks by blast
     qed
     then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-      unfolding ExtChoiceTTT_def apply auto
+      unfolding ExtChoiceTT_def apply auto
       apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>_split)
       apply (rule_tac x="\<rho>'' @ [[X]\<^sub>R, [Tock]\<^sub>E]" in exI, insert \<rho>_split in_P, auto)
       apply (rule_tac x="[]" in exI, auto simp add: \<rho>'_in_P_Q)
@@ -505,7 +505,7 @@ proof auto
         using full_notin_tocks x_in_tocks by blast
     qed
     then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-      unfolding ExtChoiceTTT_def apply auto
+      unfolding ExtChoiceTT_def apply auto
       apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>_split)
       apply (rule_tac x="[]" in exI, auto simp add: \<rho>'_in_P_Q)
       apply (insert \<rho>_split in_Q, auto)
@@ -513,7 +513,7 @@ proof auto
   qed
   thm set1 set2 set3
   have in_P_or_Q: "\<rho> @ [[X]\<^sub>R] \<in> P \<or> \<rho> @ [[X]\<^sub>R] \<in> Q"
-    using assm1 unfolding ExtChoiceTTT_def by auto
+    using assm1 unfolding ExtChoiceTT_def by auto
   show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
   proof (cases "\<rho>'' \<noteq> []", auto)
     assume case_assm: "\<rho>'' \<noteq> []"
@@ -542,7 +542,7 @@ proof auto
     then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<or> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
       using TT2_def TT_def assms(1) assms(2) in_P_or_Q by auto
     then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-      unfolding ExtChoiceTTT_def apply auto
+      unfolding ExtChoiceTT_def apply auto
       apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>_split)
       apply (rule_tac x="\<rho>'' @ [[X \<union> Y]\<^sub>R]" in exI, auto)
       apply (rule_tac x="[]" in exI, auto simp add: \<rho>_split \<rho>'_in_P_Q case_assm)
@@ -560,7 +560,7 @@ proof auto
     then have "\<rho>' @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R] \<in> P \<box>\<^sub>C Q"
       by (simp add: \<rho>_split case_assm)
     then have in_P_and_Q: "\<rho>' @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R] \<in> P \<and> \<rho>' @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R] \<in> Q"
-      unfolding ExtChoiceTTT_def
+      unfolding ExtChoiceTT_def
     proof auto
       fix \<rho> \<sigma> \<tau> :: "'a cttobs list"
       assume case_assm1: "\<rho> \<in> tocks UNIV"
@@ -629,7 +629,7 @@ proof auto
         using calculation by auto
     qed
     have in_P_or_Q: "\<rho> @ [[X]\<^sub>R] \<in> P \<or> \<rho> @ [[X]\<^sub>R] \<in> Q"
-      using assm1 unfolding ExtChoiceTTT_def by auto
+      using assm1 unfolding ExtChoiceTT_def by auto
     show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
     proof (cases "Tock \<in> Y")
       assume case_assm2: "Tock \<in> Y"
@@ -664,7 +664,7 @@ proof auto
           also have "\<rho> @ [[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R] \<in> Q"
             using notock_X_Y_in_P_Q by auto
           then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-            unfolding ExtChoiceTTT_def using calculation apply auto
+            unfolding ExtChoiceTT_def using calculation apply auto
             apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
             apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
             apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
@@ -676,7 +676,7 @@ proof auto
           also have "\<rho> @ [[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R] \<in> P"
             using notock_X_Y_in_P_Q by auto
           then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-            unfolding ExtChoiceTTT_def using calculation apply auto
+            unfolding ExtChoiceTT_def using calculation apply auto
             apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
             apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
             apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
@@ -696,7 +696,7 @@ proof auto
         then have "Tock \<notin> X"
           using TT3_def TT3_end_tock \<rho>'_in_P_Q \<rho>_split case_assm case_assm3 by force
         then have in_Q: "\<rho> @ [[X]\<^sub>R] \<in> Q"
-          using assm1 unfolding ExtChoiceTTT_def
+          using assm1 unfolding ExtChoiceTT_def
         proof auto
           fix r s t :: "'a cttobs list"
           assume 1: "r \<in> tocks UNIV"
@@ -726,7 +726,7 @@ proof auto
         then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
           using TT2_P_Q TT2_def case_assm4 by blast
         then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def using notock_X_Y_in_P_Q apply auto
+          unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
           apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
           apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
           apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
@@ -745,7 +745,7 @@ proof auto
         then have "Tock \<notin> X"
           using TT3_def TT3_end_tock \<rho>'_in_P_Q \<rho>_split case_assm case_assm3 by force
         then have in_P: "\<rho> @ [[X]\<^sub>R] \<in> P"
-          using assm1 unfolding ExtChoiceTTT_def
+          using assm1 unfolding ExtChoiceTT_def
         proof auto
           fix r s t :: "'a cttobs list"
           assume 1: "r \<in> tocks UNIV"
@@ -775,7 +775,7 @@ proof auto
         then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
           using TT2_P_Q TT2_def case_assm4 by blast
         then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def using notock_X_Y_in_P_Q apply auto
+          unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
           apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
           apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
           apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
@@ -810,7 +810,7 @@ proof auto
         then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
           unfolding TT2_def using case_assm3 assm2_expand by auto
         then show  "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def using notock_X_Y_in_P_Q apply auto
+          unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
           apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
           apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
           apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
@@ -822,7 +822,7 @@ proof auto
         then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
           unfolding TT2_def using case_assm3 assm2_expand by auto
         then show  "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def using notock_X_Y_in_P_Q apply auto
+          unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
           apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
           apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
           apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
@@ -841,13 +841,13 @@ proof auto
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<box>\<^sub>C Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<box>\<^sub>C Q} = {}"
   from assm1 have \<rho>_\<sigma>_wf: "ttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
-    by (metis TT_def ExtChoiceTTT_wf assms(1) assms(2))
+    by (metis TT_def ExtChoiceTT_wf assms(1) assms(2))
   then obtain \<rho>' \<rho>'' where \<rho>_\<sigma>_split: "\<rho>'\<in>tocks UNIV \<and> \<rho> @ [X]\<^sub>R # \<sigma> = \<rho>' @ \<rho>'' \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C \<rho> @ [X]\<^sub>R # \<sigma> \<longrightarrow> t' \<le>\<^sub>C \<rho>')"
     using split_tocks_longest by blast
   then have \<rho>'_\<rho>''_wf: "ttWF (\<rho>' @ \<rho>'')"
     using \<rho>_\<sigma>_wf by auto  
   have \<rho>'_in_P_Q: "\<rho>' \<in> P \<and> \<rho>' \<in> Q"
-    using assm1 unfolding ExtChoiceTTT_def apply auto
+    using assm1 unfolding ExtChoiceTT_def apply auto
     apply (metis TT1_def TT_TT1 \<rho>_\<sigma>_split assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
     apply (metis TT1_def TT_TT1 \<rho>_\<sigma>_split assms(2) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
     apply (metis TT1_def TT_TT1 \<rho>_\<sigma>_split assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset)
@@ -912,14 +912,14 @@ proof auto
       fix x :: "'a cttevent"
       assume "\<rho> @ [[x]\<^sub>E] \<in> P \<box>\<^sub>C Q"
       then have "\<rho> @ [[x]\<^sub>E] \<in> P \<or> \<rho> @ [[x]\<^sub>E] \<in> Q"
-        unfolding ExtChoiceTTT_def by auto
+        unfolding ExtChoiceTT_def by auto
       then show "\<rho> @ [[x]\<^sub>E] \<notin> Q \<Longrightarrow> \<rho> @ [[x]\<^sub>E] \<in> P"
         by auto
     next
       fix x :: "'a cttevent"
       assume "x \<noteq> Tock" "\<rho> @ [[x]\<^sub>E] \<in> P"
       then show "\<rho> @ [[x]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split)
         apply (rule_tac x="\<rho>2 @ [[x]\<^sub>E]" in exI, simp_all add: \<rho>2_def)
         apply (rule_tac x="[]" in exI, simp add: \<rho>'_in_P_Q)
@@ -928,7 +928,7 @@ proof auto
       fix x :: "'a cttevent"
       assume "x \<noteq> Tock" "\<rho> @ [[x]\<^sub>E] \<in> Q"
       then show "\<rho> @ [[x]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split)
         apply (rule_tac x="[]" in exI, simp add: \<rho>'_in_P_Q)
         apply (rule_tac x="\<rho>2 @ [[x]\<^sub>E]" in exI, simp_all add: \<rho>2_def)
@@ -947,7 +947,7 @@ proof auto
         "\<forall>x\<in>tocks UNIV. x \<le>\<^sub>C r @ s \<longrightarrow> x \<le>\<^sub>C r"
         "\<forall>x\<in>tocks UNIV. x \<le>\<^sub>C r @ t \<longrightarrow> x \<le>\<^sub>C r"
         "(\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] = r @ s \<or> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] = r @ t)"
-        unfolding ExtChoiceTTT_def by auto
+        unfolding ExtChoiceTT_def by auto
       have in_tocks: "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> tocks UNIV"
         by (simp add: \<rho>_\<sigma>_split tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
       then have r_def: "r = \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
@@ -967,7 +967,7 @@ proof auto
         "\<forall>x\<in>tocks UNIV. x \<le>\<^sub>C r @ s \<longrightarrow> x \<le>\<^sub>C r"
         "\<forall>x\<in>tocks UNIV. x \<le>\<^sub>C r @ t \<longrightarrow> x \<le>\<^sub>C r"
         "(\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] = r @ s \<or> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] = r @ t)"
-        unfolding ExtChoiceTTT_def by auto
+        unfolding ExtChoiceTT_def by auto
       have in_tocks: "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> tocks UNIV"
         by (simp add: \<rho>_\<sigma>_split tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
       then have r_def: "r = \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E]"
@@ -983,7 +983,7 @@ proof auto
       also have "\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> tocks UNIV"
         by (simp add: \<rho>_\<sigma>_split tocks.empty_in_tocks tocks.tock_insert_in_tocks tocks_append_tocks)
       then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all)
         apply (rule_tac x="[]" in exI, simp_all add: calculation)
         apply (rule_tac x="[]" in exI, simp_all add: calculation)
@@ -994,7 +994,7 @@ proof auto
     proof auto
       assume "\<rho>2 \<noteq> []" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<box>\<^sub>C Q"
       then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> Q \<Longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-        unfolding ExtChoiceTTT_def by auto
+        unfolding ExtChoiceTT_def by auto
     next
       assume \<rho>2_nonempty: "\<rho>2 \<noteq> []"
       assume in_P: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
@@ -1032,7 +1032,7 @@ proof auto
           using full_notin_tocks x_in_tocks by blast
       qed
       then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>_\<sigma>_split)
         apply (rule_tac x="\<rho>2 @ [[X]\<^sub>R, [Tock]\<^sub>E]" in exI, insert \<rho>2_def \<rho>_\<sigma>_split in_P, auto)
         apply (rule_tac x="[]" in exI, auto simp add: \<rho>'_in_P_Q)
@@ -1074,7 +1074,7 @@ proof auto
           using \<rho>2_notin_tocks \<rho>_\<sigma>_split tocks_append_nontocks tocks_mid_refusal_front_in_tocks x_in_tocks by blast
       qed
       then show "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>_\<sigma>_split)
         apply (rule_tac x="[]" in exI, auto simp add: \<rho>2_def \<rho>'_in_P_Q)
         apply (insert \<rho>2_def \<rho>_\<sigma>_split in_Q, auto)
@@ -1082,7 +1082,7 @@ proof auto
     qed
     thm set1 set2 set3
     have in_P_or_Q: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<or> \<rho> @ [X]\<^sub>R # \<sigma> \<in> Q"
-      using assm1 unfolding ExtChoiceTTT_def by auto
+      using assm1 unfolding ExtChoiceTT_def by auto
     show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
     proof (cases "\<rho>2 \<noteq> []", auto)
       assume case_assm: "\<rho>2 \<noteq> []"
@@ -1120,7 +1120,7 @@ proof auto
       then have "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<or> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
         using assms(3) assms(4) in_P_or_Q unfolding TT2s_def by auto
       then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
-        unfolding ExtChoiceTTT_def apply auto
+        unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>2_def \<rho>_\<sigma>_split)
         apply (rule_tac x="\<rho>2 @ [[X \<union> Y]\<^sub>R] @ \<sigma>" in exI, auto)
         apply (rule_tac x="[]" in exI, auto simp add: \<rho>2_def \<rho>_\<sigma>_split \<rho>'_in_P_Q case_assm full_pretocks)
@@ -1158,7 +1158,7 @@ proof auto
           then have "\<rho>' @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R] \<in> P \<box>\<^sub>C Q"
             using \<rho>2_def \<rho>_\<sigma>_split case_assm by auto
           then have in_P_and_Q: "\<rho>' @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R] \<in> P \<and> \<rho>' @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R] \<in> Q"
-            unfolding ExtChoiceTTT_def
+            unfolding ExtChoiceTT_def
           proof auto
             fix \<rho> \<sigma> \<tau> :: "'a cttobs list"
             assume case_assm1: "\<rho> \<in> tocks UNIV"
@@ -1260,7 +1260,7 @@ proof auto
                 also have "\<rho>' @ [[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R] \<in> Q"
                   using notock_X_Y_in_P_Q \<rho>2_def case_assm by auto
                 then show "\<rho>' @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-                  unfolding ExtChoiceTTT_def using calculation apply auto
+                  unfolding ExtChoiceTT_def using calculation apply auto
                 apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
                 apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
                 apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
@@ -1272,7 +1272,7 @@ proof auto
                 also have "\<rho>' @ [[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R] \<in> P"
                   using notock_X_Y_in_P_Q \<rho>2_def case_assm by auto
                 then show "\<rho>' @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-                  unfolding ExtChoiceTTT_def using calculation apply auto
+                  unfolding ExtChoiceTT_def using calculation apply auto
                   apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
                   apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
                   apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
@@ -1292,7 +1292,7 @@ proof auto
               then have "Tock \<notin> X"
                 using TT3_any_cons_end_tock case_assm3 by blast
               then have in_Q: "\<rho> @ [[X]\<^sub>R] \<in> Q"
-                using assm1 case_assm2 unfolding ExtChoiceTTT_def
+                using assm1 case_assm2 unfolding ExtChoiceTT_def
               proof auto
                 fix r s t :: "'a cttobs list"
                 assume 1: "r \<in> tocks UNIV"
@@ -1322,7 +1322,7 @@ proof auto
               then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
                 using TT2_P_Q TT2_def case_assm4 by blast
               then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-                unfolding ExtChoiceTTT_def using notock_X_Y_in_P_Q apply auto
+                unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
                 apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
                 apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto simp add: \<rho>2_def case_assm)
                 apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
@@ -1341,7 +1341,7 @@ proof auto
               then have "Tock \<notin> X"
                 using TT3_any_cons_end_tock case_assm4 by blast
               then have in_P: "\<rho> @ [[X]\<^sub>R] \<in> P"
-                using assm1 case_assm2 unfolding ExtChoiceTTT_def
+                using assm1 case_assm2 unfolding ExtChoiceTT_def
               proof auto
                 fix r s t :: "'a cttobs list"
                 assume 1: "r \<in> tocks UNIV"
@@ -1371,7 +1371,7 @@ proof auto
             then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
               using TT2_P_Q TT2_def case_assm5 by blast
             then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-              unfolding ExtChoiceTTT_def using notock_X_Y_in_P_Q apply auto
+              unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
               apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
               apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all add: \<rho>2_def case_assm)
               apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
@@ -1406,7 +1406,7 @@ proof auto
             then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
               unfolding TT2_def using case_assm4 assm2_expand by auto
             then show  "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-              unfolding ExtChoiceTTT_def using notock_X_Y_in_P_Q apply auto
+              unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
               apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
               apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all add: \<rho>2_def case_assm)
               apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto)
@@ -1418,7 +1418,7 @@ proof auto
             then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
               unfolding TT2_def using case_assm4 assm2_expand by auto
             then show  "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
-              unfolding ExtChoiceTTT_def using notock_X_Y_in_P_Q apply auto
+              unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
               apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
               apply (rule_tac x="[[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R]" in exI, auto simp add: \<rho>2_def case_assm)
               apply (rule_tac x="[[X \<union> Y]\<^sub>R]" in exI, simp_all)
@@ -1446,7 +1446,7 @@ proof auto
     then have "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ \<sigma>''' \<in> P \<box>\<^sub>C Q"
       using assm1 by blast
     then have \<rho>_Tock_in_P_Q: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<and> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
-      unfolding ExtChoiceTTT_def
+      unfolding ExtChoiceTT_def
     proof auto
       fix \<rho>' \<sigma> \<tau>
       assume 1: "\<rho>' @ \<sigma> \<in> P"
@@ -1494,7 +1494,7 @@ proof auto
     qed
     then have set1: "{e. e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<box>\<^sub>C Q} =
         {e. e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} \<union> {e. e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
-      unfolding ExtChoiceTTT_def apply auto
+      unfolding ExtChoiceTT_def apply auto
       apply (rule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all add: \<rho>_Tock_in_tocks)
       apply (rule_tac x="[]" in exI, simp, rule_tac x="[]" in exI, simp)
       apply (rule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all add: \<rho>_Tock_in_tocks)
@@ -1502,7 +1502,7 @@ proof auto
       done
     have set2: "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<box>\<^sub>C Q} =
         {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P} \<union> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> Q}"
-      unfolding ExtChoiceTTT_def apply auto
+      unfolding ExtChoiceTT_def apply auto
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="[[x]\<^sub>E]" in exI, simp, rule_tac x="[]" in exI, simp)
       apply (metis TT1_def TT_TT1 \<rho>'_in_P_Q assms(2) case_assms(1) ctt_prefix_concat ctt_prefix_imp_prefix_subset tocks_ctt_prefix_end_event)
       using \<rho>_\<sigma>_split case_assms(1) tocks_mid_refusal_front_in_tocks apply blast
@@ -1527,7 +1527,7 @@ proof auto
     then have B: "\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<longrightarrow> t' \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'"
       using \<rho>'_subset \<sigma>'''_def \<sigma>'_Tock_start ctt_subset_longest_tocks4[where ?s1.0="\<rho> @ [X]\<^sub>R # \<sigma>'", where s1'="\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'"] by auto
     have "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<or> \<rho> @ [X]\<^sub>R # \<sigma> \<in> Q"
-      using assm1 unfolding ExtChoiceTTT_def by auto
+      using assm1 unfolding ExtChoiceTT_def by auto
     then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
     proof auto
       assume in_P: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P"
@@ -1540,7 +1540,7 @@ proof auto
         fix Z
         assume \<sigma>'''_is_ref: "\<sigma>''' = [[Z]\<^sub>R]"
         then have "\<exists> W. \<rho> @ [X]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<in> Q \<and> (\<forall>e. (e \<in> W) = (e \<in> Z) \<or> e = Tock)"
-          using assm1 in_P \<sigma>'''_def \<sigma>'_Tock_start unfolding ExtChoiceTTT_def
+          using assm1 in_P \<sigma>'''_def \<sigma>'_Tock_start unfolding ExtChoiceTT_def
         proof auto
           fix \<rho>' \<sigma>'''' \<tau> :: "'a cttobs list"
           assume 1: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>'''' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
@@ -1569,11 +1569,11 @@ proof auto
         have D: "\<forall> t\<in>tocks UNIV. t \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<longrightarrow> t \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'"
           using ctt_prefix_notfront_is_whole end_refusal_notin_tocks by force
         show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def using in_P \<sigma>'''_is_ref \<sigma>'''_def \<sigma>'_Tock_start \<rho>_\<sigma>_split case_assms 1 2 A B C D apply auto
+          unfolding ExtChoiceTT_def using in_P \<sigma>'''_is_ref \<sigma>'''_def \<sigma>'_Tock_start \<rho>_\<sigma>_split case_assms 1 2 A B C D apply auto
           by (rule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'" in bexI, auto, rule_tac x="\<sigma>'''" in exI, auto, rule_tac x="[[W]\<^sub>R]" in exI, blast)
       next
         show "\<forall>Z. \<sigma>''' \<noteq> [[Z]\<^sub>R] \<Longrightarrow> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def using in_P \<sigma>'''_def \<sigma>'_Tock_start \<rho>_\<sigma>_split case_assms 1 2 A B apply auto
+          unfolding ExtChoiceTT_def using in_P \<sigma>'''_def \<sigma>'_Tock_start \<rho>_\<sigma>_split case_assms 1 2 A B apply auto
           by (rule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'" in bexI, auto, rule_tac x="\<sigma>'''" in exI, auto, rule_tac x="[]" in exI, auto)
       qed
     next
@@ -1587,7 +1587,7 @@ proof auto
         fix Z
         assume \<sigma>'''_is_ref: "\<sigma>''' = [[Z]\<^sub>R]"
         then have "\<exists> W. \<rho> @ [X]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<in> P \<and> (\<forall>e. (e \<in> W) = (e \<in> Z) \<or> e = Tock)"
-          using assm1 in_Q \<sigma>'''_def \<sigma>'_Tock_start unfolding ExtChoiceTTT_def
+          using assm1 in_Q \<sigma>'''_def \<sigma>'_Tock_start unfolding ExtChoiceTT_def
         proof auto
           fix \<rho>' \<sigma>'''' \<tau> :: "'a cttobs list"
           assume 1: "\<rho>' @ \<sigma>'''' \<in> P" "\<rho> @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Z]\<^sub>R] = \<rho>' @ \<sigma>''''"
@@ -1616,11 +1616,11 @@ proof auto
         have D: "\<forall> t\<in>tocks UNIV. t \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<longrightarrow> t \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'"
           using ctt_prefix_notfront_is_whole end_refusal_notin_tocks by force
         show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def using in_Q \<sigma>'''_is_ref \<sigma>'''_def \<sigma>'_Tock_start \<rho>_\<sigma>_split case_assms 1 2 A B C D apply auto
+          unfolding ExtChoiceTT_def using in_Q \<sigma>'''_is_ref \<sigma>'''_def \<sigma>'_Tock_start \<rho>_\<sigma>_split case_assms 1 2 A B C D apply auto
           by (rule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'" in bexI, auto, rule_tac x="[[W]\<^sub>R]" in exI, auto)
       next
         show "\<forall>Z. \<sigma>''' \<noteq> [[Z]\<^sub>R] \<Longrightarrow> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
-          unfolding ExtChoiceTTT_def using in_Q \<sigma>'''_def \<sigma>'_Tock_start \<rho>_\<sigma>_split case_assms 1 2 A B apply auto
+          unfolding ExtChoiceTT_def using in_Q \<sigma>'''_def \<sigma>'_Tock_start \<rho>_\<sigma>_split case_assms 1 2 A B apply auto
           by (rule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'" in bexI, auto, rule_tac x="[]" in exI, auto)
       qed
     qed
@@ -1630,12 +1630,12 @@ qed
 lemma TT3_ExtChoice: 
   assumes "TT3 P" "TT3 Q"
   shows "TT3 (P \<box>\<^sub>C Q)"
-  using assms unfolding TT3_def ExtChoiceTTT_def by auto
+  using assms unfolding TT3_def ExtChoiceTT_def by auto
 
 lemma TT4s_ExtChoice:
   assumes "TT4s P" "TT4s Q"
   shows "TT4s (P \<box>\<^sub>C Q)"
-  unfolding TT4s_def ExtChoiceTTT_def
+  unfolding TT4s_def ExtChoiceTT_def
 proof auto
   fix \<rho>' \<sigma> \<tau> :: "'a cttobs list"
   assume assm1: "\<rho>' \<in> tocks UNIV"
@@ -1796,17 +1796,17 @@ lemma TT_ExtChoice:
   assumes "TT P" "TT Q"
   shows "TT (P \<box>\<^sub>C Q)"
   unfolding TT_def apply auto
-  apply (metis TT_def ExtChoiceTTT_wf assms(1) assms(2))
+  apply (metis TT_def ExtChoiceTT_wf assms(1) assms(2))
   apply (simp add: TT0_ExtChoice assms(1) assms(2))
   apply (simp add: TT1_ExtChoice assms(1) assms(2))
   apply (simp add: TT2_ExtChoice assms(1) assms(2))
   apply  (simp add: TT3_ExtChoice TT_TT3 assms(1) assms(2))
   done
 
-lemma ExtChoiceTTT_comm: "P \<box>\<^sub>C Q = Q \<box>\<^sub>C P"
-  unfolding ExtChoiceTTT_def by auto
+lemma ExtChoiceTT_comm: "P \<box>\<^sub>C Q = Q \<box>\<^sub>C P"
+  unfolding ExtChoiceTT_def by auto
 
-(*lemma ExtChoiceTTT_aux_assoc: 
+(*lemma ExtChoiceTT_aux_assoc: 
   assumes "\<forall>t\<in>P. ttWF t" "\<forall>t\<in>Q. ttWF t" "\<forall>t\<in>R. ttWF t"
   shows "P \<box>\<^sup>C (Q \<box>\<^sup>C R) = (P \<box>\<^sup>C Q) \<box>\<^sup>C R"
   (is "?lhs = ?rhs")
@@ -1817,7 +1817,7 @@ proof -
     (\<forall>\<rho>'\<in>tocks(UNIV). \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
     (((\<exists> X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists> X. \<tau> = [[X]\<^sub>R])) \<longrightarrow> \<rho> @ \<sigma> = \<rho> @ \<tau>) \<and>
     (t = \<rho> @ \<sigma> \<or> t = \<rho> @ \<tau>)}"
-    unfolding ExtChoiceTTT_aux_def by simp
+    unfolding ExtChoiceTT_aux_def by simp
   also have "... =  {t. \<exists> \<rho>\<in>tocks(UNIV). \<exists> \<sigma> \<tau>. 
     \<rho> @ \<sigma> \<in> (P \<box>\<^sup>C Q) \<and> \<rho> @ \<tau> \<in> R \<and>
     (\<forall>\<rho>'\<in>tocks(UNIV). \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
@@ -1844,7 +1844,7 @@ proof -
                     "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
                     "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
                     "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm3 unfolding ExtChoiceTTT_aux_def by (clarify, blast)
+      using assm3 unfolding ExtChoiceTT_aux_def by (clarify, blast)
     have "\<rho> = \<rho>'"
       using additional_assms(6)
     proof auto
@@ -1866,7 +1866,7 @@ proof -
                      ((\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau> = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>) \<and> (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>)"
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>" in exI, rule_tac x="\<tau>'" in exI, safe)
       using assm1 assm2 assm4 assm5 assm7 additional_assms apply (simp_all)
-      unfolding ExtChoiceTTT_aux_def apply (safe)
+      unfolding ExtChoiceTT_aux_def apply (safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>" in exI, rule_tac x="\<sigma>'" in exI, safe, blast, blast)+
       done
     then show "\<exists>X. \<sigma> = [[X]\<^sub>R]"
@@ -1883,7 +1883,7 @@ proof -
                     "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
                     "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
                     "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm3 unfolding ExtChoiceTTT_aux_def by (clarify, blast)
+      using assm3 unfolding ExtChoiceTT_aux_def by (clarify, blast)
     have "\<rho> = \<rho>'"
       using additional_assms(6)
     proof auto
@@ -1906,7 +1906,7 @@ proof -
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>" in exI, rule_tac x="\<tau>'" in exI, safe)
       using assm1 assm2 assm5 additional_assms apply (simp_all)
       apply safe
-      unfolding ExtChoiceTTT_aux_def apply (safe)
+      unfolding ExtChoiceTT_aux_def apply (safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
@@ -1937,7 +1937,7 @@ proof -
                     "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
                     "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
                     "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm3 unfolding ExtChoiceTTT_aux_def by (clarify, blast)
+      using assm3 unfolding ExtChoiceTT_aux_def by (clarify, blast)
     have "\<rho> = \<rho>'"
       using additional_assms(6)
     proof auto
@@ -1959,7 +1959,7 @@ proof -
                      ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>')"
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>'" in exI, safe)
       using assm1 assm2 assm4 assm5 assm7 additional_assms apply (simp_all)
-      unfolding ExtChoiceTTT_aux_def apply (safe)
+      unfolding ExtChoiceTT_aux_def apply (safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>" in exI, rule_tac x="\<sigma>'" in exI, safe, blast, blast)+
       done
     then show "\<exists>X. \<sigma> = [[X]\<^sub>R]"
@@ -1976,7 +1976,7 @@ proof -
                     "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
                     "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
                     "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm3 unfolding ExtChoiceTTT_aux_def by (clarify, blast)
+      using assm3 unfolding ExtChoiceTT_aux_def by (clarify, blast)
     have "\<rho> = \<rho>'"
       using additional_assms(6)
     proof auto
@@ -1999,7 +1999,7 @@ proof -
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>" in exI, rule_tac x="\<tau>'" in exI, safe)
       using assm1 assm2 assm5 additional_assms apply (simp_all)
       apply safe
-      unfolding ExtChoiceTTT_aux_def apply (safe)
+      unfolding ExtChoiceTT_aux_def apply (safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
@@ -2030,7 +2030,7 @@ proof -
                     "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
                     "\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>'"
                     "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm2 unfolding ExtChoiceTTT_aux_def by (clarify, blast)
+      using assm2 unfolding ExtChoiceTT_aux_def by (clarify, blast)
     have "\<rho> = \<rho>'"
       using additional_assms(6)
     proof auto
@@ -2052,7 +2052,7 @@ proof -
                      ((\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau> = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>) \<and> (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>))"
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>'" in exI, safe)
       using assm1 assm3 assm4 assm5 assm7 additional_assms apply (simp_all)
-      unfolding ExtChoiceTTT_aux_def apply (safe)
+      unfolding ExtChoiceTT_aux_def apply (safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<tau>" in exI, safe, blast, blast)+
       done
     then show "\<exists>X. \<sigma> = [[X]\<^sub>R]"
@@ -2070,7 +2070,7 @@ proof -
                     "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
                     "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
                     "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm2 unfolding ExtChoiceTTT_aux_def by (clarify, blast)
+      using assm2 unfolding ExtChoiceTT_aux_def by (clarify, blast)
     have "\<rho> = \<rho>'"
       using additional_assms(6)
     proof auto
@@ -2092,7 +2092,7 @@ proof -
                  ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>')"
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>" in exI, safe)
       using assm1 assm3 assm4 assm5 additional_assms apply (simp_all)
-      unfolding ExtChoiceTTT_aux_def apply (safe)
+      unfolding ExtChoiceTT_aux_def apply (safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe, blast, blast)+
       done
   next
@@ -2115,7 +2115,7 @@ proof -
                     "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
                     "\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>'"
                     "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm2 unfolding ExtChoiceTTT_aux_def by (clarify, blast)
+      using assm2 unfolding ExtChoiceTT_aux_def by (clarify, blast)
     have "\<rho> = \<rho>'"
       using additional_assms(6)
     proof auto
@@ -2137,7 +2137,7 @@ proof -
                      ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'))"
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>" in exI, safe)
       using assm1 assm3 assm4 assm5 assm7 additional_assms apply (simp_all)
-      unfolding ExtChoiceTTT_aux_def apply (safe)
+      unfolding ExtChoiceTT_aux_def apply (safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<tau>" in exI, safe, blast+)
       done
     then show "\<exists>X. \<sigma> = [[X]\<^sub>R]"
@@ -2155,7 +2155,7 @@ proof -
                     "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
                     "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
                     "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm2 unfolding ExtChoiceTTT_aux_def by (clarify, blast)
+      using assm2 unfolding ExtChoiceTT_aux_def by (clarify, blast)
     have "\<rho> = \<rho>'"
       using additional_assms(6)
     proof auto
@@ -2177,24 +2177,24 @@ proof -
                  ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>')"
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>" in exI, safe)
       using assm1 assm3 assm4 assm5 additional_assms apply (simp_all)
-      unfolding ExtChoiceTTT_aux_def apply (safe)
+      unfolding ExtChoiceTT_aux_def apply (safe)
       apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe, blast, blast)+
       done
   qed
   also have "... = ?rhs"
-    unfolding ExtChoiceTTT_aux_def by simp
+    unfolding ExtChoiceTT_aux_def by simp
   then show ?thesis
     using calculation by auto
 qed*)
 
-lemma ExtChoiceTTT_union_dist: "P \<box>\<^sub>C (Q \<union> R) = (P \<box>\<^sub>C Q) \<union> (P \<box>\<^sub>C R)"
-  unfolding ExtChoiceTTT_def by (safe, blast+)
+lemma ExtChoiceTT_union_dist: "P \<box>\<^sub>C (Q \<union> R) = (P \<box>\<^sub>C Q) \<union> (P \<box>\<^sub>C R)"
+  unfolding ExtChoiceTT_def by (safe, blast+)
 
 lemma ExtChoice_subset_union: "P \<box>\<^sub>C Q \<subseteq> P \<union> Q"
-  unfolding ExtChoiceTTT_def by auto
+  unfolding ExtChoiceTT_def by auto
 
 lemma ExtChoice_idempotent: "TT P \<Longrightarrow> P \<box>\<^sub>C P = P"
-  unfolding ExtChoiceTTT_def apply auto
+  unfolding ExtChoiceTT_def apply auto
   using TT_wf split_tocks_longest by fastforce
 
 end

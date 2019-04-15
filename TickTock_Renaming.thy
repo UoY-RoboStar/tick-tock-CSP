@@ -24,23 +24,23 @@ fun rename_trace :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a cttobs list \<Righta
 lemma rename_trace_ttWF: "ttWF t \<Longrightarrow> \<forall>s\<in>(rename_trace f t). ttWF s"
   by (induct t rule:ttWF.induct, auto)
    
-definition RenamingTTT :: "'a cttobs list set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b cttobs list set" where
-  "RenamingTTT P f = {t. \<exists>x\<in>P. t \<in> rename_trace f x}"
+definition RenamingTT :: "'a cttobs list set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b cttobs list set" where
+  "RenamingTT P f = {t. \<exists>x\<in>P. t \<in> rename_trace f x}"
 
-lemma RenamingTTT_wf: 
+lemma RenamingTT_wf: 
   assumes "\<forall>x\<in>P. ttWF x"
-  shows "\<forall>x\<in>RenamingTTT P f. ttWF x"
-  unfolding RenamingTTT_def using assms rename_trace_ttWF by auto
+  shows "\<forall>x\<in>RenamingTT P f. ttWF x"
+  unfolding RenamingTT_def using assms rename_trace_ttWF by auto
 
 lemma TT0_Renaming:
   assumes "TT1 P" "TT0 P"
-  shows "TT0 (RenamingTTT P f)"
-  unfolding RenamingTTT_def TT0_def using TT0_TT1_empty assms by force
+  shows "TT0 (RenamingTT P f)"
+  unfolding RenamingTT_def TT0_def using TT0_TT1_empty assms by force
 
 lemma TT1_Renaming:
   assumes "TT1 P"
-  shows "TT1 (RenamingTTT P f)"
-  unfolding RenamingTTT_def TT1_def
+  shows "TT1 (RenamingTT P f)"
+  unfolding RenamingTT_def TT1_def
 proof auto
   fix \<rho> \<sigma> x
   have "\<And>P \<rho> \<sigma>. TT1 P \<Longrightarrow> \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> x \<in> P \<Longrightarrow> \<sigma> \<in> rename_trace f x \<Longrightarrow> \<exists>x\<in>P. \<rho> \<in> rename_trace f x"
@@ -104,8 +104,8 @@ qed
 
 lemma TT2s_Renaming:
   assumes "TT2s P"
-  shows "TT2s (RenamingTTT P f)"
-  unfolding TT2s_def RenamingTTT_def
+  shows "TT2s (RenamingTT P f)"
+  unfolding TT2s_def RenamingTT_def
 proof (auto)
   fix \<rho> \<sigma> X Y x
   have "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x\<in>P. \<rho> @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>P. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)} = {} \<Longrightarrow>
@@ -195,8 +195,8 @@ proof (auto)
     using assms by auto
 qed
 
-lemma TT3_Renaming: "TT3 P \<Longrightarrow> TT3 (RenamingTTT P f)"
-  unfolding TT3_def RenamingTTT_def
+lemma TT3_Renaming: "TT3 P \<Longrightarrow> TT3 (RenamingTT P f)"
+  unfolding TT3_def RenamingTT_def
 proof (simp, safe)
   fix x xa
   have "\<And>P x. \<forall>x\<in>P. TT3_trace x \<Longrightarrow> xa \<in> P \<Longrightarrow> x \<in> rename_trace f xa \<Longrightarrow> TT3_trace x"
@@ -279,8 +279,8 @@ qed
 
 lemma TT4s_Renaming: 
   assumes "TT4s P"
-  shows "TT4s (RenamingTTT P f)"
-  unfolding RenamingTTT_def TT4s_def
+  shows "TT4s (RenamingTT P f)"
+  unfolding RenamingTT_def TT4s_def
 proof auto
   fix \<rho> x
   have "\<And>P \<rho>. x \<in> P \<Longrightarrow> \<rho> \<in> rename_trace f x \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> rename_trace f (add_Tick_refusal_trace x)"
@@ -290,7 +290,7 @@ proof auto
 qed
 
 lemma TT_Renaming:
-  shows "TT P \<Longrightarrow> TT2s P \<Longrightarrow> TT (RenamingTTT P f)"
-  unfolding TT_def by (auto simp add: RenamingTTT_wf TT0_Renaming TT1_Renaming TT2s_Renaming TT2s_imp_TT2 TT3_Renaming)
+  shows "TT P \<Longrightarrow> TT2s P \<Longrightarrow> TT (RenamingTT P f)"
+  unfolding TT_def by (auto simp add: RenamingTT_wf TT0_Renaming TT1_Renaming TT2s_Renaming TT2s_imp_TT2 TT3_Renaming)
 
 end

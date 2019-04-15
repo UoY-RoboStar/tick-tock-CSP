@@ -238,13 +238,13 @@ proof -
     by auto
 qed
 
-definition ParCompTTT :: "'e cttobs list set \<Rightarrow> 'e set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infix "\<lbrakk>_\<rbrakk>\<^sub>C" 55) where
-  "ParCompTTT P A Q = \<Union> {t. \<exists> p \<in> P. \<exists> q \<in> Q. t = merge_traces p A q}"
+definition ParCompTT :: "'e cttobs list set \<Rightarrow> 'e set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infix "\<lbrakk>_\<rbrakk>\<^sub>C" 55) where
+  "ParCompTT P A Q = \<Union> {t. \<exists> p \<in> P. \<exists> q \<in> Q. t = merge_traces p A q}"
 
-lemma ParCompTTT_wf: 
+lemma ParCompTT_wf: 
   assumes "\<forall>t\<in>P. ttWF t" "\<forall>t\<in>Q. ttWF t"
   shows "\<forall>t\<in>(P \<lbrakk>A\<rbrakk>\<^sub>C Q). ttWF t"
-  unfolding ParCompTTT_def
+  unfolding ParCompTT_def
 proof auto
   fix p q x
   assume "p \<in> P"
@@ -260,7 +260,7 @@ qed
 lemma TT0_ParComp:
   assumes "TT P" "TT Q"
   shows "TT0 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding TT0_def ParCompTTT_def
+  unfolding TT0_def ParCompTT_def
 proof auto
   have "[] \<in> P \<and> [] \<in> Q"
     using assms TT_empty by auto
@@ -356,7 +356,7 @@ qed
 lemma TT1_ParComp:
   assumes "TT P" "TT Q"
   shows "TT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding TT1_def ParCompTTT_def
+  unfolding TT1_def ParCompTT_def
 proof (auto)
   fix \<rho> \<sigma> p q :: "'a cttobs list"
   have 1: "\<And> p q. \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. \<exists>q'. p' \<lesssim>\<^sub>C p \<and> q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> (p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
@@ -646,7 +646,7 @@ qed
 
 lemma TT2_ParComp:
   "\<And> P Q. TT P \<Longrightarrow> TT Q \<Longrightarrow> TT2 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding TT2_def ParCompTTT_def
+  unfolding TT2_def ParCompTT_def
 proof (auto)
   fix \<rho>
   show "\<And>P Q X Y p q. TT P \<Longrightarrow> TT Q \<Longrightarrow>
@@ -754,7 +754,7 @@ proof (auto)
       have "Tock \<notin> {e. e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [Tock]\<^sub>E] \<in> x)}"
         using Y_Tock Tock_in_Y by blast
       then show "[[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-        unfolding ParCompTTT_def by simp
+        unfolding ParCompTT_def by simp
     qed
     have nontock_sets: "\<exists> B C. Y \<inter> (Event ` A \<union> {Tick}) = B \<union> C
         \<and> B \<inter> ({e. \<exists> ea. e = Event ea \<and> ea \<in> A \<and> [[Event ea]\<^sub>E] \<in> P} \<union> {e. e = Tick \<and> [[Tick]\<^sub>E] \<in> P}) = {}
@@ -800,14 +800,14 @@ proof (auto)
         then have "Tock \<notin> {e. e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [Tock]\<^sub>E] \<in> x)}"
           using Tock_in_Y by blast
         then have X_Tock_notin_parcomp: "[[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          unfolding ParCompTTT_def by simp
+          unfolding ParCompTT_def by simp
         then have "[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<notin> Q \<or> [[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E] \<notin> P"
         proof (safe, simp_all)                                       
           have "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> [[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E]"
             using X_subset_Z_W Z_W_part_eq by auto
           also assume "[[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E] \<in> P" "[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
           then have "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompTTT_def using calculation apply simp
+            unfolding ParCompTT_def using calculation apply simp
             apply (rule_tac x="[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E]" in exI, simp)
             apply (rule_tac x="[[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all)
             apply (rule_tac x="[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all, blast)
@@ -1098,9 +1098,9 @@ proof (auto)
           then have "Tock \<notin> {e. e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [Tock]\<^sub>E] \<in> x)}"
             using Tock_in_Y by blast
           then have X_Tock_notin_parcomp: "[[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompTTT_def by simp  
+            unfolding ParCompTT_def by simp  
           also have "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompTTT_def using Tock_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
+            unfolding ParCompTT_def using Tock_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
             apply (rule_tac x="[[Z]\<^sub>R, [Tock]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
             apply (rule_tac x="[[Z]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all)
             apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, auto)
@@ -1119,9 +1119,9 @@ proof (auto)
             then have "Tick \<notin> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
               using Tick_in_Y by blast
             then have Tick_notin_parcomp: "[[Tick]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompTTT_def by simp  
+              unfolding ParCompTT_def by simp  
             also have "[[Tick]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompTTT_def using Tick_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
+              unfolding ParCompTT_def using Tick_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
               apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
@@ -1179,9 +1179,9 @@ proof (auto)
             then have "Tick \<notin> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
               using Tick_in_Y by blast
             then have Tick_notin_parcomp: "[[Tick]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompTTT_def by simp  
+              unfolding ParCompTT_def by simp  
             also have "[[Tick]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompTTT_def using Tick_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
+              unfolding ParCompTT_def using Tick_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
               apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
@@ -1233,9 +1233,9 @@ proof (auto)
           then have "Tock \<notin> {e. e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [Tock]\<^sub>E] \<in> x)}"
             using Tock_in_Y by blast
           then have X_Tock_notin_parcomp: "[[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompTTT_def by simp  
+            unfolding ParCompTT_def by simp  
           also have "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompTTT_def using Tock_in_Q p_P p_Tick X_subset_W_Tick W_Tick_part_eq apply simp
+            unfolding ParCompTT_def using Tock_in_Q p_P p_Tick X_subset_W_Tick W_Tick_part_eq apply simp
             apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[W]\<^sub>R, [Tock]\<^sub>E]" in exI, safe, simp_all)
             apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
             apply (rule_tac x="[[W]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all, blast)
@@ -1254,9 +1254,9 @@ proof (auto)
             then have "Tick \<notin> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
               using Tick_in_Y by blast
             then have Tick_notin_parcomp: "[[Tick]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompTTT_def by simp  
+              unfolding ParCompTT_def by simp  
             also have "[[Tick]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompTTT_def using Tick_in_Q p_P p_Tick apply simp
+              unfolding ParCompTT_def using Tick_in_Q p_P p_Tick apply simp
               apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
@@ -1314,9 +1314,9 @@ proof (auto)
             then have "Tick \<notin> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
               using Tick_in_Y by blast
             then have Tick_notin_parcomp: "[[Tick]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompTTT_def by simp  
+              unfolding ParCompTT_def by simp  
             also have "[[Tick]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompTTT_def using Tick_in_P p_P p_Tick X_subset_W_Tick W_Tick_part_eq apply simp
+              unfolding ParCompTT_def using Tick_in_P p_P p_Tick X_subset_W_Tick W_Tick_part_eq apply simp
               apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
@@ -1586,7 +1586,7 @@ proof (auto)
       have 1: "TT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
         using TT_P TT_init_tock p_P p_def by blast
       have 2: "TT {[], [[Tick]\<^sub>E]}"
-        by (metis TT_Skip SkipTTT_def)
+        by (metis TT_Skip SkipTT_def)
       have 3: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. \<exists>q\<in>{[], [[Tick]\<^sub>E]}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[e]\<^sub>E] \<in> x) \<or>
          e = Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. \<exists>q\<in>{[], [[Tick]\<^sub>E]}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
         thm disjoint
@@ -1703,7 +1703,7 @@ proof (auto)
       have 1: "TT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
         using TT_Q TT_init_tock q_Q q_def by blast
       have 2: "TT {[], [[Tick]\<^sub>E]}"
-        by (metis TT_Skip SkipTTT_def)
+        by (metis TT_Skip SkipTT_def)
       have 3: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{[], [[Tick]\<^sub>E]}. \<exists>q\<in>{t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[e]\<^sub>E] \<in> x) \<or>
          e = Tock \<and> (\<exists>x. (\<exists>p\<in>{[], [[Tick]\<^sub>E]}. \<exists>q\<in>{t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
       proof -
@@ -1873,7 +1873,7 @@ qed
 lemma TT2s_ParComp:
   assumes "TT P" "TT Q" "TT2s P" "TT2s Q"
   shows "TT2s (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding TT2s_def ParCompTTT_def
+  unfolding TT2s_def ParCompTT_def
 proof (auto)
   fix \<rho> \<sigma>
   have "\<And>P Q X Y p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> TT2s P \<Longrightarrow> TT2s Q \<Longrightarrow>
@@ -1902,7 +1902,7 @@ proof (auto)
       have "TT2 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
         by (simp add: TT2_ParComp TT_P TT_Q)
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X \<union> Y]\<^sub>R] \<in> x"
-        using case_assm assm1 assm2 p_in_P q_in_Q unfolding TT2_def ParCompTTT_def apply auto
+        using case_assm assm1 assm2 p_in_P q_in_Q unfolding TT2_def ParCompTT_def apply auto
         by (erule_tac x="[]" in allE, erule_tac x="X" in allE, erule_tac x="Y" in allE, auto, fastforce)
     next
       fix \<sigma>'
@@ -2048,13 +2048,13 @@ proof (auto)
         have 11: "X \<subseteq> X1 \<union> X2"
           using case_assms2(4) by auto
         have 12: "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          using assm2 case_assm p_in_P q_in_Q unfolding ParCompTTT_def by auto
+          using assm2 case_assm p_in_P q_in_Q unfolding ParCompTT_def by auto
         have TT1_ParComp: "TT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
           by (simp add: TT1_ParComp TT_P TT_Q)
         have 13: "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
           using 12 TT1_ParComp unfolding TT1_def apply (auto) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
         have 14: "Tock \<in> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[e]\<^sub>E] \<in> x) \<or> e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> x)}"
-          using 13 unfolding ParCompTTT_def by auto
+          using 13 unfolding ParCompTT_def by auto
         have 15: "Tock \<notin> Y"
           using 14 assm1 by auto
         have 16: "Y \<subseteq> B \<union> C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}"
@@ -2103,13 +2103,13 @@ proof (auto)
           using case_assms2(3) p_in_P 5 TT2s_P unfolding TT2s_def apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # p'a" in allE)
           by (erule_tac x="X1a" in allE, erule_tac x="B \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}" in allE, auto simp add: sup_assoc)
         have 7: "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          using assm2 case_assm p_in_P q_in_Q unfolding ParCompTTT_def by auto
+          using assm2 case_assm p_in_P q_in_Q unfolding ParCompTT_def by auto
         have TT1_ParComp: "TT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
           by (simp add: TT1_ParComp TT_P TT_Q)
         have 8: "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
           using 7 TT1_ParComp unfolding TT1_def apply (auto) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
         have 9: "Tock \<in> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[e]\<^sub>E] \<in> x) \<or> e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> x)}"
-          using 8 unfolding ParCompTTT_def by auto
+          using 8 unfolding ParCompTT_def by auto
         have 10: "Tock \<notin> Y"
           using 9 assm1 by auto
         have 11: "Y \<subseteq> X1a \<union> B \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A} \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick}"
@@ -2139,13 +2139,13 @@ proof (auto)
           using case_assms2(1) q_in_Q 5 TT2s_Q unfolding TT2s_def apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # q'a" in allE)
           by (erule_tac x="X2a" in allE, erule_tac x="C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}" in allE, auto simp add: sup_assoc)
         have 7: "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          using assm2 case_assm p_in_P q_in_Q unfolding ParCompTTT_def by auto
+          using assm2 case_assm p_in_P q_in_Q unfolding ParCompTT_def by auto
         have TT1_ParComp: "TT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
           by (simp add: TT1_ParComp TT_P TT_Q)
         have 8: "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
           using 7 TT1_ParComp unfolding TT1_def apply (auto) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
         have 9: "Tock \<in> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[e]\<^sub>E] \<in> x) \<or> e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> x)}"
-          using 8 unfolding ParCompTTT_def by auto
+          using 8 unfolding ParCompTT_def by auto
         have 10: "Tock \<notin> Y"
           using 9 assm1 by auto
         have 11: "Y \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> (X2a \<union> C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A})"
@@ -2340,11 +2340,11 @@ proof (auto)
       have 1: "TT {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
         using TT_P TT_init_tock case_assms(1) p_P by blast
       have 2: "TT {[], [[Tick]\<^sub>E]}"
-        by (metis TT_Skip SkipTTT_def)
+        by (metis TT_Skip SkipTT_def)
       have 3: "TT2s {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
         using TT2s_P TT2s_init_tock by blast
       have 4: "TT2s {[], [[Tick]\<^sub>E]}"
-        by (metis TT2s_Skip SkipTTT_def)
+        by (metis TT2s_Skip SkipTT_def)
       have 5: "{e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}. \<exists>q\<in>{[], [[Tick]\<^sub>E]}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}. \<exists>q\<in>{[], [[Tick]\<^sub>E]}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)}
         \<subseteq> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
@@ -2440,11 +2440,11 @@ proof (auto)
       have 1: "TT {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
         using TT_Q TT_init_tock case_assms(2) q_Q by blast
       have 2: "TT {[], [[Tick]\<^sub>E]}"
-        by (metis TT_Skip SkipTTT_def)
+        by (metis TT_Skip SkipTT_def)
       have 3: "TT2s {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
         using TT2s_Q TT2s_init_tock by blast
       have 4: "TT2s {[], [[Tick]\<^sub>E]}"
-        by (metis TT2s_Skip SkipTTT_def)
+        by (metis TT2s_Skip SkipTT_def)
         thm merge_traces_empty_merge_traces_tick
         thm merge_traces_tick_merge_traces_empty
       have 5: "{e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{[], [[Tick]\<^sub>E]}. \<exists>q\<in>{x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
@@ -2990,7 +2990,7 @@ qed
 
 lemma TT3_ParComp:
   shows "\<And> P Q. TT P \<Longrightarrow> TT Q \<Longrightarrow> TT3 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding ParCompTTT_def TT3_def
+  unfolding ParCompTT_def TT3_def
 proof auto
   fix x
   show "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> x \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> TT3_trace x"
@@ -3252,7 +3252,7 @@ lemma TT4s_ParComp:
   assumes "TT1 P" "TT1 Q"
   assumes "TT4s P" "TT4s Q"
   shows "TT4s (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding ParCompTTT_def TT4s_def using assms
+  unfolding ParCompTT_def TT4s_def using assms
 proof auto
   fix \<rho>
   show "\<And> p q P Q. TT1 P \<Longrightarrow> TT1 Q \<Longrightarrow> TT4s P \<Longrightarrow> TT4s Q \<Longrightarrow> \<rho> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
@@ -3388,9 +3388,9 @@ proof auto
       have 3: "TT4s {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
         by (simp add: TT4s_TT1_init_tock case_assms(2) case_assms(4))
       have 4: "TT1 {[], [[Tick]\<^sub>E]}"
-        using TT_Skip unfolding TT_defs SkipTTT_def by simp
+        using TT_Skip unfolding TT_defs SkipTT_def by simp
       have 5: "TT4s {[], [[Tick]\<^sub>E]}"
-        using TT4s_Skip unfolding TT4s_def SkipTTT_def by simp
+        using TT4s_Skip unfolding TT4s_def SkipTT_def by simp
       have 6: "p \<in> {[], [[Tick]\<^sub>E]}"
         by (simp add: case_assms2(1))
       obtain p'' q'' where "p'' \<in> {[], [[Tick]\<^sub>E]} \<and> q'' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
@@ -3413,9 +3413,9 @@ proof auto
       have 3: "TT4s {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
         by (simp add: TT4s_TT1_init_tock case_assms(1) case_assms(3))
       have 4: "TT1 {[], [[Tick]\<^sub>E]}"
-        using TT_Skip unfolding TT_defs SkipTTT_def by simp
+        using TT_Skip unfolding TT_defs SkipTT_def by simp
       have 5: "TT4s {[], [[Tick]\<^sub>E]}"
-        using TT4s_Skip unfolding TT4s_def SkipTTT_def by simp
+        using TT4s_Skip unfolding TT4s_def SkipTT_def by simp
       have 6: "q \<in> {[], [[Tick]\<^sub>E]}"
         by (simp add: case_assms2(2))
       obtain p'' q'' where "q'' \<in> {[], [[Tick]\<^sub>E]} \<and> p'' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
@@ -3476,7 +3476,7 @@ lemma TT_ParComp:
   assumes "TT P" "TT Q"
   shows "TT (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
   using assms unfolding TT_def apply (safe)
-  using ParCompTTT_wf apply blast
+  using ParCompTT_wf apply blast
   using TT0_ParComp unfolding TT_def apply blast
   using TT1_ParComp unfolding TT_def apply blast
   using TT2_ParComp unfolding TT_def apply blast

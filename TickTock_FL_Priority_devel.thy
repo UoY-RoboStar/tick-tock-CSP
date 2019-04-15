@@ -380,7 +380,7 @@ lemma prirelRef_nonmax_Tock_imp_exists_refusal:
        apply (metis cttobs.exhaust prirelRef.simps(29) prirelRef.simps(4))
       apply (case_tac va, auto, case_tac vb, auto, case_tac x1, auto, case_tac e1, auto)
   using ttWF.elims(2) apply blast
-  apply (metis (full_types) TTTickTrace.cases cttobs.exhaust list.distinct(1) prirelRef.simps(29) prirelRef.simps(4))
+  apply (metis (full_types) TTickTrace.cases cttobs.exhaust list.distinct(1) prirelRef.simps(29) prirelRef.simps(4))
   apply (case_tac v, auto)
   using ttWF.elims(2) by blast+
 
@@ -390,7 +390,7 @@ lemma TTwf_1c_3_imp_flt2cttobs_FL1_mod:
       and TTwf_healthy: "TTwf P" 
       and TT1c_healthy: "TT1c P"
       and TT3_healthy:  "TT3 P"
-      and TTTick_healthy: "TTTick P"
+      and TTick_healthy: "TTick P"
       and TT4_healthy: "TT4 P"
       and pri:"prirelRef p ar x [] P \<and> x \<in> P"
      (* and tick_Max:"maximal(p,Tick)"*)
@@ -427,7 +427,7 @@ next
     proof (cases x)
       case (Ref x1)
       then have "Tick \<in> x1"
-        using TTTick_def TTTick_healthy Nil.prems(8) by blast
+        using TTick_def TTick_healthy Nil.prems(8) by blast
       then show ?thesis
           apply (intro exI[where x="\<langle>[{x. x \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
           using Ref apply auto
@@ -478,7 +478,7 @@ next
              apply simp
             using prirelRef_imp_butlast_of_prirelRefs by fastforce
           then have "Tick \<in> ES"
-            using TTTick_healthy by (metis TTTick_def append.left_neutral)
+            using TTick_healthy by (metis TTick_def append.left_neutral)
           then show ?thesis using ObsEvent Event False ES
             apply (intro exI[where x="\<langle>([{x. x \<notin> ES}]\<^sub>\<F>\<^sub>\<L>,Event ev)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
             apply (simp add:ObsEvent, auto)
@@ -766,8 +766,8 @@ next
               using prirelRef_nonmax_Tock_imp_exists_refusal
               by (metis TTwf_def TTwf_healthy Event append.assoc append_Nil cttevent.distinct(1) e1 e2 prirelRefyys)
             then have Tick_in_Z:"Tick \<in> Z"
-              using TTTick_healthy
-              by (metis TTTick_def append_assoc)
+              using TTick_healthy
+              by (metis TTick_def append_assoc)
             
             have "flt2cttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> Z}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P"
               using fl Z
@@ -1013,7 +1013,7 @@ next
       next
         case (Ref r2)
         have Tick_in_r2:"Tick \<in> r2"
-          using TTTick_healthy Ref TTTick_def xs_x_in_P by blast
+          using TTick_healthy Ref TTick_def xs_x_in_P by blast
         then have "ys @ [[e1]\<^sub>E] @ [[r2]\<^sub>R] \<in> P"
           using e1 Ref yys.prems(2) by auto
         then have "[Tick]\<^sub>E \<notin> set (ys @ [[e1]\<^sub>E])" 
@@ -2076,7 +2076,7 @@ lemma pp20:
   assumes "prirelRef p xs ys s P" "TT3_trace ys" "ttWF ys" "(flt2cttobs zr) = ys" 
           "flt2goodTock zr"
           "flt2goodAcceptance zr p"
-          "TTTickAll P"
+          "TTickAll P"
         (*  "maximal(p,Tick)"*) (* FIXME: probably not needed *)
   shows "\<exists>fl. prirel p fl zr \<and> (flt2cttobs fl) = xs \<and> flt2goodTock fl"
   using assms 
@@ -2228,7 +2228,7 @@ next
   assume assm7:"\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*pa b"
   assume assm8:"e\<^sub>2 \<notin> Z"
   assume assm9:"flt2goodAcceptance zra pa"
-  assume assm10:"TTTickAll Q"
+  assume assm10:"TTickAll Q"
   (*assume assm10:"maximal(pa,Tick)"*) (* FIXME: Not needed, I think *)
   from assm3 obtain tt aE where tt:"flt2cttobs tt = zz \<and> flt2goodTock tt 
     \<and> flt2goodAcceptance tt pa \<and> zra = \<langle>(aE,e\<^sub>2)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> tt 
@@ -2297,9 +2297,9 @@ next
           then have Tick_not_in:"Tick \<notin> Z"
             using assm8 Tick by auto
           have "Tick \<in> Z"
-            using assm6 assm10 unfolding TTTickAll_def 
+            using assm6 assm10 unfolding TTickAll_def 
             apply (induct sa, auto)
-            using TTTickTrace.simps(3) TTTickTrace_dist_concat by blast
+            using TTickTrace.simps(3) TTickTrace_dist_concat by blast
           then show ?thesis using Tick_not_in by auto
         qed
       qed
@@ -2363,9 +2363,9 @@ next
                 then have Tick_not_in:"Tick \<notin> Z"
                     using assm8 Tick by auto
                 have "Tick \<in> Z"
-                    using assm6 assm10 unfolding TTTickAll_def 
+                    using assm6 assm10 unfolding TTickAll_def 
                     apply (induct sa, auto)
-                    using TTTickTrace.simps(3) TTTickTrace_dist_concat by blast
+                    using TTickTrace.simps(3) TTickTrace_dist_concat by blast
                then show ?thesis using Tick_not_in by auto
            qed
         qed 
@@ -2546,7 +2546,7 @@ lemma pp3:
 
 lemma pp4:
   assumes "prirelRef p xs ys [] P" "ys \<in> P" 
-          "TT0 P" "TTwf P" "TT1c P" "TT3 P" "TTTick P" "TTTickAll P" "TT4 P"
+          "TT0 P" "TTwf P" "TT1c P" "TT3 P" "TTick P" "TTickAll P" "TT4 P"
     shows "\<exists>fl. flt2cttobs fl = xs \<and> (\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ctt fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0)) \<and> flt2goodTock fl"
 proof -
   have "ttWF ys"
@@ -2578,8 +2578,8 @@ lemma fl2ctt_pri_ctt2fl_priNS:
       and TTwf_healthy: "TTwf P" 
       and TT1c_healthy: "TT1c P"
       and TT3_healthy:  "TT3 P"
-      and TTTick_healthy: "TTTick P"
-      and TTTickAll:   "TTTickAll P"
+      and TTick_healthy: "TTick P"
+      and TTickAll:   "TTickAll P"
       and TT4_healthy:    "TT4 P"
      (* and Tick_max:"maximal(p,Tick)"*)
   shows "fl2ctt(pri p (ctt2fl P)) = priNS p P"

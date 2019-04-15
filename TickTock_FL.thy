@@ -21,19 +21,19 @@ fun flt2goodTock :: "('e cttevent) fltrace \<Rightarrow> bool" where
 definition TTRMax :: "('a cttobs) list set \<Rightarrow> bool" where
 "TTRMax P = (\<forall>t X. t @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<not>(\<exists>Y. X \<subset> Y \<and> (t @ [[Y]\<^sub>R]) \<in> P))" 
 
-definition TTTick :: "('a cttobs) list set \<Rightarrow> bool" where
-"TTTick P = (\<forall>t X. t @ [[X]\<^sub>R] \<in> P \<longrightarrow> Tick \<in> X)"
+definition TTick :: "('a cttobs) list set \<Rightarrow> bool" where
+"TTick P = (\<forall>t X. t @ [[X]\<^sub>R] \<in> P \<longrightarrow> Tick \<in> X)"
 
 (* FIXME: TTRMax is way too strong. Instead we need to require that
           every refusal set has Tick. Sufficient? *)
 
-fun TTTickTrace :: "('a cttobs) list \<Rightarrow> bool" where
-"TTTickTrace [] = True" |
-"TTTickTrace ([e]\<^sub>E # xs) = TTTickTrace xs" |
-"TTTickTrace ([r]\<^sub>R # xs) = (Tick \<in> r \<and> TTTickTrace xs)"
+fun TTickTrace :: "('a cttobs) list \<Rightarrow> bool" where
+"TTickTrace [] = True" |
+"TTickTrace ([e]\<^sub>E # xs) = TTickTrace xs" |
+"TTickTrace ([r]\<^sub>R # xs) = (Tick \<in> r \<and> TTickTrace xs)"
 
-definition TTTickAll :: "('a cttobs) list set \<Rightarrow> bool" where
-"TTTickAll P = (\<forall>t. t \<in> P \<longrightarrow> TTTickTrace t)"
+definition TTickAll :: "('a cttobs) list set \<Rightarrow> bool" where
+"TTickAll P = (\<forall>t. t \<in> P \<longrightarrow> TTickTrace t)"
 
 lemma TTRMax_top_refusal:
   assumes "TTRMax P" "t @ [[X]\<^sub>R] \<in> P" "X \<subset> Y"
@@ -56,15 +56,15 @@ next
     using \<open>t @ [[X \<union> {Tick}]\<^sub>R] \<in> P\<close> by blast
 qed
 
-lemma TTTickTrace_dist_concat:
-  "TTTickTrace (xs @ ys) = (TTTickTrace xs \<and> TTTickTrace ys)"
-  by (induct xs rule:TTTickTrace.induct, auto)
+lemma TTickTrace_dist_concat:
+  "TTickTrace (xs @ ys) = (TTickTrace xs \<and> TTickTrace ys)"
+  by (induct xs rule:TTickTrace.induct, auto)
 
-lemma TTRMax_TT4_TT1c_TTTickTrace:
+lemma TTRMax_TT4_TT1c_TTickTrace:
   assumes "TTRMax P" "TT4 P" "TT1c P" "x \<in> P"
-  shows "TTTickTrace x"
+  shows "TTickTrace x"
   using assms apply(induct x rule:rev_induct, auto)
-  apply (simp add:TTTickTrace_dist_concat)
+  apply (simp add:TTickTrace_dist_concat)
   apply (case_tac xa, auto)
   unfolding TT1c_def apply auto
   using ctt_prefix_concat apply blast
@@ -562,7 +562,7 @@ lemma TTwf_1c_3_imp_flt2cttobs_FL1:
       and TTwf_healthy: "TTwf P" 
       and TT1c_healthy: "TT1c P"
       and TT3_healthy:  "TT3 P"
-      and TTTick_healthy: "TTTick P"
+      and TTick_healthy: "TTick P"
       and TT4_healthy: "TT4 P"
   shows "\<exists>fl. x = flt2cttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2cttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
   using assms
@@ -588,8 +588,8 @@ next
     proof (cases x)
       case (Ref x1)
       then have "Tick \<in> x1"
-        using TTRMax_TT4_Tick TT4_healthy TTTick_healthy
-        using TTTick_def snoc.prems(1) by blast
+        using TTRMax_TT4_Tick TT4_healthy TTick_healthy
+        using TTick_def snoc.prems(1) by blast
       then show ?thesis
           apply (intro exI[where x="\<langle>[{x. x \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
           using Ref apply auto
@@ -949,8 +949,8 @@ next
       next
         case (Ref r2)
         have Tick_in_r2:"Tick \<in> r2"
-          using TT4_healthy TTRMax_TT4_Tick TTTick_healthy Ref
-          using TTTick_def snoc.prems(1) by blast
+          using TT4_healthy TTRMax_TT4_Tick TTick_healthy Ref
+          using TTick_def snoc.prems(1) by blast
         then have "ys @ [[e1]\<^sub>E] @ [[r2]\<^sub>R] \<in> P"
           using e1 Ref yys.prems(2) by auto
         then have "[Tick]\<^sub>E \<notin> set (ys @ [[e1]\<^sub>E])" 
@@ -1058,7 +1058,7 @@ lemma subset_fl2ctt_ctt2fl:
           TTwf_healthy: "TTwf P" 
       and TT1c_healthy: "TT1c P"
       and TT3_healthy:  "TT3 P"
-      and TTTick_healthy: "TTTick P"
+      and TTick_healthy: "TTick P"
       and TT4_healthy: "TT4 P"
   shows "P \<subseteq> fl2ctt(ctt2fl(P))"
   unfolding ctt2fl_def fl2ctt_def apply auto
@@ -1069,7 +1069,7 @@ lemma fl2ctt_ctt2fl_bij:
           TTwf_healthy: "TTwf P" 
       and TT1c_healthy: "TT1c P"
       and TT3_healthy:  "TT3 P"
-      and TTTick_healthy: "TTTick P"
+      and TTick_healthy: "TTick P"
       and TT4_healthy: "TT4 P"
     shows "P = fl2ctt(ctt2fl(P))"
   using assms
@@ -1223,46 +1223,46 @@ next
     qed
   qed
 
-lemma TTTick_dist_empty_trace: "TTTick(P \<union> {[]}) = TTTick(P)"
-  unfolding TTTick_def by auto
+lemma TTick_dist_empty_trace: "TTick(P \<union> {[]}) = TTick(P)"
+  unfolding TTick_def by auto
 
-lemma TTTickAll_dist_empty_trace: "TTTickAll(P \<union> {[]}) = TTTickAll(P)"
-  unfolding TTTickAll_def by auto
+lemma TTickAll_dist_empty_trace: "TTickAll(P \<union> {[]}) = TTickAll(P)"
+  unfolding TTickAll_def by auto
 
-lemma TTTick_fl2ctt:
+lemma TTick_fl2ctt:
   assumes "FL0 P" "FL1 P" "FLTick0 Tick P"
-  shows "TTTick (fl2ctt P)"
+  shows "TTick (fl2ctt P)"
 proof -
-  have "TTTick (fl2ctt P) = TTTick({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
+  have "TTick (fl2ctt P) = TTick({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
     using assms
     by (simp add: fl2ctt_FL0_FL1_flt2goodTock)
-  also have "... = TTTick({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
-    using TTTick_dist_empty_trace by auto
+  also have "... = TTick({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
+    using TTick_dist_empty_trace by auto
   also have "... = True"
-    unfolding TTTick_def fl2ctt_def apply auto
+    unfolding TTick_def fl2ctt_def apply auto
     using assms FLTick0_Tick_FL1_concat_ref_Tick_in by metis
   finally show ?thesis by auto
 qed
 
-lemma tickWF_imp_TTTickTrace_flt2cttobs:
+lemma tickWF_imp_TTickTrace_flt2cttobs:
   assumes "tickWF Tick fl"
-  shows "TTTickTrace (flt2cttobs fl)"
+  shows "TTickTrace (flt2cttobs fl)"
   using assms apply (induct fl rule:flt2cttobs.induct, auto)
    apply (case_tac A, auto, case_tac a, auto, case_tac b, auto)
   by (case_tac A, auto, case_tac b, auto)
 
-lemma TTTickAll_fl2ctt:
+lemma TTickAll_fl2ctt:
   assumes "FL0 P" "FL1 P" "FLTick0 Tick P"
-  shows "TTTickAll (fl2ctt P)"
+  shows "TTickAll (fl2ctt P)"
 proof -
-  have "TTTickAll (fl2ctt P) = TTTickAll({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
+  have "TTickAll (fl2ctt P) = TTickAll({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
     using assms
     by (simp add: fl2ctt_FL0_FL1_flt2goodTock)
-  also have "... = TTTickAll({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
-    using TTTickAll_dist_empty_trace by auto
+  also have "... = TTickAll({flt2cttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
+    using TTickAll_dist_empty_trace by auto
   also have "... = True"
-    unfolding TTTickAll_def fl2ctt_def apply auto
-    using assms tickWF_imp_TTTickTrace_flt2cttobs
+    unfolding TTickAll_def fl2ctt_def apply auto
+    using assms tickWF_imp_TTickTrace_flt2cttobs
     by (metis FLTick0_def)
   finally show ?thesis by auto
 qed
