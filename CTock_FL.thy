@@ -1,53 +1,53 @@
-theory CTock_FL
+theory TTock_FL
 
 imports
-  CTock
+  TTock
   "HOL-Library.Sublist"
   Finite_Linear_Model
 begin
 
 text \<open>Function mapping to non-subset closed refusals.\<close>
 
-fun funFLCTockl :: "('a tockevent) fltrace \<Rightarrow> 'a ctockl" where
-"funFLCTockl \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> = (if A = \<bullet> then [] else [Ref {z. z \<notin>\<^sub>\<F>\<^sub>\<L> A}])" |
-"funFLCTockl (A #\<^sub>\<F>\<^sub>\<L> fl) = (if event(A) = tock \<and> acceptance(A) \<noteq> \<bullet> then
-                             (Ref {z. z \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)} # REvent tock # (funFLCTockl fl)) 
-                          else ((REvent (event A)) # funFLCTockl fl))" 
+fun funFLTTockl :: "('a tockevent) fltrace \<Rightarrow> 'a ctockl" where
+"funFLTTockl \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> = (if A = \<bullet> then [] else [Ref {z. z \<notin>\<^sub>\<F>\<^sub>\<L> A}])" |
+"funFLTTockl (A #\<^sub>\<F>\<^sub>\<L> fl) = (if event(A) = tock \<and> acceptance(A) \<noteq> \<bullet> then
+                             (Ref {z. z \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)} # REvent tock # (funFLTTockl fl)) 
+                          else ((REvent (event A)) # funFLTTockl fl))" 
 
-lemma funFLCTockl_is_ctockWD[simp]:
-  "ctockWD (funFLCTockl fltrace)"
-  apply (induct fltrace rule:funFLCTockl.induct, auto)
+lemma funFLTTockl_is_ctockWD[simp]:
+  "ctockWD (funFLTTockl fltrace)"
+  apply (induct fltrace rule:funFLTTockl.induct, auto)
   using event_in_acceptance by fastforce
 
-lift_definition funFLCTock :: "('a tockevent) fltrace \<Rightarrow> 'a ctock" is funFLCTockl by auto
+lift_definition funFLTTock :: "('a tockevent) fltrace \<Rightarrow> 'a ctock" is funFLTTockl by auto
 
 definition fFL2Tock :: "('a tockevent) fltrace set \<Rightarrow> 'a ctock set" where
-"fFL2Tock P = {funFLCTock fl|fl. fl \<in> P}"
+"fFL2Tock P = {funFLTTock fl|fl. fl \<in> P}"
 
 lemma fFL2Tock_univ_disj: 
   "fFL2Tock (\<Union> P) = \<Union>{fFL2Tock fl|fl. fl \<in> P}"
   unfolding fFL2Tock_def by auto
 
-definition CTock2FLf :: "'a ctock set \<Rightarrow> ('a tockevent) fltrace set" where
-"CTock2FLf P = \<Union>{fl. (fFL2Tock fl) \<subseteq> P}"
+definition TTock2FLf :: "'a ctock set \<Rightarrow> ('a tockevent) fltrace set" where
+"TTock2FLf P = \<Union>{fl. (fFL2Tock fl) \<subseteq> P}"
 
-lemma "mkFL1(CTock2FLf(P)) = \<Union>{mkFL1(fl)| fl. (fFL2Tock fl) \<subseteq> P}"
-  unfolding mkFL1_def CTock2FLf_def by auto
+lemma "mkFL1(TTock2FLf(P)) = \<Union>{mkFL1(fl)| fl. (fFL2Tock fl) \<subseteq> P}"
+  unfolding mkFL1_def TTock2FLf_def by auto
 
 lemma fFL2Tock_mono:
   assumes "P \<subseteq> Q"
   shows "fFL2Tock(P) \<subseteq> fFL2Tock(Q)"
   using assms unfolding fFL2Tock_def by auto
 
-lemma CTock2FLf_mono:
+lemma TTock2FLf_mono:
   assumes "P \<subseteq> Q"
-  shows "CTock2FLf(P) \<subseteq> CTock2FLf(Q)"
-  using assms unfolding CTock2FLf_def by auto
+  shows "TTock2FLf(P) \<subseteq> TTock2FLf(Q)"
+  using assms unfolding TTock2FLf_def by auto
 
-lemma prefix_exists_funFLCTockl:
-  assumes "prefix s (funFLCTockl fl)" (*"FL1 P" "FL0 P"*)
-  shows "\<exists>fl\<^sub>0. s = funFLCTockl fl\<^sub>0 \<and> fl\<^sub>0 \<le> fl"
-  using assms proof(induct fl arbitrary:s rule:funFLCTockl.induct)
+lemma prefix_exists_funFLTTockl:
+  assumes "prefix s (funFLTTockl fl)" (*"FL1 P" "FL0 P"*)
+  shows "\<exists>fl\<^sub>0. s = funFLTTockl fl\<^sub>0 \<and> fl\<^sub>0 \<le> fl"
+  using assms proof(induct fl arbitrary:s rule:funFLTTockl.induct)
   case (1 A)
   then show ?case
   proof (cases A)
@@ -87,15 +87,15 @@ next
         next
           case C2:(Cons aa ss)
           then have AA: 
-            "[a,aa] = funFLCTockl(\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+            "[a,aa] = funFLTTockl(\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
             by (simp add: C2.prems(4))
 
-          have "prefix ss (funFLCTockl fl)" 
-                       "\<exists>fl\<^sub>0. ss = funFLCTockl fl\<^sub>0 \<and> fl\<^sub>0 \<le> fl"
+          have "prefix ss (funFLTTockl fl)" 
+                       "\<exists>fl\<^sub>0. ss = funFLTTockl fl\<^sub>0 \<and> fl\<^sub>0 \<le> fl"
             using C2 by auto
-          then have "\<exists>fl\<^sub>0. a # aa # ss = a # aa # funFLCTockl fl\<^sub>0 \<and> fl\<^sub>0 \<le> fl"
+          then have "\<exists>fl\<^sub>0. a # aa # ss = a # aa # funFLTTockl fl\<^sub>0 \<and> fl\<^sub>0 \<le> fl"
             by auto
-          then have "\<exists>fl\<^sub>0. a # aa # ss = funFLCTockl (A #\<^sub>\<F>\<^sub>\<L> fl\<^sub>0) \<and> fl\<^sub>0 \<le> fl"
+          then have "\<exists>fl\<^sub>0. a # aa # ss = funFLTTockl (A #\<^sub>\<F>\<^sub>\<L> fl\<^sub>0) \<and> fl\<^sub>0 \<le> fl"
             using AA by auto
           then show ?case
             using less_eq_fltrace.simps(3) by blast
@@ -103,22 +103,22 @@ next
     next
       case False
       then show ?thesis
-        by (metis C1.prems(2) C1.prems(3) Cons_prefix_Cons dual_order.refl funFLCTockl.simps(2) less_eq_fltrace.simps(3))
+        by (metis C1.prems(2) C1.prems(3) Cons_prefix_Cons dual_order.refl funFLTTockl.simps(2) less_eq_fltrace.simps(3))
     qed
   qed
 qed
 
-lemma funFLCTockl_consC_mutual_extend:
-  assumes "xs = funFLCTockl fl"
-  shows "\<exists>z. xs @\<^sub>C [y] = funFLCTockl (fl @\<^sub>\<F>\<^sub>\<L> z)"
+lemma funFLTTockl_consC_mutual_extend:
+  assumes "xs = funFLTTockl fl"
+  shows "\<exists>z. xs @\<^sub>C [y] = funFLTTockl (fl @\<^sub>\<F>\<^sub>\<L> z)"
   using assms 
-proof (induct fl arbitrary: xs y rule:funFLCTockl.induct)
+proof (induct fl arbitrary: xs y rule:funFLTTockl.induct)
   case (1 A)
   then show ?case
   proof (cases A)
     case acnil
     {
-      then have "\<exists>z. [y] = funFLCTockl z"
+      then have "\<exists>z. [y] = funFLTTockl z"
       proof (cases y)
       case (Ref x1)
       then show ?thesis 
@@ -181,117 +181,117 @@ lemma ctockWD_concat_eq_some_concatC:
   apply (case_tac ya, auto)
   by (metis (full_types) ctockWD.simps(4) ctockWD.simps(6) ctockl_append.simps(4) tockevent.exhaust)
 
-lemma funFLCTockl_consC_mutual_extend2:
-  assumes "xs = funFLCTockl fl" "ctockWD (xs @ [y])"
-  shows "\<exists>z. xs @ [y] = funFLCTockl (fl @\<^sub>\<F>\<^sub>\<L> z)"
-  by (metis assms(1) assms(2) ctockWD_concat_eq_some_concatC funFLCTockl_consC_mutual_extend)
+lemma funFLTTockl_consC_mutual_extend2:
+  assumes "xs = funFLTTockl fl" "ctockWD (xs @ [y])"
+  shows "\<exists>z. xs @ [y] = funFLTTockl (fl @\<^sub>\<F>\<^sub>\<L> z)"
+  by (metis assms(1) assms(2) ctockWD_concat_eq_some_concatC funFLTTockl_consC_mutual_extend)
 
 (* We could have instead established the following rev induction theorem,
    but with the above two theorems we can transfer the equality on @\<^sub>C to one
    over standard @. This is key to showing that we have a bijection under
-   fFL2Tock(CTock2FLf(P)). *)
+   fFL2Tock(TTock2FLf(P)). *)
 
-lemma tockl_is_in_funFLCTockl:
-  assumes "ctockWD x" "CTockl2 P" (*"\<forall>s t. (t \<in> P \<and> list_le s t) \<longrightarrow> (s \<in> P)"*)
+lemma tockl_is_in_funFLTTockl:
+  assumes "ctockWD x" "TTockl2 P" (*"\<forall>s t. (t \<in> P \<and> list_le s t) \<longrightarrow> (s \<in> P)"*)
       and "\<forall>x\<in>P. ctockWD x"
       and "x \<in> P"
-    shows "\<exists>fl. x = funFLCTockl fl \<and> (\<exists>x. {xa. (\<exists>fl. xa = funFLCTockl fl \<and> fl \<in> x) \<and> ctockWD xa} \<subseteq> P \<and> fl \<in> x)"
+    shows "\<exists>fl. x = funFLTTockl fl \<and> (\<exists>x. {xa. (\<exists>fl. xa = funFLTTockl fl \<and> fl \<in> x) \<and> ctockWD xa} \<subseteq> P \<and> fl \<in> x)"
   using assms proof(induct x rule:rev_induct)
   case Nil
   then show ?case apply auto
-     by (smt funFLCTockl.simps(1) mem_Collect_eq singletonD singletonI subsetI)
+     by (smt funFLTTockl.simps(1) mem_Collect_eq singletonD singletonI subsetI)
 next
   case (snoc x xs)
   then have "xs \<in> P"
     apply auto
-    using list_le_concat_prefix CTockl2_def by blast
+    using list_le_concat_prefix TTockl2_def by blast
   then show ?case using "snoc.hyps"
     apply auto
-    using assms(2) funFLCTockl_consC_mutual_extend2 
-    by (smt assms(2) funFLCTockl_consC_mutual_extend2 mem_Collect_eq singletonD singletonI snoc.prems(3) snoc.prems(4) subsetI)
+    using assms(2) funFLTTockl_consC_mutual_extend2 
+    by (smt assms(2) funFLTTockl_consC_mutual_extend2 mem_Collect_eq singletonD singletonI snoc.prems(3) snoc.prems(4) subsetI)
 qed
 
-lemma fFL2Tock_CTock2FLf_refines: "fFL2Tock(CTock2FLf(P)) \<subseteq> P"
-  unfolding CTock2FLf_def fFL2Tock_def by auto
+lemma fFL2Tock_TTock2FLf_refines: "fFL2Tock(TTock2FLf(P)) \<subseteq> P"
+  unfolding TTock2FLf_def fFL2Tock_def by auto
 
-lemma xCTock2_refines_fFL2Tock_CTock2FLf:
-  assumes "xCTock2 P"
-  shows "P \<subseteq> fFL2Tock(CTock2FLf(P))"
-  using assms unfolding CTock2FLf_def fFL2Tock_def apply auto
+lemma xTTock2_refines_fFL2Tock_TTock2FLf:
+  assumes "xTTock2 P"
+  shows "P \<subseteq> fFL2Tock(TTock2FLf(P))"
+  using assms unfolding TTock2FLf_def fFL2Tock_def apply auto
   apply transfer 
   apply auto
-  using tockl_is_in_funFLCTockl by blast
+  using tockl_is_in_funFLTTockl by blast
 
-lemma xCTock2_bij:
-  assumes "xCTock2 P"
-  shows "fFL2Tock(CTock2FLf(P)) = P"
+lemma xTTock2_bij:
+  assumes "xTTock2 P"
+  shows "fFL2Tock(TTock2FLf(P)) = P"
   using assms
-  by (simp add: fFL2Tock_CTock2FLf_refines subset_antisym xCTock2_refines_fFL2Tock_CTock2FLf)
+  by (simp add: fFL2Tock_TTock2FLf_refines subset_antisym xTTock2_refines_fFL2Tock_TTock2FLf)
 
-lemma fFL2Tock_CTock2FLf_is_xCTock1:
-  assumes "xCTock1 P"
-  shows "xCTock1(fFL2Tock(CTock2FLf(P)))"
+lemma fFL2Tock_TTock2FLf_is_xTTock1:
+  assumes "xTTock1 P"
+  shows "xTTock1(fFL2Tock(TTock2FLf(P)))"
   using assms
-  by (simp add: xCTock1_imp_xCTock2 xCTock2_bij)
+  by (simp add: xTTock1_imp_xTTock2 xTTock2_bij)
 
 lemma
   assumes "prefix s t" "FL0 P" "FL1 P" 
-      and "t \<in> {funFLCTockl fl|fl. fl \<in> P \<and> ctockWD(funFLCTockl fl)}"
-    shows "s \<in> {funFLCTockl fl|fl. fl \<in> P \<and> ctockWD(funFLCTockl fl)}"
+      and "t \<in> {funFLTTockl fl|fl. fl \<in> P \<and> ctockWD(funFLTTockl fl)}"
+    shows "s \<in> {funFLTTockl fl|fl. fl \<in> P \<and> ctockWD(funFLTTockl fl)}"
   using assms 
-  by (smt FL1_def ctockWD_list_le mem_Collect_eq prefix_exists_funFLCTockl)
+  by (smt FL1_def ctockWD_list_le mem_Collect_eq prefix_exists_funFLTTockl)
 
-lemma CTockl2_prefix_help1:
-  assumes "X # Y # Z \<in> P" "CTockl2 P"
+lemma TTockl2_prefix_help1:
+  assumes "X # Y # Z \<in> P" "TTockl2 P"
   shows "[X, Y] \<in> P"
   using assms
-  by (metis CTockl2_def append.left_neutral append_Cons list_le_concat_prefix_also_prefix prefix_Cons prefix_order.dual_order.refl)
+  by (metis TTockl2_def append.left_neutral append_Cons list_le_concat_prefix_also_prefix prefix_Cons prefix_order.dual_order.refl)
 
-lemma CTockl2_prefix_help2:
-  assumes "X # Y \<in> P" "CTockl2 P"
+lemma TTockl2_prefix_help2:
+  assumes "X # Y \<in> P" "TTockl2 P"
   shows "[X] \<in> P"
   using assms 
-  by (meson CTockl2_def Cons_prefix_Cons prefix_code(1))
+  by (meson TTockl2_def Cons_prefix_Cons prefix_code(1))
 
-lemma funFLCTockl_prefix_help:
-  assumes "funFLCTockl (x1a #\<^sub>\<F>\<^sub>\<L> t) \<in> P" "CTockl2 P"
-  shows "funFLCTockl \<langle>x1a,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P"
-  using assms CTockl2_prefix_help2 CTockl2_prefix_help1 
+lemma funFLTTockl_prefix_help:
+  assumes "funFLTTockl (x1a #\<^sub>\<F>\<^sub>\<L> t) \<in> P" "TTockl2 P"
+  shows "funFLTTockl \<langle>x1a,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P"
+  using assms TTockl2_prefix_help2 TTockl2_prefix_help1 
   by fastforce
 
-lemma fFL2Tock_is_xCTock2:
+lemma fFL2Tock_is_xTTock2:
   assumes "FL1 P"
-  shows "xCTock2(fFL2Tock(P))"
+  shows "xTTock2(fFL2Tock(P))"
   using assms unfolding fFL2Tock_def apply transfer
-  unfolding CTockl2_def apply auto
-   apply (meson FL1_def prefix_exists_funFLCTockl)
-  using ctockWD_list_le funFLCTockl_is_ctockWD by blast
+  unfolding TTockl2_def apply auto
+   apply (meson FL1_def prefix_exists_funFLTTockl)
+  using ctockWD_list_le funFLTTockl_is_ctockWD by blast
 
 (* Work in progress below *)
 
-definition CTock2FL1 :: "'a ctock set \<Rightarrow> ('a tockevent) fltrace set" where
-"CTock2FL1 P = \<Union>{fl. FL1 fl \<and> (fFL2Tock fl) \<subseteq> P}"
+definition TTock2FL1 :: "'a ctock set \<Rightarrow> ('a tockevent) fltrace set" where
+"TTock2FL1 P = \<Union>{fl. FL1 fl \<and> (fFL2Tock fl) \<subseteq> P}"
 
-lemma CTock2FL1_mono:
+lemma TTock2FL1_mono:
   assumes "P \<subseteq> Q"
-  shows   "CTock2FL1(P) \<subseteq> CTock2FL1(Q)"
-  using assms unfolding CTock2FL1_def by auto
+  shows   "TTock2FL1(P) \<subseteq> TTock2FL1(Q)"
+  using assms unfolding TTock2FL1_def by auto
 
-lemma fFL2Tock_CTock2FL1_refines: "fFL2Tock(CTock2FL1(P)) \<subseteq> P"
-  unfolding CTock2FL1_def fFL2Tock_def by auto
+lemma fFL2Tock_TTock2FL1_refines: "fFL2Tock(TTock2FL1(P)) \<subseteq> P"
+  unfolding TTock2FL1_def fFL2Tock_def by auto
 
-lemma xCTock2_refines_fFL2Tock_CTock2FL1:
-  assumes "xCTock2 P"
-  shows "P \<subseteq> fFL2Tock(CTock2FL1(P))"
-  using assms unfolding CTock2FL1_def fFL2Tock_def apply auto
+lemma xTTock2_refines_fFL2Tock_TTock2FL1:
+  assumes "xTTock2 P"
+  shows "P \<subseteq> fFL2Tock(TTock2FL1(P))"
+  using assms unfolding TTock2FL1_def fFL2Tock_def apply auto
   apply transfer 
   apply auto
   oops
 
 lemma
-  assumes "xCTock2 P"
-  shows "fFL2Tock(CTock2FL1(P)) = P"
-  using assms unfolding CTock2FL1_def
+  assumes "xTTock2 P"
+  shows "fFL2Tock(TTock2FL1(P)) = P"
+  using assms unfolding TTock2FL1_def
   apply auto
   oops
 
@@ -319,24 +319,24 @@ lemma FL1_prefix_set:
   unfolding FL1_def by auto
 
 lemma 
-  assumes "funFLCTockl ys \<in> P" "xs \<le> ys" "CTockl2 P"
-  shows "funFLCTockl xs \<in> P"
+  assumes "funFLTTockl ys \<in> P" "xs \<le> ys" "TTockl2 P"
+  shows "funFLTTockl xs \<in> P"
   using assms
   oops
 
-lemma Ref_tock_le_in_funFLCTockl:
-  assumes "[Ref {z. z \<notin> x2}, REvent tock] \<in> P" "CTockl2 P" "tock \<in> x2" 
+lemma Ref_tock_le_in_funFLTTockl:
+  assumes "[Ref {z. z \<notin> x2}, REvent tock] \<in> P" "TTockl2 P" "tock \<in> x2" 
           -- \<open>The following healthiness condition was introduced because of this lemma\<close>
-          "CTockl3 P"
-  shows "fl \<le> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<longrightarrow> funFLCTockl fl \<in> P"
+          "TTockl3 P"
+  shows "fl \<le> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<longrightarrow> funFLTTockl fl \<in> P"
   using assms 
 proof (induct fl)
-  have Nil_in:"[] \<in> P" using assms unfolding CTockl2_def apply auto
+  have Nil_in:"[] \<in> P" using assms unfolding TTockl2_def apply auto
     using Nil_prefix by blast
    case (Acceptance x)
   then show ?case 
     apply (case_tac x, auto simp add:Nil_in)
-    using CTockl2_prefix_help2 by blast
+    using TTockl2_prefix_help2 by blast
 next
   case (AEvent x1a fl)
   then show ?case apply auto
@@ -349,53 +349,53 @@ next
      apply (case_tac fl, auto, case_tac x1a, auto, case_tac a, auto)
     apply (simp_all add: less_eq_aevent_def) 
     apply (case_tac fl, auto, case_tac x1a, auto)
-    apply (metis (no_types, lifting) CTockl3_def append_eq_Cons_conv assms(1) assms(4))
+    apply (metis (no_types, lifting) TTockl3_def append_eq_Cons_conv assms(1) assms(4))
     using less_eq_acceptance.elims(2) by blast
 qed
 
 (*
 lemma xpp3:
-  assumes "xs = funFLCTockl fl" "ctockWD (xs @ [y])" 
-  shows "\<exists>z. xs @ [y] = funFLCTockl (fl @\<^sub>\<F>\<^sub>\<L> z) \<and> (\<exists>x. FL1 x \<and> fl \<in> x \<and> (fl @\<^sub>\<F>\<^sub>\<L> z) \<in> x)"
+  assumes "xs = funFLTTockl fl" "ctockWD (xs @ [y])" 
+  shows "\<exists>z. xs @ [y] = funFLTTockl (fl @\<^sub>\<F>\<^sub>\<L> z) \<and> (\<exists>x. FL1 x \<and> fl \<in> x \<and> (fl @\<^sub>\<F>\<^sub>\<L> z) \<in> x)"
   using assms sorry
 
 lemma xpp21:
-  assumes "xs = funFLCTockl fl"
-  shows "\<exists>z. xs @\<^sub>C [y] = funFLCTockl (fl @\<^sub>\<F>\<^sub>\<L> z) \<and> (\<exists>x. FL1 x \<and> (fl @\<^sub>\<F>\<^sub>\<L> z) \<in> x)"
+  assumes "xs = funFLTTockl fl"
+  shows "\<exists>z. xs @\<^sub>C [y] = funFLTTockl (fl @\<^sub>\<F>\<^sub>\<L> z) \<and> (\<exists>x. FL1 x \<and> (fl @\<^sub>\<F>\<^sub>\<L> z) \<in> x)"
   using assms sorry
 *)
 
-lemma some_x_then_nil_CTockl2:
-  assumes "x \<in> P" "CTockl2 P"
+lemma some_x_then_nil_TTockl2:
+  assumes "x \<in> P" "TTockl2 P"
   shows "[] \<in> P"
   using assms 
-  using CTl0s_CTl2s_imp_nil CTockl0_def empty_iff by blast
+  using TTl0s_TTl2s_imp_nil TTockl0_def empty_iff by blast
 
-lemma fl_le_CTockl2:
-  assumes "fl \<le> \<langle>[{z. z \<notin> x1}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" "[Ref x1] \<in> P" "CTockl2 P"
-  shows "funFLCTockl fl \<in> P"
+lemma fl_le_TTockl2:
+  assumes "fl \<le> \<langle>[{z. z \<notin> x1}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" "[Ref x1] \<in> P" "TTockl2 P"
+  shows "funFLTTockl fl \<in> P"
   using assms apply (cases fl, auto)
-  using some_x_then_nil_CTockl2 apply auto
+  using some_x_then_nil_TTockl2 apply auto
   apply (case_tac x1a, auto)
   by (smt Collect_cong Collect_mem_eq mem_Collect_eq) 
 
 
-lemma fl_le_CTockl2_Event:
-  assumes "fl \<le> \<langle>(\<bullet>,(Event ev))\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "[REvent (Event ev)] \<in> P" "CTockl2 P"
-  shows "funFLCTockl fl \<in> P"
+lemma fl_le_TTockl2_Event:
+  assumes "fl \<le> \<langle>(\<bullet>,(Event ev))\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "[REvent (Event ev)] \<in> P" "TTockl2 P"
+  shows "funFLTTockl fl \<in> P"
   using assms apply (cases fl, auto)
-  using some_x_then_nil_CTockl2 apply auto
+  using some_x_then_nil_TTockl2 apply auto
   apply (case_tac x1, auto)
     apply (case_tac x21, auto)
   apply (simp_all add: less_eq_aevent_def)
    apply (case_tac x21, auto)
   by (case_tac x22, auto, case_tac x1, auto)+
 
-lemma fl_le_CTockl2_tock:
-  assumes "fl \<le> \<langle>(\<bullet>,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "[REvent tock] \<in> P" "CTockl2 P"
-  shows "funFLCTockl fl \<in> P"
+lemma fl_le_TTockl2_tock:
+  assumes "fl \<le> \<langle>(\<bullet>,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "[REvent tock] \<in> P" "TTockl2 P"
+  shows "funFLTTockl fl \<in> P"
   using assms apply (cases fl, auto)
-  using some_x_then_nil_CTockl2 apply auto
+  using some_x_then_nil_TTockl2 apply auto
   apply (case_tac x1, auto)
     apply (case_tac x21, auto)
     apply (simp_all add: less_eq_aevent_def)
@@ -403,9 +403,9 @@ lemma fl_le_CTockl2_tock:
   by (case_tac x22, auto, case_tac x1, auto)
 
 
-lemma funFLCTockl_last_tock:
+lemma funFLTTockl_last_tock:
   assumes "tock \<in>\<^sub>\<F>\<^sub>\<L> last fl"
-  shows "funFLCTockl (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = funFLCTockl fl @ funFLCTockl(\<langle>(\<bullet>,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  shows "funFLTTockl (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = funFLTTockl fl @ funFLTTockl(\<langle>(\<bullet>,tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
   using assms by (induct fl, auto)
 
 end

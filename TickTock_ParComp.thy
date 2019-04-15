@@ -1,5 +1,5 @@
-theory CTockTick_ParComp
-  imports CTockTick_Basic_Ops
+theory TickTock_ParComp
+  imports TickTock_Basic_Ops
 begin
 
 subsection {* Parallel Composition *}
@@ -238,13 +238,13 @@ proof -
     by auto
 qed
 
-definition ParCompCTT :: "'e cttobs list set \<Rightarrow> 'e set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infix "\<lbrakk>_\<rbrakk>\<^sub>C" 55) where
-  "ParCompCTT P A Q = \<Union> {t. \<exists> p \<in> P. \<exists> q \<in> Q. t = merge_traces p A q}"
+definition ParCompTTT :: "'e cttobs list set \<Rightarrow> 'e set \<Rightarrow> 'e cttobs list set \<Rightarrow> 'e cttobs list set" (infix "\<lbrakk>_\<rbrakk>\<^sub>C" 55) where
+  "ParCompTTT P A Q = \<Union> {t. \<exists> p \<in> P. \<exists> q \<in> Q. t = merge_traces p A q}"
 
-lemma ParCompCTT_wf: 
+lemma ParCompTTT_wf: 
   assumes "\<forall>t\<in>P. ttWF t" "\<forall>t\<in>Q. ttWF t"
   shows "\<forall>t\<in>(P \<lbrakk>A\<rbrakk>\<^sub>C Q). ttWF t"
-  unfolding ParCompCTT_def
+  unfolding ParCompTTT_def
 proof auto
   fix p q x
   assume "p \<in> P"
@@ -257,13 +257,13 @@ proof auto
     using p_wf q_wf merge_traces_wf by auto
 qed
 
-lemma CT0_ParComp:
-  assumes "CT P" "CT Q"
-  shows "CT0 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding CT0_def ParCompCTT_def
+lemma TT0_ParComp:
+  assumes "TT P" "TT Q"
+  shows "TT0 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding TT0_def ParCompTTT_def
 proof auto
   have "[] \<in> P \<and> [] \<in> Q"
-    using assms CT_empty by auto
+    using assms TT_empty by auto
   then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> x \<noteq> {}"
     apply (rule_tac x="{[]}" in exI, auto)
     apply (rule_tac x="[]" in bexI, auto)
@@ -353,10 +353,10 @@ next
     by (induct \<sigma> rule:ttWF.induct, auto)
 qed
 
-lemma CT1_ParComp:
-  assumes "CT P" "CT Q"
-  shows "CT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding CT1_def ParCompCTT_def
+lemma TT1_ParComp:
+  assumes "TT P" "TT Q"
+  shows "TT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding TT1_def ParCompTTT_def
 proof (auto)
   fix \<rho> \<sigma> p q :: "'a cttobs list"
   have 1: "\<And> p q. \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> \<exists>p'. \<exists>q'. p' \<lesssim>\<^sub>C p \<and> q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> (p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
@@ -639,24 +639,24 @@ proof (auto)
   obtain p' q' where 2: "p' \<lesssim>\<^sub>C p \<and> q' \<lesssim>\<^sub>C q \<and> \<rho> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"  
     using 1 assm1 assm2 by blast
   then have "p' \<in> P \<and> q' \<in> Q"
-    using CT1_def CT_CT1 assm3 assm4 assms(1) assms(2) by blast
+    using TT1_def TT_TT1 assm3 assm4 assms(1) assms(2) by blast
   then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<rho> \<in> x"
     using 2 by auto
 qed
 
-lemma CT2_ParComp:
-  "\<And> P Q. CT P \<Longrightarrow> CT Q \<Longrightarrow> CT2 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding CT2_def ParCompCTT_def
+lemma TT2_ParComp:
+  "\<And> P Q. TT P \<Longrightarrow> TT Q \<Longrightarrow> TT2 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding TT2_def ParCompTTT_def
 proof (auto)
   fix \<rho>
-  show "\<And>P Q X Y p q. CT P \<Longrightarrow> CT Q \<Longrightarrow>
+  show "\<And>P Q X Y p q. TT P \<Longrightarrow> TT Q \<Longrightarrow>
     Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
       e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
     \<rho> @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> x"
   proof (induct \<rho> rule:ttWF.induct, auto)
     fix P Q :: "'a cttobs list set"
     fix X Y p q
-    assume CT_P: "CT P" and CT_Q: "CT Q"
+    assume TT_P: "TT P" and TT_Q: "TT Q"
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
     assume assm1: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[e]\<^sub>E] \<in> x) \<or>
       e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
@@ -672,7 +672,7 @@ proof (auto)
       fix x
       assume "[[Event x]\<^sub>E] \<in> P" "x \<notin> A"
       also have "[] \<in> Q"
-        by (simp add: CT_empty CT_Q)
+        by (simp add: TT_empty TT_Q)
       then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Event x]\<^sub>E] \<in> xa"
         using calculation apply (rule_tac x="[[Event x]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C []" in exI, auto)
         apply (rule_tac x="[[Event x]\<^sub>E]" in bexI, auto)
@@ -682,7 +682,7 @@ proof (auto)
       fix x
       assume "[[Event x]\<^sub>E] \<in> Q" "x \<notin> A"
       also have "[] \<in> P"
-        by (simp add: CT_empty CT_P)
+        by (simp add: TT_empty TT_P)
       then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Event x]\<^sub>E] \<in> xa"
         using calculation apply (rule_tac x="[] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Event x]\<^sub>E]" in exI, auto)
         apply (rule_tac x="[]" in bexI, auto)
@@ -694,10 +694,10 @@ proof (auto)
     proof (auto, case_tac "(p,q)" rule:ttWF2.cases, auto)
       fix \<rho> f \<sigma>
       assume "[Event f]\<^sub>E # \<rho> \<in> P"
-      also have "CT1 P"
-        using CT_P CT_def by blast
+      also have "TT1 P"
+        using TT_P TT_def by blast
       then show "[[Event f]\<^sub>E] \<in> P"
-        using calculation unfolding CT1_def apply auto
+        using calculation unfolding TT1_def apply auto
         by (erule_tac x="[[Event f]\<^sub>E]" in allE, auto)
     qed
     have set3: "{e. e = Tick \<and> [[Tick]\<^sub>E] \<in> P} \<inter> {e. e = Tick \<and> [[Tick]\<^sub>E] \<in> Q} \<subseteq> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
@@ -754,7 +754,7 @@ proof (auto)
       have "Tock \<notin> {e. e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [Tock]\<^sub>E] \<in> x)}"
         using Y_Tock Tock_in_Y by blast
       then show "[[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-        unfolding ParCompCTT_def by simp
+        unfolding ParCompTTT_def by simp
     qed
     have nontock_sets: "\<exists> B C. Y \<inter> (Event ` A \<union> {Tick}) = B \<union> C
         \<and> B \<inter> ({e. \<exists> ea. e = Event ea \<and> ea \<in> A \<and> [[Event ea]\<^sub>E] \<in> P} \<union> {e. e = Tick \<and> [[Tick]\<^sub>E] \<in> P}) = {}
@@ -800,14 +800,14 @@ proof (auto)
         then have "Tock \<notin> {e. e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [Tock]\<^sub>E] \<in> x)}"
           using Tock_in_Y by blast
         then have X_Tock_notin_parcomp: "[[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          unfolding ParCompCTT_def by simp
+          unfolding ParCompTTT_def by simp
         then have "[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<notin> Q \<or> [[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E] \<notin> P"
         proof (safe, simp_all)                                       
           have "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> [[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E]"
             using X_subset_Z_W Z_W_part_eq by auto
           also assume "[[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E] \<in> P" "[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
           then have "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompCTT_def using calculation apply simp
+            unfolding ParCompTTT_def using calculation apply simp
             apply (rule_tac x="[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E]" in exI, simp)
             apply (rule_tac x="[[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all)
             apply (rule_tac x="[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all, blast)
@@ -817,20 +817,20 @@ proof (auto)
         qed
         then have W_Z_Tock_cases: "[[W]\<^sub>R, [Tock]\<^sub>E] \<notin> Q \<or> [[Z]\<^sub>R, [Tock]\<^sub>E] \<notin> P"
         proof auto
-          have CT1_Q: "CT1 Q"
-            by (simp add: CT_CT1 CT_Q)
+          have TT1_Q: "TT1 Q"
+            by (simp add: TT_TT1 TT_Q)
           assume "[[W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
           then have "[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
-            using CT1_Q unfolding CT1_def by force
+            using TT1_Q unfolding TT1_def by force
           also assume "[[X \<inter> W]\<^sub>R, [Tock]\<^sub>E] \<notin> Q"
           then show "False"
             using calculation by auto
         next
-          have CT1_P: "CT1 P"
-            by (simp add: CT_CT1 CT_P)
+          have TT1_P: "TT1 P"
+            by (simp add: TT_TT1 TT_P)
           assume "[[Z]\<^sub>R, [Tock]\<^sub>E] \<in> P"
           then have "[[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-            using CT1_P unfolding CT1_def by force
+            using TT1_P unfolding TT1_def by force
           also assume "[[X \<inter> Z]\<^sub>R, [Tock]\<^sub>E] \<notin> P"
           then show "False"
             using calculation by auto
@@ -882,12 +882,12 @@ proof (auto)
 
           have 3: "[[Z \<union> (B \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})]\<^sub>R] \<in> P"
           proof -
-            have "CT2 P"
-              using CT_P CT_def by blast
+            have "TT2 P"
+              using TT_P TT_def by blast
             also have "[[Z]\<^sub>R] \<in> P"
               using p_P p_Z by blast
             then show "[[Z \<union> (B \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})]\<^sub>R] \<in> P"
-              using calculation 2 unfolding CT2_def
+              using calculation 2 unfolding TT2_def
               apply (erule_tac x="[]" in allE)
               apply (erule_tac x="Z" in allE)
               apply (erule_tac x="(B \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})" in allE, auto)
@@ -896,12 +896,12 @@ proof (auto)
 
           have 4: "[[W \<union> (C \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y} \<union> {Tock})]\<^sub>R] \<in> Q"
           proof -
-            have "CT2 Q"
-              using CT_Q CT_def by blast
+            have "TT2 Q"
+              using TT_Q TT_def by blast
             also have "[[W]\<^sub>R] \<in> Q"
               using q_Q q_W by blast
             then show "[[W \<union> (C \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y} \<union> {Tock})]\<^sub>R] \<in> Q"
-              using calculation 1 unfolding CT2_def
+              using calculation 1 unfolding TT2_def
               apply (erule_tac x="[]" in allE)
               apply (erule_tac x="W" in allE)
               apply (erule_tac x="(C \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y} \<union> {Tock})" in allE, auto)
@@ -962,12 +962,12 @@ proof (auto)
 
           have 3: "[[Z \<union> (B \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y} \<union> {Tock})]\<^sub>R] \<in> P"
           proof -
-            have "CT2 P"
-              using CT_P CT_def by blast
+            have "TT2 P"
+              using TT_P TT_def by blast
             also have "[[Z]\<^sub>R] \<in> P"
               using p_P p_Z by blast
             then show "[[Z \<union> (B \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y} \<union> {Tock})]\<^sub>R] \<in> P"
-              using calculation 2 unfolding CT2_def
+              using calculation 2 unfolding TT2_def
               apply (erule_tac x="[]" in allE)
               apply (erule_tac x="Z" in allE)
               apply (erule_tac x="(B \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y} \<union> {Tock})" in allE, auto)
@@ -976,12 +976,12 @@ proof (auto)
 
           have 4: "[[W \<union> (C \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})]\<^sub>R] \<in> Q"
           proof -
-            have "CT2 Q"
-              using CT_Q CT_def by blast
+            have "TT2 Q"
+              using TT_Q TT_def by blast
             also have "[[W]\<^sub>R] \<in> Q"
               using q_Q q_W by blast
             then show "[[W \<union> (C \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})]\<^sub>R] \<in> Q"
-              using calculation 1 unfolding CT2_def
+              using calculation 1 unfolding TT2_def
               apply (erule_tac x="[]" in allE)
               apply (erule_tac x="W" in allE)
               apply (erule_tac x="(C \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})" in allE, auto)
@@ -1045,12 +1045,12 @@ proof (auto)
 
         have 3: "[[Z \<union> (B \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})]\<^sub>R] \<in> P"
         proof -
-          have "CT2 P"
-            using CT_P CT_def by blast
+          have "TT2 P"
+            using TT_P TT_def by blast
           also have "[[Z]\<^sub>R] \<in> P"
             using p_P p_Z by blast
           then show "[[Z \<union> (B \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})]\<^sub>R] \<in> P"
-            using calculation 2 unfolding CT2_def
+            using calculation 2 unfolding TT2_def
             apply (erule_tac x="[]" in allE)
             apply (erule_tac x="Z" in allE)
             apply (erule_tac x="(B \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})" in allE, auto)
@@ -1059,12 +1059,12 @@ proof (auto)
 
         have 4: "[[W \<union> (C \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})]\<^sub>R] \<in> Q"
         proof -
-          have "CT2 Q"
-            using CT_Q CT_def by blast
+          have "TT2 Q"
+            using TT_Q TT_def by blast
           also have "[[W]\<^sub>R] \<in> Q"
             using q_Q q_W by blast
           then show "[[W \<union> (C \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})]\<^sub>R] \<in> Q"
-            using calculation 1 unfolding CT2_def
+            using calculation 1 unfolding TT2_def
             apply (erule_tac x="[]" in allE)
             apply (erule_tac x="W" in allE)
             apply (erule_tac x="(C \<union> {Event ea |ea. ea \<notin> A \<and> Event ea \<in> Y})" in allE, auto)
@@ -1098,9 +1098,9 @@ proof (auto)
           then have "Tock \<notin> {e. e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [Tock]\<^sub>E] \<in> x)}"
             using Tock_in_Y by blast
           then have X_Tock_notin_parcomp: "[[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompCTT_def by simp  
+            unfolding ParCompTTT_def by simp  
           also have "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompCTT_def using Tock_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
+            unfolding ParCompTTT_def using Tock_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
             apply (rule_tac x="[[Z]\<^sub>R, [Tock]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
             apply (rule_tac x="[[Z]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all)
             apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, auto)
@@ -1119,9 +1119,9 @@ proof (auto)
             then have "Tick \<notin> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
               using Tick_in_Y by blast
             then have Tick_notin_parcomp: "[[Tick]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompCTT_def by simp  
+              unfolding ParCompTTT_def by simp  
             also have "[[Tick]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompCTT_def using Tick_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
+              unfolding ParCompTTT_def using Tick_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
               apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
@@ -1133,12 +1133,12 @@ proof (auto)
           proof -
             have 1: "{Tick, Tock} \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
               using Tock_notin_P Tick_notin_P by auto
-            have 2: "CT2 P"
-              using CT_P CT_def by blast
+            have 2: "TT2 P"
+              using TT_P TT_def by blast
             have 3: "[[Z]\<^sub>R] \<in> P"
               using p_P p_Z by blast
             show "[[Z \<union> {Tick, Tock}]\<^sub>R] \<in> P"
-              using 1 2 3 unfolding CT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="Z" in allE, erule_tac x="{Tick, Tock}" in allE, auto)
+              using 1 2 3 unfolding TT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="Z" in allE, erule_tac x="{Tick, Tock}" in allE, auto)
           qed
           then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X \<union> Y]\<^sub>R] \<in> x"
             using X_subset_Z_Tick Z_Tick_part_eq q_Q q_Tick
@@ -1152,12 +1152,12 @@ proof (auto)
           proof -
             have 1: "{Tock} \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
               using Tock_notin_P by auto
-            have 2: "CT2 P"
-              using CT_P CT_def by blast
+            have 2: "TT2 P"
+              using TT_P TT_def by blast
             have 3: "[[Z]\<^sub>R] \<in> P"
               using p_P p_Z by blast
             show "[[Z \<union> {Tock}]\<^sub>R] \<in> P"
-              using 1 2 3 unfolding CT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="Z" in allE, erule_tac x="{Tock}" in allE, auto)
+              using 1 2 3 unfolding TT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="Z" in allE, erule_tac x="{Tock}" in allE, auto)
           qed
           then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X \<union> Y]\<^sub>R] \<in> x"
             using X_subset_Z_Tick Z_Tick_part_eq q_Q q_Tick Tick_notin_Y
@@ -1179,9 +1179,9 @@ proof (auto)
             then have "Tick \<notin> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
               using Tick_in_Y by blast
             then have Tick_notin_parcomp: "[[Tick]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompCTT_def by simp  
+              unfolding ParCompTTT_def by simp  
             also have "[[Tick]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompCTT_def using Tick_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
+              unfolding ParCompTTT_def using Tick_in_P q_Q q_Tick X_subset_Z_Tick Z_Tick_part_eq apply simp
               apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
@@ -1193,12 +1193,12 @@ proof (auto)
           proof -
             have 1: "{Tick} \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
               using Tick_notin_P by auto
-            have 2: "CT2 P"
-              using CT_P CT_def by blast
+            have 2: "TT2 P"
+              using TT_P TT_def by blast
             have 3: "[[Z]\<^sub>R] \<in> P"
               using p_P p_Z by blast
             show "[[Z \<union> {Tick}]\<^sub>R] \<in> P"
-              using 1 2 3 unfolding CT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="Z" in allE, erule_tac x="{Tick}" in allE, auto)
+              using 1 2 3 unfolding TT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="Z" in allE, erule_tac x="{Tick}" in allE, auto)
           qed
           then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X \<union> Y]\<^sub>R] \<in> x"
             using X_subset_Z_Tick Z_Tick_part_eq q_Q q_Tick Tock_notin_Y
@@ -1233,9 +1233,9 @@ proof (auto)
           then have "Tock \<notin> {e. e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [Tock]\<^sub>E] \<in> x)}"
             using Tock_in_Y by blast
           then have X_Tock_notin_parcomp: "[[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompCTT_def by simp  
+            unfolding ParCompTTT_def by simp  
           also have "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-            unfolding ParCompCTT_def using Tock_in_Q p_P p_Tick X_subset_W_Tick W_Tick_part_eq apply simp
+            unfolding ParCompTTT_def using Tock_in_Q p_P p_Tick X_subset_W_Tick W_Tick_part_eq apply simp
             apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[W]\<^sub>R, [Tock]\<^sub>E]" in exI, safe, simp_all)
             apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
             apply (rule_tac x="[[W]\<^sub>R, [Tock]\<^sub>E]" in bexI, simp_all, blast)
@@ -1254,9 +1254,9 @@ proof (auto)
             then have "Tick \<notin> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
               using Tick_in_Y by blast
             then have Tick_notin_parcomp: "[[Tick]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompCTT_def by simp  
+              unfolding ParCompTTT_def by simp  
             also have "[[Tick]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompCTT_def using Tick_in_Q p_P p_Tick apply simp
+              unfolding ParCompTTT_def using Tick_in_Q p_P p_Tick apply simp
               apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
@@ -1268,12 +1268,12 @@ proof (auto)
           proof -
             have 1: "{Tick, Tock} \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
               using Tock_notin_Q Tick_notin_Q by auto
-            have 2: "CT2 Q"
-              using CT_Q CT_def by blast
+            have 2: "TT2 Q"
+              using TT_Q TT_def by blast
             have 3: "[[W]\<^sub>R] \<in> Q"
               using q_Q q_W by blast
             show "[[W \<union> {Tick, Tock}]\<^sub>R] \<in> Q"
-              using 1 2 3 unfolding CT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="W" in allE, erule_tac x="{Tick, Tock}" in allE, auto)
+              using 1 2 3 unfolding TT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="W" in allE, erule_tac x="{Tick, Tock}" in allE, auto)
           qed
           then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X \<union> Y]\<^sub>R] \<in> x"
             using X_subset_W_Tick W_Tick_part_eq p_P p_Tick
@@ -1287,12 +1287,12 @@ proof (auto)
           proof -
             have 1: "{Tock} \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
               using Tock_notin_Q by auto
-            have 2: "CT2 Q"
-              using CT_Q CT_def by blast
+            have 2: "TT2 Q"
+              using TT_Q TT_def by blast
             have 3: "[[W]\<^sub>R] \<in> Q"
               using q_Q q_W by blast
             show "[[W \<union> {Tock}]\<^sub>R] \<in> Q"
-              using 1 2 3 unfolding CT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="W" in allE, erule_tac x="{Tock}" in allE, auto)
+              using 1 2 3 unfolding TT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="W" in allE, erule_tac x="{Tock}" in allE, auto)
           qed
           then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X \<union> Y]\<^sub>R] \<in> x"
             using X_subset_W_Tick W_Tick_part_eq p_P p_Tick Tick_notin_Y
@@ -1314,9 +1314,9 @@ proof (auto)
             then have "Tick \<notin> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
               using Tick_in_Y by blast
             then have Tick_notin_parcomp: "[[Tick]\<^sub>E] \<notin> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompCTT_def by simp  
+              unfolding ParCompTTT_def by simp  
             also have "[[Tick]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-              unfolding ParCompCTT_def using Tick_in_P p_P p_Tick X_subset_W_Tick W_Tick_part_eq apply simp
+              unfolding ParCompTTT_def using Tick_in_P p_P p_Tick X_subset_W_Tick W_Tick_part_eq apply simp
               apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
               apply (rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
@@ -1328,12 +1328,12 @@ proof (auto)
           proof -
             have 1: "{Tick} \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
               using Tick_notin_P by auto
-            have 2: "CT2 Q"
-              using CT_Q CT_def by blast
+            have 2: "TT2 Q"
+              using TT_Q TT_def by blast
             have 3: "[[W]\<^sub>R] \<in> Q"
               using q_Q q_W by blast
             show "[[W \<union> {Tick}]\<^sub>R] \<in> Q"
-              using 1 2 3 unfolding CT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="W" in allE, erule_tac x="{Tick}" in allE, auto)
+              using 1 2 3 unfolding TT2_def by (auto, erule_tac x="[]" in allE, erule_tac x="W" in allE, erule_tac x="{Tick}" in allE, auto)
           qed
           then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X \<union> Y]\<^sub>R] \<in> x"
             using X_subset_W_Tick W_Tick_part_eq p_P p_Tick Tock_notin_Y
@@ -1354,16 +1354,16 @@ proof (auto)
     qed
   next
     fix X P Q Xa Y p q
-    assume "[[X]\<^sub>R, [Xa]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[[X]\<^sub>R, [Xa]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF [[X]\<^sub>R, [Xa]\<^sub>R]"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [Xa \<union> Y]\<^sub>R] \<in> x"
       by simp
   next
     fix P Q X Y p q
-    assume "[[Tick]\<^sub>E, [X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[[Tick]\<^sub>E, [X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF [[Tick]\<^sub>E, [X]\<^sub>R]"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E, [X \<union> Y]\<^sub>R] \<in> x"
       by simp
   next
@@ -1376,14 +1376,14 @@ proof (auto)
       \<or> (\<exists> p'. e \<notin> A \<and> p = [Event e]\<^sub>E # p' \<and> \<sigma> @ [[X]\<^sub>R] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q)
       \<or> (\<exists> q'. e \<notin> A \<and> q = [Event e]\<^sub>E # q' \<and> \<sigma> @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
       by (cases "(p,q)" rule:ttWF2.cases, simp_all, blast)
-    assume induction_hypothesis: "(\<And>P Q X Y p q. CT P \<Longrightarrow> CT Q \<Longrightarrow>
+    assume induction_hypothesis: "(\<And>P Q X Y p q. TT P \<Longrightarrow> TT Q \<Longrightarrow>
       Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[e]\<^sub>E] \<in> x) \<or>
         e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
       \<sigma> @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[X \<union> Y]\<^sub>R] \<in> x)"
     assume disjoint: "Y \<inter> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma> @ [[ea]\<^sub>E] \<in> x) \<or>
                  ea = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
-    assume CT_P: "CT P" and CT_Q: "CT Q"
+    assume TT_P: "TT P" and TT_Q: "TT Q"
     show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma> @ [[X \<union> Y]\<^sub>R] \<in> x"
       using p_q_cases
     proof auto
@@ -1391,10 +1391,10 @@ proof (auto)
       assume e_in_A: "e \<in> A"
       assume p_def: "p = [Event e]\<^sub>E # p'"
       assume q_def: "q = [Event e]\<^sub>E # q'"
-      have 1: "CT {t. [Event e]\<^sub>E # t \<in> P}"
-        using CT_P CT_init_event p_P p_def by force
-      have 2: "CT {t. [Event e]\<^sub>E # t \<in> Q}"
-        using CT_Q CT_init_event q_Q q_def by force
+      have 1: "TT {t. [Event e]\<^sub>E # t \<in> P}"
+        using TT_P TT_init_event p_P p_def by force
+      have 2: "TT {t. [Event e]\<^sub>E # t \<in> Q}"
+        using TT_Q TT_init_event q_Q q_def by force
       have 3: "Y \<inter> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [Event e]\<^sub>E # t \<in> P}. \<exists>q\<in>{t. [Event e]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[ea]\<^sub>E] \<in> x) \<or>
         ea = Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [Event e]\<^sub>E # t \<in> P}. \<exists>q\<in>{t. [Event e]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
       proof -
@@ -1441,8 +1441,8 @@ proof (auto)
       assume e_notin_A: "e \<notin> A"
       assume p_def: "p = [Event e]\<^sub>E # p'"
       assume in_p'_parcomp_q: "\<sigma> @ [[X]\<^sub>R] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
-      have 1: "CT {t. [Event e]\<^sub>E # t \<in> P}"
-        using CT_P CT_init_event p_P p_def by force
+      have 1: "TT {t. [Event e]\<^sub>E # t \<in> P}"
+        using TT_P TT_init_event p_P p_def by force
       have 2: "Y \<inter> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [Event e]\<^sub>E # t \<in> P}. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[ea]\<^sub>E] \<in> x) \<or>
           ea = Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [Event e]\<^sub>E # t \<in> P}. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
       proof -
@@ -1467,7 +1467,7 @@ proof (auto)
         using p_P p_def by auto
       have "\<exists>x. (\<exists>p''\<in>{t. [Event e]\<^sub>E # t \<in> P}. \<exists>q''\<in>Q. x = p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'') \<and> \<sigma> @ [[X \<union> Y]\<^sub>R] \<in> x"
         using induction_hypothesis[where P="{t. [Event e]\<^sub>E # t \<in> P}", where Q=Q, where p=p', where q=q, where X=X, where Y=Y]
-        using 1 2 3 q_Q in_p'_parcomp_q CT_Q by auto
+        using 1 2 3 q_Q in_p'_parcomp_q TT_Q by auto
       then obtain p'' q'' where "p''\<in>{t. [Event e]\<^sub>E # t \<in> P}" "q''\<in>Q" "\<sigma> @ [[X \<union> Y]\<^sub>R] \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
         by auto
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma> @ [[X \<union> Y]\<^sub>R] \<in> x"
@@ -1479,8 +1479,8 @@ proof (auto)
       assume e_notin_A: "e \<notin> A"
       assume q_def: "q = [Event e]\<^sub>E # q'"
       assume in_p_parcomp_q': "\<sigma> @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      have 1: "CT {t. [Event e]\<^sub>E # t \<in> Q}"
-        using CT_Q CT_init_event q_Q q_def by force
+      have 1: "TT {t. [Event e]\<^sub>E # t \<in> Q}"
+        using TT_Q TT_init_event q_Q q_def by force
       have 2: "Y \<inter> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>{t. [Event e]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[ea]\<^sub>E] \<in> x) \<or>
           ea = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>{t. [Event e]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
       proof -
@@ -1505,7 +1505,7 @@ proof (auto)
         using q_Q q_def by auto
       have "\<exists>x. (\<exists>p''\<in>P. \<exists>q''\<in>{t. [Event e]\<^sub>E # t \<in> Q}. x = p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'') \<and> \<sigma> @ [[X \<union> Y]\<^sub>R] \<in> x"
         using induction_hypothesis[where P=P, where Q="{t. [Event e]\<^sub>E # t \<in> Q}", where p=p, where q=q', where X=X, where Y=Y]
-        using 1 2 3 p_P in_p_parcomp_q' CT_P by auto
+        using 1 2 3 p_P in_p_parcomp_q' TT_P by auto
       then obtain p'' q'' where "q''\<in>{t. [Event e]\<^sub>E # t \<in> Q}" "p''\<in>P" "\<sigma> @ [[X \<union> Y]\<^sub>R] \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
         by auto
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma> @ [[X \<union> Y]\<^sub>R] \<in> x"
@@ -1523,14 +1523,14 @@ proof (auto)
       (\<exists> p' X1. p = [X1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [[Tick]\<^sub>E] \<and> [[X]\<^sub>R] \<in> ([[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R]) \<and> \<sigma> @ [[Xa]\<^sub>R] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]) \<or>
       (\<exists> q' X2. p = [[Tick]\<^sub>E] \<and> q = [X2]\<^sub>R # [Tock]\<^sub>E # q' \<and> [[X]\<^sub>R] \<in> ([[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]) \<and> \<sigma> @ [[Xa]\<^sub>R] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
       by (cases "(p,q)" rule:ttWF2.cases, simp_all)
-    assume induction_hypothesis: "(\<And>P Q X Y p q. CT P \<Longrightarrow> CT Q \<Longrightarrow>
+    assume induction_hypothesis: "(\<And>P Q X Y p q. TT P \<Longrightarrow> TT Q \<Longrightarrow>
       Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[e]\<^sub>E] \<in> x) \<or>
         e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
       \<sigma> @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[X \<union> Y]\<^sub>R] \<in> x)"
     assume disjoint: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
-    assume CT_P: "CT P" and CT_Q: "CT Q"
+    assume TT_P: "TT P" and TT_Q: "TT Q"
     show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
       using p_q_cases
     proof safe
@@ -1539,10 +1539,10 @@ proof (auto)
       assume q_def: "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
       assume refusal_merge: "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]"
       assume in_p'_parcomp_q': "\<sigma> @ [[Xa]\<^sub>R] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      have 1: "CT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        using CT_P CT_init_tock p_P p_def by blast
-      have 2: "CT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        using CT_Q CT_init_tock q_Q q_def by blast
+      have 1: "TT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using TT_P TT_init_tock p_P p_def by blast
+      have 2: "TT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using TT_Q TT_init_tock q_Q q_def by blast
       have 3: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. \<exists>q\<in>{t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[e]\<^sub>E] \<in> x) \<or>
         e = Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. \<exists>q\<in>{t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
       proof -
@@ -1583,10 +1583,10 @@ proof (auto)
       assume q_def: "q = [[Tick]\<^sub>E]"
       assume refusal_merge: "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R]"
       assume in_p'_parcomp_Tick: "\<sigma> @ [[Xa]\<^sub>R] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
-      have 1: "CT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        using CT_P CT_init_tock p_P p_def by blast
-      have 2: "CT {[], [[Tick]\<^sub>E]}"
-        by (metis CT_Skip SkipCTT_def)
+      have 1: "TT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using TT_P TT_init_tock p_P p_def by blast
+      have 2: "TT {[], [[Tick]\<^sub>E]}"
+        by (metis TT_Skip SkipTTT_def)
       have 3: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. \<exists>q\<in>{[], [[Tick]\<^sub>E]}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[e]\<^sub>E] \<in> x) \<or>
          e = Tock \<and> (\<exists>x. (\<exists>p\<in>{t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. \<exists>q\<in>{[], [[Tick]\<^sub>E]}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
         thm disjoint
@@ -1601,7 +1601,7 @@ proof (auto)
           then obtain p' where p'_assms: "\<sigma> @ [[x]\<^sub>E] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" "p' \<lesssim>\<^sub>C p"
             using merge_traces_empty_merge_traces_tick by blast
           then have "[X1]\<^sub>R # [Tock]\<^sub>E # p' \<in> P"
-            using CT_P case_assms unfolding CT_def CT1_def apply auto
+            using TT_P case_assms unfolding TT_def TT1_def apply auto
             by (erule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p'" in allE, auto)
           then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[x]\<^sub>E] \<in> xa"
             using refusal_merge q_def q_Q p'_assms apply (rule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
@@ -1612,7 +1612,7 @@ proof (auto)
           then obtain p' where p'_assms: "\<sigma> @ [[x]\<^sub>E] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" "p' \<lesssim>\<^sub>C p"
             using merge_traces_empty_merge_traces_tick by blast
           then have "[X1]\<^sub>R # [Tock]\<^sub>E # p' \<in> P"
-            using CT_P case_assms unfolding CT_def CT1_def apply auto
+            using TT_P case_assms unfolding TT_def TT1_def apply auto
             by (erule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p'" in allE, auto)
           then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[x]\<^sub>E] \<in> xa"
             using refusal_merge q_def q_Q p'_assms apply (rule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, simp_all)
@@ -1623,7 +1623,7 @@ proof (auto)
           then obtain p' where p'_assms: "\<sigma> @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" "p' \<lesssim>\<^sub>C p"
             using merge_traces_empty_merge_traces_tick by blast
           then have "[X1]\<^sub>R # [Tock]\<^sub>E # p' \<in> P"
-            using CT_P case_assms unfolding CT_def CT1_def apply auto
+            using TT_P case_assms unfolding TT_def TT1_def apply auto
             by (erule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p'" in allE, auto)
           then show "\<forall>x. (\<forall>p\<in>P. \<forall>q\<in>Q. x \<noteq> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<or> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<notin> x \<Longrightarrow> False"
             using refusal_merge q_def q_Q p'_assms apply (erule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in allE, safe, simp_all)
@@ -1634,7 +1634,7 @@ proof (auto)
           then obtain p' where p'_assms: "\<sigma> @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" "p' \<lesssim>\<^sub>C p"
             using merge_traces_empty_merge_traces_tick by blast
           then have "[X1]\<^sub>R # [Tock]\<^sub>E # p' \<in> P"
-            using CT_P case_assms unfolding CT_def CT1_def apply auto
+            using TT_P case_assms unfolding TT_def TT1_def apply auto
             by (erule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p'" in allE, auto)
           then show "\<forall>x. (\<forall>p\<in>P. \<forall>q\<in>Q. x \<noteq> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<or> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<notin> x \<Longrightarrow>
             \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[Tock]\<^sub>E] \<in> x"
@@ -1683,7 +1683,7 @@ proof (auto)
         obtain p' where "p' \<lesssim>\<^sub>C p" "\<sigma> @ [[Xa \<union> Y]\<^sub>R] \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
           using merge_traces_empty_merge_traces_tick[where r="\<sigma> @ [[Xa \<union> Y]\<^sub>R]", where s=p] assm2 by auto
         also then have "[X1]\<^sub>R # [Tock]\<^sub>E # p' \<in> P"
-          using CT_P assm3 unfolding CT_def CT1_def apply auto
+          using TT_P assm3 unfolding TT_def TT1_def apply auto
           by (erule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p'" in allE, auto)
         then show "thesis"
           using assm1 calculation by blast
@@ -1700,10 +1700,10 @@ proof (auto)
       assume q_def: "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
       assume refusal_merge: "[[X]\<^sub>R] \<in> [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]"
       assume in_Tick_parcomp_q': "\<sigma> @ [[Xa]\<^sub>R] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      have 1: "CT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        using CT_Q CT_init_tock q_Q q_def by blast
-      have 2: "CT {[], [[Tick]\<^sub>E]}"
-        by (metis CT_Skip SkipCTT_def)
+      have 1: "TT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using TT_Q TT_init_tock q_Q q_def by blast
+      have 2: "TT {[], [[Tick]\<^sub>E]}"
+        by (metis TT_Skip SkipTTT_def)
       have 3: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{[], [[Tick]\<^sub>E]}. \<exists>q\<in>{t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[e]\<^sub>E] \<in> x) \<or>
          e = Tock \<and> (\<exists>x. (\<exists>p\<in>{[], [[Tick]\<^sub>E]}. \<exists>q\<in>{t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
       proof -
@@ -1717,7 +1717,7 @@ proof (auto)
           then obtain q' where q'_assms: "\<sigma> @ [[x]\<^sub>E] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "q' \<lesssim>\<^sub>C q"
             using merge_traces_empty_merge_traces_tick merge_traces_comm by blast
           then have "[X2]\<^sub>R # [Tock]\<^sub>E # q' \<in> Q"
-            using CT_Q case_assms unfolding CT_def CT1_def apply auto
+            using TT_Q case_assms unfolding TT_def TT1_def apply auto
             by (erule_tac x="[X2]\<^sub>R # [Tock]\<^sub>E # q'" in allE, auto)
           then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[x]\<^sub>E] \<in> xa"
             using refusal_merge p_def p_P q'_assms apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [X2]\<^sub>R # [Tock]\<^sub>E # q'" in exI, safe, simp_all)
@@ -1728,7 +1728,7 @@ proof (auto)
           then obtain q' where q'_assms: "\<sigma> @ [[x]\<^sub>E] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "q' \<lesssim>\<^sub>C q"
             using merge_traces_empty_merge_traces_tick merge_traces_comm by blast
           then have "[X2]\<^sub>R # [Tock]\<^sub>E # q' \<in> Q"
-            using CT_Q case_assms unfolding CT_def CT1_def apply auto
+            using TT_Q case_assms unfolding TT_def TT1_def apply auto
             by (erule_tac x="[X2]\<^sub>R # [Tock]\<^sub>E # q'" in allE, auto)
           then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[x]\<^sub>E] \<in> xa"
             using refusal_merge p_def p_P q'_assms apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [X2]\<^sub>R # [Tock]\<^sub>E # q'" in exI, safe, simp_all)
@@ -1739,7 +1739,7 @@ proof (auto)
           then obtain q' where q'_assms: "\<sigma> @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "q' \<lesssim>\<^sub>C q"
             using merge_traces_empty_merge_traces_tick merge_traces_comm  by blast
           then have "[X2]\<^sub>R # [Tock]\<^sub>E # q' \<in> Q"
-            using CT_Q case_assms unfolding CT_def CT1_def apply auto
+            using TT_Q case_assms unfolding TT_def TT1_def apply auto
             by (erule_tac x="[X2]\<^sub>R # [Tock]\<^sub>E # q'" in allE, auto)
           then show "\<forall>x. (\<forall>p\<in>P. \<forall>q\<in>Q. x \<noteq> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<or> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<notin> x \<Longrightarrow> False"
             using refusal_merge p_def p_P q'_assms apply (erule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [X2]\<^sub>R # [Tock]\<^sub>E # q'" in allE, safe, simp_all)
@@ -1750,7 +1750,7 @@ proof (auto)
           then obtain q' where q'_assms: "\<sigma> @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "q' \<lesssim>\<^sub>C q"
             using merge_traces_empty_merge_traces_tick merge_traces_comm  by blast
           then have "[X2]\<^sub>R # [Tock]\<^sub>E # q' \<in> Q"
-            using CT_Q case_assms unfolding CT_def CT1_def apply auto
+            using TT_Q case_assms unfolding TT_def TT1_def apply auto
             by (erule_tac x="[X2]\<^sub>R # [Tock]\<^sub>E # q'" in allE, auto)
           then show "\<forall>x. (\<forall>p\<in>P. \<forall>q\<in>Q. x \<noteq> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<or> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<notin> x \<Longrightarrow>
             \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> @ [[Tock]\<^sub>E] \<in> x"
@@ -1799,7 +1799,7 @@ proof (auto)
         obtain q' where "q' \<lesssim>\<^sub>C q" "\<sigma> @ [[Xa \<union> Y]\<^sub>R] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
           using merge_traces_empty_merge_traces_tick[where r="\<sigma> @ [[Xa \<union> Y]\<^sub>R]", where s=q] merge_traces_comm assm2 by blast
         also then have "[X2]\<^sub>R # [Tock]\<^sub>E # q' \<in> Q"
-          using CT_Q assm3 unfolding CT_def CT1_def apply auto
+          using TT_Q assm3 unfolding TT_def TT1_def apply auto
           by (erule_tac x="[X2]\<^sub>R # [Tock]\<^sub>E # q'" in allE, auto)
         then show "thesis"
           using assm1 calculation by blast
@@ -1813,70 +1813,70 @@ proof (auto)
     qed
   next
     fix va P Q X Y p q
-    assume "[Tock]\<^sub>E # va @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[Tock]\<^sub>E # va @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([Tock]\<^sub>E # va @ [[X]\<^sub>R])"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tock]\<^sub>E # va @ [[X \<union> Y]\<^sub>R] \<in> x"
       by simp
   next
     fix v vc P Q X Y p q
-    assume "[Tock]\<^sub>E # v # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[Tock]\<^sub>E # v # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([Tock]\<^sub>E # v # vc @ [[X]\<^sub>R])"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tock]\<^sub>E # v # vc @ [[X \<union> Y]\<^sub>R] \<in> x"
       by simp
   next
     fix v vc P Q X Y p q
-    assume "[Tick]\<^sub>E # v # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[Tick]\<^sub>E # v # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([Tick]\<^sub>E # v # vc @ [[X]\<^sub>R])"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tick]\<^sub>E # v # vc @ [[X \<union> Y]\<^sub>R] \<in> x"
       by simp
   next
     fix vb vc P Q X Y p q
-    assume "[Tock]\<^sub>E # vb # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[Tock]\<^sub>E # vb # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([Tock]\<^sub>E # vb # vc @ [[X]\<^sub>R])"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tock]\<^sub>E # vb # vc @ [[X \<union> Y]\<^sub>R] \<in> x"
       by simp
   next
     fix vb vc P Q X Y p q
-    assume "[Tick]\<^sub>E # vb # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[Tick]\<^sub>E # vb # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([Tick]\<^sub>E # vb # vc @ [[X]\<^sub>R])"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tick]\<^sub>E # vb # vc @ [[X \<union> Y]\<^sub>R] \<in> x"
       by simp
   next
     fix va vd vc P Q X Y p q
-    assume "[va]\<^sub>R # [Event vd]\<^sub>E # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[va]\<^sub>R # [Event vd]\<^sub>E # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([va]\<^sub>R # [Event vd]\<^sub>E # vc @ [[X]\<^sub>R])"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [va]\<^sub>R # [Event vd]\<^sub>E # vc @ [[X \<union> Y]\<^sub>R] \<in> x"
       by simp
   next
     fix va vc P Q X Y p q
-    assume "[va]\<^sub>R # [Tick]\<^sub>E # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[va]\<^sub>R # [Tick]\<^sub>E # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([va]\<^sub>R # [Tick]\<^sub>E # vc @ [[X]\<^sub>R])"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [va]\<^sub>R # [Tick]\<^sub>E # vc @ [[X \<union> Y]\<^sub>R] \<in> x"
       by simp
   next
     fix va v vc P Q X Y p q
-    assume "[va]\<^sub>R # [v]\<^sub>R # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[va]\<^sub>R # [v]\<^sub>R # vc @ [[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([va]\<^sub>R # [v]\<^sub>R # vc @ [[X]\<^sub>R])"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [va]\<^sub>R # [v]\<^sub>R # vc @ [[X \<union> Y]\<^sub>R] \<in> x"
       by simp
   qed
 qed   
 
-lemma CT2s_ParComp:
-  assumes "CT P" "CT Q" "CT2s P" "CT2s Q"
-  shows "CT2s (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding CT2s_def ParCompCTT_def
+lemma TT2s_ParComp:
+  assumes "TT P" "TT Q" "TT2s P" "TT2s Q"
+  shows "TT2s (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding TT2s_def ParCompTTT_def
 proof (auto)
   fix \<rho> \<sigma>
-  have "\<And>P Q X Y p q. CT P \<Longrightarrow> CT Q \<Longrightarrow> CT2s P \<Longrightarrow> CT2s Q \<Longrightarrow>
+  have "\<And>P Q X Y p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> TT2s P \<Longrightarrow> TT2s Q \<Longrightarrow>
     Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
       e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
     \<rho> @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
@@ -1884,14 +1884,14 @@ proof (auto)
     fix P Q :: "'a cttobs list set"
     fix X Y :: "'a cttevent set"
     fix p q :: "'a cttobs list"
-    assume CT_P: "CT P" and CT_Q: "CT Q"
-    assume CT2s_P: "CT2s P" and CT2s_Q: "CT2s Q"
+    assume TT_P: "TT P" and TT_Q: "TT Q"
+    assume TT2s_P: "TT2s P" and TT2s_Q: "TT2s Q"
     assume assm1: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
     assume assm2: "[X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
     assume p_in_P: "p \<in> P" and q_in_Q: "q \<in> Q"
     have "ttWF p \<and> ttWF q"
-      using CT_P CT_Q CT_wf p_in_P q_in_Q by blast
+      using TT_P TT_Q TT_wf p_in_P q_in_Q by blast
     then have "ttWF ([X]\<^sub>R # \<sigma>)"
       using assm2 merge_traces_wf by blast
     then have "\<sigma> = [] \<or> (\<exists> \<sigma>'. \<sigma> = [Tock]\<^sub>E # \<sigma>')"
@@ -1899,10 +1899,10 @@ proof (auto)
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
     proof auto
       assume case_assm: "\<sigma> = []"
-      have "CT2 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-        by (simp add: CT2_ParComp CT_P CT_Q)
+      have "TT2 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+        by (simp add: TT2_ParComp TT_P TT_Q)
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X \<union> Y]\<^sub>R] \<in> x"
-        using case_assm assm1 assm2 p_in_P q_in_Q unfolding CT2_def ParCompCTT_def apply auto
+        using case_assm assm1 assm2 p_in_P q_in_Q unfolding TT2_def ParCompTTT_def apply auto
         by (erule_tac x="[]" in allE, erule_tac x="X" in allE, erule_tac x="Y" in allE, auto, fastforce)
     next
       fix \<sigma>'
@@ -1917,7 +1917,7 @@ proof (auto)
         fix x
         assume "[[Event x]\<^sub>E] \<in> P" "x \<notin> A"
         also have "[] \<in> Q"
-          by (simp add: CT_empty CT_Q)
+          by (simp add: TT_empty TT_Q)
         then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Event x]\<^sub>E] \<in> xa"
           using calculation apply (rule_tac x="[[Event x]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C []" in exI, auto)
           apply (rule_tac x="[[Event x]\<^sub>E]" in bexI, auto)
@@ -1927,7 +1927,7 @@ proof (auto)
         fix x
         assume "[[Event x]\<^sub>E] \<in> Q" "x \<notin> A"
         also have "[] \<in> P"
-          by (simp add: CT_empty CT_P)
+          by (simp add: TT_empty TT_P)
         then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Event x]\<^sub>E] \<in> xa"
           using calculation apply (rule_tac x="[] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Event x]\<^sub>E]" in exI, auto)
           apply (rule_tac x="[]" in bexI, auto)
@@ -1949,10 +1949,10 @@ proof (auto)
       proof (auto, case_tac "(p,q)" rule:ttWF2.cases, auto)
         fix \<rho> f \<sigma>
         assume "[Event f]\<^sub>E # \<rho> \<in> P"
-        also have "CT1 P"
-          using CT_P CT_def by blast
+        also have "TT1 P"
+          using TT_P TT_def by blast
         then show "[[Event f]\<^sub>E] \<in> P"
-          using calculation unfolding CT1_def apply auto
+          using calculation unfolding TT1_def apply auto
           by (erule_tac x="[[Event f]\<^sub>E]" in allE, auto)
       qed
       have set3: "{e. e = Tick \<and> [[Tick]\<^sub>E] \<in> P} \<inter> {e. e = Tick \<and> [[Tick]\<^sub>E] \<in> Q} \<subseteq> {e. e = Tick \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Tick]\<^sub>E] \<in> x)}"
@@ -2021,9 +2021,9 @@ proof (auto)
         fix p' q' X1 X2
         assume case_assms2: "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'" "\<sigma>' \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'" "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]"
         have 1: "[[X1]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-          using CT_P CT_empty CT_init_tock case_assms2(3) p_in_P by blast
+          using TT_P TT_empty TT_init_tock case_assms2(3) p_in_P by blast
         have 2: "[[X2]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
-          using CT_Q CT_empty CT_init_tock case_assms2(1) q_in_Q by blast
+          using TT_Q TT_empty TT_init_tock case_assms2(1) q_in_Q by blast
         have 3: "B \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X1]\<^sub>R, [e]\<^sub>E] \<in> P)} = {}"
           using nontock_P_assm1 nontock_sets by auto
         have 4: "C \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[X2]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
@@ -2038,23 +2038,23 @@ proof (auto)
         have 8: "(C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}) \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q) \<or> (e = Tock \<and> [[X2]\<^sub>R, [e]\<^sub>E] \<in> Q)} = {}"
           using 4 6 by blast
         have 9: "[X1 \<union> B \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}]\<^sub>R # [Tock]\<^sub>E # p' \<in> P"
-          using CT2s_P 7 case_assms2 p_in_P unfolding CT2s_def
+          using TT2s_P 7 case_assms2 p_in_P unfolding TT2s_def
           apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # p'" in allE, erule_tac x="X1" in allE)
           by (erule_tac x="B \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}" in allE, simp add: sup_assoc)
         have 10: "[X2 \<union> C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}]\<^sub>R # [Tock]\<^sub>E # q' \<in> Q"
-          using CT2s_Q 8 case_assms2 q_in_Q unfolding CT2s_def
+          using TT2s_Q 8 case_assms2 q_in_Q unfolding TT2s_def
           apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # q'" in allE, erule_tac x="X2" in allE)
           by (erule_tac x="C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}" in allE, simp add: sup_assoc)
         have 11: "X \<subseteq> X1 \<union> X2"
           using case_assms2(4) by auto
         have 12: "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          using assm2 case_assm p_in_P q_in_Q unfolding ParCompCTT_def by auto
-        have CT1_ParComp: "CT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-          by (simp add: CT1_ParComp CT_P CT_Q)
+          using assm2 case_assm p_in_P q_in_Q unfolding ParCompTTT_def by auto
+        have TT1_ParComp: "TT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+          by (simp add: TT1_ParComp TT_P TT_Q)
         have 13: "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          using 12 CT1_ParComp unfolding CT1_def apply (auto) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+          using 12 TT1_ParComp unfolding TT1_def apply (auto) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
         have 14: "Tock \<in> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[e]\<^sub>E] \<in> x) \<or> e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> x)}"
-          using 13 unfolding ParCompCTT_def by auto
+          using 13 unfolding ParCompTTT_def by auto
         have 15: "Tock \<notin> Y"
           using 14 assm1 by auto
         have 16: "Y \<subseteq> B \<union> C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}"
@@ -2090,7 +2090,7 @@ proof (auto)
         fix p' X1 p'a X1a
         assume case_assms2: "q = [[Tick]\<^sub>E]" "\<sigma>' \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" "p = [X1a]\<^sub>R # [Tock]\<^sub>E # p'a" "[[X]\<^sub>R] \<in> [[X1a]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R]"
         have 1: "[[X1a]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-          using CT_P CT_empty CT_init_tock case_assms2(3) p_in_P by blast
+          using TT_P TT_empty TT_init_tock case_assms2(3) p_in_P by blast
         have 2: "B \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X1a]\<^sub>R, [e]\<^sub>E] \<in> P)} = {}"
           using nontock_P_assm1 nontock_sets by auto
         have 3: "{Event e |e. Event e \<in> Y \<and> e \<notin> A} \<inter> {Event e |e. e \<notin> A \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Event e]\<^sub>E] \<in> x)} = {}"
@@ -2100,16 +2100,16 @@ proof (auto)
         have 5: "(B \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}) \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X1a]\<^sub>R, [e]\<^sub>E] \<in> P)} = {}"
           using 2 4 by blast
         have 6: "[X1a \<union> B \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}]\<^sub>R # [Tock]\<^sub>E # p'a \<in> P"
-          using case_assms2(3) p_in_P 5 CT2s_P unfolding CT2s_def apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # p'a" in allE)
+          using case_assms2(3) p_in_P 5 TT2s_P unfolding TT2s_def apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # p'a" in allE)
           by (erule_tac x="X1a" in allE, erule_tac x="B \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}" in allE, auto simp add: sup_assoc)
         have 7: "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          using assm2 case_assm p_in_P q_in_Q unfolding ParCompCTT_def by auto
-        have CT1_ParComp: "CT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-          by (simp add: CT1_ParComp CT_P CT_Q)
+          using assm2 case_assm p_in_P q_in_Q unfolding ParCompTTT_def by auto
+        have TT1_ParComp: "TT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+          by (simp add: TT1_ParComp TT_P TT_Q)
         have 8: "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          using 7 CT1_ParComp unfolding CT1_def apply (auto) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+          using 7 TT1_ParComp unfolding TT1_def apply (auto) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
         have 9: "Tock \<in> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[e]\<^sub>E] \<in> x) \<or> e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> x)}"
-          using 8 unfolding ParCompCTT_def by auto
+          using 8 unfolding ParCompTTT_def by auto
         have 10: "Tock \<notin> Y"
           using 9 assm1 by auto
         have 11: "Y \<subseteq> X1a \<union> B \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A} \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick}"
@@ -2126,7 +2126,7 @@ proof (auto)
         fix q' X2 q'a X2a
         assume case_assms2: "q = [X2a]\<^sub>R # [Tock]\<^sub>E # q'a" "\<sigma>' \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a" "p = [[Tick]\<^sub>E]" "[[X]\<^sub>R] \<in> [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2a]\<^sub>R]"
         have 1: "[[X2a]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
-          using CT_Q CT_empty CT_init_tock case_assms2 q_in_Q by blast
+          using TT_Q TT_empty TT_init_tock case_assms2 q_in_Q by blast
         have 2: "C \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q) \<or> (e = Tock \<and> [[X2a]\<^sub>R, [e]\<^sub>E] \<in> Q)} = {}"
           using nontock_Q_assm1 nontock_sets by auto
         have 3: "{Event e |e. Event e \<in> Y \<and> e \<notin> A} \<inter> {Event e |e. e \<notin> A \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[Event e]\<^sub>E] \<in> x)} = {}"
@@ -2136,16 +2136,16 @@ proof (auto)
         have 5: "(C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}) \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q) \<or> (e = Tock \<and> [[X2a]\<^sub>R, [e]\<^sub>E] \<in> Q)} = {}"
           using 2 4 by blast
         have 6: "[X2a \<union> C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}]\<^sub>R # [Tock]\<^sub>E # q'a \<in> Q"
-          using case_assms2(1) q_in_Q 5 CT2s_Q unfolding CT2s_def apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # q'a" in allE)
+          using case_assms2(1) q_in_Q 5 TT2s_Q unfolding TT2s_def apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # q'a" in allE)
           by (erule_tac x="X2a" in allE, erule_tac x="C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A}" in allE, auto simp add: sup_assoc)
         have 7: "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          using assm2 case_assm p_in_P q_in_Q unfolding ParCompCTT_def by auto
-        have CT1_ParComp: "CT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-          by (simp add: CT1_ParComp CT_P CT_Q)
+          using assm2 case_assm p_in_P q_in_Q unfolding ParCompTTT_def by auto
+        have TT1_ParComp: "TT1 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+          by (simp add: TT1_ParComp TT_P TT_Q)
         have 8: "[[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<lbrakk>A\<rbrakk>\<^sub>C Q"
-          using 7 CT1_ParComp unfolding CT1_def apply (auto) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
+          using 7 TT1_ParComp unfolding TT1_def apply (auto) by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in allE, auto)
         have 9: "Tock \<in> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[e]\<^sub>E] \<in> x) \<or> e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> x)}"
-          using 8 unfolding ParCompCTT_def by auto
+          using 8 unfolding ParCompTTT_def by auto
         have 10: "Tock \<notin> Y"
           using 9 assm1 by auto
         have 11: "Y \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> (X2a \<union> C \<union> {Event e |e. Event e \<in> Y \<and> e \<notin> A})"
@@ -2163,16 +2163,16 @@ proof (auto)
     qed
   next
     fix X P Q Xa Y p q
-    assume "[X]\<^sub>R # [Xa]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" " p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[X]\<^sub>R # [Xa]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" " p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([X]\<^sub>R # [Xa]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   next
     fix P Q X Y p q
-    assume "[Tick]\<^sub>E # [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" " p \<in> P" "q \<in> Q" "CT P" "CT Q"
+    assume "[Tick]\<^sub>E # [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" " p \<in> P" "q \<in> Q" "TT P" "TT Q"
     then have "ttWF ([Tick]\<^sub>E # [X]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tick]\<^sub>E # [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   next
@@ -2185,28 +2185,28 @@ proof (auto)
       \<or> (\<exists> p'. e \<notin> A \<and> p = [Event e]\<^sub>E # p' \<and> \<sigma>' @ [X]\<^sub>R # \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q)
       \<or> (\<exists> q'. e \<notin> A \<and> q = [Event e]\<^sub>E # q' \<and> \<sigma>' @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
       by (cases "(p,q)" rule:ttWF2.cases, simp_all, blast)
-    assume induction_hypothesis: "(\<And>P Q X Y p q. CT P \<Longrightarrow> CT Q \<Longrightarrow> CT2s P \<Longrightarrow> CT2s Q \<Longrightarrow>
+    assume induction_hypothesis: "(\<And>P Q X Y p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> TT2s P \<Longrightarrow> TT2s Q \<Longrightarrow>
       Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
         e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
       \<sigma>' @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x)"
     assume disjoint: "Y \<inter> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E] \<in> x) \<or>
                  ea = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
-    assume CT_P: "CT P" and CT_Q: "CT Q"
-    assume CT2s_P: "CT2s P" and CT2s_Q: "CT2s Q"
+    assume TT_P: "TT P" and TT_Q: "TT Q"
+    assume TT2s_P: "TT2s P" and TT2s_Q: "TT2s Q"
     show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       using p_q_cases
     proof auto
       fix p' q'
       assume case_assms: "e \<in> A" "p = [Event e]\<^sub>E # p'" "q = [Event e]\<^sub>E # q'" "\<sigma>' @ [X]\<^sub>R # \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      have 1: "CT {x. [Event e]\<^sub>E # x \<in> P}"
-        using CT_P CT_init_event case_assms(2) p_P by force
-      have 2: "CT {x. [Event e]\<^sub>E # x \<in> Q}"
-        using CT_Q CT_init_event case_assms(3) q_Q by force
-      have 3: "CT2s {x. [Event e]\<^sub>E # x \<in> P}"
-        using CT2s_P CT2s_init_event by force
-      have 4: "CT2s {x. [Event e]\<^sub>E # x \<in> Q}"
-        using CT2s_Q CT2s_init_event by force
+      have 1: "TT {x. [Event e]\<^sub>E # x \<in> P}"
+        using TT_P TT_init_event case_assms(2) p_P by force
+      have 2: "TT {x. [Event e]\<^sub>E # x \<in> Q}"
+        using TT_Q TT_init_event case_assms(3) q_Q by force
+      have 3: "TT2s {x. [Event e]\<^sub>E # x \<in> P}"
+        using TT2s_P TT2s_init_event by force
+      have 4: "TT2s {x. [Event e]\<^sub>E # x \<in> Q}"
+        using TT2s_Q TT2s_init_event by force
       have 5: "{ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [Event e]\<^sub>E # x \<in> P}. \<exists>q\<in>{x. [Event e]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[ea]\<^sub>E] \<in> x) \<or>
           ea = Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [Event e]\<^sub>E # x \<in> P}. \<exists>q\<in>{x. [Event e]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)}
         \<subseteq> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E] \<in> x) \<or>
@@ -2229,10 +2229,10 @@ proof (auto)
     next
       fix p'
       assume case_assms: "e \<notin> A" "p = [Event e]\<^sub>E # p'" "\<sigma>' @ [X]\<^sub>R # \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
-      have 1: "CT {x. [Event e]\<^sub>E # x \<in> P}"
-        using CT_P CT_init_event case_assms(2) p_P by force
-      have 2: "CT2s {x. [Event e]\<^sub>E # x \<in> P}"
-        using CT2s_P CT2s_init_event by force
+      have 1: "TT {x. [Event e]\<^sub>E # x \<in> P}"
+        using TT_P TT_init_event case_assms(2) p_P by force
+      have 2: "TT2s {x. [Event e]\<^sub>E # x \<in> P}"
+        using TT2s_P TT2s_init_event by force
       have 3: "{ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [Event e]\<^sub>E # x \<in> P}. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[ea]\<^sub>E] \<in> x) \<or>
           ea = Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [Event e]\<^sub>E # x \<in> P}. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)}
         \<subseteq> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E] \<in> x) \<or>
@@ -2247,7 +2247,7 @@ proof (auto)
           ea = Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [Event e]\<^sub>E # x \<in> P}. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
         by (smt disjoint disjoint_iff_not_equal subsetCE)
       have "\<exists>x. (\<exists>p\<in>{x. [Event e]\<^sub>E # x \<in> P}. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
-        using 1 2 4 case_assms p_P q_Q CT2s_Q CT_Q induction_hypothesis[where P="{x. [Event e]\<^sub>E # x \<in> P}"] by force
+        using 1 2 4 case_assms p_P q_Q TT2s_Q TT_Q induction_hypothesis[where P="{x. [Event e]\<^sub>E # x \<in> P}"] by force
       then obtain pa qa where "pa\<in>{x. [Event e]\<^sub>E # x \<in> P}" "qa\<in>Q" "\<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> pa \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C qa"
         by auto
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
@@ -2255,10 +2255,10 @@ proof (auto)
     next
       fix q'
       assume case_assms: "e \<notin> A" "q = [Event e]\<^sub>E # q'" "\<sigma>' @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      have 1: "CT {x. [Event e]\<^sub>E # x \<in> Q}"
-        using CT_Q CT_init_event case_assms(2) q_Q by force
-      have 2: "CT2s {x. [Event e]\<^sub>E # x \<in> Q}"
-        using CT2s_Q CT2s_init_event by force
+      have 1: "TT {x. [Event e]\<^sub>E # x \<in> Q}"
+        using TT_Q TT_init_event case_assms(2) q_Q by force
+      have 2: "TT2s {x. [Event e]\<^sub>E # x \<in> Q}"
+        using TT2s_Q TT2s_init_event by force
       have 3: "{ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>{x. [Event e]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[ea]\<^sub>E] \<in> x) \<or>
           ea = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>{x. [Event e]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)}
         \<subseteq> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E] \<in> x) \<or>
@@ -2273,7 +2273,7 @@ proof (auto)
           ea = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>{x. [Event e]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
         by (smt disjoint disjoint_iff_not_equal subsetCE)
       have "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>{x. [Event e]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
-        using 1 2 4 case_assms p_P q_Q CT2s_P CT_P induction_hypothesis[where Q="{x. [Event e]\<^sub>E # x \<in> Q}"] by force
+        using 1 2 4 case_assms p_P q_Q TT2s_P TT_P induction_hypothesis[where Q="{x. [Event e]\<^sub>E # x \<in> Q}"] by force
       then obtain pa qa where "pa\<in>P" "qa\<in>{x. [Event e]\<^sub>E # x \<in> Q}" "\<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> pa \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C qa"
         by auto
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # \<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
@@ -2288,28 +2288,28 @@ proof (auto)
       (\<exists> p' X1. p = [X1]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [[Tick]\<^sub>E] \<and> [[X]\<^sub>R] \<in> ([[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R]) \<and> \<sigma>' @ [Xa]\<^sub>R # \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]) \<or>
       (\<exists> q' X2. p = [[Tick]\<^sub>E] \<and> q = [X2]\<^sub>R # [Tock]\<^sub>E # q' \<and> [[X]\<^sub>R] \<in> ([[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]) \<and> \<sigma>' @ [Xa]\<^sub>R # \<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
       by (cases "(p,q)" rule:ttWF2.cases, simp_all)
-    assume induction_hypothesis: "\<And>P Q X Y p q. CT P \<Longrightarrow> CT Q \<Longrightarrow> CT2s P \<Longrightarrow> CT2s Q \<Longrightarrow>
+    assume induction_hypothesis: "\<And>P Q X Y p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> TT2s P \<Longrightarrow> TT2s Q \<Longrightarrow>
       Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
                     e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
       \<sigma>' @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
     assume disjoint: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
-    assume CT_P: "CT P" and CT_Q: "CT Q"
-    assume CT2s_P: "CT2s P" and CT2s_Q: "CT2s Q"
+    assume TT_P: "TT P" and TT_Q: "TT Q"
+    assume TT2s_P: "TT2s P" and TT2s_Q: "TT2s Q"
     show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
       using p_q_cases
     proof safe
       fix p' q' X1 X2
       assume case_assms: "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'" "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'" "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]" "\<sigma>' @ [Xa]\<^sub>R # \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      have 1: "CT {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
-        using CT_P CT_init_tock case_assms(1) p_P by blast
-      have 2: "CT {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
-        using CT_Q CT_init_tock case_assms(2) q_Q by blast
-      have 3: "CT2s {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
-        using CT2s_P CT2s_init_tock by blast
-      have 4: "CT2s {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
-        using CT2s_Q CT2s_init_tock by blast
+      have 1: "TT {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
+        using TT_P TT_init_tock case_assms(1) p_P by blast
+      have 2: "TT {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
+        using TT_Q TT_init_tock case_assms(2) q_Q by blast
+      have 3: "TT2s {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
+        using TT2s_P TT2s_init_tock by blast
+      have 4: "TT2s {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
+        using TT2s_Q TT2s_init_tock by blast
       have 5: "{e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}. \<exists>q\<in>{x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}. \<exists>q\<in>{x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)}
         \<subseteq> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
@@ -2337,14 +2337,14 @@ proof (auto)
     next
       fix p' X1
       assume case_assms: "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'" "q = [[Tick]\<^sub>E]" "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R]" "\<sigma>' @ [Xa]\<^sub>R # \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
-      have 1: "CT {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
-        using CT_P CT_init_tock case_assms(1) p_P by blast
-      have 2: "CT {[], [[Tick]\<^sub>E]}"
-        by (metis CT_Skip SkipCTT_def)
-      have 3: "CT2s {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
-        using CT2s_P CT2s_init_tock by blast
-      have 4: "CT2s {[], [[Tick]\<^sub>E]}"
-        by (metis CT2s_Skip SkipCTT_def)
+      have 1: "TT {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
+        using TT_P TT_init_tock case_assms(1) p_P by blast
+      have 2: "TT {[], [[Tick]\<^sub>E]}"
+        by (metis TT_Skip SkipTTT_def)
+      have 3: "TT2s {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
+        using TT2s_P TT2s_init_tock by blast
+      have 4: "TT2s {[], [[Tick]\<^sub>E]}"
+        by (metis TT2s_Skip SkipTTT_def)
       have 5: "{e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}. \<exists>q\<in>{[], [[Tick]\<^sub>E]}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p\<in>{x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}. \<exists>q\<in>{[], [[Tick]\<^sub>E]}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)}
         \<subseteq> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
@@ -2355,7 +2355,7 @@ proof (auto)
         obtain t where t_assms: "t \<lesssim>\<^sub>C p \<and> \<sigma>' @ [[x]\<^sub>E] \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
           using case_assms2(1) merge_traces_empty_merge_traces_tick by blast
         have "[X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
-          by (metis (mono_tags, lifting) "1" CT1_def CT_def case_assms2(2) mem_Collect_eq t_assms)
+          by (metis (mono_tags, lifting) "1" TT1_def TT_def case_assms2(2) mem_Collect_eq t_assms)
         then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[x]\<^sub>E] \<in> xa"
           using case_assms case_assms2 t_assms q_Q
           apply (rule_tac x="([X1]\<^sub>R # [Tock]\<^sub>E # t) \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C ([[Tick]\<^sub>E])" in exI, simp)
@@ -2366,7 +2366,7 @@ proof (auto)
         obtain t where t_assms: "t \<lesssim>\<^sub>C p \<and> \<sigma>' @ [[x]\<^sub>E] \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
           using case_assms2(1) merge_traces_empty_merge_traces_tick by blast
         have "[X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
-          by (metis (mono_tags, lifting) "1" CT1_def CT_def case_assms2(2) mem_Collect_eq t_assms)
+          by (metis (mono_tags, lifting) "1" TT1_def TT_def case_assms2(2) mem_Collect_eq t_assms)
         then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[x]\<^sub>E] \<in> xa"
           using case_assms case_assms2 t_assms q_Q
           apply (rule_tac x="([X1]\<^sub>R # [Tock]\<^sub>E # t) \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C ([[Tick]\<^sub>E])" in exI, simp)
@@ -2391,7 +2391,7 @@ proof (auto)
         obtain t where t_assms: "t \<lesssim>\<^sub>C p \<and> \<sigma>' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
           using case_assms2(1) merge_traces_empty_merge_traces_tick by blast
         have "[X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
-          by (metis (mono_tags, lifting) "1" CT1_def CT_def case_assms2(2) mem_Collect_eq t_assms)
+          by (metis (mono_tags, lifting) "1" TT1_def TT_def case_assms2(2) mem_Collect_eq t_assms)
         then show "\<forall>x. (\<forall>p\<in>P. \<forall>q\<in>Q. x \<noteq> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<or> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<notin> x \<Longrightarrow> False"
           using case_assms case_assms2 t_assms q_Q
           apply (erule_tac x="([X1]\<^sub>R # [Tock]\<^sub>E # t) \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C ([[Tick]\<^sub>E])" in allE, simp)
@@ -2402,7 +2402,7 @@ proof (auto)
         obtain t where t_assms: "t \<lesssim>\<^sub>C p \<and> \<sigma>' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<in> t \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
           using case_assms2(1) merge_traces_empty_merge_traces_tick by blast
         have "[X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
-          by (metis (mono_tags, lifting) "1" CT1_def CT_def case_assms2(2) mem_Collect_eq t_assms)
+          by (metis (mono_tags, lifting) "1" TT1_def TT_def case_assms2(2) mem_Collect_eq t_assms)
         then show "\<forall>x. (\<forall>p\<in>P. \<forall>q\<in>Q. x \<noteq> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<or> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<notin> x \<Longrightarrow>
           \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[Tock]\<^sub>E] \<in> x"
           using case_assms case_assms2 t_assms q_Q
@@ -2430,21 +2430,21 @@ proof (auto)
       then have "\<exists>x. (\<exists>p\<in>{x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}. \<exists>q\<in>{[], [[Tick]\<^sub>E]}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
         using 1 2 3 4 6 p_P q_Q case_assms induction_hypothesis[where P="{x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}", where Q="{[], [[Tick]\<^sub>E]}"] by fastforce
       then obtain pa where "pa \<in> {x. [X1]\<^sub>R # [Tock]\<^sub>E # x \<in> P}" "\<sigma>' @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> pa \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
-        by (auto, metis (no_types, lifting) "1" CT1_def CT_def mem_Collect_eq merge_traces_empty_merge_traces_tick)
+        by (auto, metis (no_types, lifting) "1" TT1_def TT_def mem_Collect_eq merge_traces_empty_merge_traces_tick)
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
         using case_assms q_Q apply (rule_tac x="([X1]\<^sub>R # [Tock]\<^sub>E # pa) \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C ([[Tick]\<^sub>E])" in exI, simp_all)
         by (rule_tac x="([X1]\<^sub>R # [Tock]\<^sub>E # pa)" in bexI, rule_tac x="[[Tick]\<^sub>E]" in bexI, simp_all)
     next
       fix q' X2
       assume case_assms: "p = [[Tick]\<^sub>E]" "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'" "[[X]\<^sub>R] \<in> [[{e. e \<noteq> Tock \<and> e \<noteq> Tick}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]" "\<sigma>' @ [Xa]\<^sub>R # \<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      have 1: "CT {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
-        using CT_Q CT_init_tock case_assms(2) q_Q by blast
-      have 2: "CT {[], [[Tick]\<^sub>E]}"
-        by (metis CT_Skip SkipCTT_def)
-      have 3: "CT2s {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
-        using CT2s_Q CT2s_init_tock by blast
-      have 4: "CT2s {[], [[Tick]\<^sub>E]}"
-        by (metis CT2s_Skip SkipCTT_def)
+      have 1: "TT {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
+        using TT_Q TT_init_tock case_assms(2) q_Q by blast
+      have 2: "TT {[], [[Tick]\<^sub>E]}"
+        by (metis TT_Skip SkipTTT_def)
+      have 3: "TT2s {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"
+        using TT2s_Q TT2s_init_tock by blast
+      have 4: "TT2s {[], [[Tick]\<^sub>E]}"
+        by (metis TT2s_Skip SkipTTT_def)
         thm merge_traces_empty_merge_traces_tick
         thm merge_traces_tick_merge_traces_empty
       have 5: "{e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p\<in>{[], [[Tick]\<^sub>E]}. \<exists>q\<in>{x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [[e]\<^sub>E] \<in> x) \<or>
@@ -2457,7 +2457,7 @@ proof (auto)
         obtain t where t_assms: "t \<lesssim>\<^sub>C q \<and> \<sigma>' @ [[x]\<^sub>E] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C t"
           using case_assms2(1) merge_traces_comm merge_traces_empty_merge_traces_tick by blast
         have "[X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q"
-          by (metis (mono_tags, lifting) "1" CT1_def CT_def case_assms2(2) mem_Collect_eq t_assms)
+          by (metis (mono_tags, lifting) "1" TT1_def TT_def case_assms2(2) mem_Collect_eq t_assms)
         then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[x]\<^sub>E] \<in> xa"
           using case_assms case_assms2 t_assms p_P
           apply (rule_tac x="([[Tick]\<^sub>E]) \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C ([X2]\<^sub>R # [Tock]\<^sub>E # t)" in exI, simp)
@@ -2468,7 +2468,7 @@ proof (auto)
         obtain t where t_assms: "t \<lesssim>\<^sub>C q \<and> \<sigma>' @ [[x]\<^sub>E] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C t"
           using case_assms2(1) merge_traces_comm merge_traces_empty_merge_traces_tick by blast
         have "[X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q"
-          by (metis (mono_tags, lifting) "1" CT1_def CT_def case_assms2(2) mem_Collect_eq t_assms)
+          by (metis (mono_tags, lifting) "1" TT1_def TT_def case_assms2(2) mem_Collect_eq t_assms)
         then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>Q. xa = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[x]\<^sub>E] \<in> xa"
           using case_assms case_assms2 t_assms p_P
           apply (rule_tac x="([[Tick]\<^sub>E]) \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C ([X2]\<^sub>R # [Tock]\<^sub>E # t)" in exI, simp)
@@ -2493,7 +2493,7 @@ proof (auto)
         obtain t where t_assms: "t \<lesssim>\<^sub>C q \<and> \<sigma>' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C t"
           using case_assms2(1) merge_traces_comm merge_traces_empty_merge_traces_tick by blast
         have "[X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q"
-          by (metis (mono_tags, lifting) "1" CT1_def CT_def case_assms2(2) mem_Collect_eq t_assms)
+          by (metis (mono_tags, lifting) "1" TT1_def TT_def case_assms2(2) mem_Collect_eq t_assms)
         then show "\<forall>x. (\<forall>p\<in>P. \<forall>q\<in>Q. x \<noteq> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<or> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<notin> x \<Longrightarrow> False"
           using case_assms case_assms2 t_assms p_P
           apply (erule_tac x="([[Tick]\<^sub>E]) \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C ([X2]\<^sub>R # [Tock]\<^sub>E # t)" in allE, simp)
@@ -2504,7 +2504,7 @@ proof (auto)
         obtain t where t_assms: "t \<lesssim>\<^sub>C q \<and> \<sigma>' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C t"
           using case_assms2(1) merge_traces_comm merge_traces_empty_merge_traces_tick by blast
         have "[X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q"
-          by (metis (mono_tags, lifting) "1" CT1_def CT_def case_assms2(2) mem_Collect_eq t_assms)
+          by (metis (mono_tags, lifting) "1" TT1_def TT_def case_assms2(2) mem_Collect_eq t_assms)
         then show "\<forall>x. (\<forall>p\<in>P. \<forall>q\<in>Q. x \<noteq> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<or> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[Xa]\<^sub>R, [Tock]\<^sub>E] \<notin> x \<Longrightarrow>
           \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [[Tock]\<^sub>E] \<in> x"
           using case_assms case_assms2 t_assms p_P
@@ -2532,65 +2532,65 @@ proof (auto)
       then have "\<exists>x. (\<exists>p\<in>{[], [[Tick]\<^sub>E]}. \<exists>q\<in>{x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> \<sigma>' @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
         using 1 2 3 4 6 p_P q_Q case_assms induction_hypothesis[where P="{[], [[Tick]\<^sub>E]}", where Q="{x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}"] by fastforce
       then obtain qa where "qa \<in> {x. [X2]\<^sub>R # [Tock]\<^sub>E # x \<in> Q}" "\<sigma>' @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C qa"
-        by (auto, metis (no_types, lifting) "1" CT1_def CT_def mem_Collect_eq merge_traces_empty_merge_traces_tick merge_traces_comm)
+        by (auto, metis (no_types, lifting) "1" TT1_def TT_def mem_Collect_eq merge_traces_empty_merge_traces_tick merge_traces_comm)
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>' @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
         using case_assms p_P apply (rule_tac x="([[Tick]\<^sub>E]) \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C ([X2]\<^sub>R # [Tock]\<^sub>E # qa)" in exI, simp_all)
         by (rule_tac x="[[Tick]\<^sub>E]" in bexI, rule_tac x="([X2]\<^sub>R # [Tock]\<^sub>E # qa)" in bexI, simp_all)
     qed
   next
     fix va P Q X Y p q
-    assume "CT P" "CT Q" "[Tock]\<^sub>E # va @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    assume "TT P" "TT Q" "[Tock]\<^sub>E # va @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tock]\<^sub>E # va @ [X]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tock]\<^sub>E # va @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   next
     fix v vc P Q X Y p q
-    assume "CT P" "CT Q" "[Tock]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    assume "TT P" "TT Q" "[Tock]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tock]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tock]\<^sub>E # v # vc @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   next
     fix v vc P Q X Y p q
-    assume "CT P" "CT Q" "[Tock]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    assume "TT P" "TT Q" "[Tock]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tock]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tock]\<^sub>E # v # vc @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   next
     fix v vc P Q X Y p q
-    assume "CT P" "CT Q" "[Tick]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    assume "TT P" "TT Q" "[Tick]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tick]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tick]\<^sub>E # v # vc @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   next
     fix v vc P Q X Y p q
-    assume "CT P" "CT Q" "[Tick]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    assume "TT P" "TT Q" "[Tick]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tick]\<^sub>E # v # vc @ [X]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Tick]\<^sub>E # v # vc @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   next
     fix va vd vc P Q X Y p q
-    assume "CT P" "CT Q" "[va]\<^sub>R # [Event vd]\<^sub>E # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    assume "TT P" "TT Q" "[va]\<^sub>R # [Event vd]\<^sub>E # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([va]\<^sub>R # [Event vd]\<^sub>E # vc @ [X]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [va]\<^sub>R # [Event vd]\<^sub>E # vc @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   next
     fix va vc P Q X Y p q
-    assume "CT P" "CT Q" "[va]\<^sub>R # [Tick]\<^sub>E # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    assume "TT P" "TT Q" "[va]\<^sub>R # [Tick]\<^sub>E # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([va]\<^sub>R # [Tick]\<^sub>E # vc @ [X]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [va]\<^sub>R # [Tick]\<^sub>E # vc @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   next
     fix va v vc P Q X Y p q
-    assume "CT P" "CT Q" "[va]\<^sub>R # [v]\<^sub>R # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    assume "TT P" "TT Q" "[va]\<^sub>R # [v]\<^sub>R # vc @ [X]\<^sub>R # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([va]\<^sub>R # [v]\<^sub>R # vc @ [X]\<^sub>R # \<sigma>)"
-      using CT_wf merge_traces_wf by blast
+      using TT_wf merge_traces_wf by blast
     then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [va]\<^sub>R # [v]\<^sub>R # vc @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
       by auto
   qed
@@ -2988,12 +2988,12 @@ next
     by (meson ttWF.simps merge_traces_wf)
 qed
 
-lemma CT3_ParComp:
-  shows "\<And> P Q. CT P \<Longrightarrow> CT Q \<Longrightarrow> CT3 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding ParCompCTT_def CT3_def
+lemma TT3_ParComp:
+  shows "\<And> P Q. TT P \<Longrightarrow> TT Q \<Longrightarrow> TT3 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding ParCompTTT_def TT3_def
 proof auto
   fix x
-  show "\<And>P Q p q. CT P \<Longrightarrow> CT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> x \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> CT3_trace x"
+  show "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> x \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> TT3_trace x"
   proof (induct x rule:ttWF.induct, auto)
     fix e \<sigma> P Q p q
     assume "[Event e]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
@@ -3001,51 +3001,51 @@ proof auto
       \<or> (\<exists> p'. p = [Event e]\<^sub>E # p' \<and> e \<notin> A \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q)
       \<or> (\<exists> q'. q = [Event e]\<^sub>E # q' \<and> e \<notin> A \<and> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
       by (cases "(p,q)" rule:ttWF2.cases, auto)
-    assume induction_hypothesis: "\<And>P Q p q. CT P \<Longrightarrow> CT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> CT3_trace \<sigma>"
+    assume induction_hypothesis: "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> TT3_trace \<sigma>"
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
-    assume CT_P: "CT P" and CT_Q: "CT Q"
-    show "CT3_trace ([Event e]\<^sub>E # \<sigma>)"
+    assume TT_P: "TT P" and TT_Q: "TT Q"
+    show "TT3_trace ([Event e]\<^sub>E # \<sigma>)"
       using p_q_cases
     proof auto
       fix p' q' 
       assume p_def: "p = [Event e]\<^sub>E # p'"
       assume q_def: "q = [Event e]\<^sub>E # q'"
       assume in_p'_parcomp_q': "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      have 1: "CT {t. [Event e]\<^sub>E # t \<in> P}"
-        using CT_P CT_init_event p_P p_def by force
-      have 2: "CT {t. [Event e]\<^sub>E # t \<in> Q}"
-        using CT_Q CT_init_event q_Q q_def by force
+      have 1: "TT {t. [Event e]\<^sub>E # t \<in> P}"
+        using TT_P TT_init_event p_P p_def by force
+      have 2: "TT {t. [Event e]\<^sub>E # t \<in> Q}"
+        using TT_Q TT_init_event q_Q q_def by force
       have 3: "p' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
         using p_def p_P by force
       have 4: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
         using q_def q_Q by force
-      have "CT3_trace \<sigma>"
+      have "TT3_trace \<sigma>"
         using induction_hypothesis 1 2 3 4 in_p'_parcomp_q' by auto
-      then show "CT3_trace ([Event e]\<^sub>E # \<sigma>)"
+      then show "TT3_trace ([Event e]\<^sub>E # \<sigma>)"
         by (cases \<sigma>, auto)
     next
       fix p' 
       assume p_def: "p = [Event e]\<^sub>E # p'"
       assume in_p'_parcomp_q: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
-      have 1: "CT {t. [Event e]\<^sub>E # t \<in> P}"
-        using CT_P CT_init_event p_P p_def by force
+      have 1: "TT {t. [Event e]\<^sub>E # t \<in> P}"
+        using TT_P TT_init_event p_P p_def by force
       have 2: "p' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
         using p_def p_P by force
-      have "CT3_trace \<sigma>"
-        using induction_hypothesis 1 2 CT_Q q_Q in_p'_parcomp_q by auto
-      then show "CT3_trace ([Event e]\<^sub>E # \<sigma>)"
+      have "TT3_trace \<sigma>"
+        using induction_hypothesis 1 2 TT_Q q_Q in_p'_parcomp_q by auto
+      then show "TT3_trace ([Event e]\<^sub>E # \<sigma>)"
         by (cases \<sigma>, auto)
     next
       fix q' 
       assume q_def: "q = [Event e]\<^sub>E # q'"
       assume in_p_parcomp_q': "\<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      have 1: "CT {t. [Event e]\<^sub>E # t \<in> Q}"
-        using CT_Q CT_init_event q_Q q_def by force
+      have 1: "TT {t. [Event e]\<^sub>E # t \<in> Q}"
+        using TT_Q TT_init_event q_Q q_def by force
       have 2: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
         using q_def q_Q by force
-      have "CT3_trace \<sigma>"
-        using induction_hypothesis 1 2 CT_P p_P in_p_parcomp_q' by auto
-      then show "CT3_trace ([Event e]\<^sub>E # \<sigma>)"
+      have "TT3_trace \<sigma>"
+        using induction_hypothesis 1 2 TT_P p_P in_p_parcomp_q' by auto
+      then show "TT3_trace ([Event e]\<^sub>E # \<sigma>)"
         by (cases \<sigma>, auto)
     qed
   next
@@ -3056,17 +3056,17 @@ proof auto
       \<or> (\<exists> q' X2. q = [X2]\<^sub>R # [Tock]\<^sub>E # q' \<and> p = [[Tick]\<^sub>E] \<and> [[X]\<^sub>R] \<in> [[{e. e \<noteq> Tick \<and> e \<noteq> Tock}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R])"
       by (cases "(p,q)" rule:ttWF2.cases, auto)
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
-    assume CT_P: "CT P" and CT_Q: "CT Q"
+    assume TT_P: "TT P" and TT_Q: "TT Q"
     show "Tock \<in> X \<Longrightarrow> False"
       using p_q_cases
     proof safe
       fix p' q' X1 X2
       assume "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
       then have Tock_notin_X1: "Tock \<notin> X1"
-        using CT3_def CT3_trace.simps(3) CT_CT3 CT_P p_P by blast
+        using TT3_def TT3_trace.simps(3) TT_TT3 TT_P p_P by blast
       assume "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
       then have Tock_notin_X2: "Tock \<notin> X2"
-        using CT3_def CT3_trace.simps(3) CT_CT3 CT_Q q_Q by blast
+        using TT3_def TT3_trace.simps(3) TT_TT3 TT_Q q_Q by blast
       assume "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]"
       then have "Tock \<notin> X"
         using Tock_notin_X1 Tock_notin_X2 by auto
@@ -3076,7 +3076,7 @@ proof auto
       fix p' X1
       assume "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
       then have Tock_notin_X1: "Tock \<notin> X1"
-        using CT3_def CT3_trace.simps(3) CT_CT3 CT_P p_P by blast
+        using TT3_def TT3_trace.simps(3) TT_TT3 TT_P p_P by blast
       assume "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[{e. e \<noteq> Tick \<and> e \<noteq> Tock}]\<^sub>R]"
       then have "Tock \<notin> X"
         using Tock_notin_X1 by auto
@@ -3086,7 +3086,7 @@ proof auto
       fix p' q' X1 X2
       assume "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
       then have Tock_notin_X2: "Tock \<notin> X2"
-        using CT3_def CT3_trace.simps(3) CT_CT3 CT_Q q_Q by blast
+        using TT3_def TT3_trace.simps(3) TT_TT3 TT_Q q_Q by blast
       assume "[[X]\<^sub>R] \<in> [[{e. e \<noteq> Tick \<and> e \<noteq> Tock}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]"
       then have "Tock \<notin> X"
         using Tock_notin_X2 by auto
@@ -3101,128 +3101,128 @@ proof auto
       \<or> (\<exists> q' X2. q = [X2]\<^sub>R # [Tock]\<^sub>E # q' \<and> p = [[Tick]\<^sub>E] \<and> \<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
       by (cases "(p,q)" rule:ttWF2.cases, auto)
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
-    assume CT_P: "CT P" and CT_Q: "CT Q"
-    assume induction_hypothesis: "\<And>P Q p q. CT P \<Longrightarrow> CT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> CT3_trace \<sigma>"
-    show "CT3_trace \<sigma>"
+    assume TT_P: "TT P" and TT_Q: "TT Q"
+    assume induction_hypothesis: "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> TT3_trace \<sigma>"
+    show "TT3_trace \<sigma>"
       using p_q_cases
     proof safe
       fix p' q' X1 X2
       assume p_def: "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
       assume q_def: "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
-      have 1: "CT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        using CT_P CT_init_tock p_P p_def by blast
-      have 2: "CT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        using CT_Q CT_init_tock q_Q q_def by blast
+      have 1: "TT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using TT_P TT_init_tock p_P p_def by blast
+      have 2: "TT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using TT_Q TT_init_tock q_Q q_def by blast
       have 3: "p' \<in> {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
         using p_P p_def by blast
       have 4: "q' \<in> {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
         using q_Q q_def by blast
       assume "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      then show "CT3_trace \<sigma>"
+      then show "TT3_trace \<sigma>"
         using induction_hypothesis 1 2 3 4 by auto
     next
       fix p' X1
       assume p_def: "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
       assume q_def: "q = [[Tick]\<^sub>E]"
-      have 1: "CT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        using CT_P CT_init_tock p_P p_def by blast
+      have 1: "TT {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        using TT_P TT_init_tock p_P p_def by blast
       have 2: "p' \<in> {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
         using p_P p_def by blast
       assume "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
-      then show "CT3_trace \<sigma>"
-        using induction_hypothesis 1 2 q_def q_Q CT_Q by auto
+      then show "TT3_trace \<sigma>"
+        using induction_hypothesis 1 2 q_def q_Q TT_Q by auto
     next
       fix q' X2
       assume q_def: "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
       assume p_def: "p = [[Tick]\<^sub>E]"
-      have 1: "CT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        using CT_Q CT_init_tock q_Q q_def by blast
+      have 1: "TT {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        using TT_Q TT_init_tock q_Q q_def by blast
       have 2: "q' \<in> {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
         using q_Q q_def by blast
       assume "\<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      then show "CT3_trace \<sigma>"
-        using induction_hypothesis 1 2 p_def p_P CT_P by auto
+      then show "TT3_trace \<sigma>"
+        using induction_hypothesis 1 2 p_def p_P TT_P by auto
     qed
   next
     fix va P Q p q
-    assume "[Tock]\<^sub>E # va \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[Tock]\<^sub>E # va \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tock]\<^sub>E # va)"
-      using CT_wf merge_traces_wf by blast
-    then show "CT3_trace ([Tock]\<^sub>E # va)"
+      using TT_wf merge_traces_wf by blast
+    then show "TT3_trace ([Tock]\<^sub>E # va)"
       by auto
   next
     fix v vc P Q p q
-    assume "[Tock]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[Tock]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tock]\<^sub>E # v # vc)"
-      using CT_wf merge_traces_wf by blast
-    then show "CT3_trace (v # vc)"
+      using TT_wf merge_traces_wf by blast
+    then show "TT3_trace (v # vc)"
       by auto
   next
     fix v vc P Q p q
-    assume "[Tock]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[Tock]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tock]\<^sub>E # v # vc)"
-      using CT_wf merge_traces_wf by blast
-    then show "CT3_trace (v # vc)"
+      using TT_wf merge_traces_wf by blast
+    then show "TT3_trace (v # vc)"
       by auto
   next
     fix v vc P Q p q
-    assume "[Tick]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[Tick]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tick]\<^sub>E # v # vc)"
-      using CT_wf merge_traces_wf by blast
-    then show "CT3_trace (v # vc)"
+      using TT_wf merge_traces_wf by blast
+    then show "TT3_trace (v # vc)"
       by auto
   next
     fix vb vc P Q p q
-    assume "[Tick]\<^sub>E # vb # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[Tick]\<^sub>E # vb # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tick]\<^sub>E # vb # vc)"
-      using CT_wf merge_traces_wf by blast
-    then show "CT3_trace (vb # vc)"
+      using TT_wf merge_traces_wf by blast
+    then show "TT3_trace (vb # vc)"
       by auto
   next
     fix va vd vc P Q p q
-    assume "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([va]\<^sub>R # [Event vd]\<^sub>E # vc)"
-      using CT_wf merge_traces_wf by blast
-    then show "CT3_trace ([Event vd]\<^sub>E # vc)"
+      using TT_wf merge_traces_wf by blast
+    then show "TT3_trace ([Event vd]\<^sub>E # vc)"
       by auto
   next
     fix va vc P Q p q
-    assume "[va]\<^sub>R # [Tick]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[va]\<^sub>R # [Tick]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([va]\<^sub>R # [Tick]\<^sub>E # vc)"
-      using CT_wf merge_traces_wf by blast
-    then show "CT3_trace ([Tick]\<^sub>E # vc)"
+      using TT_wf merge_traces_wf by blast
+    then show "TT3_trace ([Tick]\<^sub>E # vc)"
       by auto
   next
     fix va v vc P Q p q
-    assume "[va]\<^sub>R # [v]\<^sub>R # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "CT P" "CT Q" "p \<in> P" "q \<in> Q"
+    assume "[va]\<^sub>R # [v]\<^sub>R # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([va]\<^sub>R # [v]\<^sub>R # vc)"
-      using CT_wf merge_traces_wf by blast
-    then show "CT3_trace ([v]\<^sub>R # vc)"
+      using TT_wf merge_traces_wf by blast
+    then show "TT3_trace ([v]\<^sub>R # vc)"
       by auto
   qed
 qed
 
-lemma CT4s_init_event:
-  "CT4s P \<Longrightarrow> CT4s {t. [e]\<^sub>E # t \<in> P}"
-  unfolding CT4s_def by (safe, force)
+lemma TT4s_init_event:
+  "TT4s P \<Longrightarrow> TT4s {t. [e]\<^sub>E # t \<in> P}"
+  unfolding TT4s_def by (safe, force)
 
-lemma CT1_init_event:
-  assumes "CT1 P"
-  shows "CT1 {t. [Event e]\<^sub>E # t \<in> P}"
-  unfolding CT1_def
+lemma TT1_init_event:
+  assumes "TT1 P"
+  shows "TT1 {t. [Event e]\<^sub>E # t \<in> P}"
+  unfolding TT1_def
 proof auto
   fix \<rho> \<sigma> :: "'a cttobs list"
   assume "\<rho> \<lesssim>\<^sub>C \<sigma>"
   then have "[Event e]\<^sub>E # \<rho> \<lesssim>\<^sub>C [Event e]\<^sub>E # \<sigma>"
     by auto
   then show "[Event e]\<^sub>E # \<sigma> \<in> P \<Longrightarrow> [Event e]\<^sub>E # \<rho> \<in> P"
-    using CT1_def CT_CT1 assms(1) by blast
+    using TT1_def TT_TT1 assms(1) by blast
 qed
 
-lemma CT1_init_tock:
-  assumes "CT1 P"
-  shows "CT1 {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-  unfolding CT1_def
+lemma TT1_init_tock:
+  assumes "TT1 P"
+  shows "TT1 {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+  unfolding TT1_def
 proof auto
   fix \<rho> \<sigma> :: "'a cttobs list"
   assume "\<rho> \<lesssim>\<^sub>C \<sigma>"
@@ -3230,13 +3230,13 @@ proof auto
     by auto
   also assume "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
   then show "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P"
-    using assms(1) calculation unfolding CT_def CT1_def apply auto 
+    using assms(1) calculation unfolding TT_def TT1_def apply auto 
     by (erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
 qed
 
-lemma CT4s_CT1_init_tock:
-  "CT4s P \<Longrightarrow> CT1 P \<Longrightarrow> CT4s {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-  unfolding CT4s_def
+lemma TT4s_TT1_init_tock:
+  "TT4s P \<Longrightarrow> TT1 P \<Longrightarrow> TT4s {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+  unfolding TT4s_def
 proof (safe)
   fix \<rho>
   assume "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P"
@@ -3244,22 +3244,22 @@ proof (safe)
     by force
   also have "[X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<rho> \<lesssim>\<^sub>C [X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<rho>"
     using ctt_prefix_subset_refl by fastforce
-  then show "CT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<rho> \<in> P"
-    unfolding CT1_def using calculation by blast
+  then show "TT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<rho> \<in> P"
+    unfolding TT1_def using calculation by blast
 qed
 
-lemma CT4s_ParComp:
-  assumes "CT1 P" "CT1 Q"
-  assumes "CT4s P" "CT4s Q"
-  shows "CT4s (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding ParCompCTT_def CT4s_def using assms
+lemma TT4s_ParComp:
+  assumes "TT1 P" "TT1 Q"
+  assumes "TT4s P" "TT4s Q"
+  shows "TT4s (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding ParCompTTT_def TT4s_def using assms
 proof auto
   fix \<rho>
-  show "\<And> p q P Q. CT1 P \<Longrightarrow> CT1 Q \<Longrightarrow> CT4s P \<Longrightarrow> CT4s Q \<Longrightarrow> \<rho> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
+  show "\<And> p q P Q. TT1 P \<Longrightarrow> TT1 Q \<Longrightarrow> TT4s P \<Longrightarrow> TT4s Q \<Longrightarrow> \<rho> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
     \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> add_Tick_refusal_trace \<rho> \<in> x"
   proof (induct \<rho> rule:ttWF.induct, auto)
     fix X p q P Q
-    assume case_assms: "[[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT4s P" "CT4s Q"
+    assume case_assms: "[[X]\<^sub>R] \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT4s P" "TT4s Q"
     then have "(\<exists> Y Z. p = [[Y]\<^sub>R] \<and> q = [[Z]\<^sub>R] \<and> X \<subseteq> Y \<union> Z \<and> {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}})
       \<or> (\<exists> Z. p = [[Tick]\<^sub>E] \<and> q = [[Z]\<^sub>R] \<and> X \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> Z \<and> {e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}})
       \<or> (\<exists> Y. p = [[Y]\<^sub>R] \<and> q = [[Tick]\<^sub>E] \<and> X \<subseteq> Y \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<and> {e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}})"
@@ -3269,29 +3269,29 @@ proof auto
       fix Y Z
       assume case_assms2: "p = [[Y]\<^sub>R]" "q = [[Z]\<^sub>R]" "X \<subseteq> Y \<union> Z" "{e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}}"
       then have "[[Y \<union> {Tick}]\<^sub>R] \<in> P" "[[Z \<union> {Tick}]\<^sub>R] \<in> Q"
-        using CT4s_def case_assms by force+
+        using TT4s_def case_assms by force+
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[insert Tick X]\<^sub>R] \<in> x"
         using case_assms2 by (rule_tac x="[[Y \<union> {Tick}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Z \<union> {Tick}]\<^sub>R]" in exI, safe, blast, simp, blast)
     next
       fix Z
       assume case_assms2: "p = [[Tick]\<^sub>E]" "q = [[Z]\<^sub>R]" "X \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> Z" "{e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}}"
       then have "[[Z \<union> {Tick}]\<^sub>R] \<in> Q"
-        using CT4s_def case_assms by force
+        using TT4s_def case_assms by force
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[insert Tick X]\<^sub>R] \<in> x"
         using case_assms case_assms2 by (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Z \<union> {Tick}]\<^sub>R]" in exI, safe, blast, simp, blast)
     next
       fix Y
       assume case_assms2: "p = [[Y]\<^sub>R]" "q = [[Tick]\<^sub>E]" "X \<subseteq> Y \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick}" "{e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}}"
       then have "[[Y \<union> {Tick}]\<^sub>R] \<in> P"
-        using CT4s_def case_assms by force
+        using TT4s_def case_assms by force
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [[insert Tick X]\<^sub>R] \<in> x"
         using case_assms case_assms2 by (rule_tac x="[[Y \<union> {Tick}]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe, blast, simp, blast)
     qed
   next
     fix e \<sigma> p q P Q
-    assume ind_hyp: "\<And>p q P Q. CT1 P \<Longrightarrow> CT1 Q \<Longrightarrow> CT4s P \<Longrightarrow> CT4s Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
+    assume ind_hyp: "\<And>p q P Q. TT1 P \<Longrightarrow> TT1 Q \<Longrightarrow> TT4s P \<Longrightarrow> TT4s Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
       \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> add_Tick_refusal_trace \<sigma> \<in> x"
-    assume case_assms: "[Event e]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "CT1 P" "CT1 Q" "CT4s P" "CT4s Q"
+    assume case_assms: "[Event e]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q" "TT1 P" "TT1 Q" "TT4s P" "TT4s Q"
     then have "(\<exists> p' q'. \<sigma> \<in> (p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q') \<and> p = [Event e]\<^sub>E # p' \<and> q = [Event e]\<^sub>E # q' \<and> e \<in> A)
       \<or> (\<exists> p'. \<sigma> \<in> (p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> p = [Event e]\<^sub>E # p' \<and> e \<notin> A)
       \<or> (\<exists> q'. \<sigma> \<in> (p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q') \<and> q = [Event e]\<^sub>E # q' \<and> e \<notin> A)"
@@ -3302,16 +3302,16 @@ proof auto
       assume case_assms2: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "p = [Event e]\<^sub>E # p'" "q = [Event e]\<^sub>E # q'" "e \<in> A"
       have 1: "p' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
         using case_assms(2) case_assms2(2) by blast
-      have 2: "CT1 {t. [Event e]\<^sub>E # t \<in> P}"
-        by (simp add: CT1_init_event case_assms(4))
-      have 3: "CT4s {t. [Event e]\<^sub>E # t \<in> P}"
-        by (simp add: CT4s_init_event case_assms(6))
+      have 2: "TT1 {t. [Event e]\<^sub>E # t \<in> P}"
+        by (simp add: TT1_init_event case_assms(4))
+      have 3: "TT4s {t. [Event e]\<^sub>E # t \<in> P}"
+        by (simp add: TT4s_init_event case_assms(6))
       have 4: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
         using case_assms(3) case_assms2(3) by blast
-      have 5: "CT1 {t. [Event e]\<^sub>E # t \<in> Q}"
-        by (simp add: CT1_init_event case_assms(5))
-      have 6: "CT4s {t. [Event e]\<^sub>E # t \<in> Q}"
-        by (simp add: CT4s_init_event case_assms(7))
+      have 5: "TT1 {t. [Event e]\<^sub>E # t \<in> Q}"
+        by (simp add: TT1_init_event case_assms(5))
+      have 6: "TT4s {t. [Event e]\<^sub>E # t \<in> Q}"
+        by (simp add: TT4s_init_event case_assms(7))
       obtain p'' q'' where "p''\<in>{t. [Event e]\<^sub>E # t \<in> P} \<and> q''\<in>{t. [Event e]\<^sub>E # t \<in> Q} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
         using 1 2 3 4 5 6 case_assms2(1) ind_hyp by blast
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
@@ -3322,10 +3322,10 @@ proof auto
       assume case_assms2: "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p = [Event e]\<^sub>E # p'" "e \<notin> A"
       have 1: "p' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
         using case_assms(2) case_assms2(2) by blast
-      have 2: "CT1 {t. [Event e]\<^sub>E # t \<in> P}"
-        by (simp add: CT1_init_event case_assms(4))
-      have 3: "CT4s {t. [Event e]\<^sub>E # t \<in> P}"
-        by (simp add: CT4s_init_event case_assms(6))
+      have 2: "TT1 {t. [Event e]\<^sub>E # t \<in> P}"
+        by (simp add: TT1_init_event case_assms(4))
+      have 3: "TT4s {t. [Event e]\<^sub>E # t \<in> P}"
+        by (simp add: TT4s_init_event case_assms(6))
       obtain p'' q' where "p''\<in>{t. [Event e]\<^sub>E # t \<in> P} \<and> q' \<in> Q \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
         using 1 2 3 case_assms case_assms2(1) ind_hyp by blast
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
@@ -3335,10 +3335,10 @@ proof auto
       assume case_assms2: "\<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "q = [Event e]\<^sub>E # q'" "e \<notin> A"
       have 1: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
         using case_assms case_assms2 by blast
-      have 2: "CT1 {t. [Event e]\<^sub>E # t \<in> Q}"
-        by (simp add: CT1_init_event case_assms(5))
-      have 3: "CT4s {t. [Event e]\<^sub>E # t \<in> Q}"
-        by (simp add: CT4s_init_event case_assms(7))
+      have 2: "TT1 {t. [Event e]\<^sub>E # t \<in> Q}"
+        by (simp add: TT1_init_event case_assms(5))
+      have 3: "TT4s {t. [Event e]\<^sub>E # t \<in> Q}"
+        by (simp add: TT4s_init_event case_assms(7))
       obtain p' q'' where "q''\<in>{t. [Event e]\<^sub>E # t \<in> Q} \<and> p' \<in> P \<and> add_Tick_refusal_trace \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
         using 1 2 3 case_assms case_assms2(1) ind_hyp by blast
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [Event e]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
@@ -3346,9 +3346,9 @@ proof auto
     qed
   next
     fix X \<sigma> p q P Q
-    assume ind_hyp: "\<And>p q P Q. CT1 P \<Longrightarrow> CT1 Q \<Longrightarrow> CT4s P \<Longrightarrow> CT4s Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
+    assume ind_hyp: "\<And>p q P Q. TT1 P \<Longrightarrow> TT1 Q \<Longrightarrow> TT4s P \<Longrightarrow> TT4s Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow>
       \<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> add_Tick_refusal_trace \<sigma> \<in> x"
-    assume case_assms: "CT1 P" "CT1 Q" "CT4s P" "CT4s Q" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
+    assume case_assms: "TT1 P" "TT1 Q" "TT4s P" "TT4s Q" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "p \<in> P" "q \<in> Q"
     then have "(\<exists> Y Z p' q'. p = [Y]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [Z]\<^sub>R # [Tock]\<^sub>E # q' \<and> X \<subseteq> Y \<union> Z \<and> {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}} \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')
       \<or> (\<exists> Z q'. p = [[Tick]\<^sub>E] \<and> q = [Z]\<^sub>R # [Tock]\<^sub>E # q' \<and> X \<subseteq> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<union> Z \<and> {e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}} \<and> \<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')
       \<or> (\<exists> Y p'. p = [Y]\<^sub>R # [Tock]\<^sub>E # p' \<and> q = [[Tick]\<^sub>E] \<and> X \<subseteq> Y \<union> {e. e \<noteq> Tock \<and> e \<noteq> Tick} \<and> {e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E])"
@@ -3360,20 +3360,20 @@ proof auto
         "{e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}}"
       have 1: "p' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
         using case_assms(6) case_assms2(1) by auto
-      have 2: "CT1 {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        by (simp add: CT1_init_tock case_assms(1))
-      have 3: "CT4s {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        by (simp add: CT4s_CT1_init_tock case_assms(1) case_assms(3))
+      have 2: "TT1 {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        by (simp add: TT1_init_tock case_assms(1))
+      have 3: "TT4s {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        by (simp add: TT4s_TT1_init_tock case_assms(1) case_assms(3))
       have 4: "q' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
         using case_assms(7) case_assms2(2) by auto
-      have 5: "CT1 {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        by (simp add: CT1_init_tock case_assms(2))
-      have 6: "CT4s {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        by (simp add: CT4s_CT1_init_tock case_assms(2) case_assms(4))
+      have 5: "TT1 {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        by (simp add: TT1_init_tock case_assms(2))
+      have 6: "TT4s {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        by (simp add: TT4s_TT1_init_tock case_assms(2) case_assms(4))
       obtain  q'' p'' where "p'' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P} \<and> q'' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
         using "1" "2" "3" "4" "5" "6" case_assms2(3) ind_hyp by blast
       then have "p'' \<in> {t. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P} \<and> q'' \<in> {t. [Z \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> Q} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
-        using CT4s_CT1_add_Tick_ref_Tock case_assms case_assms by auto
+        using TT4s_TT1_add_Tick_ref_Tock case_assms case_assms by auto
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
         using case_assms case_assms2 apply (rule_tac x="[Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [Z \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # q''" in exI, safe, simp_all)
         by (rule_tac x="[Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # p''" in bexI, rule_tac x="[Z \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # q''" in bexI, simp_all, safe, blast+)
@@ -3383,22 +3383,22 @@ proof auto
         "{e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Z. e \<notin> Event ` A \<union> {Tock, Tick}}"
       have 1: "q' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
         using case_assms(7) case_assms2(2) by auto
-      have 2: "CT1 {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        by (simp add: CT1_init_tock case_assms(2))
-      have 3: "CT4s {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        by (simp add: CT4s_CT1_init_tock case_assms(2) case_assms(4))
-      have 4: "CT1 {[], [[Tick]\<^sub>E]}"
-        using CT_Skip unfolding CT_defs SkipCTT_def by simp
-      have 5: "CT4s {[], [[Tick]\<^sub>E]}"
-        using CT4s_Skip unfolding CT4s_def SkipCTT_def by simp
+      have 2: "TT1 {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        by (simp add: TT1_init_tock case_assms(2))
+      have 3: "TT4s {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
+        by (simp add: TT4s_TT1_init_tock case_assms(2) case_assms(4))
+      have 4: "TT1 {[], [[Tick]\<^sub>E]}"
+        using TT_Skip unfolding TT_defs SkipTTT_def by simp
+      have 5: "TT4s {[], [[Tick]\<^sub>E]}"
+        using TT4s_Skip unfolding TT4s_def SkipTTT_def by simp
       have 6: "p \<in> {[], [[Tick]\<^sub>E]}"
         by (simp add: case_assms2(1))
       obtain p'' q'' where "p'' \<in> {[], [[Tick]\<^sub>E]} \<and> q'' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
         using 1 2 3 4 5 6 case_assms2 ind_hyp[where P="{[], [[Tick]\<^sub>E]}", where Q="{t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}", where p=p, where q=q'] by auto
       then obtain q''' where "add_Tick_refusal_trace \<sigma> \<in> ([[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''') \<and> q''' \<in> {t. [Z]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        by (auto, smt "2" CT1_def mem_Collect_eq merge_traces_comm merge_traces_empty_merge_traces_tick)
+        by (auto, smt "2" TT1_def mem_Collect_eq merge_traces_comm merge_traces_empty_merge_traces_tick)
       then have "add_Tick_refusal_trace \<sigma> \<in> ([[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''') \<and> q''' \<in> {t. [Z \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
-        using CT4s_CT1_add_Tick_ref_Tock case_assms(2) case_assms(4) by blast
+        using TT4s_TT1_add_Tick_ref_Tock case_assms(2) case_assms(4) by blast
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
         using case_assms case_assms2 apply (rule_tac x="[[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [insert Tick Z]\<^sub>R # [Tock]\<^sub>E # q'''" in exI, safe)
         by (rule_tac x="[[Tick]\<^sub>E]" in bexI, rule_tac x="[insert Tick Z]\<^sub>R # [Tock]\<^sub>E # q'''" in bexI, auto)
@@ -3408,22 +3408,22 @@ proof auto
         "{e \<in> {e. e \<noteq> Tock \<and> e \<noteq> Tick}. e \<notin> Event ` A \<union> {Tock, Tick}} = {e \<in> Y. e \<notin> Event ` A \<union> {Tock, Tick}}"
       have 1: "p' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
         using case_assms(6) case_assms2(1) by auto
-      have 2: "CT1 {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        by (simp add: CT1_init_tock case_assms(1))
-      have 3: "CT4s {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        by (simp add: CT4s_CT1_init_tock case_assms(1) case_assms(3))
-      have 4: "CT1 {[], [[Tick]\<^sub>E]}"
-        using CT_Skip unfolding CT_defs SkipCTT_def by simp
-      have 5: "CT4s {[], [[Tick]\<^sub>E]}"
-        using CT4s_Skip unfolding CT4s_def SkipCTT_def by simp
+      have 2: "TT1 {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        by (simp add: TT1_init_tock case_assms(1))
+      have 3: "TT4s {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+        by (simp add: TT4s_TT1_init_tock case_assms(1) case_assms(3))
+      have 4: "TT1 {[], [[Tick]\<^sub>E]}"
+        using TT_Skip unfolding TT_defs SkipTTT_def by simp
+      have 5: "TT4s {[], [[Tick]\<^sub>E]}"
+        using TT4s_Skip unfolding TT4s_def SkipTTT_def by simp
       have 6: "q \<in> {[], [[Tick]\<^sub>E]}"
         by (simp add: case_assms2(2))
       obtain p'' q'' where "q'' \<in> {[], [[Tick]\<^sub>E]} \<and> p'' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P} \<and> add_Tick_refusal_trace \<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''"
         using 1 2 3 4 5 6 case_assms2 ind_hyp[where Q="{[], [[Tick]\<^sub>E]}", where P="{t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}", where p=p', where q=q] by auto
       then obtain p''' where "add_Tick_refusal_trace \<sigma> \<in> (p''' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]) \<and> p''' \<in> {t. [Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        by (auto, smt "2" CT1_def mem_Collect_eq merge_traces_comm merge_traces_empty_merge_traces_tick)
+        by (auto, smt "2" TT1_def mem_Collect_eq merge_traces_comm merge_traces_empty_merge_traces_tick)
       then have "add_Tick_refusal_trace \<sigma> \<in> (p''' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]) \<and> p''' \<in> {t. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-        using CT4s_CT1_add_Tick_ref_Tock case_assms(1) case_assms(3) by blast
+        using TT4s_TT1_add_Tick_ref_Tock case_assms(1) case_assms(3) by blast
       then show "\<exists>x. (\<exists>p\<in>P. \<exists>q\<in>Q. x = p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q) \<and> [insert Tick X]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace \<sigma> \<in> x"
         using case_assms case_assms2 apply (rule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # p''' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" in exI, safe)
         by (rule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # p'''" in bexI, rule_tac x="[[Tick]\<^sub>E]" in bexI, auto)
@@ -3472,15 +3472,15 @@ proof auto
 qed
 
 
-lemma CT_ParComp:
-  assumes "CT P" "CT Q"
-  shows "CT (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  using assms unfolding CT_def apply (safe)
-  using ParCompCTT_wf apply blast
-  using CT0_ParComp unfolding CT_def apply blast
-  using CT1_ParComp unfolding CT_def apply blast
-  using CT2_ParComp unfolding CT_def apply blast
-  using CT3_ParComp unfolding CT_def apply blast
+lemma TT_ParComp:
+  assumes "TT P" "TT Q"
+  shows "TT (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  using assms unfolding TT_def apply (safe)
+  using ParCompTTT_wf apply blast
+  using TT0_ParComp unfolding TT_def apply blast
+  using TT1_ParComp unfolding TT_def apply blast
+  using TT2_ParComp unfolding TT_def apply blast
+  using TT3_ParComp unfolding TT_def apply blast
   done
 
 end

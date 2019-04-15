@@ -1,8 +1,8 @@
 theory
-  CTockTick_FL_Priority
+  TickTock_FL_Priority
 imports
-  CTockTick_Prioritise
-  CTockTick_FL
+  TickTock_Prioritise
+  TickTock_FL
   Finite_Linear_Priority
 begin
 
@@ -11,9 +11,9 @@ lemma pri_univ_dist:
   unfolding pri_def by auto
 
 lemma flt2cttobs_extn:
-  (*assumes CTwf_healthy: "CTwf P" 
-        and CT1c_healthy: "CT1c P"
-        and CT3_healthy:  "CT3 P"*)
+  (*assumes TTwf_healthy: "TTwf P" 
+        and TT1c_healthy: "TT1c P"
+        and TT3_healthy:  "TT3 P"*)
     shows
   "(fl2ctt fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))
    =
@@ -61,7 +61,7 @@ qed
 
 
 lemma
-  "fl2ctt(pri p P) = priCT p fl2ctt(P)"
+  "fl2ctt(pri p P) = priTT p fl2ctt(P)"
 proof -
   have "fl2ctt(pri p P) = {flt2cttobs fl|fl. fl \<in> (pri p P)}"
     unfolding fl2ctt_def by simp
@@ -72,9 +72,9 @@ proof -
   oops
 
 lemma
-  assumes CTwf_healthy: "CTwf P" 
-      and CT1c_healthy: "CT1c P"
-      and CT3_healthy:  "CT3 P"
+  assumes TTwf_healthy: "TTwf P" 
+      and TT1c_healthy: "TT1c P"
+      and TT3_healthy:  "TT3 P"
     shows
   "\<exists>fl. flt2goodTock fl \<and> (\<exists>x. FL1 x \<and> {flt2cttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x) \<and> flt2cttobs(fl) \<in> P"
 proof -
@@ -83,7 +83,7 @@ proof -
         (\<exists>fl x. x = flt2cttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FL1 x \<and> {flt2cttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x) \<and> x \<in> P)"
     by blast
   then have "(\<exists>fl x. x = flt2cttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FL1 x \<and> {flt2cttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x))"
-    using assms CTwf_1c_3_imp_flt2cttobs_FL1
+    using assms TTwf_1c_3_imp_flt2cttobs_FL1
     apply auto
     oops
   (*  "(\<exists>fl\<^sub>0. {flt2cttobs fl|fl. fl \<in> fl\<^sub>0} \<subseteq> P \<and> 

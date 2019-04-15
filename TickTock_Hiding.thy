@@ -1,5 +1,5 @@
-theory CTockTick_Hiding
-  imports CTockTick_Core
+theory TickTock_Hiding
+  imports TickTock_Core
 begin
 
 subsection {* Hiding *}
@@ -22,13 +22,13 @@ fun hide_trace :: "'a cttevent set \<Rightarrow> 'a cttobs list \<Rightarrow> 'a
   "hide_trace X ([Y]\<^sub>R # [Z]\<^sub>R # t) = {}" |
   "hide_trace X ([Tick]\<^sub>E # x # t) = {}"
 
-definition HidingCTT :: "'a cttobs list set \<Rightarrow> 'a cttevent set \<Rightarrow> 'a cttobs list set" (infixl "\<setminus>\<^sub>C" 53) where
-  "HidingCTT P X = \<Union> {hide_trace X p | p. p \<in> P}"
+definition HidingTTT :: "'a cttobs list set \<Rightarrow> 'a cttevent set \<Rightarrow> 'a cttobs list set" (infixl "\<setminus>\<^sub>C" 53) where
+  "HidingTTT P X = \<Union> {hide_trace X p | p. p \<in> P}"
 
-lemma HidingCTT_wf:
+lemma HidingTTT_wf:
   assumes "\<forall>x\<in>P. ttWF x"
   shows "\<forall>x\<in>(P \<setminus>\<^sub>C X). ttWF x"
-  using assms unfolding HidingCTT_def
+  using assms unfolding HidingTTT_def
 proof auto
   fix x p
   show "\<And> P x. \<forall>x\<in>P. ttWF x \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> ttWF x"
@@ -39,20 +39,20 @@ proof auto
     using ttWF.simps(2) by blast
 qed
 
-lemma CT0_Hiding:
-  assumes "CT0 P" "CT1 P"  
-  shows "CT0 (P \<setminus>\<^sub>C X)"
-  unfolding HidingCTT_def CT0_def
+lemma TT0_Hiding:
+  assumes "TT0 P" "TT1 P"  
+  shows "TT0 (P \<setminus>\<^sub>C X)"
+  unfolding HidingTTT_def TT0_def
 proof auto
   have "[] \<in> P"
-    by (simp add: CT0_CT1_empty assms(1) assms(2))
+    by (simp add: TT0_TT1_empty assms(1) assms(2))
   then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> x \<noteq> {}"
     using hide_trace.simps(1) by blast
 qed
 
-lemma CT1_Hiding:
-  shows "CT1 P \<Longrightarrow> CT1 (P \<setminus>\<^sub>C X)"
-  unfolding HidingCTT_def CT1_def
+lemma TT1_Hiding:
+  shows "TT1 P \<Longrightarrow> TT1 (P \<setminus>\<^sub>C X)"
+  unfolding HidingTTT_def TT1_def
 proof auto
   fix p
   show "\<And>P \<rho> \<sigma>. \<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P \<Longrightarrow> \<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> \<in> x"
@@ -185,10 +185,10 @@ proof auto
   qed
 qed
 
-lemma CT2_Hiding:
-  assumes "CT2 P"
-  shows "CT2 (P \<setminus>\<^sub>C X)"
-  unfolding CT2_def HidingCTT_def
+lemma TT2_Hiding:
+  assumes "TT2 P"
+  shows "TT2 (P \<setminus>\<^sub>C X)"
+  unfolding TT2_def HidingTTT_def
 proof auto
   fix Xa Y p
   show "\<And> \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
@@ -198,12 +198,12 @@ proof auto
   proof -
     show "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
         e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-      \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> CT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
+      \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> TT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
     proof (induct p rule:ttWF.induct, simp_all, safe, simp_all)
       fix Xb P
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [[e]\<^sub>E] \<in> x) \<or>
                       e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[[Xb]\<^sub>R] \<in> P" "CT2 P" "Xa \<subseteq> Xb" "X \<subseteq> Xb"
+        "[[Xb]\<^sub>R] \<in> P" "TT2 P" "Xa \<subseteq> Xb" "X \<subseteq> Xb"
       have "{e. e\<notin>X \<and> (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[Xb]\<^sub>R, [e]\<^sub>E] \<in> P)} \<subseteq>
         {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)}"
@@ -225,7 +225,7 @@ proof auto
       then have "{x. x \<notin> X} \<inter> Y \<inter> {e. e\<notin>X \<and> (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[Xb]\<^sub>R, [e]\<^sub>E] \<in> P)} = {}"
         using Int_empty_right case_assms(1) by auto
       then have "[[Xb \<union> ({x. x \<notin> X} \<inter> Y)]\<^sub>R] \<in> P"
-        using case_assms unfolding CT2_def by (erule_tac x="[]" in allE, erule_tac x="Xb" in allE, erule_tac x="{x. x \<notin> X} \<inter> Y" in allE, auto)
+        using case_assms unfolding TT2_def by (erule_tac x="[]" in allE, erule_tac x="Xb" in allE, erule_tac x="{x. x \<notin> X} \<inter> Y" in allE, auto)
       also have "Xb \<union> ({x. x \<notin> X} \<inter> Y) = Xb \<union> Y"
         using case_assms by auto
       then have "[[Xb \<union> Y]\<^sub>R] \<in> P"
@@ -236,10 +236,10 @@ proof auto
       fix e \<sigma> P \<rho>
       assume ind_hyp: "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                        e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-        \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
+        \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[Event e]\<^sub>E # \<sigma> \<in> P" "CT2 P" "Event e \<in> X" "\<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma>"
+        "[Event e]\<^sub>E # \<sigma> \<in> P" "TT2 P" "Event e \<in> X" "\<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma>"
       have "{ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho> @ [[ea]\<^sub>E] \<in> x) \<or>
               ea = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho> @ [[Xa]\<^sub>R, [ea]\<^sub>E] \<in> x)} \<subseteq>
         {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
@@ -252,18 +252,18 @@ proof auto
       then have 1: "Y \<inter> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho> @ [[ea]\<^sub>E] \<in> x) \<or>
               ea = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho> @ [[Xa]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
         by (smt case_assms(1) disjoint_iff_not_equal subsetCE)
-      have 2: "CT2 {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}"
-        using case_assms(3) unfolding CT2_def by (auto, erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
+      have 2: "TT2 {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}"
+        using case_assms(3) unfolding TT2_def by (auto, erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
       show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
         using ind_hyp[where P="{\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}", where \<rho>=\<rho>] 1 2 case_assms by auto
     next
       fix e \<sigma> P \<rho> s'
       assume ind_hyp: "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                        e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-        \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
+        \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[Event e]\<^sub>E # \<sigma> \<in> P" "CT2 P" "Event e \<notin> X" "s' \<in> hide_trace X \<sigma>" "\<rho> @ [[Xa]\<^sub>R] = [Event e]\<^sub>E # s'"
+        "[Event e]\<^sub>E # \<sigma> \<in> P" "TT2 P" "Event e \<notin> X" "s' \<in> hide_trace X \<sigma>" "\<rho> @ [[Xa]\<^sub>R] = [Event e]\<^sub>E # s'"
       then obtain \<rho>' where \<rho>'_assms: "\<rho> = [Event e]\<^sub>E # \<rho>' \<and> \<rho>' @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma>"
         by (cases \<rho> rule:ttWF.cases, simp_all, blast)
       have "{ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[ea]\<^sub>E] \<in> x) \<or>
@@ -274,8 +274,8 @@ proof auto
       then have 1: "Y \<inter> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[ea]\<^sub>E] \<in> x) \<or>
           ea = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[Xa]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
         by (smt case_assms(1) disjoint_iff_not_equal subsetCE)
-      have 2: "CT2 {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}"
-        using case_assms(3) unfolding CT2_def by (auto, erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
+      have 2: "TT2 {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}"
+        using case_assms(3) unfolding TT2_def by (auto, erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
       have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[Xa \<union> Y]\<^sub>R] \<in> x"
         using ind_hyp[where P="{\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}", where \<rho>="\<rho>'"] 1 2 \<rho>'_assms case_assms by auto
       then obtain x p where "x = hide_trace X p \<and> p \<in> {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P} \<and> \<rho>' @ [[Xa \<union> Y]\<^sub>R] \<in> x"
@@ -286,10 +286,10 @@ proof auto
       fix Xb \<sigma> P \<rho>
       assume ind_hyp: "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                        e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-        \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
+        \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "CT2 P" "Tock \<in> X" "\<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma>"
+        "[Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "TT2 P" "Tock \<in> X" "\<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma>"
       have "{e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} \<subseteq>
         {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
@@ -298,8 +298,8 @@ proof auto
       then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
         by (smt case_assms(1) disjoint_iff_not_equal subsetCE)
-      have 2: "CT2 {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}"
-        using case_assms(3) unfolding CT2_def by (auto, erule_tac x="[Xb]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
+      have 2: "TT2 {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}"
+        using case_assms(3) unfolding TT2_def by (auto, erule_tac x="[Xb]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
       have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
         using ind_hyp[where P="{\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}", where \<rho>=\<rho>] 1 2 case_assms by auto
       then obtain x p where "x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P} \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
@@ -310,10 +310,10 @@ proof auto
       fix Xb \<sigma> P \<rho> s' Z
       assume ind_hyp: "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                        e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-        \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
+        \<rho> @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT2 P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> x"
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "CT2 P" "Z \<subseteq> Xb" "Tock \<notin> X" "X \<subseteq> Xb" "\<rho> @ [[Xa]\<^sub>R] = [Z]\<^sub>R # [Tock]\<^sub>E # s'" "s' \<in> hide_trace X \<sigma>"
+        "[Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "TT2 P" "Z \<subseteq> Xb" "Tock \<notin> X" "X \<subseteq> Xb" "\<rho> @ [[Xa]\<^sub>R] = [Z]\<^sub>R # [Tock]\<^sub>E # s'" "s' \<in> hide_trace X \<sigma>"
       then obtain \<rho>' where \<rho>'_assms: "\<rho> = [Z]\<^sub>R # [Tock]\<^sub>E # \<rho>' \<and> \<rho>' @ [[Xa]\<^sub>R] \<in> hide_trace X \<sigma>"
         by (cases \<rho> rule:ttWF.cases, simp_all, blast)
       have "{e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[e]\<^sub>E] \<in> x) \<or>
@@ -328,8 +328,8 @@ proof auto
       then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
         by (smt case_assms(1) disjoint_iff_not_equal subsetCE)
-      have 2: "CT2 {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}"
-        using case_assms(3) unfolding CT2_def by (auto, erule_tac x="[Xb]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
+      have 2: "TT2 {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}"
+        using case_assms(3) unfolding TT2_def by (auto, erule_tac x="[Xb]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
       have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}) \<and> \<rho>' @ [[Xa \<union> Y]\<^sub>R] \<in> x"
         using ind_hyp[where P="{\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}", where \<rho>=\<rho>'] 1 2 case_assms \<rho>'_assms by auto
       then obtain x p where "x = hide_trace X p \<and> p \<in> {\<sigma>. [Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P} \<and> \<rho>' @ [[Xa \<union> Y]\<^sub>R] \<in> x"
@@ -340,10 +340,10 @@ proof auto
   qed
 qed
 
-lemma CT2s_Hiding:
-  assumes "CT2s P"
-  shows "CT2s (P \<setminus>\<^sub>C X)"
-  unfolding CT2s_def HidingCTT_def
+lemma TT2s_Hiding:
+  assumes "TT2s P"
+  shows "TT2s (P \<setminus>\<^sub>C X)"
+  unfolding TT2s_def HidingTTT_def
 proof auto
   fix Xa Y p
   show "\<And> \<rho> \<sigma>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
@@ -353,12 +353,12 @@ proof auto
   proof -
     show "\<And>P \<rho> \<sigma>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                    e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-           \<rho> @ [Xa]\<^sub>R # \<sigma> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> CT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
+           \<rho> @ [Xa]\<^sub>R # \<sigma> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> TT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma> \<in> x"
     proof (induct p rule:ttWF.induct, simp_all, safe)
       fix Xb P \<rho> \<sigma> Z
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[[Xb]\<^sub>R] \<in> P" "CT2s P" "Z \<subseteq> Xb" "X \<subseteq> Xb" "\<rho> @ [Xa]\<^sub>R # \<sigma> = [[Z]\<^sub>R]"
+        "[[Xb]\<^sub>R] \<in> P" "TT2s P" "Z \<subseteq> Xb" "X \<subseteq> Xb" "\<rho> @ [Xa]\<^sub>R # \<sigma> = [[Z]\<^sub>R]"
       have 1: "Z = Xa \<and> \<rho> = [] \<and> \<sigma> = []"
         by (metis (no_types, lifting) Nil_is_append_conv append_eq_Cons_conv case_assms(6) cttobs.inject(2) list.distinct(1) list.inject)
       then have "{e. e \<notin> X \<and> (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Xb]\<^sub>R, [e]\<^sub>E] \<in> P)}
@@ -387,7 +387,7 @@ proof auto
       then have "{e. e \<in> Y \<and> e \<notin> X} \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Xb]\<^sub>R, [e]\<^sub>E] \<in> P)} = {}"
         using case_assms(1) by auto
       then have "[[Xb \<union> {e. e \<in> Y \<and> e \<notin> X}]\<^sub>R] \<in> P"
-        using case_assms 1 unfolding CT2s_def by (erule_tac x="[]" in allE, force)
+        using case_assms 1 unfolding TT2s_def by (erule_tac x="[]" in allE, force)
       then have "Xb \<union> {e. e \<in> Y \<and> e \<notin> X} = Xb \<union> Y \<Longrightarrow> [[Xb \<union> Y]\<^sub>R] \<in> P"
         by auto
       then have "[[Xb \<union> Y]\<^sub>R] \<in> P"
@@ -405,12 +405,12 @@ proof auto
       fix e \<sigma> P \<rho> \<sigma>'
       assume ind_hyp: "\<And>P \<rho> \<sigma>'. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-        \<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
+        \<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[Event e]\<^sub>E # \<sigma> \<in> P" "CT2s P" "Event e \<in> X" "\<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma>"
-      have  1: "CT2s {x. [Event e]\<^sub>E # x \<in> P}"
-        by (simp add: CT2s_init_event case_assms(3))
+        "[Event e]\<^sub>E # \<sigma> \<in> P" "TT2s P" "Event e \<in> X" "\<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma>"
+      have  1: "TT2s {x. [Event e]\<^sub>E # x \<in> P}"
+        by (simp add: TT2s_init_event case_assms(3))
       then have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {x. [Event e]\<^sub>E # x \<in> P}) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
         using case_assms 1 ind_hyp[where P ="{x. [Event e]\<^sub>E # x \<in> P}", where \<rho>=\<rho>, where \<sigma>'=\<sigma>'] by force
       then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
@@ -419,10 +419,10 @@ proof auto
       fix e \<sigma> P \<rho> \<sigma>' s'
       assume ind_hyp: "\<And>P \<rho> \<sigma>'. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-        \<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
+        \<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[Event e]\<^sub>E # \<sigma> \<in> P" "CT2s P" "Event e \<notin> X" "s' \<in> hide_trace X \<sigma>" "\<rho> @ [Xa]\<^sub>R # \<sigma>' = [Event e]\<^sub>E # s'"
+        "[Event e]\<^sub>E # \<sigma> \<in> P" "TT2s P" "Event e \<notin> X" "s' \<in> hide_trace X \<sigma>" "\<rho> @ [Xa]\<^sub>R # \<sigma>' = [Event e]\<^sub>E # s'"
       obtain \<rho>' where s'_def: "s' = \<rho>' @ [Xa]\<^sub>R # \<sigma>'"
         using case_assms(6) by (cases \<rho> rule:ttWF.cases, auto)
       have "{ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {x. [Event e]\<^sub>E # x \<in> P}) \<and> \<rho>' @ [[ea]\<^sub>E] \<in> x) \<or>
@@ -433,8 +433,8 @@ proof auto
       then have 1: "Y \<inter> {ea. ea \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {x. [Event e]\<^sub>E # x \<in> P}) \<and> \<rho>' @ [[ea]\<^sub>E] \<in> x) \<or>
           ea = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {x. [Event e]\<^sub>E # x \<in> P}) \<and> \<rho>' @ [[Xa]\<^sub>R, [ea]\<^sub>E] \<in> x)} = {}"
         by (smt case_assms(1) disjoint_iff_not_equal subsetCE)
-      have 2: "CT2s {x. [Event e]\<^sub>E # x \<in> P}"
-        by (simp add: CT2s_init_event case_assms(3))
+      have 2: "TT2s {x. [Event e]\<^sub>E # x \<in> P}"
+        by (simp add: TT2s_init_event case_assms(3))
       have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {x. [Event e]\<^sub>E # x \<in> P}) \<and> \<rho>' @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
         using case_assms 1 2 s'_def ind_hyp[where P ="{x. [Event e]\<^sub>E # x \<in> P}", where \<rho>=\<rho>', where \<sigma>'=\<sigma>'] by force
       then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
@@ -443,12 +443,12 @@ proof auto
       fix Xb \<sigma> P \<rho> \<sigma>'
       assume ind_hyp: "\<And>P \<rho> \<sigma>'. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-        \<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
+        \<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "CT2s P" "Tock \<in> X" "\<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma>"
-      have 1: "CT2s {x. [Xb]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
-        by (simp add: CT2s_init_tock case_assms(3))
+        "[Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "TT2s P" "Tock \<in> X" "\<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma>"
+      have 1: "TT2s {x. [Xb]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
+        by (simp add: TT2s_init_tock case_assms(3))
       have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {x. [Xb]\<^sub>R # [Tock]\<^sub>E # x \<in> P}) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
         using case_assms 1 ind_hyp[where P ="{x. [Xb]\<^sub>R # [Tock]\<^sub>E # x \<in> P}", where \<rho>=\<rho>, where \<sigma>'=\<sigma>'] by force
       then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
@@ -457,12 +457,12 @@ proof auto
       fix Xb \<sigma> P \<rho> \<sigma>' s' Z
       assume ind_hyp: "\<And>P \<rho> \<sigma>'. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                           e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {} \<Longrightarrow>
-        \<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
+        \<rho> @ [Xa]\<^sub>R # \<sigma>' \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT2s P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
       assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
                 e = Tock \<and> (\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "[Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "CT2s P" "Z \<subseteq> Xb" "Tock \<notin> X" "X \<subseteq> Xb" "\<rho> @ [Xa]\<^sub>R # \<sigma>' = [Z]\<^sub>R # [Tock]\<^sub>E # s'" "s' \<in> hide_trace X \<sigma>"
-      have 1: "CT2s {x. [Xb]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
-          using CT2s_init_tock case_assms(3) by blast
+        "[Xb]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "TT2s P" "Z \<subseteq> Xb" "Tock \<notin> X" "X \<subseteq> Xb" "\<rho> @ [Xa]\<^sub>R # \<sigma>' = [Z]\<^sub>R # [Tock]\<^sub>E # s'" "s' \<in> hide_trace X \<sigma>"
+      have 1: "TT2s {x. [Xb]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
+          using TT2s_init_tock case_assms(3) by blast
       have "(\<exists> \<rho>'. s' = \<rho>' @ [Xa]\<^sub>R # \<sigma>') \<or> (\<rho> = [] \<and> Z = Xa \<and> \<sigma>' = [Tock]\<^sub>E # s')"
         using case_assms(7) by (cases \<rho> rule:ttWF.cases, auto)
       then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> \<rho> @ [Xa \<union> Y]\<^sub>R # \<sigma>' \<in> x"
@@ -490,7 +490,7 @@ proof auto
         then have "{e. e \<notin> X \<and> e \<in> Y} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Xb]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
           using case_assms(1) by auto
         then have "[Xb \<union> {e. e \<notin> X \<and> e \<in> Y}]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
-          using case_assms case_assms2 unfolding CT2s_def by (erule_tac x="[]" in allE, force)
+          using case_assms case_assms2 unfolding TT2s_def by (erule_tac x="[]" in allE, force)
         then have "Xb \<union> {e. e \<notin> X \<and> e \<in> Y} = Xb \<union> Y \<Longrightarrow> [Xb \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
           by auto
         then have "[Xb \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
@@ -502,51 +502,52 @@ proof auto
   qed
 qed
  
-lemma CT3_Hiding:
-  "CT3 P \<Longrightarrow> CT3 (P \<setminus>\<^sub>C X)"
-  unfolding CT3_def HidingCTT_def
+lemma TT3_Hiding:
+  "TT3 P \<Longrightarrow> TT3 (P \<setminus>\<^sub>C X)"
+  unfolding TT3_def HidingTTT_def
 proof (safe, simp_all)
   fix p
-  show "\<And>P x. Ball P CT3_trace \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> CT3_trace x"
+  show "\<And>P x. Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> TT3_trace x"
   proof (induct p rule:ttWF.induct)
     fix P x
-    show "Ball P CT3_trace \<Longrightarrow> x \<in> hide_trace X [] \<Longrightarrow> [] \<in> P \<Longrightarrow> CT3_trace x"
+    show "Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X [] \<Longrightarrow> [] \<in> P \<Longrightarrow> TT3_trace x"
       by (cases x, simp_all)
   next
     fix Xa P x
-    show "Ball P CT3_trace \<Longrightarrow> x \<in> hide_trace X [[Xa]\<^sub>R] \<Longrightarrow> [[Xa]\<^sub>R] \<in> P \<Longrightarrow> CT3_trace x"
+    show "Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X [[Xa]\<^sub>R] \<Longrightarrow> [[Xa]\<^sub>R] \<in> P \<Longrightarrow> TT3_trace x"
       by (cases x, simp_all, case_tac a, simp_all)
   next
     fix P x
-    show "Ball P CT3_trace \<Longrightarrow> x \<in> hide_trace X [[Tick]\<^sub>E] \<Longrightarrow> [[Tick]\<^sub>E] \<in> P \<Longrightarrow> CT3_trace x"
+    show "Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X [[Tick]\<^sub>E] \<Longrightarrow> [[Tick]\<^sub>E] \<in> P \<Longrightarrow> TT3_trace x"
       by (cases x, simp_all)
   next
     fix e \<sigma> P x
-    assume ind_hyp: "\<And>P x. Ball P CT3_trace \<Longrightarrow> x \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT3_trace x"
-    assume case_assms: "Ball P CT3_trace" "x \<in> hide_trace X ([Event e]\<^sub>E # \<sigma>)" "[Event e]\<^sub>E # \<sigma> \<in> P"
-    have 1: "Ball {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P} CT3_trace"
-      using case_assms(1) by auto
-    show "CT3_trace x"
+    assume ind_hyp: "\<And>P x. Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT3_trace x"
+    assume case_assms: "Ball P TT3_trace" "x \<in> hide_trace X ([Event e]\<^sub>E # \<sigma>)" "[Event e]\<^sub>E # \<sigma> \<in> P"
+    have 1: "Ball {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P} TT3_trace"
+      using case_assms(1)
+      using TT3_trace_cons_imp_cons by blast
+    show "TT3_trace x"
     proof (cases "Event e \<in> X")
       assume case_assms2: "Event e \<in> X"
       then have "x \<in> hide_trace X \<sigma>"
         using case_assms(2) by auto
-      then show "CT3_trace x"
+      then show "TT3_trace x"
         using ind_hyp[where P="{\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}", where x=x] case_assms(3) case_assms2 1 by blast
     next
       assume case_assms2: "Event e \<notin> X"
       then obtain x' where x'_assms: "x = [Event e]\<^sub>E # x' \<and> x' \<in> hide_trace X \<sigma>"
         using case_assms(2) by (cases x, auto)
-      then have "CT3_trace x'"
+      then have "TT3_trace x'"
         using ind_hyp[where P="{\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}", where x=x'] case_assms(3) case_assms2 1 by blast
-      then show "CT3_trace x"
+      then show "TT3_trace x"
         using x'_assms by (cases x', simp_all)
     qed
   next
     fix Xa \<sigma> P x
-    assume ind_hyp: "\<And>P x. Ball P CT3_trace \<Longrightarrow> x \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> CT3_trace x"
-    assume case_assms: "Ball P CT3_trace" "x \<in> hide_trace X ([Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma>)" "[Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
-    have 1: "Ball {\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P} CT3_trace"
+    assume ind_hyp: "\<And>P x. Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT3_trace x"
+    assume case_assms: "Ball P TT3_trace" "x \<in> hide_trace X ([Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma>)" "[Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
+    have 1: "Ball {\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P} TT3_trace"
       using case_assms(1) by auto
     have 2: "\<sigma> \<in> {\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}"
       using case_assms(3) by auto
@@ -554,117 +555,117 @@ proof (safe, simp_all)
       using case_assms(1) case_assms(3) by auto
     have "(\<exists>X' x'. x = [X']\<^sub>R # [Tock]\<^sub>E # x' \<and> x' \<in> hide_trace X \<sigma> \<and> X' \<subseteq> Xa) \<or> (x \<in> hide_trace X \<sigma>)"
       using case_assms(2) by (cases "X \<subseteq> Xa", auto)
-    then show "CT3_trace x"
+    then show "TT3_trace x"
     proof safe
       fix X' x'
       assume case_assms2: "x = [X']\<^sub>R # [Tock]\<^sub>E # x'" "x' \<in> hide_trace X \<sigma>" "X' \<subseteq> Xa"
-      then have "CT3_trace x'"
+      then have "TT3_trace x'"
         using ind_hyp[where P="{\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}", where x=x'] 1 2 by blast
-      then show "CT3_trace ([X']\<^sub>R # [Tock]\<^sub>E # x')"
+      then show "TT3_trace ([X']\<^sub>R # [Tock]\<^sub>E # x')"
         using case_assms2 3 by auto
     next
       assume case_assms2: "x \<in> hide_trace X \<sigma>"
-      then show "CT3_trace x"
+      then show "TT3_trace x"
         using ind_hyp[where P="{\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}", where x=x] 1 2 by blast
     qed
   next
     fix va P x
-    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> CT3_trace x"
+    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> TT3_trace x"
       by simp
   next
     fix va P x
-    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> CT3_trace x"
+    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> TT3_trace x"
       by simp
   next
     fix va P x
-    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> CT3_trace x"
+    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> TT3_trace x"
       by simp
   next
     fix v vc P x
-    show "x \<in> hide_trace X ([Tick]\<^sub>E # v # vc) \<Longrightarrow> CT3_trace x"
+    show "x \<in> hide_trace X ([Tick]\<^sub>E # v # vc) \<Longrightarrow> TT3_trace x"
       by simp
   next
     fix v vc P x
-    show "x \<in> hide_trace X ([Tick]\<^sub>E # v # vc) \<Longrightarrow> CT3_trace x"
+    show "x \<in> hide_trace X ([Tick]\<^sub>E # v # vc) \<Longrightarrow> TT3_trace x"
       by simp
   next
     fix va vd vc P x
-    show "x \<in> hide_trace X ([va]\<^sub>R # [Event vd]\<^sub>E # vc) \<Longrightarrow> CT3_trace x"
+    show "x \<in> hide_trace X ([va]\<^sub>R # [Event vd]\<^sub>E # vc) \<Longrightarrow> TT3_trace x"
       by simp
   next
     fix va vc P x
-    show "x \<in> hide_trace X ([va]\<^sub>R # [Tick]\<^sub>E # vc) \<Longrightarrow> CT3_trace x"
+    show "x \<in> hide_trace X ([va]\<^sub>R # [Tick]\<^sub>E # vc) \<Longrightarrow> TT3_trace x"
       by simp
   next
     fix va v vc P x
-    show "x \<in> hide_trace X ([va]\<^sub>R # [v]\<^sub>R # vc) \<Longrightarrow> CT3_trace x"
+    show "x \<in> hide_trace X ([va]\<^sub>R # [v]\<^sub>R # vc) \<Longrightarrow> TT3_trace x"
       by simp
   qed
 qed
 
-lemma CT4s_Hiding:
-  "CT1 P \<Longrightarrow> CT4s P \<Longrightarrow> CT4s (P \<setminus>\<^sub>C X)"
-  unfolding CT4s_def HidingCTT_def
+lemma TT4s_Hiding:
+  "TT1 P \<Longrightarrow> TT4s P \<Longrightarrow> TT4s (P \<setminus>\<^sub>C X)"
+  unfolding TT4s_def HidingTTT_def
 proof (safe, simp_all)
   fix p
-  show "\<And> \<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow> \<rho> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow>
+  show "\<And> \<rho> P. TT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow> \<rho> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow>
     \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
   proof (induct p rule:hide_trace.induct, auto)
     fix X e s \<rho> P
-    assume ind_hyp: "\<And>\<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
+    assume ind_hyp: "\<And>\<rho> P. TT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
                \<rho> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
-    assume case_assms: "CT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Event e]\<^sub>E # s \<in> P" "Event e \<in> X" "\<rho> \<in> hide_trace X s"
+    assume case_assms: "TT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Event e]\<^sub>E # s \<in> P" "Event e \<in> X" "\<rho> \<in> hide_trace X s"
     have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Event e]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Event e]\<^sub>E # s \<in> P}"
       using case_assms(2) by force
     have 2: "s \<in> {s. [Event e]\<^sub>E # s \<in> P}"
       by (simp add: case_assms(3))
-    have 3: "CT1 {s. [Event e]\<^sub>E # s \<in> P}"
-      using case_assms(1) unfolding CT1_def apply auto by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
+    have 3: "TT1 {s. [Event e]\<^sub>E # s \<in> P}"
+      using case_assms(1) unfolding TT1_def apply auto by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
     have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Event e]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace \<rho> \<in> x"
       using ind_hyp[where P="{s. [Event e]\<^sub>E # s \<in> P}", where \<rho>=\<rho>] 1 2 3 case_assms by blast
     then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
       using case_assms by auto
   next
     fix X e s P s'
-    assume ind_hyp: "\<And>\<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
+    assume ind_hyp: "\<And>\<rho> P. TT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
                \<rho> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
-    assume case_assms: "CT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Event e]\<^sub>E # s \<in> P" "Event e \<notin> X" "s' \<in> hide_trace X s"
+    assume case_assms: "TT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Event e]\<^sub>E # s \<in> P" "Event e \<notin> X" "s' \<in> hide_trace X s"
     have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Event e]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Event e]\<^sub>E # s \<in> P}"
       using case_assms(2) by force
     have 2: "s \<in> {s. [Event e]\<^sub>E # s \<in> P}"
       by (simp add: case_assms(3))
-    have 3: "CT1 {s. [Event e]\<^sub>E # s \<in> P}"
-      using case_assms(1) unfolding CT1_def apply auto by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
+    have 3: "TT1 {s. [Event e]\<^sub>E # s \<in> P}"
+      using case_assms(1) unfolding TT1_def apply auto by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
     have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Event e]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace s' \<in> x"
       using ind_hyp[where P="{s. [Event e]\<^sub>E # s \<in> P}", where \<rho>=s'] 1 2 3 case_assms by blast
     then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [Event e]\<^sub>E # add_Tick_refusal_trace s' \<in> x"
       using case_assms by auto
   next
     fix X Y s \<rho> P
-    assume ind_hyp: "\<And>\<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
+    assume ind_hyp: "\<And>\<rho> P. TT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
                \<rho> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
-    assume case_assms: "CT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Y]\<^sub>R # [Tock]\<^sub>E # s \<in> P" "Tock \<in> X" "\<rho> \<in> hide_trace X s"
+    assume case_assms: "TT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Y]\<^sub>R # [Tock]\<^sub>E # s \<in> P" "Tock \<in> X" "\<rho> \<in> hide_trace X s"
     have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
       using case_assms(2) by force
     have 2: "s \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
-      using CT4s_CT1_add_Tick_ref_Tock CT4s_def case_assms(1) case_assms(2) case_assms(3) by blast
-    have 3: "CT1 {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
-      using case_assms(1) unfolding CT1_def apply auto by (erule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
+      using TT4s_TT1_add_Tick_ref_Tock TT4s_def case_assms(1) case_assms(2) case_assms(3) by blast
+    have 3: "TT1 {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
+      using case_assms(1) unfolding TT1_def apply auto by (erule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
     have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace \<rho> \<in> x"
       using ind_hyp[where P="{s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}", where \<rho>=\<rho>] 1 2 3 case_assms by blast
     then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
       using case_assms(4) by auto
   next
     fix X Y s P s' Z
-    assume ind_hyp: "\<And>\<rho> P. CT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
+    assume ind_hyp: "\<And>\<rho> P. TT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow>
                \<rho> \<in> hide_trace X s \<Longrightarrow> s \<in> P \<Longrightarrow> \<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> add_Tick_refusal_trace \<rho> \<in> x"
-    assume case_assms: "CT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Y]\<^sub>R # [Tock]\<^sub>E # s \<in> P" "Z \<subseteq> Y" "Tock \<notin> X" "X \<subseteq> Y" "s' \<in> hide_trace X s"
+    assume case_assms: "TT1 P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P" "[Y]\<^sub>R # [Tock]\<^sub>E # s \<in> P" "Z \<subseteq> Y" "Tock \<notin> X" "X \<subseteq> Y" "s' \<in> hide_trace X s"
     have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
       using case_assms(2) by force
     have 2: "s \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
-      using CT4s_CT1_add_Tick_ref_Tock CT4s_def case_assms(1) case_assms(2) case_assms(3) by blast
-    have 3: "CT1 {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
-      using case_assms(1) unfolding CT1_def apply auto by (erule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
+      using TT4s_TT1_add_Tick_ref_Tock TT4s_def case_assms(1) case_assms(2) case_assms(3) by blast
+    have 3: "TT1 {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
+      using case_assms(1) unfolding TT1_def apply auto by (erule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
     have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace s' \<in> x"
       using ind_hyp[where P="{s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}", where \<rho>=s'] 1 2 3 case_assms by blast
     then show "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> P) \<and> [insert Tick Z]\<^sub>R # [Tock]\<^sub>E # add_Tick_refusal_trace s' \<in> x"
@@ -678,4 +679,4 @@ proof (safe, simp_all)
 qed
 
 lemma Hiding_Mono: "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> P \<setminus>\<^sub>C X \<sqsubseteq>\<^sub>C Q \<setminus>\<^sub>C X"
-  unfolding RefinesCTT_def HidingCTT_def by auto
+  unfolding RefinesTTT_def HidingTTT_def by auto

@@ -1,10 +1,10 @@
-theory CTockTick_Prioritise
+theory TickTock_Prioritise
   imports 
-    CTockTick_Core
+    TickTock_Core
     Event_Priority
 begin
 
-subsection \<open>Prioritise for non-subset closed CT.\<close>
+subsection \<open>Prioritise for non-subset closed TT.\<close>
 
 definition prirelref :: "('e cttevent) partialorder \<Rightarrow> ('e cttevent) set \<Rightarrow> ('e cttevent) set" where
 "prirelref p Z = {z. z \<notin> Z \<longrightarrow> (\<exists>b. b \<notin> Z \<and> z <\<^sup>*p b)}"
@@ -63,20 +63,20 @@ lemma maximal_Tock_then_not_prirelref [simp]:
   by (simp add: some_higher_not_maximal)
 
 lemma prirelRef_extend_both_events_eq_size_maximal_ttWF:
-  assumes "prirelRef p xs ys s P" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)" "size xs = size ys" "CT3_trace (ys @ [[e\<^sub>1]\<^sub>E])"
+  assumes "prirelRef p xs ys s P" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)" "size xs = size ys" "TT3_trace (ys @ [[e\<^sub>1]\<^sub>E])"
   shows "prirelRef p (xs @ [[e\<^sub>1]\<^sub>E]) (ys @ [[e\<^sub>1]\<^sub>E]) s P"
   using assms apply (induct p xs ys s P rule:prirelRef.induct, auto)
     apply (cases e\<^sub>1, auto)
-  using CT3_trace_cons_imp_cons
+  using TT3_trace_cons_imp_cons
   apply (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF cttevent.exhaust list.exhaust)
-  using CT3_trace_cons_imp_cons by (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF cttevent.exhaust list.exhaust)
+  using TT3_trace_cons_imp_cons by (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF cttevent.exhaust list.exhaust)
   
 lemma prirelRef_extend_both_events_maximal_ttWF:
-  assumes "prirelRef p xs ys s P" "ttWF (xs @ [[e\<^sub>1]\<^sub>E])" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)" "CT3_trace (ys @ [[e\<^sub>1]\<^sub>E])"
+  assumes "prirelRef p xs ys s P" "ttWF (xs @ [[e\<^sub>1]\<^sub>E])" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)" "TT3_trace (ys @ [[e\<^sub>1]\<^sub>E])"
   shows "prirelRef p (xs @ [[e\<^sub>1]\<^sub>E]) (ys @ [[e\<^sub>1]\<^sub>E]) s P"
   using assms apply (induct p xs ys s P rule:prirelRef.induct, auto)
     apply (cases e\<^sub>1, auto)
-  using CT3_trace_cons_imp_cons by (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF cttevent.exhaust list.exhaust)+
+  using TT3_trace_cons_imp_cons by (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF cttevent.exhaust list.exhaust)+
 
 lemma prirelRef_same_length:
   assumes "prirelRef p xs ys s P"
@@ -86,6 +86,6 @@ lemma prirelRef_same_length:
 definition priNS :: "('e cttevent) partialorder \<Rightarrow> ('e cttobs) list set \<Rightarrow> ('e cttobs) list set" where
 "priNS p P = {t|s t. s \<in> P \<and> prirelRef p t s [] P}"
 
-subsection \<open>Prioritise for subset closed CT.\<close>
+subsection \<open>Prioritise for subset closed TT.\<close>
 
 end

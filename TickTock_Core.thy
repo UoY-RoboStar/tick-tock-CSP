@@ -1,4 +1,4 @@
-theory CTockTick_Core
+theory TickTock_Core
   imports Main
 begin
 
@@ -375,24 +375,24 @@ lemma ttWF_dist_cons_refusal:
 
 section {* Healthiness Conditions *}
 
-definition CT0 :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT0 P = (P \<noteq> {})"
+definition TT0 :: "'e cttobs list set \<Rightarrow> bool" where
+  "TT0 P = (P \<noteq> {})"
 
-definition CT1c :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT1c P = (\<forall> \<rho> \<sigma>. (\<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
+definition TT1c :: "'e cttobs list set \<Rightarrow> bool" where
+  "TT1c P = (\<forall> \<rho> \<sigma>. (\<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
 
-definition CT1 :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT1 P = (\<forall> \<rho> \<sigma>. (\<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
+definition TT1 :: "'e cttobs list set \<Rightarrow> bool" where
+  "TT1 P = (\<forall> \<rho> \<sigma>. (\<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
 
-definition CT2 :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT2 P = (\<forall> \<rho> X Y. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}))
+definition TT2 :: "'e cttobs list set \<Rightarrow> bool" where
+  "TT2 P = (\<forall> \<rho> X Y. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}))
      \<longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P)"
 
-definition CT2s :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT2s P = (\<forall> \<rho> \<sigma> X Y. (\<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}))
+definition TT2s :: "'e cttobs list set \<Rightarrow> bool" where
+  "TT2s P = (\<forall> \<rho> \<sigma> X Y. (\<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}))
      \<longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P)"
 
-lemma wf_CT2s_induct:
+lemma wf_TT2s_induct:
   "\<forall>x\<in>P. ttWF x \<Longrightarrow>
     (\<And> \<rho> \<sigma> X Y. ([[X]\<^sub>R] \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {})) \<Longrightarrow> [[X \<union> Y]\<^sub>R] \<in> P) \<Longrightarrow>
     (\<And> \<rho> \<sigma> X Y. ([[X]\<^sub>R, [Tock]\<^sub>E] @ \<sigma> \<in> P \<and> (Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {})) \<Longrightarrow> [[X \<union> Y]\<^sub>R, [Tock]\<^sub>E] @ \<sigma> \<in> P) \<Longrightarrow>
@@ -402,8 +402,8 @@ lemma wf_CT2s_induct:
     (\<And>e \<rho> \<sigma> X Y Z. ((\<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P)} = {})) \<Longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P) \<Longrightarrow> 
       (([Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P)} = {})) \<Longrightarrow>
         [Z]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P)) \<Longrightarrow>
-    CT2s P"
-  unfolding CT2s_def
+    TT2s P"
+  unfolding TT2s_def
 proof auto
   fix \<rho> \<sigma> X Y
   assume P_wf: "\<forall>x\<in>P. ttWF x"
@@ -432,77 +432,77 @@ proof auto
   qed
 qed
 
-lemma CT2s_imp_CT2: "CT2s P \<Longrightarrow> CT2 P"
-  unfolding CT2s_def CT2_def by auto
+lemma TT2s_imp_TT2: "TT2s P \<Longrightarrow> TT2 P"
+  unfolding TT2s_def TT2_def by auto
 
-fun CT3_trace :: "'e cttobs list \<Rightarrow> bool" where
-  "CT3_trace [] = True" |
-  "CT3_trace [x] = True" |
-  "CT3_trace ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) = (Tock \<notin> X \<and> CT3_trace \<rho>)" |
-  "CT3_trace ([va]\<^sub>E # vb # vc) = CT3_trace (vb # vc)" |
-  "CT3_trace (v # [Event vd]\<^sub>E # vc) = CT3_trace ([Event vd]\<^sub>E # vc)" |
-  "CT3_trace (v # [Tick]\<^sub>E # vc) = CT3_trace ([Tick]\<^sub>E # vc)" |
-  "CT3_trace ([vb]\<^sub>R # [va]\<^sub>R # vc) = CT3_trace ([va]\<^sub>R # vc)"
+fun TT3_trace :: "'e cttobs list \<Rightarrow> bool" where
+  "TT3_trace [] = True" |
+  "TT3_trace [x] = True" |
+  "TT3_trace ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) = (Tock \<notin> X \<and> TT3_trace \<rho>)" |
+  "TT3_trace ([va]\<^sub>E # vb # vc) = TT3_trace (vb # vc)" |
+  "TT3_trace (v # [Event vd]\<^sub>E # vc) = TT3_trace ([Event vd]\<^sub>E # vc)" |
+  "TT3_trace (v # [Tick]\<^sub>E # vc) = TT3_trace ([Tick]\<^sub>E # vc)" |
+  "TT3_trace ([vb]\<^sub>R # [va]\<^sub>R # vc) = TT3_trace ([va]\<^sub>R # vc)"
 
-definition CT3 :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT3 P = (\<forall>\<rho>\<in>P. CT3_trace \<rho>)"
+definition TT3 :: "'e cttobs list set \<Rightarrow> bool" where
+  "TT3 P = (\<forall>\<rho>\<in>P. TT3_trace \<rho>)"
 
-lemma CT3_append: "ttWF t \<Longrightarrow> CT3_trace s \<Longrightarrow> CT3_trace t \<Longrightarrow> CT3_trace (s @ t)"
-  apply (induct s rule:CT3_trace.induct, auto)
+lemma TT3_append: "ttWF t \<Longrightarrow> TT3_trace s \<Longrightarrow> TT3_trace t \<Longrightarrow> TT3_trace (s @ t)"
+  apply (induct s rule:TT3_trace.induct, auto)
   apply (induct t, auto)
   apply (case_tac x, auto, case_tac a, auto, case_tac x1, auto)
   done
 
-lemma CT3_end_tock: "CT3_trace (\<rho>) \<Longrightarrow> CT3 P \<Longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> Tock \<notin> X"
+lemma TT3_end_tock: "TT3_trace (\<rho>) \<Longrightarrow> TT3 P \<Longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> Tock \<notin> X"
 proof -
-  assume "CT3 P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-  then have "CT3_trace (\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E])"
-    unfolding CT3_def by auto 
-  then show "CT3_trace (\<rho>) \<Longrightarrow> Tock \<notin> X"
-    by (auto, induct \<rho> rule:CT3_trace.induct, auto, case_tac x, auto)
+  assume "TT3 P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+  then have "TT3_trace (\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E])"
+    unfolding TT3_def by auto 
+  then show "TT3_trace (\<rho>) \<Longrightarrow> Tock \<notin> X"
+    by (auto, induct \<rho> rule:TT3_trace.induct, auto, case_tac x, auto)
 qed
 
-lemma CT3_trace_cons_left:
-  "CT3_trace (xs @ ys) \<Longrightarrow> CT3_trace xs"
-  by (induct xs rule:CT3_trace.induct, auto)
+lemma TT3_trace_cons_left:
+  "TT3_trace (xs @ ys) \<Longrightarrow> TT3_trace xs"
+  by (induct xs rule:TT3_trace.induct, auto)
 
-lemma CT3_trace_cons_right:
-  "CT3_trace (xs @ ys) \<Longrightarrow> CT3_trace ys"
-  apply (induct xs rule:CT3_trace.induct, auto)
+lemma TT3_trace_cons_right:
+  "TT3_trace (xs @ ys) \<Longrightarrow> TT3_trace ys"
+  apply (induct xs rule:TT3_trace.induct, auto)
   apply (case_tac x, auto)
    apply (case_tac x1, auto)
-  apply (metis CT3_trace.elims(3) CT3_trace.simps(4))
-  apply (metis CT3_trace.elims(3) CT3_trace.simps(4))
-  apply (metis CT3_trace.elims(3) CT3_trace.simps(4))
-  using CT3_trace.elims(2) CT3_trace.elims(3) list.discI by auto
+  apply (metis TT3_trace.elims(3) TT3_trace.simps(4))
+  apply (metis TT3_trace.elims(3) TT3_trace.simps(4))
+  apply (metis TT3_trace.elims(3) TT3_trace.simps(4))
+  using TT3_trace.elims(2) TT3_trace.elims(3) list.discI by auto
 
-lemma CT3_any_cons_end_tock:
-  assumes "CT3 P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+lemma TT3_any_cons_end_tock:
+  assumes "TT3 P" "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
   shows "Tock \<notin> X"
 proof -
-  have "CT3_trace ([[X]\<^sub>R, [Tock]\<^sub>E])"
-    using assms CT3_def CT3_trace_cons_right by blast
+  have "TT3_trace ([[X]\<^sub>R, [Tock]\<^sub>E])"
+    using assms TT3_def TT3_trace_cons_right by blast
   then show ?thesis
     by simp
 qed
 
-lemma CT3_trace_end_refusal_change:
-  "CT3_trace (t @ [[X]\<^sub>R]) \<Longrightarrow> CT3_trace (t @ [[Y]\<^sub>R])"
-  by (induct t rule:CT3_trace.induct, auto, case_tac x, auto)
+lemma TT3_trace_end_refusal_change:
+  "TT3_trace (t @ [[X]\<^sub>R]) \<Longrightarrow> TT3_trace (t @ [[Y]\<^sub>R])"
+  by (induct t rule:TT3_trace.induct, auto, case_tac x, auto)
 
-lemma CT3_trace_cons_imp_cons:
-  assumes "CT3_trace (a # fl)"
-  shows "CT3_trace fl"
+lemma TT3_trace_cons_imp_cons:
+  assumes "TT3_trace (a # fl)"
+  shows "TT3_trace fl"
   using assms apply (cases a, auto)
-  apply(induct fl rule:CT3_trace.induct, auto)
-  apply(induct fl rule:CT3_trace.induct, auto)
+  apply(induct fl rule:TT3_trace.induct, auto)
+  apply(induct fl rule:TT3_trace.induct, auto)
   by (case_tac va, auto)
 
-(*definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT4 P = (\<forall> \<rho>. \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<nexists> X. \<rho> @ [[X]\<^sub>R] \<in> P))"*)
+(*definition TT4 :: "'e cttobs list set \<Rightarrow> bool" where
+  "TT4 P = (\<forall> \<rho>. \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<nexists> X. \<rho> @ [[X]\<^sub>R] \<in> P))"*)
 
-definition CT4 :: "'e cttobs list set \<Rightarrow> bool" where
-"CT4 P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
+definition TT4 :: "'e cttobs list set \<Rightarrow> bool" where
+"TT4 P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
 
 fun add_Tick_refusal_trace :: "'e cttobs list \<Rightarrow> 'e cttobs list" where
   "add_Tick_refusal_trace [] = []" |
@@ -541,15 +541,15 @@ lemma add_Tick_refusal_trace_concat:
   "add_Tick_refusal_trace (\<rho> @ \<sigma>) = add_Tick_refusal_trace \<rho> @ add_Tick_refusal_trace \<sigma>"
   by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
 
-definition CT4s :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT4s P = (\<forall> \<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P)"
+definition TT4s :: "'e cttobs list set \<Rightarrow> bool" where
+  "TT4s P = (\<forall> \<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P)"
 
-lemma CT4s_CT1_imp_CT4:
-  "CT4s P \<Longrightarrow> CT1 P \<Longrightarrow> CT4 P"
-  unfolding CT4_def CT4s_def CT1_def
+lemma TT4s_TT1_imp_TT4:
+  "TT4s P \<Longrightarrow> TT1 P \<Longrightarrow> TT4 P"
+  unfolding TT4_def TT4s_def TT1_def
 proof (safe, simp)
   fix \<rho> X
-  assume CT1_P: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P"
+  assume TT1_P: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P"
   assume "\<rho> @ [[X]\<^sub>R] \<in> P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P"
   then have "add_Tick_refusal_trace (\<rho> @ [[X]\<^sub>R]) \<in> P"
     by auto
@@ -558,71 +558,71 @@ proof (safe, simp)
   also have "\<rho> @ [[X \<union> {Tick}]\<^sub>R] \<subseteq>\<^sub>C add_Tick_refusal_trace \<rho> @ [[X \<union> {Tick}]\<^sub>R]"
     by (simp add: add_Tick_refusal_trace_ctt_subset ctt_subset_combine)
   then show "\<rho> @ [[insert Tick X]\<^sub>R] \<in> P"
-    using CT1_P calculation ctt_subset_imp_prefix_subset by auto
+    using TT1_P calculation ctt_subset_imp_prefix_subset by auto
 qed
 
-lemma CT4s_CT1_add_Tick_ref_Tock:
-  "CT4s P \<Longrightarrow> CT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P \<Longrightarrow> [X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
-  by (metis CT1_def CT4s_def add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_ctt_subset add_Tick_refusal_trace_idempotent ctt_subset_imp_prefix_subset)
+lemma TT4s_TT1_add_Tick_ref_Tock:
+  "TT4s P \<Longrightarrow> TT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P \<Longrightarrow> [X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
+  by (metis TT1_def TT4s_def add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_ctt_subset add_Tick_refusal_trace_idempotent ctt_subset_imp_prefix_subset)
 
 lemma "add_Tick_refusal_trace (\<rho> @ [X]\<^sub>R # \<sigma>) = add_Tick_refusal_trace \<rho> @ [X \<union> {Tick}]\<^sub>R # add_Tick_refusal_trace \<sigma>"
   oops
 
-lemma CT4s_CT1_add_Tick:
-  assumes CT1_P: "CT1 P" and CT4s_P: "CT4s P"
+lemma TT4s_TT1_add_Tick:
+  assumes TT1_P: "TT1 P" and TT4s_P: "TT4s P"
   shows "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [X \<union> {Tick}]\<^sub>R # \<sigma> \<in> P"
 proof auto
   assume "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P"
   then have "add_Tick_refusal_trace (\<rho> @ [X]\<^sub>R # \<sigma>) \<in> P"
-    using CT4s_P unfolding CT4s_def by auto
+    using TT4s_P unfolding TT4s_def by auto
   then show "\<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P"
-    using CT1_P unfolding CT1_def apply auto
+    using TT1_P unfolding TT1_def apply auto
     by (metis Un_insert_left Un_insert_right add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat add_Tick_refusal_trace_ctt_subset ctt_subset_imp_prefix_subset insert_absorb2)
 qed  
 
-definition CTwf :: "'e cttobs list set \<Rightarrow> bool" where
-  "CTwf P = (\<forall>x\<in>P. ttWF x)"
+definition TTwf :: "'e cttobs list set \<Rightarrow> bool" where
+  "TTwf P = (\<forall>x\<in>P. ttWF x)"
 
-lemma CTwf_cons_end_not_refusal_refusal:
-  assumes "CTwf P"
+lemma TTwf_cons_end_not_refusal_refusal:
+  assumes "TTwf P"
   shows "\<not> sa @ [[S]\<^sub>R, [Z]\<^sub>R] \<in> P"
-  using assms unfolding CTwf_def using ttWF_dist_cons_refusal
+  using assms unfolding TTwf_def using ttWF_dist_cons_refusal
   using ttWF.simps(13) by blast
 
-definition CT :: "'e cttobs list set \<Rightarrow> bool" where
-  "CT P = ((\<forall>x\<in>P. ttWF x) \<and> CT0 P \<and> CT1 P \<and> CT2 P \<and> CT3 P)"
+definition TT :: "'e cttobs list set \<Rightarrow> bool" where
+  "TT P = ((\<forall>x\<in>P. ttWF x) \<and> TT0 P \<and> TT1 P \<and> TT2 P \<and> TT3 P)"
 
-lemma CT_CT0: "CT P \<Longrightarrow> CT0 P"
-  using CT_def by auto
+lemma TT_TT0: "TT P \<Longrightarrow> TT0 P"
+  using TT_def by auto
 
-lemma CT_CT1: "CT P \<Longrightarrow> CT1 P"
-  using CT_def by auto
+lemma TT_TT1: "TT P \<Longrightarrow> TT1 P"
+  using TT_def by auto
 
-lemma CT1_CT1c: "CT1 P \<Longrightarrow> CT1c P"
-  unfolding CT1_def CT1c_def
+lemma TT1_TT1c: "TT1 P \<Longrightarrow> TT1c P"
+  unfolding TT1_def TT1c_def
   using ctt_prefix_imp_prefix_subset by blast
 
-lemma CT_CT1c: "CT P \<Longrightarrow> CT1c P"
-  unfolding CT_def using CT1_CT1c by auto
+lemma TT_TT1c: "TT P \<Longrightarrow> TT1c P"
+  unfolding TT_def using TT1_TT1c by auto
 
-lemma CT_CT2: "CT P \<Longrightarrow> CT2 P"
-  using CT_def by auto
+lemma TT_TT2: "TT P \<Longrightarrow> TT2 P"
+  using TT_def by auto
 
-lemma CT_CT3: "CT P \<Longrightarrow> CT3 P"
-  using CT_def by auto
+lemma TT_TT3: "TT P \<Longrightarrow> TT3 P"
+  using TT_def by auto
 
-lemma CT_wf: "CT P \<Longrightarrow> \<forall>x\<in>P. ttWF x"
-  using CT_def by auto
+lemma TT_wf: "TT P \<Longrightarrow> \<forall>x\<in>P. ttWF x"
+  using TT_def by auto
 
-lemma CT_CTwf: "CT P \<Longrightarrow> CTwf P"
-  unfolding CT_def CTwf_def by auto
+lemma TT_TTwf: "TT P \<Longrightarrow> TTwf P"
+  unfolding TT_def TTwf_def by auto
 
-lemma CT0_CT1c_empty: "CT0 P \<Longrightarrow> CT1c P \<Longrightarrow> [] \<in> P"
-  unfolding CT0_def CT1c_def apply auto
+lemma TT0_TT1c_empty: "TT0 P \<Longrightarrow> TT1c P \<Longrightarrow> [] \<in> P"
+  unfolding TT0_def TT1c_def apply auto
   using ctt_prefix.simps(1) by blast
 
-lemma CT0_CT1_empty: "CT0 P \<Longrightarrow> CT1 P \<Longrightarrow> [] \<in> P"
-  unfolding CT0_def CT1_def
+lemma TT0_TT1_empty: "TT0 P \<Longrightarrow> TT1 P \<Longrightarrow> [] \<in> P"
+  unfolding TT0_def TT1_def
 proof auto
   fix x
   assume x_in_P: "x \<in> P"
@@ -636,20 +636,20 @@ proof auto
     using calculation by auto
 qed
 
-lemma CT_empty: "CT P \<Longrightarrow> [] \<in> P"
-  by (simp add: CT0_CT1_empty CT_CT0 CT_CT1)
+lemma TT_empty: "TT P \<Longrightarrow> [] \<in> P"
+  by (simp add: TT0_TT1_empty TT_TT0 TT_TT1)
 
-lemmas CT_defs = CT_def CT0_def CT1_def CT2_def CT3_def
+lemmas TT_defs = TT_def TT0_def TT1_def TT2_def TT3_def
 
-lemma CT_init_event:
-  assumes "CT P" "\<exists> t. [Event e]\<^sub>E # t \<in> P"
-  shows "CT {t. [Event e]\<^sub>E # t \<in> P}"
-  unfolding CT_defs
+lemma TT_init_event:
+  assumes "TT P" "\<exists> t. [Event e]\<^sub>E # t \<in> P"
+  shows "TT {t. [Event e]\<^sub>E # t \<in> P}"
+  unfolding TT_defs
 proof auto
   fix x 
   assume "[Event e]\<^sub>E # x \<in> P"
   then have "ttWF ([Event e]\<^sub>E # x)"
-    using CT_wf assms(1) by blast
+    using TT_wf assms(1) by blast
   then show "ttWF x"
     by auto
 next
@@ -661,12 +661,12 @@ next
   then have "[Event e]\<^sub>E # \<rho> \<lesssim>\<^sub>C [Event e]\<^sub>E # \<sigma>"
     by auto
   then show "[Event e]\<^sub>E # \<sigma> \<in> P \<Longrightarrow> [Event e]\<^sub>E # \<rho> \<in> P"
-    using CT1_def CT_CT1 assms(1) by blast
+    using TT1_def TT_TT1 assms(1) by blast
 next
   fix \<rho> X Y
   have "\<forall>\<rho> X Y. \<rho> @ [[X]\<^sub>R] \<in> P \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<longrightarrow>
          \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-    using CT2_def CT_CT2 assms(1) by auto
+    using TT2_def TT_TT2 assms(1) by auto
   then show "[Event e]\<^sub>E # \<rho> @ [[X]\<^sub>R] \<in> P \<Longrightarrow>
     Y \<inter> {ea. ea \<noteq> Tock \<and> [Event e]\<^sub>E # \<rho> @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> [Event e]\<^sub>E # \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P} = {} \<Longrightarrow>
       [Event e]\<^sub>E # \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
@@ -674,21 +674,21 @@ next
 next
   fix x
   assume "[Event e]\<^sub>E # x \<in> P"
-  then have "CT3_trace ([Event e]\<^sub>E # x)"
-    using CT3_def CT_CT3 assms(1) by blast
-  then show "CT3_trace x"
+  then have "TT3_trace ([Event e]\<^sub>E # x)"
+    using TT3_def TT_TT3 assms(1) by blast
+  then show "TT3_trace x"
     by (cases x, auto)
 qed
 
-lemma CT_init_tock:
-  assumes "CT P" "\<exists> t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
-  shows "CT {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-  unfolding CT_defs
+lemma TT_init_tock:
+  assumes "TT P" "\<exists> t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
+  shows "TT {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+  unfolding TT_defs
 proof auto
   fix x
   assume "[X]\<^sub>R # [Tock]\<^sub>E # x \<in> P"
   then have "ttWF ([X]\<^sub>R # [Tock]\<^sub>E # x)"
-    using CT_wf assms(1) by blast
+    using TT_wf assms(1) by blast
   then show "ttWF x"
     by auto
 next
@@ -701,46 +701,46 @@ next
     by auto
   also assume "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
   then show "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P"
-    using assms(1) calculation unfolding CT_def CT1_def apply auto 
+    using assms(1) calculation unfolding TT_def TT1_def apply auto 
     by (erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
 next
   fix \<rho> Xa Y
   assume "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[Xa]\<^sub>R] \<in> P"
   and "Y \<inter> {e. e \<noteq> Tock \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[Xa]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
   then show "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> @ [[Xa \<union> Y]\<^sub>R] \<in> P"
-    using assms(1) unfolding CT_def CT2_def apply auto
+    using assms(1) unfolding TT_def TT2_def apply auto
     by (erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
 next
   fix x
   assume "[X]\<^sub>R # [Tock]\<^sub>E # x \<in> P"
-  then have "CT3_trace ([X]\<^sub>R # [Tock]\<^sub>E # x)"
-    using CT3_def CT_CT3 assms(1) by blast
-  then show "CT3_trace x"
+  then have "TT3_trace ([X]\<^sub>R # [Tock]\<^sub>E # x)"
+    using TT3_def TT_TT3 assms(1) by blast
+  then show "TT3_trace x"
     by auto
 qed
 
-lemma CT2_init_event:
-  assumes "CT2 P"
-  shows "CT2 {t. [Event e]\<^sub>E # t \<in> P}"
-  using assms unfolding CT2_def apply (auto)
+lemma TT2_init_event:
+  assumes "TT2 P"
+  shows "TT2 {t. [Event e]\<^sub>E # t \<in> P}"
+  using assms unfolding TT2_def apply (auto)
   by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
 
-lemma CT2_init_tock:
-  assumes "CT2 P"
-  shows "CT2 {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-  using assms unfolding CT2_def apply (auto)
+lemma TT2_init_tock:
+  assumes "TT2 P"
+  shows "TT2 {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+  using assms unfolding TT2_def apply (auto)
   by (erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
 
-lemma CT2s_init_event:
-  assumes "CT2s P"
-  shows "CT2s {t. [Event e]\<^sub>E # t \<in> P}"
-  using assms unfolding CT2s_def apply (auto)
+lemma TT2s_init_event:
+  assumes "TT2s P"
+  shows "TT2s {t. [Event e]\<^sub>E # t \<in> P}"
+  using assms unfolding TT2s_def apply (auto)
   by (erule_tac x="[Event e]\<^sub>E # \<rho>" in allE, auto)
 
-lemma CT2s_init_tock:
-  assumes "CT2s P"
-  shows "CT2s {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
-  using assms unfolding CT2s_def apply (auto)
+lemma TT2s_init_tock:
+  assumes "TT2s P"
+  shows "TT2s {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+  using assms unfolding TT2s_def apply (auto)
   by (erule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
 
 section {* Initial sequences of tocks *}
@@ -1811,22 +1811,22 @@ lemma tocks_mid_refusal_front_in_tocks:
   using tocks.simps apply blast
   by (metis (no_types, lifting) list.distinct(1) list.inject tocks.simps)
 
-lemma CT0_tocks: "CT0 (tocks X)"
-  unfolding CT0_def using tocks.empty_in_tocks by auto 
+lemma TT0_tocks: "TT0 (tocks X)"
+  unfolding TT0_def using tocks.empty_in_tocks by auto 
 
-lemma CT2_tocks: "CT2 (tocks X)"
-  unfolding CT2_def by (simp add: end_refusal_notin_tocks)
+lemma TT2_tocks: "TT2 (tocks X)"
+  unfolding TT2_def by (simp add: end_refusal_notin_tocks)
 
-lemma CT3_tocks: "Tock \<notin> X \<Longrightarrow> CT3 (tocks X)"
-  unfolding CT3_def
+lemma TT3_tocks: "Tock \<notin> X \<Longrightarrow> TT3 (tocks X)"
+  unfolding TT3_def
 proof auto
   fix x
-  show "Tock \<notin> X \<Longrightarrow> x \<in> tocks X \<Longrightarrow> CT3_trace x"
-    using tocks.cases by (induct rule:CT3_trace.induct, auto)
+  show "Tock \<notin> X \<Longrightarrow> x \<in> tocks X \<Longrightarrow> TT3_trace x"
+    using tocks.cases by (induct rule:TT3_trace.induct, auto)
 qed
 
-lemma CT4s_tocks: "Tick \<in> X \<Longrightarrow> CT4s (tocks X)"
-  unfolding CT4s_def
+lemma TT4s_tocks: "Tick \<in> X \<Longrightarrow> TT4s (tocks X)"
+  unfolding TT4s_def
 proof auto
   fix \<rho>
   assume assm: "Tick \<in> X"
@@ -1836,7 +1836,7 @@ qed
 
 section {* Refinement *}
 
-definition RefinesCTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
+definition RefinesTTT :: "'e cttobs list set \<Rightarrow> 'e cttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
   "P \<sqsubseteq>\<^sub>C Q = (Q \<subseteq> P)"
 
 end
