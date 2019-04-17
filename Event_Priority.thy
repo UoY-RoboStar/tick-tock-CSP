@@ -3,17 +3,21 @@ imports
   "Main"
 begin
 
-text \<open> This theory defines a partial order type, which is used to define a
-       type for event priority partial orders. \<close>
+text \<open> This theory defines a partial order type. \<close>
 
 abbreviation less :: "('e \<Rightarrow> 'e \<Rightarrow> bool) \<Rightarrow> 'e \<Rightarrow> 'e \<Rightarrow> bool" where
 "less f a b == f a b \<and> \<not>(f b a)"
+
+text \<open> Here less is used to satisfy the axiom less_le_not_le of preorders. \<close>
 
 typedef 'e partialorder = "{x :: 'e \<Rightarrow> 'e \<Rightarrow> bool. class.order x (less x)}"
   morphisms porder2f f2porder
   apply (simp add:class.order_def class.preorder_def class.order_axioms_def)
   apply (rule exI[where x="(=)"])
   by simp
+
+text \<open> Thus @{type partialorder} is the type of all partial orders over the
+       given type. \<close>
 
 thm porder2f_induct
 thm f2porder_inverse
@@ -37,24 +41,9 @@ interpretation partialorder: order "my_le p" "my_lt p"
   apply (induct p, simp add:f2porder_inverse)
   by (simp add:class.order_def class.order_axioms_def)
 
-text \<open> The following datatype defines the elements to be compared in the
-       event partial order, which includes also \<tau>, the internal event. \<close>
+text \<open> We define the following notation so that the operator \<le> and < can be parametrised
+       with a specific partial order. \<close>
 
-datatype 'e prievent = tau ("\<tau>") | prievent "'e" ("\<ee>'(_')")
-
-definition trivial_tau :: "'e prievent \<Rightarrow> 'e prievent \<Rightarrow> bool" where "trivial_tau x y = (y = \<tau> \<or> x = y)"
-
-lemma trivial_tau_order: "class.order trivial_tau (less trivial_tau)"
-  by (simp add:trivial_tau_def class.order_def class.preorder_def class.order_axioms_def)
-
-lemma trivial_tau_porder2f: "porder2f (f2porder (trivial_tau)) x \<tau>"
-  using trivial_tau_def by (auto simp add:f2porder_inverse trivial_tau_order)
-
-(*
-class porder =
-  fixes less_eq_p :: "'a partialorder \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
-  and   less_p    :: "'a partialorder \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-*)
 syntax
   "_porder_le"    :: "'a \<Rightarrow> 'a partialorder \<Rightarrow> 'a \<Rightarrow> bool" ("(_/ \<le>\<^sup>*_ _)" [51, 51] 50)
   "_porder_lt"    :: "'a \<Rightarrow> 'a partialorder  \<Rightarrow> 'a \<Rightarrow> bool" ("(_/ <\<^sup>*_ _)" [51, 51] 50)
@@ -77,20 +66,6 @@ lemma maximal_iff:
   unfolding maximal_def apply auto
   by (meson partialorder.less_le_not_le)+
 
-(* Is this useful to endow a type with such an operator? *)
-(*
-instantiation prievent :: (type) porder 
-begin
-  definition less_eq_p_prievent :: "'a prievent partialorder \<Rightarrow> 'a prievent \<Rightarrow> 'a prievent \<Rightarrow> bool" where "less_eq_p_prievent p a b = my_le p a b"
-  definition less_p_prievent :: "'a prievent partialorder \<Rightarrow> 'a prievent \<Rightarrow> 'a prievent \<Rightarrow> bool" where "less_p_prievent p a b = my_lt p a b"
-
-interpretation prievent: order "my_le p" "my_lt p"
-  by (unfold_locales)
- 
-instance 
-  by intro_classes
-end*)
-
 lemma tau_max: "(\<forall>x. (x \<le>\<^sup>*(p) \<tau>)) \<Longrightarrow> \<not>(\<exists>x. (\<tau> <\<^sup>*(p) x))"
   apply auto
   by (simp add: partialorder.less_le_not_le)
@@ -100,22 +75,5 @@ lemma tau_max_imp_any_le_imp_le_tau:
   shows "a <\<^sup>*(p) \<tau>"
   using assms
   by (metis my_lt_def partialorder.order.not_eq_order_implies_strict)
-
-text \<open> A priority order requires that \<tau> has maximal priority. This required,
-       at least, for the Finite Linear model. \<close>
-
-typedef 'e priorder = "{p :: ('e prievent) partialorder. \<forall>x. (x \<le>\<^sup>*(p) \<tau>)}"
-  morphisms priorder2p p2priorder
-  apply (simp add:my_le_def)
-  by (rule exI[where x="f2porder (trivial_tau)"], auto simp add:trivial_tau_porder2f)
-
-declare [[coercion_enabled]]
-        [[coercion priorder2p]]
-
-lemma
-  fixes x :: "'e prievent"
-  and   p :: "'e priorder"
-  shows "x \<le>\<^sup>*p tau"
-  using priorder2p by auto
 
 end

@@ -5,14 +5,9 @@ imports
   Event_Priority
 begin
 
-text \<open> This theory is an encoding of the Finite Linear model, the finest finite CSP denotational 
-       model in the CSP hierarchy. For processes that observe the healthiness condition FL1 of 
-       this model we have that such processes are congruent to the operational semantics of CSP 
-       under weak bisimulation (not proved here).
-
-       FL1 ensures that it is not possible to know whether an event definitely takes place from
-       a stable state, only that it may. Instability is always a possibility, and indeed Div is
-       maximal in the refinement order, whereby only instability is observed. \<close>
+text \<open> This theory is an encoding of the Finite Linear model, the most discriminating CSP 
+       denotational model in the CSP hierarchy. It is just as discriminating as weak bisimulation
+       over the operational semantics of CSP. \<close>
 
 section \<open> Model \<close>
 
@@ -23,7 +18,7 @@ text \<open> An acceptance is either \<bullet> or a set. \<close>
 datatype 'e acceptance = acnil ("\<bullet>") | acset "'e set" ("[_]\<^sub>\<F>\<^sub>\<L>")
 
 text \<open> Here we define an order on acceptances, whereby \<bullet> is related to
-       any element, and otherwise sets need to be equal to be related. \<close>
+       any element, and otherwise sets need to be equal. \<close>
 
 instantiation acceptance :: (type) order
 begin
@@ -47,6 +42,9 @@ instance proof
 qed
 end
 
+text \<open> We also define a plus operator on acceptances that allows \<bullet> to
+       be augmented, but nothing else. \<close>
+
 instantiation acceptance :: (type) plus
 begin
 
@@ -57,6 +55,45 @@ fun plus_acceptance :: "'a acceptance \<Rightarrow> 'a acceptance \<Rightarrow> 
 
 instance
   by intro_classes
+end
+
+text \<open> It is associative, and thus we have a semigroup. \<close>
+
+lemma acceptance_assoc:
+  fixes a b c :: "'a acceptance"
+  shows "(a + b) + c = a + (b + c)"
+  apply (induct a)
+   apply (case_tac b, auto)
+  apply (case_tac b, auto)
+  by (case_tac c, auto)
+
+instantiation acceptance :: (type) semigroup_add
+begin
+
+instance
+  apply (intro_classes)
+  by (simp add:acceptance_assoc)
+end
+
+lemma acceptance_right_zero[simp]:
+  fixes a :: "'a acceptance"
+  shows "a + \<bullet> = a"
+  by (induct a, auto)
+
+lemma acceptance_left_zero[simp]:
+  fixes a :: "'a acceptance"
+  shows "\<bullet> + a = a"
+  by (induct a, auto)
+
+text \<open> Taking \<bullet> as the zero, we have thus a monoid. \<close>
+
+instantiation acceptance :: (type) monoid_add
+begin
+
+definition zero_acceptance where "zero_acceptance = \<bullet>"
+instance 
+  apply (intro_classes)
+  by (simp add:zero_acceptance_def)+
 end
 
 instantiation acceptance :: (type) minus
@@ -256,31 +293,7 @@ fun plus_fltrace :: "'e fltrace \<Rightarrow> 'e fltrace \<Rightarrow> 'e fltrac
 instance by intro_classes
 end
 
-lemma acceptance_assoc:
-  fixes a b c :: "'a acceptance"
-  shows "(a + b) + c = a + (b + c)"
-  apply (induct a)
-   apply (case_tac b, auto)
-  apply (case_tac b, auto)
-  by (case_tac c, auto)
 
-instantiation acceptance :: (type) semigroup_add
-begin
-
-instance
-  apply (intro_classes)
-  by (simp add:acceptance_assoc)
-end
-
-lemma acceptance_right_zero[simp]:
-  fixes a :: "'a acceptance"
-  shows "a + \<bullet> = a"
-  by (induct a, auto)
-
-lemma acceptance_left_zero[simp]:
-  fixes a :: "'a acceptance"
-  shows "\<bullet> + a = a"
-  by (induct a, auto)
 
 lemma fltrace_add_idem [simp]:
   fixes a :: "'a fltrace"
@@ -445,6 +458,8 @@ lemma x_le_x_concat2:
    apply (case_tac y, auto)
   apply (case_tac y, auto)
   by (case_tac x1, auto)
+
+
 
 (*
 perhaps conditionally...
@@ -1154,89 +1169,7 @@ text \<open> If an event a is offered in an acceptance A after a trace \<B> then
 definition FL2 :: "'a fltraces \<Rightarrow> bool" where
 "FL2 P \<equiv> \<forall>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<longrightarrow> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P"
 
-subsection \<open> Operators \<close>
 
-definition Div :: "'e fltraces" where
-"Div = {\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}"
-
-lemma FL2_Div [simp]:
-  "FL2 Div"
-  unfolding FL2_def Div_def apply auto
-  by (metis Finite_Linear_Model.last.simps(1) amember.simps(1) concat_FL_last_not_bullet_absorb last_bullet_then_last_cons)
-
-definition Stop :: "'e fltraces" where
-"Stop = {\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>} \<union> {\<langle>[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}"
-
-lemma Stop_is_FL2 [simp]: "FL2 Stop"
-  unfolding FL2_def Stop_def apply auto
-  apply (metis Finite_Linear_Model.last.simps(1) acceptance.inject amember.elims(2) concat_FL_last_not_bullet_absorb empty_iff last_bullet_then_last_cons)
-  by (metis Finite_Linear_Model.last.simps(1) amember.simps(1) concat_FL_last_not_bullet_absorb last_bullet_then_last_cons)
-
-definition prefixH :: "'e \<Rightarrow> 'e fltrace \<Rightarrow> 'e fltrace \<Rightarrow> bool" where
-"prefixH a aa X = (X = \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> X = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> X = ([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa \<or> X = (\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
-
-definition Prefix :: "'e \<Rightarrow> 'e fltraces \<Rightarrow> 'e fltraces" (infixl "\<rightarrow>\<^sub>\<F>\<^sub>\<L>" 65) where
-"a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P = {\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>} \<union> {\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>} \<union> {([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>#\<^sub>\<F>\<^sub>\<L>\<rho>| \<rho>. \<rho> \<in> P} \<union> {(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>#\<^sub>\<F>\<^sub>\<L>\<rho>| \<rho>. \<rho> \<in> P}"
-
-definition PrefixAlt :: "'e \<Rightarrow> 'e fltraces \<Rightarrow> 'e fltraces" where
-"PrefixAlt a P = {x|s x. prefixH a s x \<and> s\<in>P}"
-
-(*
-lemma eq_acceptances [simp]:
-  "([{aa}]\<^sub>\<F>\<^sub>\<L>,aa)\<^sub>\<F>\<^sub>\<L> = ([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> \<longleftrightarrow> a = aa"
-  apply auto
-  by (simp add: acceptance_pair_eq)
-
-lemma unequal_acceptances [simp]:
-  "([{aa}]\<^sub>\<F>\<^sub>\<L>,aa)\<^sub>\<F>\<^sub>\<L> \<noteq> (\<bullet>,a)\<^sub>\<F>\<^sub>\<L>"
-  apply auto
-  by (metis acceptance.distinct(1) acceptance_set amember.simps(2) singletonI)
-
-lemma unequal_acceptances_2 [simp]:
-  "(\<bullet>,a)\<^sub>\<F>\<^sub>\<L> \<noteq> ([{aa}]\<^sub>\<F>\<^sub>\<L>,aa)\<^sub>\<F>\<^sub>\<L>"
-  apply auto
-  by (metis acceptance.distinct(1) acceptance_set amember.simps(2) singletonI)
-
-lemma eq_acceptances_bullet [simp]:
-  "(\<bullet>,aa)\<^sub>\<F>\<^sub>\<L> = (\<bullet>,a)\<^sub>\<F>\<^sub>\<L> \<longleftrightarrow> aa = a"
-  apply auto
-  by (metis acceptance_event)*)
-
-lemma Prefix_PrefixAlt_eq:
-  assumes "FL0 P" "FL1 P"
-  shows "Prefix a P = PrefixAlt a P"
-  using assms unfolding Prefix_def PrefixAlt_def prefixH_def apply auto
-  using FL0_def apply fastforce
-  using FL0_def by fastforce
-
-definition IntChoice :: "'e fltraces \<Rightarrow> 'e fltraces \<Rightarrow> 'e fltraces" (infixl "\<sqinter>\<^sub>\<F>\<^sub>\<L>" 65) where
-"P \<sqinter>\<^sub>\<F>\<^sub>\<L> Q \<equiv> P \<union> Q"
-
-fun ExtChoiceH :: "'e fltrace \<Rightarrow> 'e fltrace \<Rightarrow> 'e fltrace \<Rightarrow> bool" where
-"ExtChoiceH \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>B\<rangle>\<^sub>\<F>\<^sub>\<L> X = (X = \<langle>A \<union>\<^sub>\<F>\<^sub>\<L> B\<rangle>\<^sub>\<F>\<^sub>\<L>)" |
-"ExtChoiceH (A #\<^sub>\<F>\<^sub>\<L> aa) (B #\<^sub>\<F>\<^sub>\<L> bb) X = 
-  (X = ((acceptance(A) \<union>\<^sub>\<F>\<^sub>\<L> acceptance(B),event(A))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)
-   \<or> 
-   X = ((acceptance(A) \<union>\<^sub>\<F>\<^sub>\<L> acceptance(B),event(B))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb))" |
-"ExtChoiceH \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> (B #\<^sub>\<F>\<^sub>\<L> bb) X = 
-  (X = \<langle>A \<union>\<^sub>\<F>\<^sub>\<L> acceptance(B)\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> X = ((A \<union>\<^sub>\<F>\<^sub>\<L> acceptance(B),event(B))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb))" |
-"ExtChoiceH (A #\<^sub>\<F>\<^sub>\<L> aa) \<langle>B\<rangle>\<^sub>\<F>\<^sub>\<L> X = 
-  (X = \<langle>acceptance(A) \<union>\<^sub>\<F>\<^sub>\<L> B\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> X = ((acceptance(A) \<union>\<^sub>\<F>\<^sub>\<L> B,event(A))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa))"
-
-definition ExtChoice :: "'e fltraces \<Rightarrow> 'e fltraces \<Rightarrow> 'e fltraces" (infixl "\<box>\<^sub>\<F>\<^sub>\<L>" 65) where
-"P \<box>\<^sub>\<F>\<^sub>\<L> Q = {X| X A B. ExtChoiceH A B X \<and> A \<in> P \<and> B \<in> Q}"
-
-fun HideAcceptance :: "'e acceptance \<Rightarrow> 'e set \<Rightarrow> 'e acceptance" where
-"HideAcceptance \<bullet> X = \<bullet>" |
-"HideAcceptance [A]\<^sub>\<F>\<^sub>\<L> X = (if A \<inter> X = {} then [A]\<^sub>\<F>\<^sub>\<L> else \<bullet>)"
-
-fun HideFL :: "'e fltrace \<Rightarrow> 'e set \<Rightarrow> 'e fltrace" where
-"HideFL \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> X = \<langle>HideAcceptance A X\<rangle>\<^sub>\<F>\<^sub>\<L>" |
-"HideFL (A #\<^sub>\<F>\<^sub>\<L> aa) X = (if event(A) \<in> X then (HideFL aa X) 
-                          else (HideAcceptance (acceptance(A)) X,event(A))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> (HideFL aa X))"
-
-definition Hiding :: "'e fltraces \<Rightarrow> 'e set \<Rightarrow> 'e fltraces" (infixl "\\\<^sub>\<F>\<^sub>\<L>" 65) where
-"P \\\<^sub>\<F>\<^sub>\<L> X = {HideFL s X|s. s \<in> P}"
 
 (*{t. \<exists>A B \<alpha> \<B>. (t = (\<langle>A \<union>\<^sub>\<F>\<^sub>\<L> B\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> \<alpha>) \<or> t = (\<langle>A \<union>\<^sub>\<F>\<^sub>\<L> B\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> \<B>)) \<and> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> \<alpha> \<in> P \<and> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> \<B> \<in> Q}" *)
 
@@ -1306,86 +1239,9 @@ lemma acceptance_bullet_event_FL1:
   using assms 
   apply (cases A, auto)
   by (metis acceptance_event bullet_event_acceptance fltrace_acceptance_FL1_less_eq)
-  
-lemma ExtChoiceH_bullet:
-  assumes "ExtChoiceH \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> B x" "B \<in> P" "FL1 P"
-  shows "x \<in> P"
-  using assms apply (cases B, auto)
-  using acceptance_bullet_event_FL1 by blast
-
-lemma ExtChoiceH_emptyset:
-  assumes "ExtChoiceH \<langle>[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> B x" "B \<in> P" "FL1 P"
-  shows "x \<in> P"
-  using assms apply (cases B, auto, case_tac x21, auto)
-    apply (case_tac a, auto)
-    apply (simp add: aevent_less_eq_FL1)
-  by (case_tac x21, auto)
-
-(*
-lemma ExtChoice_Div_zero:
-  assumes "FL0 P" "FL1 P"
-  shows "Div \<box>\<^sub>\<F>\<^sub>\<L> P = Div"
-  using assms unfolding Div_def ExtChoice_def apply auto
-   apply (simp add: ExtChoiceH_bullet_then)
-  using FL0_FL1_bullet_in by force
-*)
-
-lemma ExtChoiceH_exists:
-  assumes "x \<in> P"
-  shows "\<exists>B. (ExtChoiceH \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> B x \<or> ExtChoiceH \<langle>[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> B x) \<and> B \<in> P"
-  using assms
-proof (cases x)
-  case (Acceptance x1)
-  then show ?thesis
-  proof (cases x1)
-    case acnil
-    then show ?thesis using Acceptance assms apply auto
-      by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  next
-    case (acset x2)
-    then show ?thesis using Acceptance assms apply auto
-      by (rule exI[where x="\<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  qed
-next
-  case (AEvent x21 x22)
-  then show ?thesis 
-  proof (cases "acceptance(x21) = \<bullet>")
-    case True
-    then show ?thesis using AEvent assms apply auto
-      apply (case_tac x21, auto)
-      by (rule exI[where x="((\<bullet>,event(x21))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> x22)"], auto)
-  next
-    case acceptance_not_bullet:False
-    then obtain A b where Ab:"x21 = ([A]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> \<and> b \<in>\<^sub>\<F>\<^sub>\<L> [A]\<^sub>\<F>\<^sub>\<L>"
-      by (metis Rep_aevent_inverse acceptance.rep_eq amember.elims(2) event.rep_eq event_in_acceptance prod.collapse)
-    then show ?thesis 
-    proof (cases "A = {}")
-      case True
-      then show ?thesis using acceptance_not_bullet AEvent Ab by auto
-    next
-      case False
-      then show ?thesis using acceptance_not_bullet AEvent Ab assms
-        by (intro exI[where x="(([A]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> x22)"], auto)
-    qed
-  qed
-qed
-
-lemma
-  assumes "FL1 P" "x \<in> P" 
-  shows "(\<exists>B. ExtChoiceH \<langle>[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> B x \<and> B \<in> P) \<or> (\<exists>B. ExtChoiceH \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> B x \<and> B \<in> P)"
-  using assms apply auto
-  apply (intro exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  oops
-
-lemma ExtChoiceH_triple_refl: "ExtChoiceH x x x"
-  apply (induct x rule:fltrace.induct, auto)
-  by (case_tac x, auto, case_tac x1a, auto, case_tac a, auto)
 
 lemma unionA_sym [simp]: "A \<union>\<^sub>\<F>\<^sub>\<L> B = B \<union>\<^sub>\<F>\<^sub>\<L> A"
   by (cases A, auto, cases B, auto, cases B, auto)
-
-lemma ExtChoiceH_sym: "ExtChoiceH A B x = ExtChoiceH B A x"
-  by (induct A B x rule:ExtChoiceH.induct, auto)
 
 lemma acceptance_of_aevent_aunion_acceptances_1 [simp]:
  "acceptance (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B,event A)\<^sub>\<F>\<^sub>\<L> = acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B"
@@ -1584,115 +1440,21 @@ lemma
   shows "FL1 (P \<box>\<^sub>\<F>\<^sub>\<L> Q)"
   using assms unfolding FL1_def ExtChoice_def apply auto
 *)
-  
+
+lemma
+  fixes x :: "'a fltrace"
+  shows "\<exists>f. (x \<le> y \<longleftrightarrow> (\<exists>z::'a fltrace. (f x z) = y))"
+  apply (induct x y rule:less_eq_fltrace.induct)
+     apply auto
+  apply (rule_tac x="\<lambda>x y. (if x = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> then y else x)" in exI, auto)
+    apply (metis less_eq_acceptance.elims(2))         
+  oops
 
 subsection \<open> Refinement \<close>
 
 abbreviation Refines :: "'e fltraces \<Rightarrow> 'e fltraces \<Rightarrow> bool" (infixl "\<sqsubseteq>\<^sub>\<F>\<^sub>\<L>" 65) where
 "P \<sqsubseteq>\<^sub>\<F>\<^sub>\<L> Q \<equiv> Q \<subseteq> P"
 
-lemma ExtChoice_refines_double:
-  "P \<box>\<^sub>\<F>\<^sub>\<L> P \<sqsubseteq>\<^sub>\<F>\<^sub>\<L> P"
-  unfolding ExtChoice_def apply auto
-  using ExtChoiceH_triple_refl by blast
 
-text \<open>Idempotency does not hold for external choice in FL.\<close>
-
-lemma
-  "P \<sqsubseteq>\<^sub>\<F>\<^sub>\<L> (P \<box>\<^sub>\<F>\<^sub>\<L> P)"
-  unfolding ExtChoice_def apply auto
-  nitpick[expect=genuine]
-  oops
-
-lemma ExtChoice_sym:
-  "P \<box>\<^sub>\<F>\<^sub>\<L> Q = Q \<box>\<^sub>\<F>\<^sub>\<L> P"
-  unfolding ExtChoice_def apply auto
-  using ExtChoiceH_sym by blast+
-
-lemma ExtChoice_unit:
-  assumes "FL1 P"
-  shows "Stop \<box>\<^sub>\<F>\<^sub>\<L> P = P"
-  using assms unfolding ExtChoice_def Stop_def apply auto
-    apply (simp add: ExtChoiceH_emptyset)
-   apply (simp add: ExtChoiceH_bullet)
-  using ExtChoiceH_exists
-  by blast
-
-lemma ExtChoice_dist:
-  shows "P \<box>\<^sub>\<F>\<^sub>\<L> (Q \<sqinter>\<^sub>\<F>\<^sub>\<L> R) = (P \<box>\<^sub>\<F>\<^sub>\<L> Q) \<sqinter>\<^sub>\<F>\<^sub>\<L> (P \<box>\<^sub>\<F>\<^sub>\<L> R)"
-  unfolding ExtChoice_def IntChoice_def by auto
-
-text \<open>Following laws do not hold in FL.\<close>
-
-lemma
-  assumes "FL0 P" "FL0 Q" "FL0 R"
-  shows "((P \<sqinter>\<^sub>\<F>\<^sub>\<L> R) \<box>\<^sub>\<F>\<^sub>\<L> (Q \<sqinter>\<^sub>\<F>\<^sub>\<L> R)) = ((P \<box>\<^sub>\<F>\<^sub>\<L> Q) \<sqinter>\<^sub>\<F>\<^sub>\<L> R)"
-  nitpick[expect=genuine]
-  oops
-
-lemma
-  assumes "FL0 P" "FL0 Q" "FL0 R"
-  shows "P \<sqinter>\<^sub>\<F>\<^sub>\<L> (Q \<box>\<^sub>\<F>\<^sub>\<L> R) = (P \<sqinter>\<^sub>\<F>\<^sub>\<L> Q) \<box>\<^sub>\<F>\<^sub>\<L> (P \<sqinter>\<^sub>\<F>\<^sub>\<L> R)"
-  nitpick[expect=genuine]
-  oops
-
-lemma a_then_Stop:
-  "a \<rightarrow>\<^sub>\<F>\<^sub>\<L> Stop = {\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>,
-                  \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>,
-                  \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>,
-                  \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>,
-                  \<langle>([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>,
-                  \<langle>([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>
-                  }"
-  unfolding Prefix_def Stop_def by auto
-
-lemma Hiding_Stop:
-  "Stop \\\<^sub>\<F>\<^sub>\<L> X = Stop"
-  unfolding Stop_def Hiding_def apply auto
-   apply (rule exI[where x="\<langle>[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-
-lemma Hiding_a_then_Stop:
-  assumes "a \<notin> X"
-  shows "(PrefixAlt a Stop) \\\<^sub>\<F>\<^sub>\<L> X = (PrefixAlt a Stop)"
-  using assms 
-  unfolding PrefixAlt_def Stop_def Hiding_def prefixH_def apply auto
-         apply (rule exI[where x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-        apply (rule exI[where x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-       apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-      apply (rule exI[where x="\<langle>([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-     apply (rule exI[where x="\<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-    apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-   apply (rule exI[where x="\<langle>([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  by (rule exI[where x="\<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-
-lemma Hiding_a_then_Stop2:
-  "(PrefixAlt a Stop) \\\<^sub>\<F>\<^sub>\<L> {a} = Stop"
-  unfolding PrefixAlt_def Hiding_def Stop_def prefixH_def apply auto
-   apply (rule exI[where x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L>\<langle>[{}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-
-lemma Hiding_a_then_P:
-  assumes "FL1 P"
-  shows "(PrefixAlt a P) \\\<^sub>\<F>\<^sub>\<L> {a} = P \\\<^sub>\<F>\<^sub>\<L> {a}"
-  using assms unfolding PrefixAlt_def Hiding_def Stop_def prefixH_def apply auto
-   apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  by (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s" in exI, auto)
-
-lemma Hiding_a_then_P_event_in_set:
-  assumes "FL1 P" "a \<in> X"
-  shows "(PrefixAlt a P) \\\<^sub>\<F>\<^sub>\<L> X = P \\\<^sub>\<F>\<^sub>\<L> X"
-  using assms unfolding PrefixAlt_def Hiding_def Stop_def prefixH_def apply auto
-   apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-  by (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s" in exI, auto)
-
-lemma Hiding_a_then_P_event_not_in_set:
-  assumes "FL1 P" "a \<notin> X"
-  shows "(PrefixAlt a P) \\\<^sub>\<F>\<^sub>\<L> X = (PrefixAlt a (P \\\<^sub>\<F>\<^sub>\<L> X))"
-  using assms unfolding PrefixAlt_def Hiding_def Stop_def prefixH_def apply auto
-  apply (rule exI[where x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-    apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> sa" in exI, auto)
-  by (rule_tac x="(\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> sa" in exI, auto)
 
 end

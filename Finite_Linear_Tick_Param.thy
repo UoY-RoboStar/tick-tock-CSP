@@ -2,6 +2,7 @@ theory Finite_Linear_Tick_Param
 
 imports
   Finite_Linear_Model
+  Finite_Linear_Ops
 begin
   
 text \<open>This theory extends the finite linear model to capture termination by

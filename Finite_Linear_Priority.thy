@@ -3,17 +3,8 @@ theory Finite_Linear_Priority
 imports
   Event_Priority
   Finite_Linear_Model
+  Finite_Linear_Ops
 begin
-
-text \<open> The following function was part of an attempt at characterising Pri within a
-       FL-model that can distinguish events that definitely happen from stable states
-       from those that happen from unstable states. That is, a model that does not
-       necessarily observe prefix closure. \<close>
-
-fun priamember :: "'a prievent \<Rightarrow> 'a acceptance \<Rightarrow> bool" ("(_/ \<in>\<^sub>p _)" [51, 51] 50) where
-"\<tau> \<in>\<^sub>p \<bullet> = True" |
-"\<tau> \<in>\<^sub>p [X]\<^sub>\<F>\<^sub>\<L> = False" |
-"\<ee>(p) \<in>\<^sub>p X = (p \<in>\<^sub>\<F>\<^sub>\<L> X)"
 
 section \<open> Original definition \<close>
 
