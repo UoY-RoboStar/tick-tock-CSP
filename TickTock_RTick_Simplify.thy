@@ -488,7 +488,7 @@ lemma prirelrefSub_imp_prirelrefSub3':
   shows "prirelrefSub pa S s Q \<subseteq> prirelrefSub3 pa (refTickTock S s Q) s Q"
   using assms prirelrefSub_imp_prirelrefSub3 by blast
 
-lemma prirelrefSub_imp_prirelrefSub3'':
+lemma prirelrefSub_imp_prirelrefSub3'' [intro]:
   assumes "TT(Q)" "TT4s(Q)" "s @ [[S]\<^sub>R] \<in> Q" "TT2s(Q)"
   shows "s @ [[refTickTock S s Q]\<^sub>R] \<in> Q"
   using assms prirelrefSub_imp_prirelrefSub3 by blast
@@ -877,16 +877,112 @@ lemma
    shows "\<not> (\<forall>Z. Z = prirelrefSub3 p Z s Q \<longrightarrow> s @ [[Z]\<^sub>R] \<in> Q \<longrightarrow> e\<^sub>2 \<in> Z)"
   using assms nitpick
 
-lemma
+lemma xx1:
   assumes
   "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q
       \<and> (\<forall>e. (e \<notin> Z \<and> e \<noteq> Tock) \<longrightarrow> s @ [[e]\<^sub>E] \<in> Q)
       \<and> (Tock \<notin> Z \<longrightarrow> s @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> Q) \<and> Tick \<in> Z
-      \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))" "\<not> maximal(p,e\<^sub>2)" "TT3(Q)"
-shows
- "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<notin> prirelrefSub3 p Z s Q)"
-  using assms 
-  nitpick
+      \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))" "TT3(Q)"
+  shows "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<noteq> Tick \<and> e\<^sub>2 \<notin> prirelrefSub3 p Z s Q)"
+  using assms apply auto
+  unfolding prirelrefSub3_def apply auto
+  using TT3_any_cons_end_tock by blast+
+
+lemma not_Tock_notin_refTickTock_imp_possible [elim]:
+  assumes "s @ [[Z]\<^sub>R] \<in> Q" "TT2s(Q)" "TT4s(Q)" "e \<noteq> Tock"
+          "e \<notin> refTickTock Z s Q"
+    shows "s @ [[e]\<^sub>E] \<in> Q"
+  using assms unfolding refTickTock_def by auto
+
+lemma Tock_notin_refTickTock_imp_possible [elim]:
+  assumes "s @ [[Z]\<^sub>R] \<in> Q" "TT(Q)" "TT2s(Q)" "TT4s(Q)"
+          "Tock \<notin> refTickTock Z s Q"
+    shows "s @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> Q"
+  using assms unfolding refTickTock_def apply auto
+  using TT1_Ref_Tock_subset_imp' TT_TT1 by blast
+
+lemma
+  assumes "s @ [[Z]\<^sub>R] \<in> Q"
+  shows "prirelrefSub3 p Z s Q \<subseteq> refTickTock Z s Q " nitpick
+  using assms unfolding refTickTock_def prirelrefSub3_def apply auto
+
+lemma
+  "e\<^sub>2 \<noteq> Tock \<Longrightarrow>Tick \<in> Z  \<Longrightarrow> s @ [[e\<^sub>2]\<^sub>E] \<in> Q \<Longrightarrow> s @ [[Z]\<^sub>R] \<in> Q \<Longrightarrow> e\<^sub>2 \<notin> Z \<Longrightarrow> e\<^sub>2 \<notin> prirelrefSub3 p Z s Q \<Longrightarrow> e\<^sub>2 \<in> refTickTock Z s Q \<Longrightarrow> False"
+  unfolding refTickTock_def prirelrefSub3_def by auto
+
+lemma
+  "TT(Q)  \<Longrightarrow> Tick \<in> Z  \<Longrightarrow> s @ [[Z]\<^sub>R] \<in> Q  \<Longrightarrow> e\<^sub>2 \<notin> prirelrefSub3 p Z s Q \<Longrightarrow> b \<notin> refTickTock Z s Q \<Longrightarrow> e\<^sub>2 <\<^sup>*p b \<Longrightarrow> False"
+  unfolding refTickTock_def prirelrefSub3_def apply auto
+  
+  using TT_TTwf TTwf_Refusal_imp_no_Tock apply blast
+  using TT1_Ref_Tock_subset_imp' TT_TT1 by blast
+
+lemma xx2:
+  assumes "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<noteq> Tick \<and> e\<^sub>2 \<notin> prirelrefSub3 p Z s Q)" "TT(Q)" "TT3(Q)" "TT2s(Q)" "TT4s(Q)" "s @ [[e\<^sub>2]\<^sub>E] \<in> Q" 
+  shows   "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q
+      \<and> (\<forall>e. (e \<notin> Z \<and> e \<noteq> Tock) \<longrightarrow> s @ [[e]\<^sub>E] \<in> Q)
+      \<and> (Tock \<notin> Z \<longrightarrow> s @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> Q) \<and> Tick \<in> Z
+      \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))" 
+  using assms apply auto
+  apply (rule_tac x="refTickTock Z s Q" in exI, auto)
+  
+     apply (simp add: refTickTock_def)
+    apply (simp add: refTickTock_def)
+    unfolding refTickTock_def prirelrefSub3_def apply auto
+    using TT_TTwf TTwf_Refusal_imp_no_Tock apply blast
+  using TT_TTwf TTwf_Refusal_imp_no_Tock apply blast
+  using TT1_Ref_Tock_subset_imp' TT_TT1 by blast+
+
+lemma
+  assumes "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<noteq> Tick \<and> e\<^sub>2 \<notin> prirelrefSub3 p Z s Q)" "TT(Q)" "TT3(Q)" "TT2s(Q)" "TT4s(Q)" "s @ [[e\<^sub>2]\<^sub>E] \<in> Q" 
+  shows "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> Tick \<in> Z \<and> e\<^sub>2 \<notin> prirelrefSub3 p Z s Q)"
+  using assms apply auto
+  apply (rule_tac x="Z \<union> {Tick}" in exI, auto)
+  using TT4s_TT1_add_Tick TT_TT1 apply fastforce
+  unfolding refTickTock_def prirelrefSub3_def apply auto
+  using TT1_Ref_Tock_subset_imp' TT_TT1 by blast
+
+fun prirelRef4 :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list set \<Rightarrow> bool" where
+"prirelRef4 p [] [] s Q = True" |
+"prirelRef4 p [[R]\<^sub>R] [[S]\<^sub>R] s Q = (R \<subseteq> prirelrefSub3 p S s Q)" |
+"prirelRef4 p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q =
+   ((R \<subseteq> prirelrefSub3 p S s Q) \<and> Tock \<notin> prirelrefSub3 p S s Q \<and> prirelRef4 p aa zz (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) Q)" |
+"prirelRef4 p ([e\<^sub>1]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) s Q
+ = 
+ (e\<^sub>1 = e\<^sub>2 \<and> prirelRef4 p aa zz (s @ [[e\<^sub>1]\<^sub>E]) Q \<and>
+  (maximal(p,e\<^sub>2) 
+   \<or> 
+  (\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<noteq> Tick \<and> e\<^sub>2 \<notin> prirelrefSub3 p Z s Q)))" |
+"prirelRef4 p x y s Q = False"
+
+definition priTT4 :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list set \<Rightarrow> ('e ttobs) list set" where
+"priTT4 p P = {\<rho>|\<rho> s. prirelRef4 p \<rho> s [] P \<and> s \<in> P}"
+
+lemma prirelRef4_eq_length [intro]:
+  assumes "prirelRef4 p xs ys i P"
+  shows "List.length xs = List.length ys"
+  using assms by (induct p xs ys i P rule:prirelRef4.induct, auto)
+
+lemma prirelRef4_imp_prirelRef3:
+  assumes "prirelRef4 p xs ys i P" "TT(P)" "TT2s(P)" "TT4s(P)" "i @ ys \<in> P"
+  shows "prirelRef3 p xs ys i P"
+  using assms apply (induct p xs ys i P rule:prirelRef3.induct, auto)
+  using xx2 
+  by (smt TT1_def TT_TT1 TT_TT3 append.assoc append_Cons append_Nil2 append_eq_append_conv2 append_self_conv2 same_append_eq tt_prefix_concat tt_prefix_imp_prefix_subset xx2)
+  by (smt TT1_def TT_TT1 TT_TT3 append.assoc append_Cons append_Nil2 append_eq_append_conv2 append_self_conv2 same_append_eq tt_prefix_concat tt_prefix_imp_prefix_subset xx2)
+
+lemma prirelRef4_imp_prirelRef4:
+  assumes "prirelRef3 p xs ys i P" "TT(P)" "TT2s(P)" "TT4s(P)"
+  shows "prirelRef4 p xs ys i P"
+  using assms apply (induct p xs ys i P rule:prirelRef3.induct, auto)
+  by (metis TT_TT3 xx1)+
+
+lemma priTT4_eq_priTT3:
+  assumes "TT(P)" "TT2s(P)" "TT4s(P)"
+  shows "priTT4 p P = priTT3 p P"
+  using assms unfolding priTT4_def priTT3_def apply auto
+  using prirelRef3_imp_prirelRef2 apply fastforce
+  by (metis addRefTickTock_in append_Nil prirelRef2_imp_prirelRef3)
 
 lemma
   
