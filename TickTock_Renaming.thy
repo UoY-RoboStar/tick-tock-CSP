@@ -1,5 +1,5 @@
 theory TickTock_Renaming
-  imports TickTock_Core
+  imports "TickTock-Model.TickTock_Core"
 begin
 
 fun lift_renaming_func :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a ttevent \<Rightarrow> 'b ttevent)" where
@@ -102,24 +102,24 @@ proof auto
     using assms by auto
 qed
 
-lemma TT2s_Renaming:
-  assumes "TT2s P"
-  shows "TT2s (RenamingTT P f)"
-  unfolding TT2s_def RenamingTT_def
+lemma TT2_Renaming:
+  assumes "TT2 P"
+  shows "TT2 (RenamingTT P f)"
+  unfolding TT2_def RenamingTT_def
 proof (auto)
   fix \<rho> \<sigma> X Y x
   have "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x\<in>P. \<rho> @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>P. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)} = {} \<Longrightarrow>
-       TT2s P \<Longrightarrow> x \<in> P \<Longrightarrow> \<rho> @ [X]\<^sub>R # \<sigma> \<in> rename_trace f x \<Longrightarrow> \<exists>x\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> rename_trace f x"
+       TT2 P \<Longrightarrow> x \<in> P \<Longrightarrow> \<rho> @ [X]\<^sub>R # \<sigma> \<in> rename_trace f x \<Longrightarrow> \<exists>x\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> rename_trace f x"
   proof (induct f x rule:rename_trace.induct, simp_all)
     fix f e t P \<rho>
     assume ind_hyp: "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x\<in>P. \<rho> @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>P. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)} = {} \<Longrightarrow>
-               TT2s P \<Longrightarrow> t \<in> P \<Longrightarrow> \<rho> @ [X]\<^sub>R # \<sigma> \<in> rename_trace f t \<Longrightarrow> \<exists>x\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> rename_trace f x"
+               TT2 P \<Longrightarrow> t \<in> P \<Longrightarrow> \<rho> @ [X]\<^sub>R # \<sigma> \<in> rename_trace f t \<Longrightarrow> \<exists>x\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> rename_trace f x"
     assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x\<in>P. \<rho> @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>P. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)} = {}"
-       "TT2s P" "[e]\<^sub>E # t \<in> P" "\<exists>s'. \<rho> @ [X]\<^sub>R # \<sigma> = [lift_renaming_func f e]\<^sub>E # s' \<and> s' \<in> rename_trace f t"
+       "TT2 P" "[e]\<^sub>E # t \<in> P" "\<exists>s'. \<rho> @ [X]\<^sub>R # \<sigma> = [lift_renaming_func f e]\<^sub>E # s' \<and> s' \<in> rename_trace f t"
     obtain \<rho>' where \<rho>_def: "\<rho> = [lift_renaming_func f e]\<^sub>E # \<rho>'"
       using case_assms(4) by (cases \<rho> rule:ttWF.cases, auto)
-    have 1: "TT2s {x. [e]\<^sub>E # x \<in> P}"
-      using case_assms(2) unfolding TT2s_def by (auto, erule_tac x="[e]\<^sub>E # \<rho>" in allE, auto)
+    have 1: "TT2 {x. [e]\<^sub>E # x \<in> P}"
+      using case_assms(2) unfolding TT2_def by (auto, erule_tac x="[e]\<^sub>E # \<rho>" in allE, auto)
     have "{ea. ea \<noteq> Tock \<and> (\<exists>x\<in>{x. [e]\<^sub>E # x \<in> P}. \<rho>' @ [[ea]\<^sub>E] \<in> rename_trace f x) \<or> ea = Tock \<and> (\<exists>x\<in>{x. [e]\<^sub>E # x \<in> P}. \<rho>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> rename_trace f x)}
       \<subseteq> {e. e \<noteq> Tock \<and> (\<exists>x\<in>P. \<rho> @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>P. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)}"
       using \<rho>_def by force
@@ -134,11 +134,11 @@ proof (auto)
   next
     fix f Xa t P \<rho>
     assume ind_hyp: "\<And>P \<rho>. Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x\<in>P. \<rho> @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>P. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)} = {} \<Longrightarrow>
-               TT2s P \<Longrightarrow> t \<in> P \<Longrightarrow> \<rho> @ [X]\<^sub>R # \<sigma> \<in> rename_trace f t \<Longrightarrow> \<exists>x\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> rename_trace f x"
+               TT2 P \<Longrightarrow> t \<in> P \<Longrightarrow> \<rho> @ [X]\<^sub>R # \<sigma> \<in> rename_trace f t \<Longrightarrow> \<exists>x\<in>P. \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> rename_trace f x"
     assume case_assms: "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x\<in>P. \<rho> @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>P. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)} = {}"
-      "TT2s P" "[Xa]\<^sub>R # t \<in> P" "\<exists>s' Y. \<rho> @ [X]\<^sub>R # \<sigma> = [Y]\<^sub>R # s' \<and> Xa = lift_renaming_func f -` Y \<and> s' \<in> rename_trace f t"
-    have 1: "TT2s {x. [Xa]\<^sub>R # x \<in> P}"
-      using case_assms(2) unfolding TT2s_def by (auto, erule_tac x="[Xa]\<^sub>R # \<rho>" in allE, auto)
+      "TT2 P" "[Xa]\<^sub>R # t \<in> P" "\<exists>s' Y. \<rho> @ [X]\<^sub>R # \<sigma> = [Y]\<^sub>R # s' \<and> Xa = lift_renaming_func f -` Y \<and> s' \<in> rename_trace f t"
+    have 1: "TT2 {x. [Xa]\<^sub>R # x \<in> P}"
+      using case_assms(2) unfolding TT2_def by (auto, erule_tac x="[Xa]\<^sub>R # \<rho>" in allE, auto)
     obtain Z s' where Z_assms: "\<rho> @ [X]\<^sub>R # \<sigma> = [Z]\<^sub>R # s' \<and> Xa = lift_renaming_func f -` Z \<and> s' \<in> rename_trace f t"
       using case_assms(4) by auto
     then have "(\<exists>\<rho>'. \<rho> = [Z]\<^sub>R # \<rho>') \<or> (X = Z \<and> \<rho> = [])"
@@ -147,8 +147,8 @@ proof (auto)
     proof auto
       fix \<rho>''
       assume case_assm2: "\<rho> = [Z]\<^sub>R # \<rho>''"
-      have 1: "TT2s {x. [Xa]\<^sub>R # x \<in> P}"
-        using case_assms(2) unfolding TT2s_def by (auto, erule_tac x="[Xa]\<^sub>R # \<rho>" in allE, auto)
+      have 1: "TT2 {x. [Xa]\<^sub>R # x \<in> P}"
+        using case_assms(2) unfolding TT2_def by (auto, erule_tac x="[Xa]\<^sub>R # \<rho>" in allE, auto)
       have "{e. e \<noteq> Tock \<and> (\<exists>x\<in>{x. [Xa]\<^sub>R # x \<in> P}. \<rho>'' @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>{x. [Xa]\<^sub>R # x \<in> P}. \<rho>'' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)}
         \<subseteq> {e. e \<noteq> Tock \<and> (\<exists>x\<in>P. \<rho> @ [[e]\<^sub>E] \<in> rename_trace f x) \<or> e = Tock \<and> (\<exists>x\<in>P. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> rename_trace f x)}"
         using case_assm2 Z_assms by (auto, (smt CollectI Z_assms case_assms(4) list.inject rename_trace.simps(3))+)
@@ -185,7 +185,7 @@ proof (auto)
           using Z_assms case_assms3(2) case_assms2 by auto
       qed
       then have "[Xa \<union> Y']\<^sub>R # t \<in> P"
-        using case_assms(2) case_assms(3) unfolding TT2s_def by (erule_tac x="[]" in allE, auto)
+        using case_assms(2) case_assms(3) unfolding TT2_def by (erule_tac x="[]" in allE, auto)
       then show "\<exists>x\<in>P. [Z \<union> Y]\<^sub>R # \<sigma> \<in> rename_trace f x"
         using Z_assms Y'_def case_assms2(1) by (rule_tac x="[Xa \<union> Y']\<^sub>R # t" in bexI, auto)
     qed
@@ -277,20 +277,20 @@ proof (simp, safe)
     by blast
 qed
 
-lemma TT4s_Renaming: 
-  assumes "TT4s P"
-  shows "TT4s (RenamingTT P f)"
-  unfolding RenamingTT_def TT4s_def
+lemma TT4_Renaming: 
+  assumes "TT4 P"
+  shows "TT4 (RenamingTT P f)"
+  unfolding RenamingTT_def TT4_def
 proof auto
   fix \<rho> x
   have "\<And>P \<rho>. x \<in> P \<Longrightarrow> \<rho> \<in> rename_trace f x \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> rename_trace f (add_Tick_refusal_trace x)"
     using UNIV_I lift_renaming_func.elims by (induct f x rule:rename_trace.induct, auto, blast+)
   then show "x \<in> P \<Longrightarrow> \<rho> \<in> rename_trace f x \<Longrightarrow> \<exists>x\<in>P. add_Tick_refusal_trace \<rho> \<in> rename_trace f x"
-    using assms unfolding TT4s_def by (rule_tac x="add_Tick_refusal_trace x" in bexI, auto)
+    using assms unfolding TT4_def by (rule_tac x="add_Tick_refusal_trace x" in bexI, auto)
 qed
 
 lemma TT_Renaming:
-  shows "TT P \<Longrightarrow> TT2s P \<Longrightarrow> TT (RenamingTT P f)"
-  unfolding TT_def by (auto simp add: RenamingTT_wf TT0_Renaming TT1_Renaming TT2s_Renaming TT2s_imp_TT2 TT3_Renaming)
+  shows "TT P \<Longrightarrow> TT2 P \<Longrightarrow> TT (RenamingTT P f)"
+  unfolding TT_def by (auto simp add: RenamingTT_wf TT0_Renaming TT1_Renaming TT2_Renaming TT2_imp_TT2w TT3_Renaming)
 
 end

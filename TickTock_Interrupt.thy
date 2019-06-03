@@ -1,5 +1,5 @@
 theory TickTock_Interrupt
-  imports TickTock_Core
+  imports "TickTock-Model.TickTock_Core"
 begin
 
 subsection {* Untimed Interrupt *}
@@ -915,13 +915,13 @@ proof (auto)
   qed
 qed
 
-lemma TT2_UntimedInterrupt:
+lemma TT2w_UntimedInterrupt:
   assumes P_wf: "\<forall> x\<in>P. ttWF x"
   assumes TT0_Q: "TT0 Q"
   assumes TT1_P: "TT1 P" and TT1_Q: "TT1 Q"
-  assumes TT2_P: "TT2 P" and TT2_Q: "TT2 Q"
-  shows "TT2 (P \<triangle>\<^sub>U Q)"
-  unfolding TT2_def
+  assumes TT2w_P: "TT2w P" and TT2w_Q: "TT2w Q"
+  shows "TT2w (P \<triangle>\<^sub>U Q)"
+  unfolding TT2w_def
 proof (auto)
   fix \<rho> X Y
   assume assm1: "\<rho> @ [[X]\<^sub>R] \<in> P \<triangle>\<^sub>U Q"
@@ -1227,9 +1227,9 @@ proof (auto)
       have 3: "\<rho> @ [[X]\<^sub>R] \<in> P"
         using TT1_P TT1_def case_assms(1) case_assms(3) case_assms2 intersect_refusal_trace_prefix_subset by fastforce
       have 4: "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-        using 1 3 TT2_P case_assms case_assms2 unfolding TT2_def by auto
+        using 1 3 TT2w_P case_assms case_assms2 unfolding TT2w_def by auto
       have 5: "[[W \<union> Y]\<^sub>R] \<in> Q"
-        using 2 TT2_Q case_assms(2) case_assms2 unfolding TT2_def by (erule_tac x="[]" in allE, auto)
+        using 2 TT2w_Q case_assms(2) case_assms2 unfolding TT2w_def by (erule_tac x="[]" in allE, auto)
       have 6: "\<rho> @ [[X \<union> Y]\<^sub>R] = intersect_refusal_trace (W \<union> Y) (\<rho> @ [[X \<union> Y]\<^sub>R])"
       proof -
         have 1: "\<rho> @ [[X]\<^sub>R] = intersect_refusal_trace W (\<rho> @ [[X]\<^sub>R])"
@@ -1283,7 +1283,7 @@ proof (auto)
       then have "Y \<inter> {e. e \<noteq> Tock \<and> [W]\<^sub>R # q' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [W]\<^sub>R # q' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         using assm2 by auto
       then have "[W]\<^sub>R # q' @ [[X \<union> Y]\<^sub>R] \<in> Q"
-        using case_assms case_assms2 TT2_Q unfolding TT2_def by (erule_tac x="[W]\<^sub>R # q'" in allE, auto)
+        using case_assms case_assms2 TT2w_Q unfolding TT2w_def by (erule_tac x="[W]\<^sub>R # q'" in allE, auto)
       then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptTT_def
       proof auto
@@ -1329,7 +1329,7 @@ proof (auto)
     then have "Y \<inter> {e. e \<noteq> Tock \<and> q @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> q @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
       using assm2 by auto
     then have "q @ [[X \<union> Y]\<^sub>R] \<in> Q"
-      using TT2_Q case_assms(6) unfolding TT2_def by auto
+      using TT2w_Q case_assms(6) unfolding TT2w_def by auto
     then show "intersect_refusal_trace Z p @ q @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>U Q"
       unfolding UntimedInterruptTT_def
     proof (safe, simp)
@@ -1376,7 +1376,7 @@ proof (auto)
     then have "Y \<inter> {e. e \<noteq> Tock \<and> q @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> q @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
       using assm2 by auto
     then have "q @ [[X \<union> Y]\<^sub>R] \<in> Q"
-      using TT2_Q case_assms unfolding TT2_def by auto
+      using TT2w_Q case_assms unfolding TT2w_def by auto
     then show "p @ q @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>U Q"
       unfolding UntimedInterruptTT_def
     proof (safe, simp)
@@ -1390,14 +1390,14 @@ proof (auto)
   qed
 qed 
 
-lemma TT2s_UntimedInterrupt:
+lemma TT2_UntimedInterrupt:
   assumes P_wf: "\<forall> x\<in>P. ttWF x" and Q_wf: "\<forall> x\<in>Q. ttWF x"
   assumes TT0_Q: "TT0 Q"
   assumes TT1_P: "TT1 P" and TT1_Q: "TT1 Q"
+  assumes TT2w_P: "TT2w P" and TT2w_Q: "TT2w Q"
   assumes TT2_P: "TT2 P" and TT2_Q: "TT2 Q"
-  assumes TT2s_P: "TT2s P" and TT2s_Q: "TT2s Q"
-  shows "TT2s (P \<triangle>\<^sub>U Q)"
-  unfolding TT2s_def
+  shows "TT2 (P \<triangle>\<^sub>U Q)"
+  unfolding TT2_def
 proof (auto)
   fix \<rho> \<sigma> X Y
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>U Q"
@@ -1422,10 +1422,10 @@ proof (auto)
     using \<sigma>_cases
   proof auto
     assume case_assm: "\<sigma> = []"
-    have "TT2 (P \<triangle>\<^sub>U Q)"
-      using TT0_Q TT1_P TT1_Q TT2_P TT2_Q TT2_UntimedInterrupt P_wf by blast
+    have "TT2w (P \<triangle>\<^sub>U Q)"
+      using TT0_Q TT1_P TT1_Q TT2w_P TT2w_Q TT2w_UntimedInterrupt P_wf by blast
     then show "\<sigma> = [] \<Longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>U Q"
-      using assm1 assm2 case_assm unfolding TT2_def by auto
+      using assm1 assm2 case_assm unfolding TT2w_def by auto
   next
     fix \<sigma>'
     assume case_assm: "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
@@ -1712,10 +1712,10 @@ proof (auto)
       then have 3: "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         using assm2 subsetCE by auto
       have 4:  "[[Z \<union> Y]\<^sub>R] \<in> Q"
-        using 3 case_assms TT2s_Q unfolding TT2s_def
+        using 3 case_assms TT2_Q unfolding TT2_def
         by (erule_tac x="[]" in allE, erule_tac x="[]" in allE, erule_tac x="Z" in allE, erule_tac x="Y" in allE, auto)
       have 5: "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P"
-        using 1 2 TT2s_P unfolding TT2s_def
+        using 1 2 TT2_P unfolding TT2_def
         by (erule_tac x="\<rho>" in allE, erule_tac x="\<sigma>'" in allE, erule_tac x="Z" in allE, erule_tac x="Y" in allE, auto)
       obtain \<sigma>'' where \<sigma>'_def: "\<sigma>' = \<sigma>'' @ [[Tick]\<^sub>E]"
         by (metis (no_types, hide_lams) case_assms(4) ttWF.simps(3) ttWF.simps(6) intersect_refusal_trace.simps(1) intersect_refusal_trace.simps(2) intersect_refusal_trace_concat last.simps last_appendR list.distinct(1) rev_exhaust)
@@ -2011,9 +2011,9 @@ proof (auto)
         then have 2: "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
           using assm2 by auto
         have 3: "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-          using "1" TT2_P TT2_def \<rho>_X_in_P by blast
+          using "1" TT2w_P TT2w_def \<rho>_X_in_P by blast
         have 4: "[W \<union> Y]\<^sub>R # q \<in> Q"
-          using TT2s_Q case_assms(2) 2 unfolding TT2s_def by (erule_tac x="[]" in allE, auto)
+          using TT2_Q case_assms(2) 2 unfolding TT2_def by (erule_tac x="[]" in allE, auto)
         show "intersect_refusal_trace W p @ [W \<inter> Z \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
           unfolding UntimedInterruptTT_def
         proof auto
@@ -2334,12 +2334,12 @@ proof (auto)
           using TT1_P 3 unfolding TT1_def apply auto apply (erule_tac x="\<rho>1 @ [X]\<^sub>R # \<rho>2 @ [[Z]\<^sub>R]" in allE, auto)
           by (metis case_assms2(2) tt_prefix_subset.simps(2) tt_prefix_subset_refl tt_prefix_subset_same_front inf_le1)
         have 5: "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z]\<^sub>R] \<in> P"
-          using 1 4 TT2s_P unfolding TT2s_def by auto
+          using 1 4 TT2_P unfolding TT2_def by auto
         have 6: "\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z \<inter> W]\<^sub>R] \<in> P"
           using 5 TT1_P unfolding TT1_def apply auto apply (erule_tac x="\<rho>1 @ [X \<union> Y]\<^sub>R # \<rho>2 @ [[Z \<inter> W]\<^sub>R]" in allE, auto)
           by (metis append_Cons tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front inf_le1)
         have 7: "[W \<union> Y]\<^sub>R # q \<in> Q"
-          using case_assms(2) 2 TT2s_Q unfolding TT2s_def apply auto
+          using case_assms(2) 2 TT2_Q unfolding TT2_def apply auto
           apply (erule_tac x="[]" in allE, erule_tac x="q" in allE)
           by (erule_tac x="W" in allE, erule_tac x="Y" in allE, auto)
         obtain \<rho>3 where 8: "\<rho>3 = intersect_refusal_trace W \<rho>2"
@@ -2407,7 +2407,7 @@ proof (auto)
         then have "Y \<inter> {e. e \<noteq> Tock \<and> [W]\<^sub>R # \<sigma>1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [W]\<^sub>R # \<sigma>1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
           using assm2 by auto
         then have "[W]\<^sub>R # \<sigma>1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q"
-          using TT2s_Q case_assms(2) case_assms2(1) unfolding TT2s_def apply auto
+          using TT2_Q case_assms(2) case_assms2(1) unfolding TT2_def apply auto
           apply (erule_tac x="[W]\<^sub>R # \<sigma>1" in allE, erule_tac x="[Tock]\<^sub>E # \<sigma>'" in allE)
           by (erule_tac x="X" in allE, erule_tac x="Y" in allE, auto)
         then show "intersect_refusal_trace W (p @ [[Z]\<^sub>R]) @ \<sigma>1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
@@ -2536,7 +2536,7 @@ proof (auto)
         then have "Y \<inter> {e. e \<noteq> Tock \<and> p1 @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> p1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
           using assm2 by auto
         then have 1: "p1 @ [X \<union> Y]\<^sub>R # p2 \<in> P"
-          using TT2s_P unfolding TT2s_def apply auto
+          using TT2_P unfolding TT2_def apply auto
           apply (erule_tac x="p1" in allE, erule_tac x="p2" in allE)
           apply (erule_tac x="X" in allE, erule_tac x="Y" in allE, auto)
           by (metis TT1_P TT1_def case_assms(1) case_assms2(1) case_assms2(4) tt_prefix_subset.simps(2) tt_prefix_subset_refl tt_prefix_subset_same_front inf_le1)
@@ -2623,7 +2623,7 @@ proof (auto)
         then have "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> [[Z]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
           using assm2 by auto
         then have 2: "[[Z \<union> Y]\<^sub>R] \<in> Q"
-          using case_assms(5) TT2s_Q unfolding TT2s_def apply auto
+          using case_assms(5) TT2_Q unfolding TT2_def apply auto
           by (erule_tac x="[]" in allE, erule_tac x="[]" in allE, auto)
 
        
@@ -2746,7 +2746,7 @@ proof (auto)
         then have "Y \<inter> {e. e \<noteq> Tock \<and> q1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> q1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
           using assm2 by auto
         then have "q1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q"
-          using TT2s_Q case_assms case_assms2 unfolding TT2s_def by auto
+          using TT2_Q case_assms case_assms2 unfolding TT2_def by auto
         then show "intersect_refusal_trace Z p @ q1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
           unfolding UntimedInterruptTT_def apply auto
           apply (rule_tac x="p" in exI, auto simp add: case_assms case_assms2)
@@ -2810,7 +2810,7 @@ proof (auto)
       then have "Y \<inter> {e. e \<noteq> Tock \<and> q1 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> q1 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         using assm2 by auto
       then have "q1 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q"
-        using TT2s_Q case_assms calculation unfolding TT2s_def by auto
+        using TT2_Q case_assms calculation unfolding TT2_def by auto
       then show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> P \<triangle>\<^sub>U Q"
         unfolding UntimedInterruptTT_def
       proof auto
@@ -2890,17 +2890,17 @@ lemma add_Tick_refusal_trace_not_end_refusal:
   apply (metis (no_types, hide_lams) add_Tick_refusal_trace.simps(2) append_Cons append_butlast_last_id contains_refusal.elims(3) contains_refusal.simps(1) contains_refusal_add_Tick_refusal_trace last.simps last_appendR list.distinct(1))
   by (case_tac s, auto, case_tac t rule:add_Tick_refusal_trace.cases, auto, fastforce)
   
-lemma TT4s_UntimedInterrupt:
-  assumes TT4s_P: "TT4s P" and TT4s_Q: "TT4s Q"
-  shows "TT4s (P \<triangle>\<^sub>U Q)"
-  unfolding TT4s_def UntimedInterruptTT_def
+lemma TT4_UntimedInterrupt:
+  assumes TT4_P: "TT4 P" and TT4_Q: "TT4 Q"
+  shows "TT4 (P \<triangle>\<^sub>U Q)"
+  unfolding TT4_def UntimedInterruptTT_def
 proof (safe, simp_all)
   fix p X
   assume case_assms: "p @ [[Tick]\<^sub>E] \<in> P" "contains_refusal p" "[[X]\<^sub>R] \<in> Q"
   have 1: "add_Tick_refusal_trace p @ [[Tick]\<^sub>E] \<in> P"
-    by (metis TT4s_P TT4s_def add_Tick_refusal_trace_end_event case_assms(1))
+    by (metis TT4_P TT4_def add_Tick_refusal_trace_end_event case_assms(1))
   have 2: "[[X \<union> {Tick}]\<^sub>R] \<in> Q"
-    using TT4s_Q TT4s_def case_assms(3) by fastforce
+    using TT4_Q TT4_def case_assms(3) by fastforce
   show "\<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal pa \<and> (\<exists>Xa. [[Xa]\<^sub>R] \<in> Q \<and>
     add_Tick_refusal_trace (intersect_refusal_trace X (p @ [[Tick]\<^sub>E])) = intersect_refusal_trace Xa (pa @ [[Tick]\<^sub>E]))"
     using 1 2 contains_refusal_add_Tick_refusal_trace case_assms
@@ -2910,7 +2910,7 @@ next
   fix p
   assume case_assms: "p @ [[Tick]\<^sub>E] \<in> P" "\<not> contains_refusal p"
   have "add_Tick_refusal_trace p @ [[Tick]\<^sub>E] \<in> P"
-    by (metis TT4s_P TT4s_def add_Tick_refusal_trace_end_event case_assms(1))
+    by (metis TT4_P TT4_def add_Tick_refusal_trace_end_event case_assms(1))
   then show "\<forall>pa. pa @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> contains_refusal pa \<or> add_Tick_refusal_trace (p @ [[Tick]\<^sub>E]) \<noteq> pa @ [[Tick]\<^sub>E] \<Longrightarrow>
     \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal pa \<and>
       (\<exists>X. [[X]\<^sub>R] \<in> Q \<and> add_Tick_refusal_trace (p @ [[Tick]\<^sub>E]) = intersect_refusal_trace X (pa @ [[Tick]\<^sub>E]))"
@@ -2919,9 +2919,9 @@ next
   fix p X Y q
   assume case_assms: "p @ [[X]\<^sub>R] \<in> P" "[Y]\<^sub>R # q \<in> Q"
   have 1: "add_Tick_refusal_trace p @ [[X \<union> {Tick}]\<^sub>R] \<in> P"
-    by (metis TT4s_P TT4s_def add_Tick_refusal_trace_end_refusal case_assms(1))
+    by (metis TT4_P TT4_def add_Tick_refusal_trace_end_refusal case_assms(1))
   have 2: "[Y \<union> {Tick}]\<^sub>R # add_Tick_refusal_trace q \<in> Q"
-    using TT4s_Q TT4s_def case_assms(2) by fastforce
+    using TT4_Q TT4_def case_assms(2) by fastforce
   show "\<forall>pa Xa. pa @ [[Xa]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Ya qa. [Ya]\<^sub>R # qa \<in> Q \<longrightarrow>
       add_Tick_refusal_trace (intersect_refusal_trace Y (p @ [[X]\<^sub>R]) @ q) \<noteq> intersect_refusal_trace Ya (pa @ [[Xa]\<^sub>R]) @ qa) \<Longrightarrow>
     \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> contains_refusal pa \<and> (\<exists>Xa. [[Xa]\<^sub>R] \<in> Q \<and>
@@ -2934,15 +2934,15 @@ next
   assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "contains_refusal p"
     "[[X]\<^sub>R] \<in> Q" "q \<in> Q" "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'"
   have 1: "add_Tick_refusal_trace p \<in> P"
-    using TT4s_P TT4s_def case_assms(1) by blast
+    using TT4_P TT4_def case_assms(1) by blast
   have 2: "(\<forall>p'. add_Tick_refusal_trace p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. add_Tick_refusal_trace p \<noteq> p' @ [[Y]\<^sub>R])"
     using add_Tick_refusal_trace_not_end_refusal add_Tick_refusal_trace_not_end_tick case_assms by blast
   have 3: "contains_refusal (add_Tick_refusal_trace p)"
     by (simp add: case_assms(4) contains_refusal_add_Tick_refusal_trace)
   have 4: "[[X \<union> {Tick}]\<^sub>R] \<in> Q"
-    using TT4s_Q TT4s_def case_assms(5) by force
+    using TT4_Q TT4_def case_assms(5) by force
   have 5: "add_Tick_refusal_trace q \<in> Q"
-    using TT4s_Q TT4s_def case_assms(6) by blast
+    using TT4_Q TT4_def case_assms(6) by blast
   have 6: "\<forall>q' Y. add_Tick_refusal_trace q \<noteq> [Y]\<^sub>R # q'"
     using add_Tick_refusal_trace.elims case_assms(7) by blast
   show "\<forall>pa. contains_refusal pa \<longrightarrow> pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<or>
@@ -2957,13 +2957,13 @@ next
   fix p q
   assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "\<not> contains_refusal p" "q \<in> Q" "\<forall>q' Y. q \<noteq> [Y]\<^sub>R # q'"
   have 1: "add_Tick_refusal_trace p \<in> P"
-    using TT4s_P TT4s_def case_assms(1) by blast
+    using TT4_P TT4_def case_assms(1) by blast
   have 2: "(\<forall>p'. add_Tick_refusal_trace p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. add_Tick_refusal_trace p \<noteq> p' @ [[Y]\<^sub>R])"
     using add_Tick_refusal_trace_not_end_refusal add_Tick_refusal_trace_not_end_tick case_assms by blast
   have 3: "\<not> contains_refusal (add_Tick_refusal_trace p)"
     by (simp add: case_assms(4) contains_refusal_add_Tick_refusal_trace)
   have 4: "add_Tick_refusal_trace q \<in> Q"
-    using TT4s_Q TT4s_def case_assms(5) by blast
+    using TT4_Q TT4_def case_assms(5) by blast
   have 5: "\<forall>q' Y. add_Tick_refusal_trace q \<noteq> [Y]\<^sub>R # q'"
     using add_Tick_refusal_trace.elims case_assms(6) by blast
   show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<or> contains_refusal pa \<or>
@@ -2981,7 +2981,7 @@ lemma TT_UntimedInterrupt:
   using UntimedInterruptTT_wf apply blast
   using TT0_UntimedInterrupt apply blast
   using TT1_UntimedInterrupt apply blast
-  using TT2_UntimedInterrupt apply blast
+  using TT2w_UntimedInterrupt apply blast
   using TT3_UntimedInterrupt apply blast
   done
 
@@ -3356,13 +3356,13 @@ proof (auto)
   qed
 qed
 
-lemma TT2_TimeSyncInterrupt:
+lemma TT2w_TimeSyncInterrupt:
   assumes P_wf: "\<forall>x\<in>P. ttWF x"
   assumes TT1_P: "TT1 P" and TT1_Q: "TT1 Q"
-  assumes TT2_P: "TT2 P" and TT2_Q: "TT2 Q"
+  assumes TT2w_P: "TT2w P" and TT2w_Q: "TT2w Q"
   assumes TT3_P: "TT3 P" and TT3_Q: "TT3 Q"
-  shows "TT2 (P \<triangle>\<^sub>T Q)"
-  unfolding TT2_def
+  shows "TT2w (P \<triangle>\<^sub>T Q)"
+  unfolding TT2w_def
 proof auto
   fix \<rho> X Y
   assume assm1: "\<rho> @ [[X]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
@@ -3464,11 +3464,11 @@ proof auto
         then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
           using P_nontock_inter by auto
         then have \<rho>_Z_Y_in_P: "\<rho> @ [[Z \<union> Y]\<^sub>R] \<in> P"
-          using TT2_P case_assms(1) unfolding TT2_def by auto
+          using TT2w_P case_assms(1) unfolding TT2w_def by auto
         have "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
           using Q_nontock_inter by auto
         then have \<rho>_W_Y_in_Q: "filter_tocks \<rho> @ [[W \<union> {e\<in>Y. e \<noteq> Tock}]\<^sub>R] \<in> Q"
-          using TT2_Q case_assms(2) unfolding TT2_def by auto
+          using TT2w_Q case_assms(2) unfolding TT2w_def by auto
         show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
           using \<rho>_Z_Y_in_P \<rho>_W_Y_in_Q unfolding TimeSyncInterruptTT_def apply (auto)
           apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="Z \<union> Y" in exI, auto)
@@ -3478,11 +3478,11 @@ proof auto
         then have "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
           using Q_nontock_inter by auto
         then have \<rho>_W_Y_in_Q: "filter_tocks \<rho> @ [[W \<union> Y]\<^sub>R] \<in> Q"
-          using TT2_Q case_assms(2) unfolding TT2_def by auto
+          using TT2w_Q case_assms(2) unfolding TT2w_def by auto
         have "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
           using P_nontock_inter by auto
         then have \<rho>_Z_Y_in_P: "\<rho> @ [[Z \<union> {e\<in>Y. e \<noteq> Tock}]\<^sub>R] \<in> P"
-          using TT2_P case_assms(1) unfolding TT2_def by auto
+          using TT2w_P case_assms(1) unfolding TT2w_def by auto
         show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
           using \<rho>_Z_Y_in_P \<rho>_W_Y_in_Q unfolding TimeSyncInterruptTT_def apply (auto)
           apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="Z \<union> {e\<in>Y. e \<noteq> Tock}" in exI, auto)
@@ -3493,11 +3493,11 @@ proof auto
       have "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[Z]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
         using P_nontock_inter by auto
       then have \<rho>_Z_Y_in_P: "\<rho> @ [[Z \<union> {e\<in>Y. e \<noteq> Tock}]\<^sub>R] \<in> P"
-        using TT2_P case_assms(1) unfolding TT2_def by auto
+        using TT2w_P case_assms(1) unfolding TT2w_def by auto
       have "{e\<in>Y. e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[W]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         using Q_nontock_inter by auto
       then have \<rho>_W_Y_in_Q: "filter_tocks \<rho> @ [[W \<union> {e\<in>Y. e \<noteq> Tock}]\<^sub>R] \<in> Q"
-        using TT2_Q case_assms(2) unfolding TT2_def by auto
+        using TT2w_Q case_assms(2) unfolding TT2w_def by auto
       show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
         using \<rho>_Z_Y_in_P \<rho>_W_Y_in_Q unfolding TimeSyncInterruptTT_def apply (auto)
         apply (rule_tac x="\<rho>" in exI, auto, rule_tac x="Z \<union> {e\<in>Y. e \<noteq> Tock}" in exI, auto)
@@ -3542,7 +3542,7 @@ proof auto
     then have "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks p @ q2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks p @ q2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
       using assm2 by auto
     then have "filter_tocks p @ q2 @ [[X \<union> Y]\<^sub>R] \<in> Q"
-      using TT2_Q case_assms unfolding TT2_def by (erule_tac x="filter_tocks p @ q2" in allE, auto)
+      using TT2w_Q case_assms unfolding TT2w_def by (erule_tac x="filter_tocks p @ q2" in allE, auto)
     then show "p @ q2 @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
       unfolding TimeSyncInterruptTT_def
       apply (auto, erule_tac x=p in allE, auto simp add: case_assms, erule_tac x="q2 @ [[X \<union> Y]\<^sub>R]" in allE, auto simp add: case_assms)
@@ -3550,14 +3550,14 @@ proof auto
   qed
 qed
 
-lemma TT2s_TimeSyncInterrupt:
+lemma TT2_TimeSyncInterrupt:
   assumes P_wf: "\<forall>x\<in>P. ttWF x" assumes Q_wf: "\<forall>x\<in>Q. ttWF x"
   assumes TT1_P: "TT1 P" and TT1_Q: "TT1 Q"
+  assumes TT2w_P: "TT2w P" and TT2w_Q: "TT2w Q"
   assumes TT2_P: "TT2 P" and TT2_Q: "TT2 Q"
-  assumes TT2s_P: "TT2s P" and TT2s_Q: "TT2s Q"
   assumes TT3_P: "TT3 P" and TT3_Q: "TT3 Q"
-  shows "TT2s (P \<triangle>\<^sub>T Q)"
-  unfolding TT2s_def
+  shows "TT2 (P \<triangle>\<^sub>T Q)"
+  unfolding TT2_def
 proof auto
   fix \<rho> \<sigma> X Y
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>T Q"
@@ -3570,7 +3570,7 @@ proof auto
   proof auto
     assume "\<sigma> = []"
     then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
-      using TT1_P TT1_Q TT2_P TT2_Q TT2_TimeSyncInterrupt TT2_def TT3_P TT3_Q P_wf assm1 assm2 by blast
+      using TT1_P TT1_Q TT2w_P TT2w_Q TT2w_TimeSyncInterrupt TT2w_def TT3_P TT3_Q P_wf assm1 assm2 by blast
   next
     fix \<sigma>'
     assume case_assm: "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
@@ -3791,9 +3791,9 @@ proof auto
       then have 5: "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         using assm2 by auto
       have 6: "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E] \<in> P"
-        using TT2s_P case_assms2 4 unfolding TT2s_def by auto
+        using TT2_P case_assms2 4 unfolding TT2_def by auto
       have 7: "filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' \<in> Q"
-        using TT2s_Q case_assms2 5 unfolding TT2s_def by auto
+        using TT2_Q case_assms2 5 unfolding TT2_def by auto
       have 8: "filter_tocks (\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>''"
         by (induct \<rho> rule:filter_tocks.induct, auto)
       show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Tick]\<^sub>E] \<in> P \<triangle>\<^sub>T Q"
@@ -3927,9 +3927,9 @@ proof auto
       then have 5: "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         using assm2 by auto
       have 6: "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[Ya]\<^sub>R] \<in> P"
-        using TT2s_P case_assms2 4 unfolding TT2s_def by auto
+        using TT2_P case_assms2 4 unfolding TT2_def by auto
       have 7: "filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>'' @ [[Z]\<^sub>R] \<in> Q"
-        using TT2s_Q case_assms2 5 unfolding TT2s_def by auto
+        using TT2_Q case_assms2 5 unfolding TT2_def by auto
       have 8: "filter_tocks (\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'') = filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks \<sigma>''"
         by (induct \<rho> rule:filter_tocks.induct, auto)
       show "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'' @ [[W]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
@@ -4063,9 +4063,9 @@ proof auto
       then have 5: "Y \<inter> {e. e \<noteq> Tock \<and> filter_tocks \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         using assm2 by auto
       have 6: "\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 \<in> P"
-        using TT2s_P case_assms2 4 unfolding TT2s_def by auto
+        using TT2_P case_assms2 4 unfolding TT2_def by auto
       have 7: "filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2 @ q3 \<in> Q"
-        using TT2s_Q case_assms2 5 unfolding TT2s_def by auto
+        using TT2_Q case_assms2 5 unfolding TT2_def by auto
       have 8: "filter_tocks (\<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2) = filter_tocks \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # filter_tocks p2"
         by (induct \<rho> rule:filter_tocks.induct, auto)
       have 9: "(\<forall>p'. \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Ya. \<rho> @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # p2 \<noteq> p' @ [[Ya]\<^sub>R])"
@@ -4127,7 +4127,7 @@ proof auto
         using assm2 by auto
       thm case_assms2
       have 2: "filter_tocks p @ q2 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' \<in> Q"
-        using TT2s_Q unfolding TT2s_def apply auto
+        using TT2_Q unfolding TT2_def apply auto
         by (erule_tac x="filter_tocks p @ q2" in allE, erule_tac x="[Tock]\<^sub>E # \<sigma>'" in allE, auto simp add: 1 case_assms2)
       have 3: "\<nexists> Ya q'. q2 @ [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>' = [Ya]\<^sub>R # q'"
         by (simp add: append_eq_Cons_conv case_assms2(4) case_assms2(5))
@@ -4172,26 +4172,26 @@ lemma add_Tick_refusal_trace_filter_tocks:
   "add_Tick_refusal_trace (filter_tocks t) = filter_tocks (add_Tick_refusal_trace t)"
   by (induct t rule:filter_tocks.induct, auto, (case_tac x, auto)+)
 
-lemma TT4s_TimeSyncInterrupt:
-  assumes TT4s_P: "TT4s P" and TT4s_Q: "TT4s Q"
-  shows "TT4s (P \<triangle>\<^sub>T Q)"
-  unfolding TT4s_def TimeSyncInterruptTT_def
+lemma TT4_TimeSyncInterrupt:
+  assumes TT4_P: "TT4 P" and TT4_Q: "TT4 Q"
+  shows "TT4 (P \<triangle>\<^sub>T Q)"
+  unfolding TT4_def TimeSyncInterruptTT_def
 proof (safe, simp_all)
   fix p
   assume case_assms: "p @ [[Tick]\<^sub>E] \<in> P" "filter_tocks p \<in> Q"
   have 1: "add_Tick_refusal_trace p @ [[Tick]\<^sub>E] \<in> P"
-    by (metis TT4s_P TT4s_def add_Tick_refusal_trace_end_event case_assms(1))
+    by (metis TT4_P TT4_def add_Tick_refusal_trace_end_event case_assms(1))
   have 2: "filter_tocks (add_Tick_refusal_trace p) \<in> Q"
-    by (metis TT4s_Q TT4s_def add_Tick_refusal_trace_filter_tocks case_assms(2))
+    by (metis TT4_Q TT4_def add_Tick_refusal_trace_filter_tocks case_assms(2))
   show "\<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks pa \<in> Q \<and> add_Tick_refusal_trace (p @ [[Tick]\<^sub>E]) = pa @ [[Tick]\<^sub>E]"
     using 1 2 by (rule_tac x="add_Tick_refusal_trace p" in exI, auto simp add: add_Tick_refusal_trace_end_event)
 next
   fix p X Y Z
   assume case_assms: "p @ [[X]\<^sub>R] \<in> P" "filter_tocks p @ [[Y]\<^sub>R] \<in> Q" "Z \<subseteq> X \<union> Y" "{e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock}"
   have 1: "add_Tick_refusal_trace p @ [[X \<union> {Tick}]\<^sub>R] \<in> P"
-    by (metis TT4s_P TT4s_def add_Tick_refusal_trace_end_refusal case_assms(1))
+    by (metis TT4_P TT4_def add_Tick_refusal_trace_end_refusal case_assms(1))
   have 2: "filter_tocks (add_Tick_refusal_trace p) @ [[Y \<union> {Tick}]\<^sub>R] \<in> Q"
-    by (metis TT4s_Q TT4s_def add_Tick_refusal_trace_end_refusal add_Tick_refusal_trace_filter_tocks case_assms(2))
+    by (metis TT4_Q TT4_def add_Tick_refusal_trace_end_refusal add_Tick_refusal_trace_filter_tocks case_assms(2))
   show "\<forall>pa X. pa @ [[X]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y. {e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<longrightarrow>
       filter_tocks pa @ [[Y]\<^sub>R] \<in> Q \<longrightarrow> (\<forall>Za\<subseteq>X \<union> Y. add_Tick_refusal_trace (p @ [[Z]\<^sub>R]) \<noteq> pa @ [[Za]\<^sub>R])) \<Longrightarrow>
     \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks pa \<in> Q \<and> add_Tick_refusal_trace (p @ [[Z]\<^sub>R]) = pa @ [[Tick]\<^sub>E]"
@@ -4202,11 +4202,11 @@ next
   fix p q2
   assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "filter_tocks p @ q2 \<in> Q" "\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q'"
   have 1: "add_Tick_refusal_trace p \<in> P"
-    using TT4s_P TT4s_def case_assms(1) by blast
+    using TT4_P TT4_def case_assms(1) by blast
   have 2: "(\<forall>p'. add_Tick_refusal_trace p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. add_Tick_refusal_trace p \<noteq> p' @ [[Y]\<^sub>R])"
     using add_Tick_refusal_trace_not_end_refusal add_Tick_refusal_trace_not_end_tick case_assms by blast
   have 3: "filter_tocks (add_Tick_refusal_trace p) @ add_Tick_refusal_trace q2 \<in> Q"
-    by (metis TT4s_Q TT4s_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_tocks case_assms(4))
+    by (metis TT4_Q TT4_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_tocks case_assms(4))
   have 4: "\<forall>q' Y. add_Tick_refusal_trace q2 \<noteq> [Y]\<^sub>R # q'"
     by (metis add_Tick_refusal_trace.simps(2) case_assms(5) contains_refusal.elims(2) contains_refusal.elims(3) contains_refusal_add_Tick_refusal_trace ttobs.distinct(1) list.inject)
   show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<or>
@@ -4223,7 +4223,7 @@ lemma TT_TimeSyncInterrupt:
   using TimeSyncInterruptTT_wf apply blast
   using TT0_TimeSyncInterrupt apply blast
   using TT1_TimeSyncInterrupt apply blast
-  using TT2_TimeSyncInterrupt apply blast
+  using TT2w_TimeSyncInterrupt apply blast
   using TT3_TimeSyncInterrupt apply blast
   done
 

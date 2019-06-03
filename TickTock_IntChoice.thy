@@ -1,5 +1,5 @@
 theory TickTock_IntChoice
-  imports TickTock_Core
+  imports "TickTock-Model.TickTock_Core"
 begin
   
 subsection {* Internal Choice *}
@@ -10,15 +10,15 @@ definition IntChoiceTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<R
 lemma IntChoiceTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t\<in>P \<sqinter>\<^sub>C Q. ttWF t"
   unfolding IntChoiceTT_def by auto
 
-lemma TT2s_IntChoice:
-  assumes "TT2s P" "TT2s Q"
-  shows "TT2s (P \<sqinter>\<^sub>C Q)"
-    using assms unfolding IntChoiceTT_def TT2s_def by (auto, (smt disjoint_iff_not_equal mem_Collect_eq)+)
+lemma TT2_IntChoice:
+  assumes "TT2 P" "TT2 Q"
+  shows "TT2 (P \<sqinter>\<^sub>C Q)"
+    using assms unfolding IntChoiceTT_def TT2_def by (auto, (smt disjoint_iff_not_equal mem_Collect_eq)+)
 
-lemma TT4s_IntChoice:
-  assumes "TT4s P" "TT4s Q"
-  shows "TT4s (P \<sqinter>\<^sub>C Q)"
-  using assms unfolding IntChoiceTT_def TT4s_def by auto
+lemma TT4_IntChoice:
+  assumes "TT4 P" "TT4 Q"
+  shows "TT4 (P \<sqinter>\<^sub>C Q)"
+  using assms unfolding IntChoiceTT_def TT4_def by auto
 
 lemma TT_IntChoice:
   assumes "TT P" "TT Q"
@@ -49,9 +49,9 @@ next
   have 4: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
     using 2 assm2 inf_sup_distrib1 by auto
   have 5: "\<rho> @ [[X]\<^sub>R] \<in> P \<Longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-    using "3" TT2_def TT_def assms(1) by blast
+    using "3" TT2w_def TT_def assms(1) by blast
   have 6: "\<rho> @ [[X]\<^sub>R] \<in> Q \<Longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
-    using "4" TT2_def TT_def assms(2) by blast
+    using "4" TT2w_def TT_def assms(2) by blast
   show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<sqinter>\<^sub>C Q"
     using "1" "5" "6" IntChoiceTT_def by blast
 next

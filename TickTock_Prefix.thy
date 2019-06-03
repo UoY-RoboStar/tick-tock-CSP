@@ -1,5 +1,5 @@
 theory TickTock_Prefix
-  imports TickTock_Core
+  imports "TickTock-Model.TickTock_Core"
 begin
 
 subsection {* Prefix *}
@@ -12,11 +12,11 @@ definition PrefixTT :: "'e \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttob
 lemma PrefixTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>PrefixTT e P. ttWF t"
   unfolding PrefixTT_def by (auto simp add: tocks_wf tocks_append_wf)
 
-lemma TT2s_Prefix:
+lemma TT2_Prefix:
   assumes TT0_P: "TT0 P" and TT1_P: "TT1 P"
-  assumes TT2s_P: "TT2s P"
-  shows "TT2s (e \<rightarrow>\<^sub>C P)"
-  unfolding TT2s_def
+  assumes TT2_P: "TT2 P"
+  shows "TT2 (e \<rightarrow>\<^sub>C P)"
+  unfolding TT2_def
 proof auto
   fix \<rho> \<sigma> X Y
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> e \<rightarrow>\<^sub>C P"
@@ -155,7 +155,7 @@ proof auto
       have 2: "\<rho>' @ [X]\<^sub>R # \<sigma> \<in> P"
         using \<sigma>'_def case_assms(2) by auto
       have "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
-        using 1 2 TT2s_P unfolding TT2s_def by auto
+        using 1 2 TT2_P unfolding TT2_def by auto
       then show "\<forall>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}.
           s @ [Event e]\<^sub>E # t @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> sa \<and> (\<forall>\<sigma>'\<in>P. s @ [Event e]\<^sub>E # t @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> sa @ [Event e]\<^sub>E # \<sigma>') \<Longrightarrow>
         \<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> s @ [Event e]\<^sub>E # t @ [X \<union> Y]\<^sub>R # \<sigma> = sa @ [[Xa]\<^sub>R]"
@@ -182,9 +182,9 @@ proof auto
   qed
 qed
 
-lemma TT4s_Prefix:
-  "TT4s P \<Longrightarrow> TT4s (e \<rightarrow>\<^sub>C P)"
-  unfolding PrefixTT_def TT4s_def
+lemma TT4_Prefix:
+  "TT4 P \<Longrightarrow> TT4 (e \<rightarrow>\<^sub>C P)"
+  unfolding PrefixTT_def TT4_def
 proof auto
   fix s
   assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
@@ -192,14 +192,14 @@ proof auto
       (\<forall>\<sigma>\<in>P. add_Tick_refusal_trace s \<noteq> sa @ [Event e]\<^sub>E # \<sigma>) \<Longrightarrow>
     \<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]"
     apply (erule_tac x="add_Tick_refusal_trace s" in ballE, auto)
-    by (metis (mono_tags, lifting) TT4s_def TT4s_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
+    by (metis (mono_tags, lifting) TT4_def TT4_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
 next
   fix s X
   assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "Tock \<notin> X" "Event e \<notin> X"
   then show "\<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}.
     \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> add_Tick_refusal_trace (s @ [[X]\<^sub>R]) = sa @ [[Xa]\<^sub>R]"
     apply (rule_tac x="add_Tick_refusal_trace s" in bexI, rule_tac x="X \<union> {Tick}" in exI, auto simp add: add_Tick_refusal_trace_end_refusal)
-    by (metis (mono_tags, lifting) TT4s_def TT4s_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
+    by (metis (mono_tags, lifting) TT4_def TT4_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
 next
   fix s
   assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
@@ -207,7 +207,7 @@ next
       (\<forall>\<sigma>\<in>P. add_Tick_refusal_trace s \<noteq> sa @ [Event e]\<^sub>E # \<sigma>) \<Longrightarrow>
     \<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]"
     apply (erule_tac x="add_Tick_refusal_trace s" in ballE, auto)
-    by (metis (mono_tags, lifting) TT4s_def TT4s_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
+    by (metis (mono_tags, lifting) TT4_def TT4_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
 next
   fix s \<sigma>
   assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<sigma> \<in> P"
@@ -220,7 +220,7 @@ next
       \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> add_Tick_refusal_trace (s @ [Event e]\<^sub>E # \<sigma>) = sa @ [[X]\<^sub>R]"
     using calculation apply (erule_tac x="add_Tick_refusal_trace s" in ballE, auto)
     apply (erule_tac x="add_Tick_refusal_trace \<sigma>" in ballE, auto simp add: add_Tick_refusal_trace_end_event_trace)
-    by (metis (mono_tags, lifting) TT4s_def TT4s_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
+    by (metis (mono_tags, lifting) TT4_def TT4_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
 qed
 
 lemma TT_Prefix:
@@ -339,7 +339,7 @@ next
     then have "Y \<inter> {ea. ea \<noteq> Tock \<and> \<sigma>' @ [[ea]\<^sub>E] \<in> P \<or> ea = Tock \<and> \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> P} = {}"
       using assm1 by auto
     then have "\<sigma>' @ [[X \<union> Y]\<^sub>R] \<in> P"
-      using \<sigma>'_assm assm3 assms by (auto simp add: TT2_def TT_def)
+      using \<sigma>'_assm assm3 assms by (auto simp add: TT2w_def TT_def)
     then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> e \<rightarrow>\<^sub>C P"
       unfolding PrefixTT_def using \<rho>_def assm2 by auto
   qed
@@ -420,10 +420,10 @@ qed
 
 thm TockPrefixTT_def
 
-lemma TT2s_TockPrefix: 
-  assumes "TT2s P"
-  shows "TT2s (tock \<rightarrow>\<^sub>C P)"
-  unfolding TT2s_def
+lemma TT2_TockPrefix: 
+  assumes "TT2 P"
+  shows "TT2 (tock \<rightarrow>\<^sub>C P)"
+  unfolding TT2_def
 proof auto
   fix \<rho> \<sigma> X Y
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> tock \<rightarrow>\<^sub>C P"
@@ -537,7 +537,7 @@ proof auto
       have 2: "t2' @ [X]\<^sub>R # \<sigma> \<in> P"
         using case_assms(2) case_assms2 by auto
       have "t2' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
-        using 1 2 assms unfolding TT2s_def by auto
+        using 1 2 assms unfolding TT2_def by auto
       then show "\<forall>sa\<in>tocks {x. x \<noteq> Tock}. s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2' @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> sa \<and>
           (\<forall>\<sigma>'\<in>P. \<forall>Xaa. Tock \<in> Xaa \<or> s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2' @ [X \<union> Y]\<^sub>R # \<sigma> \<noteq> sa @ [Xaa]\<^sub>R # [Tock]\<^sub>E # \<sigma>') \<Longrightarrow>
         \<exists>sa\<in>tocks {x. x \<noteq> Tock}. \<exists>Xaa. Tock \<notin> Xaa \<and> s @ [Xa]\<^sub>R # [Tock]\<^sub>E # t2' @ [X \<union> Y]\<^sub>R # \<sigma> = sa @ [[Xaa]\<^sub>R]"
@@ -625,10 +625,10 @@ next
     done
 qed
 
-lemma TT4s_TockPrefix:
-  assumes "TT4s P"
-  shows "TT4s (tock \<rightarrow>\<^sub>C P)"
-  unfolding TockPrefixTT_def TT4s_def
+lemma TT4_TockPrefix:
+  assumes "TT4 P"
+  shows "TT4 (tock \<rightarrow>\<^sub>C P)"
+  unfolding TockPrefixTT_def TT4_def
 proof auto
   fix s :: "'a ttobs list"
   assume "s \<in> tocks {x. x \<noteq> Tock}"   
@@ -663,7 +663,7 @@ next
   then have 1: "add_Tick_refusal_trace s \<in> tocks {x. x \<noteq> Tock}"
     by (induct s rule:tocks.induct, auto simp add: tocks.intros)
   have 2: "add_Tick_refusal_trace \<sigma> \<in> P"
-    using assms case_assms unfolding TT4s_def by auto
+    using assms case_assms unfolding TT4_def by auto
   show "\<forall>sa\<in>tocks {x. x \<noteq> Tock}. add_Tick_refusal_trace (s @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) \<noteq> sa \<and>
       (\<forall>\<sigma>'\<in>P. \<forall>Xa. Tock \<in> Xa \<or> add_Tick_refusal_trace (s @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) \<noteq> sa @ [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma>') \<Longrightarrow>
     \<exists>sa\<in>tocks {x. x \<noteq> Tock}. \<exists>Xa. Tock \<notin> Xa \<and> add_Tick_refusal_trace (s @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = sa @ [[Xa]\<^sub>R]"
@@ -673,9 +673,9 @@ next
 qed
 
 lemma TT_TockPrefix:
-  assumes "TT P" "TT2s P" "TT4s P"
+  assumes "TT P" "TT2 P" "TT4 P"
   shows "TT (tock \<rightarrow>\<^sub>C P)"
   using assms unfolding TT_def
-  using TT0_TockPrefixTT TT1_TockPrefixTT TT2s_TockPrefix TT2s_imp_TT2 TT3_TockPrefix TockPrefixTT_wf by blast
+  using TT0_TockPrefixTT TT1_TockPrefixTT TT2_TockPrefix TT2_imp_TT2w TT3_TockPrefix TockPrefixTT_wf by blast
 
 end

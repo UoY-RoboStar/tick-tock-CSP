@@ -1,5 +1,5 @@
 theory TickTock_ExtChoice
-  imports TickTock_Core
+  imports "TickTock-Model.TickTock_Core"
 begin
 
 subsection {* External Choice *}
@@ -340,10 +340,10 @@ proof auto
   qed
 qed
 
-lemma TT2_ExtChoice:
+lemma TT2w_ExtChoice:
   assumes "TT P" "TT Q"
-  shows "TT2 (P \<box>\<^sub>C Q)"
-  unfolding TT2_def
+  shows "TT2w (P \<box>\<^sub>C Q)"
+  unfolding TT2w_def
 proof auto
   fix \<rho> :: "'a ttobs list"
   fix X Y :: "'a ttevent set"
@@ -540,7 +540,7 @@ proof auto
       \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
       by auto
     then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<or> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
-      using TT2_def TT_def assms(1) assms(2) in_P_or_Q by auto
+      using TT2w_def TT_def assms(1) assms(2) in_P_or_Q by auto
     then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
       unfolding ExtChoiceTT_def apply auto
       apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>_split)
@@ -603,10 +603,10 @@ proof auto
     have notocks_assm2: "{e. e \<in> Y \<and> e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R, [e]\<^sub>E] \<in> P} = {} 
         \<and> {e. e \<in> Y \<and> e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
       using set1 assm2 by blast
-    have TT2_P_Q: "TT2 P \<and> TT2 Q"
-      by (simp add: TT_TT2 assms(1) assms(2))
+    have TT2w_P_Q: "TT2w P \<and> TT2w Q"
+      by (simp add: TT_TT2w assms(1) assms(2))
     then have notock_X_Y_in_P_Q: "\<rho> @ [[{e. e \<in> X \<union> Y \<and> e \<noteq> Tock}]\<^sub>R] \<in> P \<and> \<rho> @ [[{e. e \<in> X \<union> Y \<and> e \<noteq> Tock}]\<^sub>R] \<in> Q"
-      unfolding TT2_def
+      unfolding TT2w_def
     proof auto
       assume "\<forall>\<rho> X Y. \<rho> @ [[X]\<^sub>R] \<in> P \<and> 
           Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<longrightarrow>
@@ -660,7 +660,7 @@ proof auto
         proof auto
           assume case_assm5: "\<rho> @ [[X]\<^sub>R] \<in> P"
           then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-            using TT2_P_Q case_assm3 unfolding TT2_def by auto
+            using TT2w_P_Q case_assm3 unfolding TT2w_def by auto
           also have "\<rho> @ [[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R] \<in> Q"
             using notock_X_Y_in_P_Q by auto
           then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
@@ -672,7 +672,7 @@ proof auto
         next
           assume case_assm5: "\<rho> @ [[X]\<^sub>R] \<in> Q"
           then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
-            using TT2_P_Q case_assm4 unfolding TT2_def by auto
+            using TT2w_P_Q case_assm4 unfolding TT2w_def by auto
           also have "\<rho> @ [[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R] \<in> P"
             using notock_X_Y_in_P_Q by auto
           then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
@@ -724,7 +724,7 @@ proof auto
             using "8" by auto
         qed
         then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
-          using TT2_P_Q TT2_def case_assm4 by blast
+          using TT2w_P_Q TT2w_def case_assm4 by blast
         then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
           unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
           apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
@@ -773,7 +773,7 @@ proof auto
             using "8" by auto
         qed
         then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-          using TT2_P_Q TT2_def case_assm4 by blast
+          using TT2w_P_Q TT2w_def case_assm4 by blast
         then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
           unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
           apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
@@ -805,10 +805,10 @@ proof auto
         using in_P_or_Q
       proof auto
         assume  case_assm3: "\<rho> @ [[X]\<^sub>R] \<in> P"
-        have "TT2 P"
-          by (simp add: TT2_P_Q)
+        have "TT2w P"
+          by (simp add: TT2w_P_Q)
         then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-          unfolding TT2_def using case_assm3 assm2_expand by auto
+          unfolding TT2w_def using case_assm3 assm2_expand by auto
         then show  "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
           unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
           apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
@@ -817,10 +817,10 @@ proof auto
           using tt_prefix_notfront_is_whole end_refusal_notin_tocks by blast+
       next
         assume  case_assm3: "\<rho> @ [[X]\<^sub>R] \<in> Q"
-        have "TT2 Q"
-          by (simp add: TT2_P_Q)
+        have "TT2w Q"
+          by (simp add: TT2w_P_Q)
         then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
-          unfolding TT2_def using case_assm3 assm2_expand by auto
+          unfolding TT2w_def using case_assm3 assm2_expand by auto
         then show  "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
           unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
           apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_split case_assm)
@@ -832,10 +832,10 @@ proof auto
   qed
 qed
 
-lemma TT2s_ExtChoice:
-  assumes "TT P" "TT Q" "TT2s P" "TT2s Q"
-  shows "TT2s (P \<box>\<^sub>C Q)"
-  unfolding TT2s_def
+lemma TT2_ExtChoice:
+  assumes "TT P" "TT Q" "TT2 P" "TT2 Q"
+  shows "TT2 (P \<box>\<^sub>C Q)"
+  unfolding TT2_def
 proof auto
   fix \<rho> \<sigma> X Y
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
@@ -1118,7 +1118,7 @@ proof auto
         \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
         by auto
       then have "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<or> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
-        using assms(3) assms(4) in_P_or_Q unfolding TT2s_def by auto
+        using assms(3) assms(4) in_P_or_Q unfolding TT2_def by auto
       then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
         unfolding ExtChoiceTT_def apply auto
         apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>2_def \<rho>_\<sigma>_split)
@@ -1201,10 +1201,10 @@ proof auto
           have notocks_assm2: "{e. e \<in> Y \<and> e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R, [e]\<^sub>E] \<in> P} = {} 
               \<and> {e. e \<in> Y \<and> e \<noteq> Tock} \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[{e. e \<in> X \<and> e \<noteq> Tock}]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
             using set1 assm2 by blast
-          have TT2_P_Q: "TT2 P \<and> TT2 Q"
-            by (simp add: TT_TT2 assms(1) assms(2))
+          have TT2w_P_Q: "TT2w P \<and> TT2w Q"
+            by (simp add: TT_TT2w assms(1) assms(2))
           then have notock_X_Y_in_P_Q: "\<rho> @ [[{e. e \<in> X \<union> Y \<and> e \<noteq> Tock}]\<^sub>R] \<in> P \<and> \<rho> @ [[{e. e \<in> X \<union> Y \<and> e \<noteq> Tock}]\<^sub>R] \<in> Q"
-            unfolding TT2_def
+            unfolding TT2w_def
           proof auto
             assume "\<forall>\<rho> X Y. \<rho> @ [[X]\<^sub>R] \<in> P \<and> 
                 Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<longrightarrow>
@@ -1256,7 +1256,7 @@ proof auto
               proof auto
                 assume case_assm6: "\<rho>' @ [[X]\<^sub>R] \<in> P"
                 then have "\<rho>' @ [[X \<union> Y]\<^sub>R] \<in> P"
-                  using TT2_P_Q case_assm4 \<rho>2_def case_assm unfolding TT2_def by auto
+                  using TT2w_P_Q case_assm4 \<rho>2_def case_assm unfolding TT2w_def by auto
                 also have "\<rho>' @ [[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R] \<in> Q"
                   using notock_X_Y_in_P_Q \<rho>2_def case_assm by auto
                 then show "\<rho>' @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
@@ -1268,7 +1268,7 @@ proof auto
               next
                 assume case_assm6: "\<rho>' @ [[X]\<^sub>R] \<in> Q"
                 then have "\<rho>' @ [[X \<union> Y]\<^sub>R] \<in> Q"
-                  using TT2_P_Q case_assm5 \<rho>2_def case_assm unfolding TT2_def by auto
+                  using TT2w_P_Q case_assm5 \<rho>2_def case_assm unfolding TT2w_def by auto
                 also have "\<rho>' @ [[{e \<in> X \<union> Y. e \<noteq> Tock}]\<^sub>R] \<in> P"
                   using notock_X_Y_in_P_Q \<rho>2_def case_assm by auto
                 then show "\<rho>' @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
@@ -1320,7 +1320,7 @@ proof auto
                   using "8" by auto
               qed
               then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
-                using TT2_P_Q TT2_def case_assm4 by blast
+                using TT2w_P_Q TT2w_def case_assm4 by blast
               then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
                 unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
                 apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
@@ -1369,7 +1369,7 @@ proof auto
                 using "8" by auto
             qed
             then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-              using TT2_P_Q TT2_def case_assm5 by blast
+              using TT2w_P_Q TT2w_def case_assm5 by blast
             then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
               unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
               apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
@@ -1401,10 +1401,10 @@ proof auto
             using in_P_or_Q case_assm2
           proof auto
             assume  case_assm4: "\<rho> @ [[X]\<^sub>R] \<in> P"
-            have "TT2 P"
-              by (simp add: TT2_P_Q)
+            have "TT2w P"
+              by (simp add: TT2w_P_Q)
             then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
-              unfolding TT2_def using case_assm4 assm2_expand by auto
+              unfolding TT2w_def using case_assm4 assm2_expand by auto
             then show  "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
               unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
               apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
@@ -1413,10 +1413,10 @@ proof auto
               using tt_prefix_notfront_is_whole end_refusal_notin_tocks by blast+
           next
             assume  case_assm4: "\<rho> @ [[X]\<^sub>R] \<in> Q"
-            have "TT2 Q"
-              by (simp add: TT2_P_Q)
+            have "TT2w Q"
+              by (simp add: TT2w_P_Q)
             then have "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> Q"
-              unfolding TT2_def using case_assm4 assm2_expand by auto
+              unfolding TT2w_def using case_assm4 assm2_expand by auto
             then show  "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<box>\<^sub>C Q"
               unfolding ExtChoiceTT_def using notock_X_Y_in_P_Q apply auto
               apply (rule_tac x="\<rho>'" in bexI, simp_all add: \<rho>_\<sigma>_split case_assm)
@@ -1532,9 +1532,9 @@ proof auto
     proof auto
       assume in_P: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P"
       have 1: "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
-        using assms(3) P_assm2 in_P unfolding TT2s_def by force
+        using assms(3) P_assm2 in_P unfolding TT2_def by force
       have 2: "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' \<in> Q"
-        using assms(4) Q_assm2 \<rho>'_in_P_Q case_assms unfolding TT2s_def by force
+        using assms(4) Q_assm2 \<rho>'_in_P_Q case_assms unfolding TT2_def by force
       show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
       proof (cases "\<exists> Z. \<sigma>''' = [[Z]\<^sub>R]", auto)
         fix Z
@@ -1565,7 +1565,7 @@ proof auto
         then obtain W where "\<rho> @ [X]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<in> Q \<and> (\<forall>e. (e \<in> W) = (e \<in> Z) \<or> e = Tock)"
           by blast
         then have C: "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<in> Q \<and> (\<forall>e. (e \<in> W) = (e \<in> Z) \<or> e = Tock)"
-          using assms(4) Q_assm2 unfolding TT2s_def by auto
+          using assms(4) Q_assm2 unfolding TT2_def by auto
         have D: "\<forall> t\<in>tocks UNIV. t \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<longrightarrow> t \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'"
           using tt_prefix_notfront_is_whole end_refusal_notin_tocks by force
         show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
@@ -1579,9 +1579,9 @@ proof auto
     next
       assume in_Q: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> Q"
       have 1: "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
-        using assms(4) Q_assm2 in_Q unfolding TT2s_def by force
+        using assms(4) Q_assm2 in_Q unfolding TT2_def by force
       have 2: "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' \<in> P"
-        using assms(3) P_assm2 \<rho>'_in_P_Q case_assms unfolding TT2s_def by force
+        using assms(3) P_assm2 \<rho>'_in_P_Q case_assms unfolding TT2_def by force
       show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
       proof (cases "\<exists> Z. \<sigma>''' = [[Z]\<^sub>R]", auto)
         fix Z
@@ -1612,7 +1612,7 @@ proof auto
         then obtain W where "\<rho> @ [X]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<in> P \<and> (\<forall>e. (e \<in> W) = (e \<in> Z) \<or> e = Tock)"
           by blast
         then have C: "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<in> P \<and> (\<forall>e. (e \<in> W) = (e \<in> Z) \<or> e = Tock)"
-          using assms(3) P_assm2 unfolding TT2s_def by auto
+          using assms(3) P_assm2 unfolding TT2_def by auto
         have D: "\<forall> t\<in>tocks UNIV. t \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ [[W]\<^sub>R] \<longrightarrow> t \<le>\<^sub>C \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>'"
           using tt_prefix_notfront_is_whole end_refusal_notin_tocks by force
         show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<box>\<^sub>C Q"
@@ -1632,10 +1632,10 @@ lemma TT3_ExtChoice:
   shows "TT3 (P \<box>\<^sub>C Q)"
   using assms unfolding TT3_def ExtChoiceTT_def by auto
 
-lemma TT4s_ExtChoice:
-  assumes "TT4s P" "TT4s Q"
-  shows "TT4s (P \<box>\<^sub>C Q)"
-  unfolding TT4s_def ExtChoiceTT_def
+lemma TT4_ExtChoice:
+  assumes "TT4 P" "TT4 Q"
+  shows "TT4 (P \<box>\<^sub>C Q)"
+  unfolding TT4_def ExtChoiceTT_def
 proof auto
   fix \<rho>' \<sigma> \<tau> :: "'a ttobs list"
   assume assm1: "\<rho>' \<in> tocks UNIV"
@@ -1646,11 +1646,11 @@ proof auto
   assume assm6: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
   assume assm7: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
   have 1: "add_Tick_refusal_trace \<rho>' \<in> tocks UNIV"
-    using TT4s_def TT4s_tocks assm1 by blast
+    using TT4_def TT4_tocks assm1 by blast
   have 2: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<in> P"
-    using assms(1) assm2 unfolding TT4s_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+    using assms(1) assm2 unfolding TT4_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
   have 3: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau> \<in> Q"
-    using assms(2) assm3 unfolding TT4s_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+    using assms(2) assm3 unfolding TT4_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
   have 4: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
   proof auto
     fix \<rho>''
@@ -1723,11 +1723,11 @@ next
   assume assm6: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
   assume assm7: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
   have 1: "add_Tick_refusal_trace \<rho>' \<in> tocks UNIV"
-    using TT4s_def TT4s_tocks assm1 by blast
+    using TT4_def TT4_tocks assm1 by blast
   have 2: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<in> P"
-    using assms(1) assm2 unfolding TT4s_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+    using assms(1) assm2 unfolding TT4_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
   have 3: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau> \<in> Q"
-    using assms(2) assm3 unfolding TT4s_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+    using assms(2) assm3 unfolding TT4_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
   have 4: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
   proof auto
     fix \<rho>''
@@ -1799,7 +1799,7 @@ lemma TT_ExtChoice:
   apply (metis TT_def ExtChoiceTT_wf assms(1) assms(2))
   apply (simp add: TT0_ExtChoice assms(1) assms(2))
   apply (simp add: TT1_ExtChoice assms(1) assms(2))
-  apply (simp add: TT2_ExtChoice assms(1) assms(2))
+  apply (simp add: TT2w_ExtChoice assms(1) assms(2))
   apply  (simp add: TT3_ExtChoice TT_TT3 assms(1) assms(2))
   done
 

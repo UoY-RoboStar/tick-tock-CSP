@@ -70,8 +70,8 @@ lemma FLTick0_Tick_Event:
   apply (case_tac x21, auto, case_tac x22, auto, case_tac x1, auto)
   by (case_tac x22, auto, case_tac x1, auto)
 
-lemma fl_le_TT1c_ES_Event:
-  assumes "fl \<le> \<langle>([{x. x \<notin> ES}]\<^sub>\<F>\<^sub>\<L>,Event ev)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "[[Event ev]\<^sub>E] \<in> P" "[[ES]\<^sub>R] \<in> P" "Event ev \<notin> ES" "TT1c P"
+lemma fl_le_TT1w_ES_Event:
+  assumes "fl \<le> \<langle>([{x. x \<notin> ES}]\<^sub>\<F>\<^sub>\<L>,Event ev)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "[[Event ev]\<^sub>E] \<in> P" "[[ES]\<^sub>R] \<in> P" "Event ev \<notin> ES" "TT1w P"
   shows "flt2ttobs fl \<in> P"
   using assms apply (cases fl, auto)
   apply (simp_all add: less_eq_aevent_def)
@@ -388,10 +388,10 @@ lemma prirelRef_nonmax_Tock_imp_exists_refusal:
 lemma TTwf_1c_3_imp_flt2ttobs_FL1_mod:
   assumes "x \<in> P" 
       and TTwf_healthy: "TTwf P" 
-      and TT1c_healthy: "TT1c P"
+      and TT1w_healthy: "TT1w P"
       and TT3_healthy:  "TT3 P"
       and TTick_healthy: "TTick P"
-      and TT4_healthy: "TT4 P"
+      and TT4w_healthy: "TT4w P"
       and pri:"prirelRef p ar x [] P \<and> x \<in> P"
      (* and tick_Max:"maximal(p,Tick)"*)
   shows "\<exists>fl. x = flt2ttobs fl \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
@@ -413,8 +413,8 @@ next
     by metis
   then have "\<exists>ar. prirelRef p ar xs [] P \<and> xs \<in> P"
     using xs_x_in_P apply auto
-    using TT1c_def tt_prefix_concat
-    using TT1c_healthy by blast
+    using TT1w_def tt_prefix_concat
+    using TT1w_healthy by blast
    
   then have xs_in_P:"xs \<in> P" "ttWF (xs @ [x])"
      apply auto
@@ -436,7 +436,7 @@ next
           apply (case_tac x, auto)
         apply (metis (full_types) amember.elims(2) less_eq_acceptance.simps(3) mem_Collect_eq)
         using FL1_def dual_order.trans apply blast
-        using fl_le_TT1c using Nil by auto
+        using fl_le_TT1w using Nil by auto
       (*next
         case False
         then show ?thesis
@@ -447,7 +447,7 @@ next
         apply (case_tac x1a, auto)
         sledgehammer
         using FL1_def dual_order.trans apply blast
-        using fl_le_TT1c using Nil by auto
+        using fl_le_TT1w using Nil by auto
       qed*)
         
     next
@@ -467,7 +467,7 @@ next
             unfolding FLTick0_def apply auto
             apply (metis acceptance_set amember.simps(1) bullet_left_zero2 tickWF.simps(1) tickWF.simps(2) x_le_x_concat2 xs_less_eq_z_two_only)
             using FL1_def dual_order.trans apply blast
-            using ObsEvent Nil by (simp add: fl_le_TT1c_Event)
+            using ObsEvent Nil by (simp add: fl_le_TT1w_Event)
         next
           case False
           then obtain ES where ES:"Event ev \<notin> ES \<and> (\<forall>b. ((Event ev) <\<^sup>*p b) \<longrightarrow> b \<in> ES) \<and> [[ES]\<^sub>R] \<in> P"
@@ -485,7 +485,7 @@ next
             apply (intro exI[where x="{z. z \<le> \<langle>([{x. x \<notin> ES}]\<^sub>\<F>\<^sub>\<L>,Event ev)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}"], auto)
               apply (simp add: FLTick0_Tick_Event)
               using FL1_def dual_order.trans apply blast
-          using ObsEvent Nil by (simp add: fl_le_TT1c_ES_Event)
+          using ObsEvent Nil by (simp add: fl_le_TT1w_ES_Event)
       qed
       next
         case Tock
@@ -504,7 +504,7 @@ next
           unfolding FLTick0_def apply auto
           apply (metis acceptance_set amember.simps(1) bullet_left_zero2 tickWF.simps(1) tickWF.simps(2) x_le_x_concat2 xs_less_eq_z_two_only)
           using FL1_def dual_order.trans apply blast
-          using ObsEvent Nil by (simp add:fl_le_TT1c_Tick)
+          using ObsEvent Nil by (simp add:fl_le_TT1w_Tick)
       qed
     qed
   next
@@ -512,7 +512,7 @@ next
     then have prirelRefyys:"prirelRef p ar ((ys @ [y]) @ [x]) [] P \<and> (ys @ [y]) @ [x] \<in> P"
       by auto
 
-    from yys have ys_y_inP:"ys @ [y] \<in> P" using TT1c_def
+    from yys have ys_y_inP:"ys @ [y] \<in> P" using TT1w_def
       by (metis tt_prefix_concat)
     from yys have "prirelRef p (List.butlast ar) (ys @ [y]) [] P"
       using prirelRef_imp_one_butlast_of_prirelRef by blast
@@ -570,13 +570,13 @@ next
             using tock_in_last_fl by (simp add: flt2ttobs_last_tock fl)
 
           have "{flt2ttobs fl\<^sub>0|fl\<^sub>0. fl\<^sub>0 \<le> fl} \<subseteq> P"
-            using TT1c_healthy 
+            using TT1w_healthy 
             using FL1_def fl subset_eq by blast
 
           have flt2ttobs_strongFL_subset:"{flt2ttobs fl\<^sub>0|fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)} \<subseteq> P"
             apply auto
             using strong_less_eq_fltrace_imp_flt2ttobs_tt
-            by (metis (no_types, lifting) TT1c_def TT1c_healthy ObsEvent Tock \<open>ys @ [[r1]\<^sub>R] @ [[Tock]\<^sub>E] = flt2ttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(Finite_Linear_Model.last fl,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)\<close> \<open>ys @ [[r1]\<^sub>R] @ [[Tock]\<^sub>E] = flt2ttobs fl @ [[Tock]\<^sub>E] \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)\<close> fl r1 yys.prems(2))
+            by (metis (no_types, lifting) TT1w_def TT1w_healthy ObsEvent Tock \<open>ys @ [[r1]\<^sub>R] @ [[Tock]\<^sub>E] = flt2ttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(Finite_Linear_Model.last fl,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)\<close> \<open>ys @ [[r1]\<^sub>R] @ [[Tock]\<^sub>E] = flt2ttobs fl @ [[Tock]\<^sub>E] \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)\<close> fl r1 yys.prems(2))
 
           have "(ys @ [[r1]\<^sub>R] @ [[Tock]\<^sub>E] = flt2ttobs(fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl
                 \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x))"
@@ -677,7 +677,7 @@ next
             then have flt2ttobs_strongFL_subset:"{flt2ttobs fl\<^sub>0|fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)} \<subseteq> P"
               apply auto
               using strong_less_eq_fltrace_imp_flt2ttobs_tt
-              by (metis (no_types, lifting) TT1c_def TT1c_healthy Event ttevent.simps(3) e1 e2 fl flt2ttobs_last_non_tock last_fl last_snoc yys.prems(2))
+              by (metis (no_types, lifting) TT1w_def TT1w_healthy Event ttevent.simps(3) e1 e2 fl flt2ttobs_last_non_tock last_fl last_snoc yys.prems(2))
           
             from fl have fl_e3: "ys @ [[e1]\<^sub>E] @ [[Event e3]\<^sub>E] = flt2ttobs fl @ [[Event e3]\<^sub>E]
                     \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2ttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> x} \<subseteq> P \<and> fl \<in> x)"
@@ -789,7 +789,7 @@ next
 
             (* Need to pick a different last fl here, which is prioritised instead ! *)
             then have flt2ttobs_strongFL_subset:"{flt2ttobs fl\<^sub>0|fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>([{x. x \<notin> Z}]\<^sub>\<F>\<^sub>\<L>,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<or> fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> Z}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)} \<subseteq> P"
-              using False strong_less_eq_fltrace_imp_flt2ttobs_tt TT1c_def TT1c_healthy Event ttevent.simps(3) e1 e2 fl flt2ttobs_last_non_tock last_fl last_snoc yys.prems(2)
+              using False strong_less_eq_fltrace_imp_flt2ttobs_tt TT1w_def TT1w_healthy Event ttevent.simps(3) e1 e2 fl flt2ttobs_last_non_tock last_fl last_snoc yys.prems(2)
               using \<open>flt2ttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> Z}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P\<close> by blast
 
             from fl have fl_e3: "ys @ [[e1]\<^sub>E] @ [[Event e3]\<^sub>E] = flt2ttobs fl @ [[Event e3]\<^sub>E]
@@ -926,7 +926,7 @@ next
           have flt2ttobs_strongFL_subset:"{flt2ttobs fl\<^sub>0|fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Tick)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)} \<subseteq> P"
             apply auto
             using strong_less_eq_fltrace_imp_flt2ttobs_tt
-            by (metis (no_types, lifting) TT1c_def TT1c_healthy Tick ttevent.distinct(5) e1 e2 fl flt2ttobs_last_non_tock last_fl last_snoc yys.prems(2))
+            by (metis (no_types, lifting) TT1w_def TT1w_healthy Tick ttevent.distinct(5) e1 e2 fl flt2ttobs_last_non_tock last_fl last_snoc yys.prems(2))
             
           from fl have fl_e3: "ys @ [[e1]\<^sub>E] @ [[Tick]\<^sub>E] = flt2ttobs fl @ [[Tick]\<^sub>E]
                   \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2ttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> x} \<subseteq> P \<and> fl \<in> x)"
@@ -1026,7 +1026,7 @@ next
             apply auto
           using strong_less_eq_fltrace_imp_flt2ttobs_tt
           sledgehammer[debug=true]
-          by (metis TT1c_def TT1c_healthy Collect_cong Ref e1 fl flt2ttobs_fl_acceptance last_snoc mem_Collect_eq snoc_eq_iff_butlast subsetI subset_iff yys.prems(2))
+          by (metis TT1w_def TT1w_healthy Collect_cong Ref e1 fl flt2ttobs_fl_acceptance last_snoc mem_Collect_eq snoc_eq_iff_butlast subsetI subset_iff yys.prems(2))
         *)
         from fl have fl_e3: "ys @ [[e1]\<^sub>E] @ [[r2]\<^sub>R] = flt2ttobs fl @ [[r2]\<^sub>R]
                   \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {flt2ttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> x} \<subseteq> P \<and> fl \<in> x)"
@@ -1075,7 +1075,7 @@ next
             "{flt2ttobs fl\<^sub>0|fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> r2} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)} \<subseteq> P"
             apply auto
             using strong_less_eq_fltrace_imp_flt2ttobs_tt
-            by (metis (no_types, lifting) TT1c_def TT1c_healthy Ref \<open>ys @ [[e1]\<^sub>E] @ [[r2]\<^sub>R] = flt2ttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> r2} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> r2} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}) \<and> {flt2ttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> x} \<subseteq> P \<and> fl \<in> x)\<close> e1 fl fl_e3 yys.prems(2))
+            by (metis (no_types, lifting) TT1w_def TT1w_healthy Ref \<open>ys @ [[e1]\<^sub>E] @ [[r2]\<^sub>R] = flt2ttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> r2} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> r2} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}) \<and> {flt2ttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> x} \<subseteq> P \<and> fl \<in> x)\<close> e1 fl fl_e3 yys.prems(2))
           then show ?thesis 
             by (smt Un_iff \<open>ys @ [[e1]\<^sub>E] @ [[r2]\<^sub>R] = flt2ttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> r2} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> r2} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}) \<and> FL1 (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>[{x. x \<notin> r2} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}) \<and> {flt2ttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> x} \<subseteq> P \<and> fl \<in> x)\<close> mem_Collect_eq subset_eq)
         qed
@@ -1236,7 +1236,7 @@ lemma FL2_tt2fl:
   apply (case_tac A, auto)
   apply (case_tac "last \<beta> \<noteq> \<bullet>", auto)
    apply (metis concat_FL_last_not_bullet_absorb)
-  (* Requires property on P, namely TT2, to show this now. *)
+  (* Requires property on P, namely TT2w, to show this now. *)
   oops
 
 (*
@@ -1318,7 +1318,7 @@ next
     oops
 
 lemma
-  assumes "prirelRef p xs ys [] P" "ttWF xs" "ttWF ys" "ttWF x" "ttWF y" "TTwf P" "ys \<in> P" "TT1c P"
+  assumes "prirelRef p xs ys [] P" "ttWF xs" "ttWF ys" "ttWF x" "ttWF y" "TTwf P" "ys \<in> P" "TT1w P"
           "prirelRef p x y ys P" "ttWF (xs@x)" "ttWF (ys@y)" "(ys@y) \<in> P"
     shows "prirelRef p (xs@x) (ys@y) [] P"
   using assms 
@@ -1856,10 +1856,10 @@ lemma
 
 
 
-lemma TT1c_prefix_is_in:
-  assumes "TT1c P" "s @ t \<in> P"
+lemma TT1w_prefix_is_in:
+  assumes "TT1w P" "s @ t \<in> P"
   shows "s \<in> P"
-  using assms unfolding TT1c_def 
+  using assms unfolding TT1w_def 
   using tt_prefix_concat by blast
 
 lemma
@@ -2546,7 +2546,7 @@ lemma pp3:
 
 lemma pp4:
   assumes "prirelRef p xs ys [] P" "ys \<in> P" 
-          "TT0 P" "TTwf P" "TT1c P" "TT3 P" "TTick P" "TTickAll P" "TT4 P"
+          "TT0 P" "TTwf P" "TT1w P" "TT3 P" "TTick P" "TTickAll P" "TT4w P"
     shows "\<exists>fl. flt2ttobs fl = xs \<and> (\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2tt fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0)) \<and> flt2goodTock fl"
 proof -
   have "ttWF ys"
@@ -2576,17 +2576,17 @@ lemma fl2tt_pri_tt2fl_priNS:
   fixes P :: "('e ttobs) list set"
   assumes TT0_healthy:  "TT0 P" 
       and TTwf_healthy: "TTwf P" 
-      and TT1c_healthy: "TT1c P"
+      and TT1w_healthy: "TT1w P"
       and TT3_healthy:  "TT3 P"
       and TTick_healthy: "TTick P"
       and TTickAll:   "TTickAll P"
-      and TT4_healthy:    "TT4 P"
+      and TT4w_healthy:    "TT4w P"
      (* and Tick_max:"maximal(p,Tick)"*)
   shows "fl2tt(pri p (tt2fl P)) = priNS p P"
 proof -
   have "fl2tt(pri p (tt2fl P)) = {flt2ttobs fl|fl. fl \<in> (pri p (tt2fl P)) \<and> flt2goodTock fl} \<union> {[]}"
     using fl2tt_FL0_FL1_flt2goodTock
-    by (simp add: fl2tt_FL0_FL1_flt2goodTock TT0_healthy TT1c_healthy TickTock_FL.FL0_tt2fl FL1_tt2fl pri_FL0 pri_FL1)
+    by (simp add: fl2tt_FL0_FL1_flt2goodTock TT0_healthy TT1w_healthy TickTock_FL.FL0_tt2fl FL1_tt2fl pri_FL0 pri_FL1)
   also have "... = {flt2ttobs fl|fl. fl \<in> (pri p (\<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2tt fl) \<subseteq> P})) \<and> flt2goodTock fl} \<union> {[]}"
     unfolding tt2fl_def by auto
   also have "... = {flt2ttobs fl|fl. fl \<in> \<Union>{pri p fl|fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2tt fl) \<subseteq> P} \<and> flt2goodTock fl} \<union> {[]}"
@@ -2604,7 +2604,7 @@ proof -
     unfolding pri_def by auto
   also have "... = {ar|ar zr. prirelRef p ar zr [] P \<and> zr \<in> P}"
     using assms apply auto
-    using TT0_TT1c_empty prirelRef.simps(1) apply blast
+    using TT0_TT1w_empty prirelRef.simps(1) apply blast
     apply (meson flt2ttobs_extn pp)
     using assms pp4 by metis 
   also have "... = priNS p P"

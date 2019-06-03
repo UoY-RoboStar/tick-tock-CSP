@@ -12,7 +12,7 @@ lemma pri_univ_dist:
 
 lemma flt2ttobs_extn:
   (*assumes TTwf_healthy: "TTwf P" 
-        and TT1c_healthy: "TT1c P"
+        and TT1w_healthy: "TT1w P"
         and TT3_healthy:  "TT3 P"*)
     shows
   "(fl2tt fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))
@@ -73,7 +73,7 @@ proof -
 
 lemma
   assumes TTwf_healthy: "TTwf P" 
-      and TT1c_healthy: "TT1c P"
+      and TT1w_healthy: "TT1w P"
       and TT3_healthy:  "TT3 P"
     shows
   "\<exists>fl. flt2goodTock fl \<and> (\<exists>x. FL1 x \<and> {flt2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x) \<and> flt2ttobs(fl) \<in> P"
