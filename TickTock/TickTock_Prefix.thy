@@ -1,5 +1,5 @@
 theory TickTock_Prefix
-  imports "TickTock-Model.TickTock_Core"
+  imports TickTock_Core
 begin
 
 subsection {* Prefix *}

@@ -1,9 +1,9 @@
 theory
   TickTock_FL_Priority
 imports
-  TickTock_Prioritise
+  "TickTock.TickTock_Prioritise"
   TickTock_FL
-  Finite_Linear_Priority
+  "FL.Finite_Linear_Priority"
 begin
 
 lemma pri_univ_dist:

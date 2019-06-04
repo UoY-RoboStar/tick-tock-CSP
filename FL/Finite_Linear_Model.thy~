@@ -2,7 +2,6 @@ theory Finite_Linear_Model
 
 imports
   Main
-  Event_Priority
 begin
 
 text \<open> This theory is an encoding of the Finite Linear model, the most discriminating CSP 

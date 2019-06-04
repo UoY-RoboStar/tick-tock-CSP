@@ -1,5 +1,5 @@
 theory TickTock_SeqComp
-  imports "TickTock-Model.TickTock_Core"
+  imports TickTock_Core
 begin
 
 subsection {* Sequential Composition *}

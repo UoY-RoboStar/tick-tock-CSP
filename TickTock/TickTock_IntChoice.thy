@@ -1,5 +1,5 @@
 theory TickTock_IntChoice
-  imports "TickTock-Model.TickTock_Core"
+  imports TickTock_Core
 begin
   
 subsection {* Internal Choice *}

@@ -1,5 +1,5 @@
 theory TickTock_Basic_Ops
-  imports "TickTock-Model.TickTock_Core"
+  imports TickTock_Core
 begin
 
 subsection {* Div *}

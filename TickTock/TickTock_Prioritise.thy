@@ -1,7 +1,7 @@
 theory TickTock_Prioritise
   imports 
     TickTock_Core
-    Event_Priority
+    "Utils.Event_Priority"
 begin
 
 subsection \<open>Prioritise for non-subset closed TT.\<close>

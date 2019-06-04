@@ -1,5 +1,5 @@
 theory TickTock_Renaming
-  imports "TickTock-Model.TickTock_Core"
+  imports TickTock_Core
 begin
 
 fun lift_renaming_func :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a ttevent \<Rightarrow> 'b ttevent)" where
