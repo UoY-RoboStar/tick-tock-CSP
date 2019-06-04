@@ -2,7 +2,7 @@ theory
   TickTock_FL_Priority
 imports
   "TickTock.TickTock_Prioritise"
-  TickTock_FL
+  TickTock_Max_FL
   "FL.Finite_Linear_Priority"
 begin
 

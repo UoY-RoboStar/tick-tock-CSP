@@ -1,8 +1,8 @@
-theory TickTock_RTick
+theory TickTock_Max_TT1
 
 imports
   "TickTock.TickTock_Core"
-  TickTock_FL
+  TickTock_Max_FL
   "TickTock.TickTock_Prioritise"
 begin
 
@@ -170,7 +170,27 @@ lemma ttWF_tt_prefix_subset_exists_three_part_iff:
   shows "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma> = (\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>)"
   using assms
   by (meson ttWF_tt_prefix_subset_exists_three_part ttWF_tt_prefix_subset_exists_three_part')
- 
+
+lemma TTwf_imp_dist:
+  assumes "TTwf(P \<union> Q)" 
+  shows "TTwf(P) \<and> TTwf(Q)"
+  unfolding TTwf_def by (meson TTwf_def Un_iff assms)
+
+lemma TTwf_mkTT1:
+  assumes "TTwf P"
+  shows "TTwf(mkTT1(P))"
+  using assms unfolding mkTT1_def apply auto
+  by (smt TTwf_def Un_iff mem_Collect_eq tt_prefix_subset_ttWF)
+
+lemma TT0_mkTT1:
+  assumes "TT0 P"
+  shows "TT0(mkTT1(P))"
+  using assms unfolding mkTT1_def TT0_def by auto
+
+lemma TT1_mkTT1:
+  shows "TT1(mkTT1(P))"
+  by (smt TT1_def mem_Collect_eq mkTT1_simp tt_prefix_subset_trans)
+
 lemma TT2w_mkTT1_part:
   assumes "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} = {}"
           "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>" "\<sigma> \<in> P" "TT1w P" "TTwf P" "TTM1 P" "TTM2 P" "TT2w P"
@@ -2329,6 +2349,40 @@ proof -
     using TTs_mkTTMP_in_P prirelRef2_TTMPick_imp_prirelRef by fastforce
   finally show ?thesis unfolding priTT_def by auto
 qed
+
+lemma TT0_unTT1:
+  assumes "TT0 P" "TT1 P"
+  shows "TT0(unTT1(P))"
+proof -
+  have "[] \<in> P"
+    using assms TT0_TT1_empty by blast
+  then have "[] \<in> unTT1(P)"
+    unfolding unTT1_def TT0_def apply auto
+    apply (rule_tac x="{[]}" in exI, auto)
+    unfolding TTM1_def TTM2_def TTM3_def TT1w_def apply auto
+     apply (case_tac \<rho>, auto)
+    unfolding mkTT1_def apply auto
+    by (case_tac x, auto)
+  then have "TT0(unTT1(P))"
+    unfolding TT0_def by auto
+  then show ?thesis .
+qed
+
+lemma TT1w_unTT1:
+  "TT1w(unTT1(P))"
+  unfolding unTT1_def TT1w_def by auto
+
+lemma TTM1_unTT1:
+  "TTM1(unTT1(P))"
+  unfolding unTT1_def TTM1_def by auto
+
+lemma TTM2_unTT1:
+  "TTM2(unTT1(P))"
+  unfolding unTT1_def TTM2_def by auto
+
+lemma TTM3_unTT1:
+  "TTM3(unTT1(P))"
+  unfolding unTT1_def TTM3_def by auto
 
 (* Redundant stuff below? *)
 
