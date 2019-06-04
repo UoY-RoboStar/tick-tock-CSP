@@ -2588,7 +2588,7 @@ lemma fl2ttm_pri_ttm2fl_priNS:
 proof -
   have "fl2ttm(pri p (ttm2fl P)) = {fl2ttobs fl|fl. fl \<in> (pri p (ttm2fl P)) \<and> flt2goodTock fl} \<union> {[]}"
     using fl2ttm_FL0_FL1_flt2goodTock
-    by (simp add: fl2ttm_FL0_FL1_flt2goodTock TT0_healthy TT1w_healthy TickTock_FL.FL0_ttm2fl FL1_ttm2fl pri_FL0 pri_FL1)
+    by (simp add: fl2ttm_FL0_FL1_flt2goodTock TT0_healthy TT1w_healthy TickTock_Max_FL.FL0_ttm2fl FL1_ttm2fl pri_FL0 pri_FL1)
   also have "... = {fl2ttobs fl|fl. fl \<in> (pri p (\<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P})) \<and> flt2goodTock fl} \<union> {[]}"
     unfolding ttm2fl_def by auto
   also have "... = {fl2ttobs fl|fl. fl \<in> \<Union>{pri p fl|fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P} \<and> flt2goodTock fl} \<union> {[]}"
