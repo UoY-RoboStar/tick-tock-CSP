@@ -16,13 +16,38 @@ text \<open> Because the treatment of termination in FL.Finite_Linear_Tick_Param
 
 abbreviation "FL3 P == FLTick0 Tick P"
 
-section \<open> Healthiness conditions of maximal Tick-Tock processes. \<close>
+section \<open> Healthiness conditions of Tick-Tock processes whose refusals are maximal. \<close>
 
-definition TTM2a :: "'e ttobs list set \<Rightarrow> bool" where
-  "TTM2a P = (\<forall> \<rho> X e. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e \<noteq> Tock) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<in> P)"
+text \<open> TTM1 requires that every event e that is not refused can be performed. \<close>
 
-definition TTM2b :: "'e ttobs list set \<Rightarrow> bool" where
-  "TTM2b P = (\<forall> \<rho> X e. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e = Tock) \<longrightarrow> \<rho> @ [[X]\<^sub>R,[e]\<^sub>E] \<in> P)"
+definition TTM1 :: "'e ttobs list set \<Rightarrow> bool" where
+  "TTM1 P = (\<forall> \<rho> X e. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e \<noteq> Tock) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<in> P)"
+
+text \<open> TTM2 is similar to TTM1, but requires Tock to happen after the refusal. \<close>
+
+definition TTM2 :: "'e ttobs list set \<Rightarrow> bool" where
+  "TTM2 P = (\<forall> \<rho> X e. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e = Tock) \<longrightarrow> \<rho> @ [[X]\<^sub>R,[e]\<^sub>E] \<in> P)"
+
+fun TTickTrace :: "('a ttobs) list \<Rightarrow> bool" where
+"TTickTrace [] = True" |
+"TTickTrace ([e]\<^sub>E # xs) = TTickTrace xs" |
+"TTickTrace ([r]\<^sub>R # xs) = (Tick \<in> r \<and> TTickTrace xs)"
+
+text \<open> TTM3 requires that every refusal in every trace contains Tick. \<close>
+
+definition TTM3 :: "('a ttobs) list set \<Rightarrow> bool" where
+"TTM3 P = (\<forall>t. t \<in> P \<longrightarrow> TTickTrace t)"
+
+text \<open> A useful weaker variant is defined by TTick, that considers a
+       single refusal at the end of a trace to contain Tick. This is
+       useful in some proofs. \<close>
+
+definition TTick :: "('a ttobs) list set \<Rightarrow> bool" where
+"TTick P = (\<forall>t X. t @ [[X]\<^sub>R] \<in> P \<longrightarrow> Tick \<in> X)"
+
+lemma TTickTrace_dist_concat:
+  "TTickTrace (xs @ ys) = (TTickTrace xs \<and> TTickTrace ys)"
+  by (induct xs rule:TTickTrace.induct, auto)
 
 section \<open> Adjoints \<close>
 
@@ -46,24 +71,6 @@ fun flt2goodTock :: "('e ttevent) fltrace \<Rightarrow> bool" where
 "flt2goodTock \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> = True" |
 "flt2goodTock (A #\<^sub>\<F>\<^sub>\<L> fl) = (if acceptance(A) \<noteq> \<bullet> then (flt2goodTock fl) else
                             (if event(A) = Tock then False else (flt2goodTock fl)))" 
-
-definition TTick :: "('a ttobs) list set \<Rightarrow> bool" where
-"TTick P = (\<forall>t X. t @ [[X]\<^sub>R] \<in> P \<longrightarrow> Tick \<in> X)"
-
-(* FIXME: TTRMax is way too strong. Instead we need to require that
-          every refusal set has Tick. Sufficient? *)
-
-fun TTickTrace :: "('a ttobs) list \<Rightarrow> bool" where
-"TTickTrace [] = True" |
-"TTickTrace ([e]\<^sub>E # xs) = TTickTrace xs" |
-"TTickTrace ([r]\<^sub>R # xs) = (Tick \<in> r \<and> TTickTrace xs)"
-
-definition TTickAll :: "('a ttobs) list set \<Rightarrow> bool" where
-"TTickAll P = (\<forall>t. t \<in> P \<longrightarrow> TTickTrace t)"
-
-lemma TTickTrace_dist_concat:
-  "TTickTrace (xs @ ys) = (TTickTrace xs \<and> TTickTrace ys)"
-  by (induct xs rule:TTickTrace.induct, auto)
 
 lemma fl2ttobs_is_ttWF:
   assumes "tickWF Tick fltrace"
@@ -559,6 +566,8 @@ lemma event_not_in_set_of_fl2ttobs_imp_not_in_events:
          But this cannot be done directly, so flt2goodAcceptance must only
          require the existence of 'refusals'/'acceptances' for events that
          are non-maximal in the trace. *)
+
+subsection \<open> Bijection between maximal Tick-Tock and subset of FL. \<close>
 
 lemma TTwf_1c_3_imp_fl2ttobs_FL1:
   assumes "x \<in> P" 
@@ -1226,49 +1235,17 @@ next
     qed
   qed
 
-lemma TTick_dist_empty_trace: "TTick(P \<union> {[]}) = TTick(P)"
-  unfolding TTick_def by auto
 
-lemma TTickAll_dist_empty_trace: "TTickAll(P \<union> {[]}) = TTickAll(P)"
-  unfolding TTickAll_def by auto
 
-lemma TTick_fl2tt:
-  assumes "FL0 P" "FL1 P" "FLTick0 Tick P"
-  shows "TTick (fl2ttm P)"
-proof -
-  have "TTick (fl2ttm P) = TTick({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
-    using assms
-    by (simp add: fl2ttm_FL0_FL1_flt2goodTock)
-  also have "... = TTick({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
-    using TTick_dist_empty_trace by auto
-  also have "... = True"
-    unfolding TTick_def fl2ttm_def apply auto
-    using assms FLTick0_Tick_FL1_concat_ref_Tick_in by metis
-  finally show ?thesis by auto
-qed
 
-lemma tickWF_imp_TTickTrace_fl2ttobs:
-  assumes "tickWF Tick fl"
-  shows "TTickTrace (fl2ttobs fl)"
-  using assms apply (induct fl rule:fl2ttobs.induct, auto)
-   apply (case_tac A, auto, case_tac a, auto, case_tac b, auto)
-  by (case_tac A, auto, case_tac b, auto)
 
-lemma TTickAll_fl2tt:
-  assumes "FL0 P" "FL1 P" "FLTick0 Tick P"
-  shows "TTickAll (fl2ttm P)"
-proof -
-  have "TTickAll (fl2ttm P) = TTickAll({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
-    using assms
-    by (simp add: fl2ttm_FL0_FL1_flt2goodTock)
-  also have "... = TTickAll({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
-    using TTickAll_dist_empty_trace by auto
-  also have "... = True"
-    unfolding TTickAll_def fl2ttm_def apply auto
-    using assms tickWF_imp_TTickTrace_fl2ttobs
-    by (metis FLTick0_def)
-  finally show ?thesis by auto
-qed
+lemma FL1_imp_disj:
+  assumes "FL1(P)" "FL1(Q)"
+  shows "FL1(P \<union> Q)"
+  unfolding FL1_def apply auto
+  using FL1_def assms by blast+
+
+subsection \<open> Closure of ttm2fl under healthiness conditions of FL. \<close>
 
 lemma FL0_ttm2fl:
   assumes "TT0 P" "TT1w P"
@@ -1280,12 +1257,6 @@ lemma FL0_ttm2fl:
    apply (metis bullet_left_zero2 dual_order.antisym x_le_x_concat2)
   unfolding fl2ttm_def apply auto
   using TT0_TT1w_empty by blast
-
-lemma FL1_imp_disj:
-  assumes "FL1(P)" "FL1(Q)"
-  shows "FL1(P \<union> Q)"
-  unfolding FL1_def apply auto
-  using FL1_def assms by blast+
 
 lemma prefix_ttm2fl_FL1:
   assumes "t \<in> ttm2fl P"
@@ -1412,7 +1383,7 @@ proof -
 qed
 
 lemma fl2ttobs_for_FL2_imp:
-  assumes "fl2ttobs (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P" "a \<in>\<^sub>\<F>\<^sub>\<L> A" "TTM2a P" "TTM2b P" "TT1w P"
+  assumes "fl2ttobs (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P" "a \<in>\<^sub>\<F>\<^sub>\<L> A" "TTM1 P" "TTM2 P" "TT1w P"
   shows "fl2ttobs (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P \<and> fl2ttobs (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P"
   using assms (* NOTE: lhs conjunct does not require TT1w *)
 proof (cases "last \<beta> = \<bullet>")
@@ -1433,7 +1404,7 @@ proof (cases "last \<beta> = \<bullet>")
       case (Event x1)
       then have "fl2ttobs (\<beta>) @ [[a]\<^sub>E] \<in> P"
         using assms
-        using TTM2a_def \<open>a \<notin> R\<close> \<open>fl2ttobs \<beta> @ [[R]\<^sub>R] \<in> P\<close> by blast
+        using TTM1_def \<open>a \<notin> R\<close> \<open>fl2ttobs \<beta> @ [[R]\<^sub>R] \<in> P\<close> by blast
       then show ?thesis
         using Event True assms(2) fl2ttobs_acceptance_cons_eq_list_cons last_B_bullet by fastforce
     next
@@ -1441,7 +1412,7 @@ proof (cases "last \<beta> = \<bullet>")
       then have fl2ttobs_bullet:"fl2ttobs (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = fl2ttobs (\<beta>)"
         by (simp add: True fl2ttobs_acceptance_cons_eq_list_cons last_B_bullet)
       then have fl2ttobs_R_tock:"fl2ttobs (\<beta>) @ [[R]\<^sub>R,[a]\<^sub>E] \<in> P"
-        using Tock TTM2b_def \<open>a \<notin> R\<close> \<open>fl2ttobs \<beta> @ [[R]\<^sub>R] \<in> P\<close> assms(4) by blast
+        using Tock TTM2_def \<open>a \<notin> R\<close> \<open>fl2ttobs \<beta> @ [[R]\<^sub>R] \<in> P\<close> assms(4) by blast
       then have c1:"fl2ttobs (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P"
         using R Tock True amember.simps(1) assms(2) fl2ttobs_acceptance_cons_eq_list_cons last_B_bullet by fastforce
       
@@ -1451,7 +1422,7 @@ proof (cases "last \<beta> = \<bullet>")
     next
       case Tick
       then have "fl2ttobs (\<beta>) @ [[a]\<^sub>E] \<in> P"
-        using TTM2a_def \<open>a \<notin> R\<close> \<open>fl2ttobs \<beta> @ [[R]\<^sub>R] \<in> P\<close> assms(3) by blast
+        using TTM1_def \<open>a \<notin> R\<close> \<open>fl2ttobs \<beta> @ [[R]\<^sub>R] \<in> P\<close> assms(3) by blast
       then show ?thesis
         using Tick True assms(2) fl2ttobs_acceptance_cons_eq_list_cons last_B_bullet by fastforce
     qed  
@@ -1542,8 +1513,8 @@ next
     by (metis FL1_extends_strong_less_eq_fltrace_acceptance assms(1) assms(2) butlast_last_FL concat_FL_last_not_bullet_absorb fltrace_concat.simps(1) fltrace_concat_assoc)
 qed
 
-lemma TT1w_TTM2a_TTM2b_strong_less_eq_fltrace:
-  assumes "a \<in>\<^sub>\<F>\<^sub>\<L> A" "TT1w P" "TTM2a P" "TTM2b P"
+lemma TT1w_TTM1_TTM2_strong_less_eq_fltrace:
+  assumes "a \<in>\<^sub>\<F>\<^sub>\<L> A" "TT1w P" "TTM1 P" "TTM2 P"
           "FLTick0 Tick x"
           "FL1 x" "{fl2ttobs fl |fl. fl \<in> x} \<subseteq> P" "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> x" 
           "fl \<le>\<^sub>\<F>\<^sub>\<L> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" 
@@ -1580,13 +1551,13 @@ next
 qed
   
 lemma FL2_ttm2fl:
-  assumes "TTM2a P" "TTM2b P" "TT1w P"
+  assumes "TTM1 P" "TTM2 P" "TT1w P"
   shows "FL2 (ttm2fl P)"
   using assms unfolding ttm2fl_def FL2_def fl2ttm_def apply auto
   apply (rule_tac x="x \<union> {s. s \<le>\<^sub>\<F>\<^sub>\<L> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}" in exI, auto)
   apply (metis (mono_tags, lifting) FLTick0_def FLTick0_dist_union mem_Collect_eq tickWF_acceptance_imp_tickWF_consFL tickWF_prefix_imp)
   apply (simp add: FL1_extends_strong_less_eq_consFL)
-  using TT1w_TTM2a_TTM2b_strong_less_eq_fltrace
+  using TT1w_TTM1_TTM2_strong_less_eq_fltrace
    apply blast
   using strong_less_eq_fltrace_refl by blast
 
@@ -1596,7 +1567,61 @@ lemma flt2goodTock_consFL_imp:
   using assms apply (induct xs, auto)
   by (case_tac x, auto)
 
-lemma FL2_imp_TTM2a_part:
+lemma FL_ttm2fl_closed:
+  assumes "TT0 P" "TT1w P" "TTM1 P" "TTM2 P" "TTM3 P"
+  shows "FL0(ttm2fl(P))" "FL1(ttm2fl(P))" "FL2(ttm2fl(P))" "FL3(ttm2fl(P))"
+     apply (simp add: FL0_ttm2fl assms(1) assms(2))
+    apply (simp add:FL1_ttm2fl)
+   apply (simp add: FL2_ttm2fl assms(2) assms(3) assms(4))
+  by (metis (no_types, lifting) FLTick0_def mem_Collect_eq mem_simps(9) ttm2fl_def)
+
+subsection \<open> Closure of fl2ttm under healthiness conditions of maximal Tick-Tock. \<close>
+
+lemma TTick_dist_empty_trace: "TTick(P \<union> {[]}) = TTick(P)"
+  unfolding TTick_def by auto
+
+lemma TTM3_dist_empty_trace: "TTM3(P \<union> {[]}) = TTM3(P)"
+  unfolding TTM3_def by auto
+
+lemma TTick_fl2ttm:
+  assumes "FL0 P" "FL1 P" "FLTick0 Tick P"
+  shows "TTick (fl2ttm P)"
+proof -
+  have "TTick (fl2ttm P) = TTick({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
+    using assms
+    by (simp add: fl2ttm_FL0_FL1_flt2goodTock)
+  also have "... = TTick({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
+    using TTick_dist_empty_trace by auto
+  also have "... = True"
+    unfolding TTick_def fl2ttm_def apply auto
+    using assms FLTick0_Tick_FL1_concat_ref_Tick_in by metis
+  finally show ?thesis by auto
+qed
+
+lemma tickWF_imp_TTickTrace_fl2ttobs:
+  assumes "tickWF Tick fl"
+  shows "TTickTrace (fl2ttobs fl)"
+  using assms apply (induct fl rule:fl2ttobs.induct, auto)
+   apply (case_tac A, auto, case_tac a, auto, case_tac b, auto)
+  by (case_tac A, auto, case_tac b, auto)
+
+lemma TTM3_fl2ttm:
+  assumes "FL0 P" "FL1 P" "FLTick0 Tick P"
+  shows "TTM3 (fl2ttm P)"
+proof -
+  have "TTM3 (fl2ttm P) = TTM3({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
+    using assms
+    by (simp add: fl2ttm_FL0_FL1_flt2goodTock)
+  also have "... = TTM3({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
+    using TTM3_dist_empty_trace by auto
+  also have "... = True"
+    unfolding TTM3_def fl2ttm_def apply auto
+    using assms tickWF_imp_TTickTrace_fl2ttobs
+    by (metis FLTick0_def)
+  finally show ?thesis by auto
+qed
+
+lemma FL2_imp_TTM1_part:
   assumes "FL2 P" "e \<notin> X" "e \<noteq> Tock" "\<rho> @ [[X]\<^sub>R] = fl2ttobs fl" "fl \<in> P" "flt2goodTock fl"
   shows "\<exists>fl. \<rho> @ [[e]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl"
   using assms 
@@ -1687,7 +1712,7 @@ next
     qed
 qed
 
-lemma FL2_imp_TTM2b_part:
+lemma FL2_imp_TTM2_part:
   assumes "FL2 P" "Tock \<notin> X" "\<rho> @ [[X]\<^sub>R] = fl2ttobs fl" "fl \<in> P" "flt2goodTock fl"
   shows "\<exists>fl. \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl"
   using assms 
@@ -1787,41 +1812,41 @@ next
     qed
 qed
 
-lemma TTM2a_union_empty_trace:
-  "TTM2a(P \<union> {[]}) = TTM2a(P)"
-  unfolding TTM2a_def by auto
+lemma TTM1_union_empty_trace:
+  "TTM1(P \<union> {[]}) = TTM1(P)"
+  unfolding TTM1_def by auto
 
-lemma TTM2b_union_empty_trace:
-  "TTM2b(P \<union> {[]}) = TTM2b(P)"
-  unfolding TTM2b_def by auto
+lemma TTM2_union_empty_trace:
+  "TTM2(P \<union> {[]}) = TTM2(P)"
+  unfolding TTM2_def by auto
 
-lemma TTM2a_fl2ttm_for_FL2_FL1_FL0:
+lemma TTM1_fl2ttm_for_FL2_FL1_FL0:
   assumes "FL2 P" "FL1 P" "FL0 P"
-  shows "TTM2a(fl2ttm P)"
+  shows "TTM1(fl2ttm P)"
 proof -
-  have "TTM2a(fl2ttm P) = TTM2a({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
+  have "TTM1(fl2ttm P) = TTM1({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
     using assms
     by (simp add: fl2ttm_FL0_FL1_flt2goodTock)
-  also have "... = TTM2a({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
-    using TTM2a_union_empty_trace by auto
+  also have "... = TTM1({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
+    using TTM1_union_empty_trace by auto
   also have "... = True"
-    using assms unfolding fl2ttm_def TTM2a_def apply auto
-    using FL2_imp_TTM2a_part by blast
+    using assms unfolding fl2ttm_def TTM1_def apply auto
+    using FL2_imp_TTM1_part by blast
   finally show ?thesis by auto
 qed
 
-lemma TTM2b_fl2ttm_for_FL2_FL1_FL0:
+lemma TTM2_fl2ttm_for_FL2_FL1_FL0:
   assumes "FL2 P" "FL1 P" "FL0 P"
-  shows "TTM2b(fl2ttm P)"
+  shows "TTM2(fl2ttm P)"
 proof -
-  have "TTM2b(fl2ttm P) = TTM2b({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
+  have "TTM2(fl2ttm P) = TTM2({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]})"
     using assms
     by (simp add: fl2ttm_FL0_FL1_flt2goodTock)
-  also have "... = TTM2b({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
-    using TTM2b_union_empty_trace by auto
+  also have "... = TTM2({fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl})"
+    using TTM2_union_empty_trace by auto
   also have "... = True"
-    using assms unfolding fl2ttm_def TTM2b_def apply auto
-    using FL2_imp_TTM2b_part by blast
+    using assms unfolding fl2ttm_def TTM2_def apply auto
+    using FL2_imp_TTM2_part by blast
   finally show ?thesis by auto
 qed
 
@@ -1844,7 +1869,7 @@ lemma TT4w_fl2ttm_part:
   using assms Tick_of_Refuals_in_fl2ttobs
   by (metis FLTick0_def insert_absorb)
 
-lemma TT4w_fl2tt:
+lemma TT4w_fl2ttm:
   assumes "FLTick0 Tick P"
   shows "TT4w (fl2ttm P)" 
   using assms unfolding TT4w_def fl2ttm_def apply auto
@@ -1872,7 +1897,7 @@ lemma TT0_union_empty:
   "TT0(P \<union> {[]})"
   unfolding TT0_def by auto
 
-lemma TT4_fl2tt:
+lemma TT4_fl2ttm:
   assumes "FLTick0 Tick P"
   shows "TT4 (fl2ttm P)" 
   using assms unfolding TT4_def fl2ttm_def apply auto
@@ -1886,7 +1911,7 @@ lemma TT3_trace_fl2ttobs:
   apply (case_tac b, safe) apply auto[4]
   by (metis TT3_trace.simps(2) TT3_trace.simps(4) neq_Nil_conv)+
 
-lemma TT3_fl2tt:
+lemma TT3_fl2ttm:
   shows "TT3 (fl2ttm P)"
   unfolding TT3_def fl2ttm_def using TT3_trace_fl2ttobs by auto
 
@@ -1922,12 +1947,12 @@ next
           using acset by auto
         
         have a:"\<forall>e. (e \<notin> X \<and> e \<noteq> Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[e]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
-          using "2.prems"(5) "2.prems"(6) "2.prems"(7) FL2_imp_TTM2a_part assms(1) by blast
+          using "2.prems"(5) "2.prems"(6) "2.prems"(7) FL2_imp_TTM1_part assms(1) by blast
         then have a2:"\<forall>e. (e \<in> x2 \<and> e \<noteq> Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[e]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
           using X_x2 by blast
         
         have b:"\<forall>e. (e \<notin> X \<and> e = Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
-          using "2.prems"(5) "2.prems"(6) "2.prems"(7) FL2_imp_TTM2b_part assms(1) by blast
+          using "2.prems"(5) "2.prems"(6) "2.prems"(7) FL2_imp_TTM2_part assms(1) by blast
         then have b2:"\<forall>e. (e \<in> x2 \<and> e = Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
           using X_x2 by blast
 
@@ -2037,13 +2062,13 @@ next
       using xA by auto
 
     have a:"\<forall>e. (e \<notin> X \<and> e \<noteq> Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[e]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
-      using xA FL2_imp_TTM2a_part
+      using xA FL2_imp_TTM1_part
       by (metis "3.prems"(7) Finite_Linear_Model.last.simps(1) True \<open>\<rho> @ [[X]\<^sub>R] = fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>[xA]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)\<close> \<open>xs &\<^sub>\<F>\<^sub>\<L> \<langle>[xA]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P\<close> assms(1) butlast_last_FL flt2goodTock_consFL_imp_lhs flt2goodTock_extend_consFL_acceptance last_bullet_butlast_last)
     then have a2:"\<forall>e. (e \<in> xA \<and> e \<noteq> Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[e]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
       using xA by blast
 
     have b:"\<forall>e. (e \<notin> X \<and> e = Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
-      using xA FL2_imp_TTM2b_part
+      using xA FL2_imp_TTM2_part
       using "3.prems"(5) "3.prems"(6) "3.prems"(7) by blast
     then have b2:"\<forall>e. (e \<in> xA \<and> e = Tock) \<longrightarrow> (\<exists>fl. \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl)"
       using xA by blast
@@ -2082,7 +2107,7 @@ lemma TT2w_union_empty_trace:
   "TT2w(P \<union> {[]}) = TT2w(P)"
   unfolding TT2w_def by auto
 
-lemma TT2w_fl2tt:
+lemma TT2w_fl2ttm:
   assumes "FL2 P" "FL1 P" "FL0 P"
   shows "TT2w (fl2ttm P)"
 proof -
@@ -2330,7 +2355,7 @@ lemma TT2_union_empty_trace:
   "TT2(P \<union> {[]}) = TT2(P)"
   unfolding TT2_def by auto
 
-lemma TT2_fl2tt:
+lemma TT2_fl2ttm:
   assumes "FL2 P" "FL1 P" "FL0 P" "FLTick0 Tick P"
   shows "TT2 (fl2ttm P)"
 proof -
@@ -2345,7 +2370,7 @@ proof -
   finally show ?thesis by auto
 qed
 
-lemma TTwf_fl2tt:
+lemma TTwf_fl2ttm:
   assumes "FLTick0 Tick P" 
   shows "TTwf(fl2ttm(P))"
   using assms unfolding fl2ttm_def TTwf_def
@@ -2429,10 +2454,29 @@ next
   qed
 qed
   
-lemma TT1w_fl2tt:
+lemma TT1w_fl2ttm:
   assumes "FL1 P"
   shows "TT1w(fl2ttm(P))"
   using assms unfolding fl2ttm_def TT1w_def apply auto
   using TT1w_fl2ttm_part FL1_def by blast
+
+lemma maximal_TT_fl2ttm_closed:
+  assumes "FL0 P" "FL1 P" "FL2 P" "FL3 P"
+  shows "TT0(fl2ttm(P))"
+        "TT1w(fl2ttm(P))"
+        "TT2(fl2ttm(P))"
+        "TT3(fl2ttm(P))"
+        "TT4(fl2ttm(P))"
+        "TTM1(fl2ttm(P))"
+        "TTM2(fl2ttm(P))"
+        "TTM3(fl2ttm(P))"
+  using TT0_union_empty assms(1) assms(2) fl2ttm_FL0_FL1_flt2goodTock apply fastforce
+        apply (simp add: TT1w_fl2ttm assms(2))
+       apply (simp add: TT2_fl2ttm assms(1) assms(2) assms(3) assms(4))
+      apply (simp add: TT3_fl2ttm)
+     apply (simp add: TT4_fl2ttm assms(4))
+    apply (simp add: TTM1_fl2ttm_for_FL2_FL1_FL0 assms(1) assms(2) assms(3))
+   apply (simp add: TTM2_fl2ttm_for_FL2_FL1_FL0 assms(1) assms(2) assms(3))
+  by (simp add: TTM3_fl2ttm assms(1) assms(2) assms(4))
 
 end

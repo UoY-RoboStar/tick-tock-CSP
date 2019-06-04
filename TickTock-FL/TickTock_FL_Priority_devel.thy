@@ -2078,7 +2078,7 @@ lemma pp20:
   assumes "prirelRef p xs ys s P" "TT3_trace ys" "ttWF ys" "(fl2ttobs zr) = ys" 
           "flt2goodTock zr"
           "flt2goodAcceptance zr p"
-          "TTickAll P"
+          "TTM3 P"
         (*  "maximal(p,Tick)"*) (* FIXME: probably not needed *)
   shows "\<exists>fl. prirel p fl zr \<and> (fl2ttobs fl) = xs \<and> flt2goodTock fl"
   using assms 
@@ -2230,7 +2230,7 @@ next
   assume assm7:"\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*pa b"
   assume assm8:"e\<^sub>2 \<notin> Z"
   assume assm9:"flt2goodAcceptance zra pa"
-  assume assm10:"TTickAll Q"
+  assume assm10:"TTM3 Q"
   (*assume assm10:"maximal(pa,Tick)"*) (* FIXME: Not needed, I think *)
   from assm3 obtain tt aE where tt:"fl2ttobs tt = zz \<and> flt2goodTock tt 
     \<and> flt2goodAcceptance tt pa \<and> zra = \<langle>(aE,e\<^sub>2)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> tt 
@@ -2299,7 +2299,7 @@ next
           then have Tick_not_in:"Tick \<notin> Z"
             using assm8 Tick by auto
           have "Tick \<in> Z"
-            using assm6 assm10 unfolding TTickAll_def 
+            using assm6 assm10 unfolding TTM3_def 
             apply (induct sa, auto)
             using TTickTrace.simps(3) TTickTrace_dist_concat by blast
           then show ?thesis using Tick_not_in by auto
@@ -2365,7 +2365,7 @@ next
                 then have Tick_not_in:"Tick \<notin> Z"
                     using assm8 Tick by auto
                 have "Tick \<in> Z"
-                    using assm6 assm10 unfolding TTickAll_def 
+                    using assm6 assm10 unfolding TTM3_def 
                     apply (induct sa, auto)
                     using TTickTrace.simps(3) TTickTrace_dist_concat by blast
                then show ?thesis using Tick_not_in by auto
@@ -2548,7 +2548,7 @@ lemma pp3:
 
 lemma pp4:
   assumes "prirelRef p xs ys [] P" "ys \<in> P" 
-          "TT0 P" "TTwf P" "TT1w P" "TT3 P" "TTick P" "TTickAll P" "TT4w P"
+          "TT0 P" "TTwf P" "TT1w P" "TT3 P" "TTick P" "TTM3 P" "TT4w P"
     shows "\<exists>fl. fl2ttobs fl = xs \<and> (\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0)) \<and> flt2goodTock fl"
 proof -
   have "ttWF ys"
@@ -2581,7 +2581,7 @@ lemma fl2ttm_pri_ttm2fl_priNS:
       and TT1w_healthy: "TT1w P"
       and TT3_healthy:  "TT3 P"
       and TTick_healthy: "TTick P"
-      and TTickAll:   "TTickAll P"
+      and TTM3:   "TTM3 P"
       and TT4w_healthy:    "TT4w P"
      (* and Tick_max:"maximal(p,Tick)"*)
   shows "fl2ttm(pri p (ttm2fl P)) = priNS p P"
