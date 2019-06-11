@@ -76,6 +76,39 @@ lemma mkFL2_is_FL2: "FL2(mkFL2(P))"
 definition mkFL120 :: "'a fltraces \<Rightarrow> 'a fltraces" where
 "mkFL120 P \<equiv> P \<union> {s. \<exists>\<beta> A a t. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> t \<le> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<and> s = \<beta> &\<^sub>\<F>\<^sub>\<L> t}"
 
+(*
+lemma 
+  "{fl. FLTick0 Tick fl \<and> FL2 fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}
+    =
+   {t. \<exists>fl. t = mkFL2(fl) \<and> FLTick0 Tick fl \<and> FL2 fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
+  using FL2_fixpoint by auto
+
+lemma
+  "mkFL2(\<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}) =
+  \<Union>{mkFL2(fl)|fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
+  using mkFL2_disj_univ by auto
+
+lemma
+  "{mkFL2(fl)|fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}
+    =
+   {fl. FLTick0 Tick fl \<and> FL2 fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
+  apply auto
+  oops
+*)
+
+(*
+lemma ttm2fl_alt:
+  assumes "TTM1 P" "TTM2 P" "TT1w P" "FL2 (ttm2fl P)"
+  shows "ttm2fl P = \<Union>{fl. FLTick0 Tick fl \<and> FL2 fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
+  using assms unfolding ttm2fl_def fl2ttm_def apply auto
+  apply (rule_tac x="mkFL12 X" in exI, auto)
+  using FL3_mkFL12 apply blast
+  using mkFL12_is_FL2 apply blast
+  using FL1_mkFL12 apply blast
+  unfolding mkFL12_def apply auto
+  using FL2_def Un_iff mem_Collect_eq mem_simps(9) mkFL2_def subset_eq
+   apply (smt fl2ttobs_for_FL2_imp)
+  using fl2ttobs_for_FL2_imp by blast
 
 lemma
   shows "FL2({s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s = \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
@@ -100,7 +133,44 @@ lemma mkFL12_is_FL2:
    apply (case_tac "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P")
 
   apply (case_tac "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P")
+*)
 
+
+lemma FL2_mkFL1:
+  assumes "FL2 X"
+  shows "FL2 (mkFL1 X)"
+  using assms unfolding mkFL1_def FL2_def
+  apply safe
+  apply blast
+  sorry
+(*
+lemma 
+  assumes "FL1 X"
+  shows "FL2 (mkFL1 (mkFL2 X))"
+  using assms FL2_mkFL1
+  by (simp add: FL2_mkFL1 mkFL2_is_FL2)
+
+lemma FL3_mkFL12:
+  assumes "FL3 X"
+  shows "FL3 (mkFL1 (mkFL2 X))"
+  using assms sorry
+ 
+lemma FL1_mkFL1:
+  "FL1( mkFL1 X)"
+  unfolding FL1_def mkFL1_def by auto
+
+lemma ttm2fl_alt:
+  assumes "TTM1 P" "TTM2 P" "TT1w P" "FL2 (ttm2fl P)"
+  shows "ttm2fl P = \<Union>{fl. FLTick0 Tick fl \<and> FL2 fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
+  using assms unfolding ttm2fl_def fl2ttm_def apply auto
+  apply (rule_tac x="mkFL1(mkFL2(X))" in exI, auto)
+  using FL3_mkFL12 apply blast
+  using FL2_mkFL1 mkFL2_is_FL2 apply blast
+  using FL1_mkFL1 apply auto
+  using FL2_def Un_iff mem_Collect_eq mem_simps(9) mkFL2_def subset_eq
+  sledgehammer[debug=true]
+   apply (smt fl2ttobs_for_FL2_imp)
+  using fl2ttobs_for_FL2_imp by blast*)
 
 lemma
   assumes "s \<notin> P" "FL1 P"
@@ -108,15 +178,22 @@ lemma
        "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P"
        "a \<in>\<^sub>\<F>\<^sub>\<L> [x2]\<^sub>\<F>\<^sub>\<L>"
      shows "(s = \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> s = \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  nitpick
+  oops
 
 
 lemma
   assumes "s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "s \<noteq> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "\<not> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  shows "s = \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" nitpick
+  shows "s = \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" 
 
 definition mkFL12 :: "'a fltraces \<Rightarrow> 'a fltraces" where
 "mkFL12 P \<equiv> P \<union> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}"
+
+lemma mkFL12_eq_mkFL1_mkFL2:
+  assumes "FL1 P"
+  shows "mkFL12(P) = mkFL1(mkFL2(P))"
+  using assms unfolding mkFL1_def mkFL2_def mkFL12_def apply safe
+  apply blast+
+  using FL1_def by blast+
 
 lemma mkFL12_disj_univ: "mkFL12 (\<Union> P) = \<Union> ({mkFL12(x)|x. x \<in> P})"
   unfolding mkFL12_def by auto
@@ -128,7 +205,55 @@ lemma mkFL12_is_FL2:
   apply blast
   using order_trans by blast
 
+lemma FL2_disj_imp:
+  assumes "FL2 P" "FL2 Q" 
+  shows "FL2(P \<union> Q)"
+  using assms unfolding FL2_def by auto
+
 lemma mkFL12_is_FL2: "FL2(mkFL12(P))"
+proof -
+ (* have "FL2({s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
+    unfolding FL2_def apply auto
+    apply (rule_tac x="\<beta>'" in exI, rule_tac x="Aa" in exI, auto)
+    apply (rule_tac x="aa" in exI, auto)*)
+  have "FL2(mkFL12(P))
+        =
+        FL2(P \<union> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
+    unfolding mkFL12_def by auto
+  also have "... =
+        (\<forall>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> (P \<union> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})
+                \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<longrightarrow> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> (P \<union> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}))
+        "
+    unfolding FL2_def by auto
+  also have "... =
+        (\<forall>\<beta> A a. 
+          (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A 
+            \<longrightarrow> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> (P \<union> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}))
+          \<and>
+          (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>} 
+                  \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<longrightarrow> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> (P \<union> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})))
+        "
+    by blast
+  also have "... =
+        (\<forall>\<beta> A a. 
+          (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>} 
+                  \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<longrightarrow> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> (P \<union> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})))
+        "
+    by blast
+  also have "... =
+        (\<forall>\<beta> A a. 
+          ((\<exists>\<beta>' A' a'. \<beta>' &\<^sub>\<F>\<^sub>\<L> \<langle>A'\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a' \<in>\<^sub>\<F>\<^sub>\<L> A' \<and> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<le> \<beta>' &\<^sub>\<F>\<^sub>\<L> \<langle>(A',a')\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)
+                  \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<longrightarrow> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> (P \<union> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})))
+        "
+    by blast
+  also have "... =
+        (\<forall>\<beta> A a. 
+          ((\<exists>\<beta>' A' a'. \<beta>' &\<^sub>\<F>\<^sub>\<L> \<langle>A'\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a' \<in>\<^sub>\<F>\<^sub>\<L> A' \<and> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<le> \<beta>' &\<^sub>\<F>\<^sub>\<L> \<langle>(A',a')\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)
+                  \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A 
+              \<longrightarrow> (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<or>
+                  (\<exists>\<beta>' A' a'. \<beta>' &\<^sub>\<F>\<^sub>\<L> \<langle>A'\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a' \<in>\<^sub>\<F>\<^sub>\<L> A' \<and> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<le> \<beta>' &\<^sub>\<F>\<^sub>\<L> \<langle>(A',a')\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))))
+        "
+    by blast
   unfolding mkFL12_def FL2_def apply auto
   apply (case_tac A, auto, case_tac Aa, auto)
   

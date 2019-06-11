@@ -87,3 +87,30 @@ Timed(et) {
 
 }
 ---------------------------------------------------------------------------
+
+pD1 = ((aThen |~| tock -> pD1) /+ {tock} +\ (bThen |~| tock -> pD1))
+
+Timed(et) {
+
+	aThen = a -> STOP
+	bThen = b -> STOP
+
+	pS = a -> STOP |~| b -> STOP |~| (WAIT(1) ; pS)
+	pT = (a -> STOP [] b -> STOP) |~| (WAIT(1) ; pT)
+
+	assert M::C3(timed_priority(pS)) [T= M::C3(timed_priority(pT))
+	assert M::C3(timed_priority(pT)) [T= M::C3(timed_priority(pS))
+
+	pX = timed_priority(pD)
+	
+	pD = ((a -> STOP |~| WAIT(1)) [] (b -> STOP |~| WAIT(1))) ; pD
+
+	pD0 = ((a -> STOP |~| WAIT(1) ; pD0) [] (b -> STOP |~| WAIT(1) ; pD0))
+
+	assert M::C3(timed_priority(pT)) [T= M::C3(timed_priority(pD))
+	assert M::C3(timed_priority(pD)) [T= M::C3(timed_priority(pT))
+
+	assert M::CRT(timed_priority(pT)) [T= M::CRT(timed_priority(pD))
+	assert M::CRT(timed_priority(pD)) [T= M::CRT(timed_priority(pT))
+
+}
