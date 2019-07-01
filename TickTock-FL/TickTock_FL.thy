@@ -54,7 +54,6 @@ lemma FL_tt2fl_closed:
   by (simp add: FL_ttm2fl_closed(4) TT0_unTT1 TT1w_unTT1 TTM1_unTT1 TTM2_unTT1 TTM3_unTT1 TT_TT0 TT_TT1 assms)
 
 lemma
-
   shows "ttm2fl P = \<Union>{fl. FLTick0 Tick fl \<and> FL0 fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
   unfolding ttm2fl_def apply auto
   using FL0_def by blast
@@ -96,53 +95,13 @@ lemma
   oops
 *)
 
-(*
-lemma ttm2fl_alt:
-  assumes "TTM1 P" "TTM2 P" "TT1w P" "FL2 (ttm2fl P)"
-  shows "ttm2fl P = \<Union>{fl. FLTick0 Tick fl \<and> FL2 fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
-  using assms unfolding ttm2fl_def fl2ttm_def apply auto
-  apply (rule_tac x="mkFL12 X" in exI, auto)
-  using FL3_mkFL12 apply blast
-  using mkFL12_is_FL2 apply blast
-  using FL1_mkFL12 apply blast
-  unfolding mkFL12_def apply auto
-  using FL2_def Un_iff mem_Collect_eq mem_simps(9) mkFL2_def subset_eq
-   apply (smt fl2ttobs_for_FL2_imp)
-  using fl2ttobs_for_FL2_imp by blast
-
-lemma
-  shows "FL2({s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s = \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
-
-lemma mkFL12_is_FL2: 
-  assumes "FL1 P"
-  shows "FL1(mkFL120(P))"
-  using assms unfolding mkFL120_def FL1_def apply safe
-   apply blast
-  apply (case_tac A, safe)
-    apply (metis amember.simps(1))
-  apply (rule_tac x="\<beta>" in exI, rule_tac x="[x2]\<^sub>\<F>\<^sub>\<L>" in exI, rule_tac x="a" in exI)
-  apply (case_tac ta, safe)
-  
-  apply (metis acceptance.exhaust acceptance_set assms bullet_right_zero2 less_eq_acceptance.simps(3) less_eq_fltrace.simps(2) x_le_concat2_FL1)
-  apply (case_tac x21, safe, case_tac aa, safe)
-    apply (meson amember.simps(1))
-   apply (case_tac x22, safe, case_tac x1, safe)
-  apply (rule_tac x="\<langle>([x2a]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, safe)
-  sledgehammer
-  apply safe
-   apply (case_tac "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P")
-
-  apply (case_tac "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P")
-*)
-
-
 lemma FL2_mkFL1:
   assumes "FL2 X"
   shows "FL2 (mkFL1 X)"
   using assms unfolding mkFL1_def FL2_def
   apply safe
   apply blast
-  sorry
+  oops
 (*
 lemma 
   assumes "FL1 X"
@@ -172,19 +131,6 @@ lemma ttm2fl_alt:
    apply (smt fl2ttobs_for_FL2_imp)
   using fl2ttobs_for_FL2_imp by blast*)
 
-lemma
-  assumes "s \<notin> P" "FL1 P"
-       "s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-       "\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P"
-       "a \<in>\<^sub>\<F>\<^sub>\<L> [x2]\<^sub>\<F>\<^sub>\<L>"
-     shows "(s = \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> s = \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  oops
-
-
-lemma
-  assumes "s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "s \<noteq> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "\<not> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  shows "s = \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" 
-
 definition mkFL12 :: "'a fltraces \<Rightarrow> 'a fltraces" where
 "mkFL12 P \<equiv> P \<union> {s. \<exists>\<beta> A a. \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<and> a \<in>\<^sub>\<F>\<^sub>\<L> A \<and> s \<le> \<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}"
 
@@ -209,6 +155,179 @@ lemma FL2_disj_imp:
   assumes "FL2 P" "FL2 Q" 
   shows "FL2(P \<union> Q)"
   using assms unfolding FL2_def by auto
+
+
+(* NOTE: It works.. just the witness chosen was previously wrong :-) *)
+lemma ttm2fl_alt:
+  assumes "TTM1 P" "TTM2 P" "TT1w P" 
+  shows "ttm2fl P = \<Union>{fl. FLTick0 Tick fl \<and> FL2 fl \<and> FL1 fl \<and> FL0 fl \<and> (fl2ttm fl) \<subseteq> P}"
+  using assms unfolding ttm2fl_def fl2ttm_def apply auto
+  (*apply (rule_tac x="\<Union>{fl. FL3 fl \<and> FL1 fl \<and> {fl2ttobs fla |fla. fla \<in> fl} \<subseteq> P}" in exI, auto)
+   * The following seems to give me an easy way to generalise this.
+  *)
+  apply (rule_tac x="\<Union>{fl. FL3 fl \<and> FL1 fl \<and> {fl2ttobs fla |fla. fla \<in> fl} \<subseteq> P}" in exI, auto)
+    apply (smt FLTick0_def mem_Collect_eq mem_simps(9)) 
+  using  FL2_ttm2fl 
+   apply (simp add: fl2ttm_def ttm2fl_def) 
+  using FL2_ttm2fl assms(1) assms(2) assms(3) apply blast
+   apply (smt FL1_def Union_iff mem_Collect_eq)
+  using FL0_def by blast
+
+lemma TT3_unTT1:
+  assumes "TT1 P" "TT3 P" 
+  shows "TT3(unTT1(P))"
+  using assms unfolding TT3_def unTT1_def  apply auto
+  using TT1_mkTT1_simp TT3_def TT_TT3 by blast
+
+definition mkTT4 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
+"mkTT4 P = P \<union> {add_Tick_refusal_trace \<rho>|\<rho>. \<rho> \<in> P}"
+
+lemma TTickTrace_eq_add_Tick_refusal_trace_fixpoint:
+  "TTickTrace t \<longleftrightarrow> add_Tick_refusal_trace t = t"
+  by (induct t rule:add_Tick_refusal_trace.induct, auto)
+
+lemma TTM1_mkTT4:
+  assumes "TTM1 P" "TTM3 P"
+  shows "TTM1 (mkTT4 P)"
+  using assms unfolding TTM1_def TTM3_def mkTT4_def apply auto
+  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
+
+lemma TTM2_mkTT4:
+  assumes "TTM2 P" "TTM3 P"
+  shows "TTM2 (mkTT4 P)"
+  using assms unfolding TTM2_def TTM3_def mkTT4_def apply auto
+  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
+
+lemma TTM3_mkTT4:
+  assumes "TTM3 P"
+  shows "TTM3 (mkTT4 P)"
+  using assms unfolding TTM3_def mkTT4_def apply auto
+  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
+
+lemma TT1w_mkTT4:
+  assumes "TT1w P"
+  shows "TT1w (mkTT4 P)"
+  using assms unfolding TT1w_def TTM3_def mkTT4_def apply auto
+  by (smt add_Tick_refusal_trace_concat add_Tick_refusal_trace_tt_subset append_eq_append_conv tt_prefix_decompose tt_prefix_tt_subset tt_subset_same_length)
+
+(*
+lemma
+  assumes "TTM1 x" "TTM2 x" "TTM3 x" "TT1w x" "TT4 P" "x \<subseteq> P" "{y. \<exists>\<sigma>. y \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> x} \<subseteq> P"
+          "xa \<lesssim>\<^sub>C add_Tick_refusal_trace \<rho>" "\<rho> \<in> x"
+        shows "xa \<in> P"
+  using assms apply (induct \<rho> rule:rev_induct, auto)
+   apply (cases xa, auto)
+  apply (case_tac xb, auto)
+  sledgehammer
+  using tt_prefix_subset_antisym apply fastforce+*)
+
+
+
+lemma
+  "\<rho> \<in> x \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> mkTT4 x"
+  unfolding mkTT4_def by auto
+
+lemma TT4_unTT1:
+  assumes "TT1 P" "TT4 P" 
+  shows "TT4(unTT1(P))"
+  using assms unfolding TT4_def unTT1_def  apply auto
+  apply (rule_tac x="mkTT4(x)" in exI, auto)
+  using TTM1_mkTT4 apply blast
+  using TTM2_mkTT4 apply blast
+  using TTM3_mkTT4 apply blast
+  using TT1w_mkTT4 apply blast
+   apply (smt TT1_fixpoint_mkTT1 TT1_mkTT1_simp UnE mem_Collect_eq mkTT1_mono mkTT4_def subsetI)
+  unfolding mkTT4_def by auto
+
+(* We have that: lemma TT2_mkTT1:
+  assumes "TT2 P" "TT1w P" "TTM1 P" "TTM2 P"
+  shows "TT2(mkTT1(P))" *)
+
+lemma
+  assumes "TTM1 x\<^sub>0" "TTM2 x\<^sub>0" "TTM3 x\<^sub>0" "TT1w x\<^sub>0" "TT0 x\<^sub>0" "mkTT1 x\<^sub>0 \<subseteq> P"
+          "TTM1 x\<^sub>1" "TTM2 x\<^sub>1" "TTM3 x\<^sub>1" "TT1w x\<^sub>1" "TT0 x\<^sub>1" "mkTT1 x\<^sub>1 \<subseteq> P" "y \<in> x\<^sub>0"
+  shows "y \<in> x\<^sub>1"
+  using assms apply (induct y rule:rev_induct, auto)
+  unfolding mkTT1_def apply auto
+  
+  using TT0_TT1w_empty apply blast
+  apply (case_tac x, auto)
+  sledgehammer
+
+lemma
+  assumes "TT P" "TT4w P"
+          "TTM1 x\<^sub>0" "TTM2 x\<^sub>0" "TTM3 x\<^sub>0" "TT1w x\<^sub>0" "mkTT1 x\<^sub>0 \<subseteq> P"
+          "TTM1 x\<^sub>1" "TTM2 x\<^sub>1" "TTM3 x\<^sub>1" "TT1w x\<^sub>1" "mkTT1 x\<^sub>1 \<subseteq> P"
+          "TTM1 x" "TTM2 x" "TTM3 x" "TT1w x" "mkTT1 x \<subseteq> P"
+          "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> x\<^sub>0 \<or>
+                 e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x\<^sub>1} = {}"
+         "\<rho> @ [X]\<^sub>R # \<sigma> \<in> x"
+      shows "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
+proof -
+  have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<notin> x\<^sub>0"
+    using assms(18) by blast
+  have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x\<^sub>1"
+    using assms(18) by blast
+
+  (* Seems likely to hold.. but not sure *)
+  assume A1:"\<forall>e. \<rho> @ [[e]\<^sub>E] \<in> x\<^sub>0 \<longleftrightarrow> \<rho> @ [[e]\<^sub>E] \<in> x"
+            "\<forall>e. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x\<^sub>1 \<longleftrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x"
+  then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> x \<or>
+                 e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x} = {}"
+    using assms(18) by auto
+  then have "Y \<subseteq> X"
+                                                             
+  (* What we need is to show that Y \<subseteq> X *)
+
+lemma
+  assumes "TT P" "TT4w P"
+        "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
+                 e = Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
+        "TTM1 x" "TTM2 x" "TTM3 x" "TT1w x" "mkTT1 x \<subseteq> P" "\<rho> @ [X]\<^sub>R # \<sigma> \<in> x"
+  shows "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
+proof -
+  have ""
+
+
+lemma
+  assumes "TT P" "TT4w P"
+  shows "TT2(unTT1(P))"
+  using assms unfolding TT2_def unTT1_def apply auto
+  apply (rule_tac x="x" in exI, auto)
+
+
+
+lemma
+  assumes "TT P" "TT0(unTT1(P))" "TT2(unTT1(P))" "TT3(unTT1(P))" "TT4(unTT1(P))"
+  shows "unTT1 P = \<Union>{x. TT0 x \<and> TT2 x \<and> TT3 x \<and> TT4 x \<and> TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> (mkTT1 x) \<subseteq> P}"
+  unfolding unTT1_def mkTT1_def apply auto
+  using assms apply (rule_tac x="unTT1 P" in exI, auto)
+  using TTM1_unTT1 apply blast
+  using TTM2_unTT1 apply blast
+  using TTM3_unTT1 apply blast
+  using TT1w_unTT1 apply blast
+  unfolding unTT1_def apply auto
+  apply (metis (mono_tags, lifting) UnI1 contra_subsetD mkTT1_def) 
+   apply (metis (mono_tags, lifting) contra_subsetD mem_Collect_eq mkTT1_simp)
+  apply (rule_tac x="X" in exI, auto)
+  by (metis contra_subsetD mkTT1_simp)
+          
+  
+  apply (metis assms(4) unTT1_def)
+  apply (smt Union_iff mem_Collect_eq) 
+(*  apply (smt TTM2_def Union_iff mem_Collect_eq) 
+  
+  apply (metis TTM2_def Union_iff mem_Collect_eq)*)
+  unfolding TTM2_def apply (smt Union_iff mem_Collect_eq) 
+(*
+  apply (rule_tac x="mkFL12 X" in exI, auto)
+  using FL3_mkFL12 apply blast
+  using mkFL12_is_FL2 apply blast
+  using FL1_mkFL12 apply blast
+  unfolding mkFL12_def apply auto
+  using FL2_def Un_iff mem_Collect_eq mem_simps(9) mkFL2_def subset_eq
+   apply (smt fl2ttobs_for_FL2_imp)
+  using fl2ttobs_for_FL2_imp by blast*)
 
 lemma mkFL12_is_FL2: "FL2(mkFL12(P))"
 proof -

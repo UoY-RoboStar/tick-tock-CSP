@@ -275,7 +275,7 @@ lemma funFLTTockl_last_fl_not_bullet_dist_list_cons:
 subsection \<open> From Tick-Tock to FL \<close>
 
 definition ttm2fl :: "('e ttobs) list set \<Rightarrow> ('e ttevent) fltrace set" where
-"ttm2fl P = \<Union>{fl. FLTick0 Tick fl \<and> FL2 fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
+"ttm2fl P = \<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
 
 lemma ttm2fl_mono:
   assumes "P \<subseteq> Q"
@@ -567,29 +567,6 @@ lemma event_not_in_set_of_fl2ttobs_imp_not_in_events:
          require the existence of 'refusals'/'acceptances' for events that
          are non-maximal in the trace. *)
 
-(*
-lemma
-  assumes "Tick \<in> x1"
-  shows "FL2 {z. \<exists>e. e \<notin> x1 \<and> z \<le> \<langle>([{z. z \<notin> x1}]\<^sub>\<F>\<^sub>\<L>,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}"
-  using assms unfolding FL2_def apply auto
-  apply (rule_tac x="e" in exI, auto)
-  apply (case_tac \<beta>, auto, case_tac x1a, auto, case_tac A, auto)
-  apply (metis mem_Collect_eq)
-  apply (case_tac A, auto)
-  sledgehammer*)
-
-lemma tickWF_less_eq_acceptance_nonTick:
-  assumes "Tick \<in> x1"
-          "e \<notin> x1" "x \<le> \<langle>([{z. z \<notin> x1}]\<^sub>\<F>\<^sub>\<L>,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-    shows "tickWF Tick x"
-  using assms apply (induct x, auto)
-  apply (case_tac xa, auto)
-  apply (metis mem_Collect_eq)
-  apply (simp_all add: less_eq_aevent_def)
-    apply (metis amember.elims(2) less_eq_acceptance.simps(3) mem_Collect_eq)
-   apply (case_tac xa, auto)
-  by (case_tac x1b, auto)
-
 subsection \<open> Bijection between maximal Tick-Tock and subset of FL. \<close>
 
 lemma TTwf_1c_3_imp_fl2ttobs_FL1:
@@ -599,7 +576,7 @@ lemma TTwf_1c_3_imp_fl2ttobs_FL1:
       and TT3_healthy:  "TT3 P"
       and TTick_healthy: "TTick P"
       and TT4w_healthy: "TT4w P"
-  shows "\<exists>fl. x = fl2ttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL2 x \<and> FL1 x \<and> {fl2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
+  shows "\<exists>fl. x = fl2ttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {fl2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
   using assms
 proof(induct x rule:rev_induct)
   case Nil
@@ -608,8 +585,6 @@ proof(induct x rule:rev_induct)
     apply (rule exI[where x="{\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}"], auto)
     unfolding FL1_def apply auto
     unfolding FLTick0_def apply auto
-    unfolding FL2_def apply auto
-    apply (metis Finite_Linear_Model.last.simps(1) amember.simps(1) last_bullet_then_last_cons last_not_bullet_then_last_cons)
     by (case_tac s, auto, case_tac x1, auto)
 next
   case (snoc x xs)
@@ -630,18 +605,10 @@ next
       then show ?thesis
           apply (intro exI[where x="\<langle>[{x. x \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
           using Ref apply auto
-           apply (rule exI[where x="{z. \<exists>e. e \<in> {z. z \<notin> x1} - {Tick} \<and> z \<le> \<langle>([{z. z \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>}"], auto)
+           apply (rule exI[where x="{z. z \<le> \<langle>[{z. z \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}"], auto)
         unfolding FLTick0_def apply auto
           apply (case_tac x, auto)
         apply (metis (full_types) amember.elims(2) less_eq_acceptance.simps(3) mem_Collect_eq)
-        apply (simp_all add: less_eq_aevent_def)
-  apply (metis \<open>Tick \<in> x1\<close> amember.elims(2) amember.simps(2) less_eq_acceptance.simps(3) mem_Collect_eq)
-  apply (metis amember.simps(1) dual_order.antisym dual_order.trans order_refl prefixFL_induct2 tickWF.simps(1))
-  sledgehammer
-  apply (smt acceptance.inject amember.elims(2) amember.simps(1) less_eq_acceptance.elims(2) mem_Collect_eq)
-               apply (case_tac x22, auto, case_tac x1a, auto)
-        using tickWF_less_eq_acceptance_nonTick apply blast
-        
         using FL1_def dual_order.trans apply blast
         using fl_le_TT1w using Nil by auto
       (*next
