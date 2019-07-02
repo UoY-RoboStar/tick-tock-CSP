@@ -2,6 +2,7 @@ theory TickTock_Max_FL
   
 imports
   "TickTock.TickTock_Core"
+  "TickTock_Max"
   "FL.Finite_Linear_Tick_Param"
   "FL.Finite_Linear"
 begin
@@ -15,43 +16,6 @@ text \<open> Because the treatment of termination in FL.Finite_Linear_Tick_Param
        healthiness condition FL3, is in fact, an application of FLTick0 with the event Tick. \<close>
 
 abbreviation "FL3 P == FLTick0 Tick P"
-
-section \<open> Healthiness conditions of Tick-Tock processes whose refusals are maximal. \<close>
-
-text \<open> TTM1 requires that every event e that is not refused can be performed. \<close>
-
-definition TTM1 :: "'e ttobs list set \<Rightarrow> bool" where
-  "TTM1 P = (\<forall> \<rho> X e. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e \<noteq> Tock) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<in> P)"
-
-text \<open> TTM2 is similar to TTM1, but requires Tock to happen after the refusal. \<close>
-
-definition TTM2 :: "'e ttobs list set \<Rightarrow> bool" where
-  "TTM2 P = (\<forall> \<rho> X e. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e = Tock) \<longrightarrow> \<rho> @ [[X]\<^sub>R,[e]\<^sub>E] \<in> P)"
-
-fun TTickTrace :: "('a ttobs) list \<Rightarrow> bool" where
-"TTickTrace [] = True" |
-"TTickTrace ([e]\<^sub>E # xs) = TTickTrace xs" |
-"TTickTrace ([r]\<^sub>R # xs) = (Tick \<in> r \<and> TTickTrace xs)"
-
-lemma TTickTrace_eq_add_Tick_refusal_trace_fixpoint:
-  "TTickTrace t \<longleftrightarrow> add_Tick_refusal_trace t = t"
-  by (induct t rule:add_Tick_refusal_trace.induct, auto)
-
-text \<open> TTM3 requires that every refusal in every trace contains Tick. \<close>
-
-definition TTM3 :: "('a ttobs) list set \<Rightarrow> bool" where
-"TTM3 P = (\<forall>t. t \<in> P \<longrightarrow> TTickTrace t)"
-
-text \<open> A useful weaker variant is defined by TTick, that considers a
-       single refusal at the end of a trace to contain Tick. This is
-       useful in some proofs. \<close>
-
-definition TTick :: "('a ttobs) list set \<Rightarrow> bool" where
-"TTick P = (\<forall>t X. t @ [[X]\<^sub>R] \<in> P \<longrightarrow> Tick \<in> X)"
-
-lemma TTickTrace_dist_concat:
-  "TTickTrace (xs @ ys) = (TTickTrace xs \<and> TTickTrace ys)"
-  by (induct xs rule:TTickTrace.induct, auto)
 
 section \<open> Adjoints \<close>
 
@@ -1367,17 +1331,6 @@ lemma prefixFL_same_length_imp_2:
           "xs &\<^sub>\<F>\<^sub>\<L> a \<le> ys &\<^sub>\<F>\<^sub>\<L> b"
         shows "xs \<le> ys"
   using assms by (induct xs ys arbitrary:a b rule:less_eq_fltrace.induct, auto)
-
-lemma TT1w_prefix_concat_in:
-  assumes "xs @ ys \<in> P" "TT1w P"
-  shows "xs \<in> P"
-proof -
-  have "xs \<le>\<^sub>C xs @ ys"
-    using tt_prefix_concat by blast
-  then have "xs \<in> P"
-    using assms TT1w_def by blast
-  then show ?thesis .
-qed
 
 lemma fl2ttobs_for_FL2_imp:
   assumes "fl2ttobs (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) \<in> P" "a \<in>\<^sub>\<F>\<^sub>\<L> A" "TTM1 P" "TTM2 P" "TT1w P"

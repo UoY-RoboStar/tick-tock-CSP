@@ -10,50 +10,14 @@ text \<open> This theory consists in the definition of a Galois connection betwe
        tick-tock (that is TT-healthy, and so TT1-healthy) and the superset 
        that is not TT1-healhty, where refusals are maximal. \<close>
 
-section \<open> Definitions \<close>
+section \<open> From Maximal Refusals to subset-closed traces of tick-tock. \<close>
 
-subsection \<open> From Maximal Refusals to subset-closed traces of tick-tock. \<close>
-
-definition mkTT1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
-"mkTT1 P = P \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
-
-text \<open> mkTT1 is the fixed-point version of TT1 as established below. \<close>
-
-lemma TT1_fixpoint_mkTT1:
-  "(mkTT1 P = P) = TT1 P"
-  unfolding mkTT1_def TT1_def by auto
-
-lemma mkTT1_simp:
-  "mkTT1 P = {\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
-  unfolding mkTT1_def apply auto
-  using tt_prefix_subset_refl by blast
-
-lemma mkTT1_mono:
-  assumes "P \<subseteq> Q"
-  shows "mkTT1 P \<subseteq> mkTT1 Q"
-  using assms unfolding mkTT1_def by auto
-
-subsubsection \<open> Closure properties \<close>
+subsection \<open> Closure properties of mkTT1 \<close>
 
 lemma TTwf_imp_dist:
   assumes "TTwf(P \<union> Q)" 
   shows "TTwf(P) \<and> TTwf(Q)"
   unfolding TTwf_def by (meson TTwf_def Un_iff assms)
-
-lemma TTwf_mkTT1:
-  assumes "TTwf P"
-  shows "TTwf(mkTT1(P))"
-  using assms unfolding mkTT1_def apply auto
-  by (smt TTwf_def Un_iff mem_Collect_eq tt_prefix_subset_ttWF)
-
-lemma TT0_mkTT1:
-  assumes "TT0 P"
-  shows "TT0(mkTT1(P))"
-  using assms unfolding mkTT1_def TT0_def by auto
-
-lemma TT1_mkTT1:
-  shows "TT1(mkTT1(P))"
-  by (smt TT1_def mem_Collect_eq mkTT1_simp tt_prefix_subset_trans)
 
 lemma TT2w_mkTT1_part:
   assumes "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} = {}"
@@ -183,19 +147,7 @@ proof -
   then show ?thesis using calculation by auto
 qed
 
-lemma TT3_mkTT1:
-  assumes "TT3 P"
-  shows "TT3(mkTT1(P))"
-  using assms unfolding mkTT1_def TT3_def apply auto
-  using tt_prefix_of_TT3_trace by blast
-
-lemma TT4_mkTT1:
-  assumes "TT4 P"
-  shows "TT4(mkTT1(P))"
-  using assms unfolding mkTT1_def TT4_def apply auto
-  using add_Tick_refusal_trace_tt_prefix_subset_mono by blast
-
-subsection \<open> From subset-closed tick-tock to maximal refusals. \<close>
+section \<open> From subset-closed tick-tock to maximal refusals. \<close>
 
 text \<open> Here the adjoint is defined in terms of mkTT1, undoing as much
        as possible the effect of mkTT1. \<close>
@@ -208,11 +160,136 @@ lemma unTT1_mono:
   shows "unTT1(P) \<subseteq> unTT1(Q)"
   using assms unfolding unTT1_def by auto
 
-subsubsection \<open> Closure properties \<close>
+subsection \<open> Closure properties \<close>
 
 lemma TTM1_unTT1:
   "TTM1(unTT1 P)"
   unfolding unTT1_def TTM1_def by auto
+
+lemma TT0_unTT1:
+  assumes "TT0 P" "TT1 P"
+  shows "TT0(unTT1(P))"
+proof -
+  have "[] \<in> P"
+    using assms TT0_TT1_empty by blast
+  then have "[] \<in> unTT1(P)"
+    unfolding unTT1_def TT0_def apply auto
+    apply (rule_tac x="{[]}" in exI, auto)
+    unfolding TTM1_def TTM2_def TTM3_def TT1w_def apply auto
+     apply (case_tac \<rho>, auto)
+    unfolding mkTT1_def apply auto
+    by (case_tac x, auto)
+  then have "TT0(unTT1(P))"
+    unfolding TT0_def by auto
+  then show ?thesis .
+qed
+
+lemma TT1w_unTT1:
+  "TT1w(unTT1(P))"
+  unfolding unTT1_def TT1w_def by auto
+
+lemma TTM1_mkTT4:
+  assumes "TTM1 P" "TTM3 P"
+  shows "TTM1 (mkTT4 P)"
+  using assms unfolding TTM1_def TTM3_def mkTT4_def apply auto
+  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
+
+lemma TTM2_mkTT4:
+  assumes "TTM2 P" "TTM3 P"
+  shows "TTM2 (mkTT4 P)"
+  using assms unfolding TTM2_def TTM3_def mkTT4_def apply auto
+  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
+
+lemma TTM3_mkTT4:
+  assumes "TTM3 P"
+  shows "TTM3 (mkTT4 P)"
+  using assms unfolding TTM3_def mkTT4_def apply auto
+  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
+
+lemma TT1w_mkTT4:
+  assumes "TT1w P"
+  shows "TT1w (mkTT4 P)"
+  using assms unfolding TT1w_def TTM3_def mkTT4_def apply auto
+  by (smt add_Tick_refusal_trace_concat add_Tick_refusal_trace_tt_subset append_eq_append_conv tt_prefix_decompose tt_prefix_tt_subset tt_subset_same_length)
+
+lemma TT4_unTT1:
+  assumes "TT1 P" "TT4 P" 
+  shows "TT4(unTT1(P))"
+  using assms unfolding TT4_def unTT1_def  apply auto
+  apply (rule_tac x="mkTT4(x)" in exI, auto)
+  using TTM1_mkTT4 apply blast
+  using TTM2_mkTT4 apply blast
+  using TTM3_mkTT4 apply blast
+  using TT1w_mkTT4 apply blast
+   apply (smt TT1_fixpoint_mkTT1 TT1_mkTT1_simp UnE mem_Collect_eq mkTT1_mono mkTT4_def subsetI)
+  unfolding mkTT4_def by auto
+
+lemma TT2_unTT1_part:
+  assumes "TT P"
+          "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> unTT1 P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> unTT1 P} = {}"
+          "\<rho> @ [X]\<^sub>R # \<sigma> \<in> unTT1 P"
+  shows   "\<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> unTT1 P"
+proof -
+  obtain x where x:"TTM1 x" "TTM2 x" "TTM3 x" "TT1w x" "mkTT1 x \<subseteq> P" "\<rho> @ [X]\<^sub>R # \<sigma> \<in> x"
+    using assms unfolding unTT1_def by auto
+  
+  have def1:"(Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> unTT1 P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> unTT1 P} = {})
+              =
+             (Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
+                 e = Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {})"
+    unfolding unTT1_def by auto
+
+  have "\<rho> @ [[X]\<^sub>R] \<le>\<^sub>C \<rho> @ [X]\<^sub>R # \<sigma>"
+    by (simp add: tt_prefix_same_front)
+  then have "\<rho> @ [[X]\<^sub>R] \<in> x"
+    using TT1w_def x assms by blast
+  then have "\<rho> @ [[X]\<^sub>R] \<in> P"
+    using assms x mkTT1_def by fastforce
+
+  have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<not>(\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x)"
+    using assms def1 by blast
+  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<notin> x"
+    using assms x by blast
+  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> (\<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> e \<in> X)"
+    using assms x TTM1_def \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> by blast
+  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> e \<in> X"
+    using \<open>\<rho> @ [[X]\<^sub>R] \<in> P\<close> by blast
+  
+  have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<not>(\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)"
+    using assms def1 by blast
+  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x"
+    using assms x by blast
+  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> (\<rho> @ [[X]\<^sub>R,[e]\<^sub>E] \<in> P \<longrightarrow> e \<in> X)"
+    using TTM2_def \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> assms x by auto
+  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> e \<in> X"
+    using TTM2_def \<open>\<forall>e. e = Tock \<and> e \<in> Y \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x\<close> \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> assms x by auto
+
+  have "Y \<subseteq> X"
+    using \<open>\<forall>e. e = Tock \<and> e \<in> Y \<longrightarrow> e \<in> X\<close> \<open>\<forall>e. e \<noteq> Tock \<and> e \<in> Y \<longrightarrow> e \<in> X\<close> by blast
+  then show ?thesis using def1 x unfolding unTT1_def apply auto
+    by (metis assms sup.order_iff)
+qed
+
+lemma TT2_unTT1:
+  assumes "TT P"
+  shows "TT2(unTT1(P))"
+  using assms unfolding TT2_def apply auto
+  using TT2_unTT1_part by fastforce
+
+lemma TT3_unTT1:
+  assumes "TT1 P" "TT3 P" 
+  shows "TT3(unTT1(P))"
+  using assms unfolding TT3_def unTT1_def  apply auto
+  using TT1_mkTT1_simp TT3_def TT_TT3 by blast
+
+lemma TTM2_unTT1:
+  "TTM2(unTT1(P))"
+  unfolding unTT1_def TTM2_def by auto
+
+lemma TTM3_unTT1:
+  "TTM3(unTT1(P))"
+  unfolding unTT1_def TTM3_def by auto
+
 
 (* A wild guess below: *)
 
@@ -228,33 +305,10 @@ fun RprirelRef :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rig
   (\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))))" |
 "RprirelRef p x y s Q = False"
 
-lemma mkTT1_mkTT4w_iff_TT14:
-  "(mkTT1(mkTT4w P) = P) = (TT1 P \<and> TT4w P)"
-  apply auto
-  using TT1_def mkTT1_simp mkTT4w_def apply fastforce
-  apply (metis (mono_tags, lifting) TT1_def TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w CollectI UnI1 mkTT1_simp mkTT4w_def)  
-    apply (metis TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w)
-    by (metis TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w)
-
-lemma TT1_mkTT1_simp:
-  assumes "TT1 P"
-  shows "(\<exists>x. s \<in> x \<and> (mkTT1 x) \<subseteq> P) = (s \<in> P)"
-  using assms apply safe
-  using mkTT1_def apply fastforce
-  using TT1_fixpoint_mkTT1 by blast
-
 fun mkTTick_Trace :: "'e ttobs list \<Rightarrow> 'e ttobs list" where
 "mkTTick_Trace [] = []" |
 "mkTTick_Trace ([x]\<^sub>R # xs) = (if xs = [] then ([x \<union> {Tick}]\<^sub>R # xs) else ([x]\<^sub>R # mkTTick_Trace xs))" |
 "mkTTick_Trace ([e]\<^sub>E # xs) = ([e]\<^sub>E # mkTTick_Trace xs)"
-
-lemma TTick_dist_union:
-  "TTick (P \<union> Q) = (TTick(P) \<and> TTick(Q))"
-  unfolding TTick_def by auto
-
-lemma TTM3_dist_union:
-  "TTM3 (P \<union> Q) = (TTM3(P) \<and> TTM3(Q))"
-  unfolding TTM3_def by auto
 
 lemma TTick_mkTT1_simp:
   assumes "TT1 P" "TT4w P"
@@ -319,29 +373,7 @@ next
       by (simp add: TTMPick_extend_ref_imp)
     then show ?thesis using Ref by auto
    qed
-qed
-
-definition mkTTM1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
-"mkTTM1 P = P \<union> {\<rho> @ [[e]\<^sub>E]|\<rho> X e. \<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e \<noteq> Tock}"
-
-definition mkTTM2 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
-"mkTTM2 P = P \<union> {\<rho> @ [[X]\<^sub>R,[Tock]\<^sub>E]|\<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<and> Tock \<notin> X}"
-
-lemma TTM1_mkTTM1 [simp]: "TTM1 (mkTTM1 P)"
-  unfolding mkTTM1_def TTM1_def by auto
-
-lemma TTM2_mkTTM2 [simp]: "TTM2 (mkTTM2 P)"
-  unfolding mkTTM2_def TTM2_def by auto
-
-lemma mkTTM2_mkTTM1_commute: "mkTTM2 (mkTTM1 P) = mkTTM1 (mkTTM2 P)"
-  unfolding mkTTM2_def mkTTM1_def by auto
-
-definition mkTT1w :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
-"mkTT1w P = P \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
-
-lemma TT1w_fixpoint_mkTT1w:
-  "TT1w P = (P = mkTT1w(P))"
-  unfolding TT1w_def mkTT1w_def by auto
+ qed
 
 lemma TTMPick_imp_in_mkTTM2_mkTTM1:
   assumes "TTMPick s [] P" 
@@ -358,119 +390,6 @@ lemma TTMPick_imp_in_prefix_mkTTM2_mkTTM1_TT1w:
   assumes "TTMPick s [] P" 
   shows "s \<in> mkTTM2 (mkTTM1 (mkTT1w{s}))"
   using assms unfolding mkTTM2_def mkTTM1_def mkTT1w_def by auto
-
-lemma TTick_imp_TTick_mkTTM1_mkTTM2:
-  assumes "TTick {s}"
-  shows "TTick (mkTTM1 (mkTTM2 {s}))"
-  using assms unfolding mkTTM2_def mkTTM1_def TTick_def by auto
-
-lemma TTickTrace_prefix:
-  assumes "TTickTrace s" "t \<le>\<^sub>C s" 
-  shows "TTickTrace t"
-  using assms apply (induct t s rule:tt_prefix.induct, auto)
-  by (case_tac y, auto)
-
-lemma TTM3_singleton_imp_prefixes:
-  assumes "TTM3 {s}"
-  shows "TTM3 {x. x \<le>\<^sub>C s}"
-  using assms unfolding TTM3_def apply auto
-  using TTickTrace_prefix by blast
-
-lemma TTM3_singleton_mkTTM1:
-  assumes "TTM3 {s}"
-  shows "TTM3(mkTTM1 {x. x \<le>\<^sub>C s})"
-  using assms unfolding mkTTM1_def TTM3_def apply auto
-  using TTickTrace_prefix apply blast
-  by (metis TTickTrace.simps(1) TTickTrace.simps(2) TTickTrace_dist_concat TTickTrace_prefix)
-
-lemma TTM3_singleton_mkTTM2:
-  assumes "TTM3 {s}"
-  shows "TTM3(mkTTM2 {x. x \<le>\<^sub>C s})"
-  using assms unfolding mkTTM2_def TTM3_def apply auto
-  using TTickTrace_prefix apply blast
-  by (metis TTickTrace.simps(2) TTickTrace.simps(3) TTickTrace_dist_concat TTickTrace_prefix)
-
-lemma TTM3_imp_TTM3_mkTTM1_mkTTM2:
-  assumes "TTM3 {s}"
-  shows "TTM3 (mkTTM1 (mkTTM2 {x. x \<le>\<^sub>C s}))"
-  using assms unfolding mkTTM1_def mkTTM2_def TTM3_def apply auto
-  using TTickTrace_prefix apply blast
-  apply (metis TTickTrace.simps(2) TTickTrace.simps(3) TTickTrace_dist_concat TTickTrace_prefix)
-  by (metis TTickTrace.simps(1) TTickTrace.simps(2) TTickTrace_dist_concat TTickTrace_prefix)
-
-lemma TTM3_imp_TTM3_mkTTM1_mkTTM2_mkTT1w:
-  assumes "TTM3 {s}"
-  shows "TTM3 (mkTTM1 (mkTTM2 (mkTT1w{s})))"
-  using assms unfolding mkTTM1_def mkTTM2_def mkTT1w_def TTM3_def apply auto
-  using TTickTrace_prefix apply blast
-     apply (metis TTickTrace.simps(2) TTickTrace.simps(3) TTickTrace_dist_concat)
-  apply (metis TTickTrace.simps(2) TTickTrace.simps(3) TTickTrace_dist_concat TTickTrace_prefix)
-  apply (metis TTickTrace.simps(1) TTickTrace.simps(2) TTickTrace_dist_concat)
-  by (metis TTickTrace.simps(2) TTickTrace.simps(3) TTickTrace_dist_concat TTickTrace_prefix)
-  
-lemma TT1w_mkTTM1:
-  assumes "TT1w P"
-  shows "TT1w (mkTTM1 P)"
-  using assms unfolding mkTTM1_def TT1w_def apply auto
-  by (meson tt_prefix_concat tt_prefix_notfront_is_whole)
-
-
-lemma mkTTM2_dist_union:
-  "mkTTM2(P \<union> Q) = (mkTTM2(P) \<union> mkTTM2(Q))"
-  unfolding mkTTM2_def by auto
-
-lemma mkTTM2_in_mkTT1w_for_TT1w:
-  assumes "TT1w P"
-  shows "mkTTM2({\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}) = ({\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> mkTTM2(P)})"
-  unfolding mkTTM2_def apply auto
-  apply (rule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in exI, auto)
-  apply (simp add: tt_prefix_refl)
-  using TT1w_def assms apply blast
-  by (smt TT1w_prefix_concat_in Nil_is_append_conv append_Cons append_Nil2 append_eq_append_conv2 append_self_conv2 assms ttWF.simps(1) tt_prefix_append_split tt_prefix_notfront_is_whole tt_prefix_refl tt_prefix_same_front same_append_eq split_tocks)
-
-lemma mkTTM2_mkTT1w_commute:
-  assumes "TT1w P"
-  shows "mkTTM2(mkTT1w(P)) = mkTT1w(mkTTM2(P))"
-proof -
-  have "mkTTM2(mkTT1w(P)) = mkTTM2(P \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P})"
-    unfolding mkTT1w_def by auto
-  also have "... = mkTTM2(P) \<union> mkTTM2({\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P})"
-    using mkTTM2_dist_union by auto
-  also have "... = mkTTM2(P) \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> mkTTM2(P)}"
-    using assms mkTTM2_in_mkTT1w_for_TT1w by blast
-  also have "... = mkTT1w(mkTTM2(P))"
-    unfolding mkTT1w_def by auto
-  finally show ?thesis .
-qed
-
-lemma TT1w_mkTTM2:
-  assumes "TT1w P"
-  shows "TT1w (mkTTM2 P)"
-proof -
-  have "TT1w P = (P = mkTT1w(P))"
-    using TT1w_fixpoint_mkTT1w by blast
-  then have "TT1w (mkTTM2 P) = TT1w (mkTTM2(mkTT1w(P)))"
-    using assms by auto
-  also have "... = TT1w(mkTT1w(mkTTM2(P)))"
-    using assms by (simp add: mkTTM2_mkTT1w_commute)
-  also have "... = True"
-    by (metis TT1w_fixpoint_mkTT1w assms mkTTM2_mkTT1w_commute)
-  then show ?thesis using calculation by auto
-qed
-
-lemma TT1w_mkTT1w [simp]: "TT1w (mkTT1w P)"
-  unfolding mkTT1w_def TT1w_def apply auto
-  using tt_prefix_trans by blast
-
-lemma TT1w_mkTTM1_mkTTM2_mkTT1w:
-  "TT1w (mkTTM1 (mkTTM2 (mkTT1w P)))"
-proof -
-  have "TT1w (mkTTM2 (mkTT1w P))"
-    using TT1w_mkTTM2 TT1w_mkTT1w by blast
-  then have "TT1w (mkTTM1 (mkTTM2 (mkTT1w P)))"
-    using TT1w_mkTTM1 by blast
-  then show ?thesis .
-qed
 
 lemma TTMPick_imp_RefTock_in:
   assumes "TTMPick (\<rho> @ [[X]\<^sub>R] @ x) s P" "Tock \<notin> X"
@@ -632,69 +551,6 @@ fun mkTTMP :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> 'e ttobs 
          (mkTTMP xs (s @ [[X]\<^sub>R]) P))" |
 "mkTTMP ([e]\<^sub>E # xs) s P = ([e]\<^sub>E # (mkTTMP xs (s @ [[e]\<^sub>E]) P))"
 
-
-lemma TT4_TT1_imp_Ref_Tock:
-  assumes "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "TT1 P" "TT4 P"
-  shows "s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E] \<in> P"
-  using assms unfolding TT1_def TT4_def
-proof (auto)
-  fix \<rho> X s
-  assume TT1_P: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P"
-  assume "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P"
-  then have "add_Tick_refusal_trace (s @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<in> P"
-    by auto
-  then have "add_Tick_refusal_trace s @ add_Tick_refusal_trace ([[X]\<^sub>R, [Tock]\<^sub>E]) \<in> P"
-    by (simp add: add_Tick_refusal_trace_concat)
-  then have "add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E] \<in> P"
-    by auto
-  also have "s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E] \<subseteq>\<^sub>C add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E]"
-    by (simp add: add_Tick_refusal_trace_tt_subset tt_subset_combine)
-  then show "s @ [[insert Tick X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-    using TT1_P calculation tt_subset_imp_prefix_subset by auto
-qed
-
-lemma TT2_Ref_Tock_augment:
-  assumes "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "TT2 P" "TT1 P" "TT4 P"
-  shows "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-proof -
-  have "{e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P} \<inter> {e. (e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> s @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
-    by auto
-  then have "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P}]\<^sub>R] @ [[Tock]\<^sub>E] \<in> P"
-    using assms by (simp add: TT2_def) 
-  then have "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R] @ [[Tock]\<^sub>E] \<in> P"
-    using TT4_TT1_imp_Ref_Tock assms
-    by auto
-  then show ?thesis by auto
-qed
-
-
-(*
-lemma
-  assumes "TTMPick xs (s @ [[X]\<^sub>R]) P" "TTwf P" "ttWF (xs)" "ttWF (s @ [[X]\<^sub>R])"
-  shows "TTMPick xs (s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}]\<^sub>R]) P"
-  using assms nitpick 
-  apply (induct xs arbitrary:X s, auto)
-  apply (case_tac a, auto)
-*)
-  (*apply (induct xs _ P arbitrary:X s rule:TTMPick.induct, auto)
-  sledgehammer
-*)
-(*
-lemma
-  assumes "TTMPick z (s @ [[X]\<^sub>R]) P" "ttWF (s @ [[X]\<^sub>R] @ z)"
-  shows "TTMPick z (s @ [[insert Tick (X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P})]\<^sub>R]) P"
-  using assms apply(induct z _ P arbitrary:X s rule:TTMPick.induct)
-    apply auto[1]*)
- (* apply (metis (no_types) append_Cons append_Nil ttWF.simps(13) ttWF_dist_cons_refusal')
-*)
-
-(*
-lemma
-  assumes "TTMPick zs (s @ [[X]\<^sub>R,[Tock]\<^sub>E]) P" "ttWF (s @ [[X]\<^sub>R,[Tock]\<^sub>E] @ zs)"
-  shows "TTMPick zs (s @ [[insert Tick (X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P})]\<^sub>R,[Tock]\<^sub>E]) P"
-  using assms apply(induct zs s P arbitrary:X rule:TTMPick.induct, auto)
-*)
-
 lemma TTMPick_imp_prefix:
   assumes "TTMPick (xs @ [x]) zs P"
   shows "TTMPick xs zs P"
@@ -709,78 +565,6 @@ lemma TTMPick_imp_prefix'':
   assumes "TTMPick (xs @ ys) zs P"
   shows "TTMPick ys (zs @ xs) P"
   using assms by (induct xs zs P rule:TTMPick.induct, auto)
-
-lemma TT2_extends_Ref:
-  assumes "TT2 P" "s @ [[X]\<^sub>R] @ xs \<in> P"
-  shows "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}]\<^sub>R] @ xs \<in> P"
-proof -
-  obtain Y where Y:"Y = {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}"
-    by auto
-  then have "Y \<inter> {e. (e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> s @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
-    by auto
-  then have "s @ [[X \<union> Y]\<^sub>R] @ xs \<in> P"
-    using assms unfolding TT2_def by auto
-  then show ?thesis using Y by auto
-qed
-
-lemma tt_prefix_common_concat:
-  assumes "zs \<lesssim>\<^sub>C ys"
-  shows "xs @ zs \<lesssim>\<^sub>C xs @ ys"
-  using assms apply (induct zs ys arbitrary:xs rule:tt_prefix_subset.induct, auto)
-  using tt_prefix_concat tt_prefix_imp_prefix_subset apply blast
-  apply (meson tt_prefix_subset.simps(2) tt_prefix_subset_same_front)
-  by (meson tt_prefix_subset.simps(3) tt_prefix_subset_same_front)
-
-lemma tt_prefix_common_concat_eq_size:
-  assumes "zs \<lesssim>\<^sub>C ys" "size zs = size ys"
-  shows "zs @ xs \<lesssim>\<^sub>C ys @ xs"
-  using assms apply (induct zs ys arbitrary:xs rule:tt_prefix_subset.induct, auto)
-  by (simp add: tt_prefix_subset_refl)
-
-lemma TT4_middle_Ref_with_Tick:
-  assumes "s @ [[X]\<^sub>R] @ xs \<in> P" "TT1 P" "TT4 P"
-  shows "s @ [[X \<union> {Tick}]\<^sub>R] @ xs \<in> P"
-proof -
-  have add_Tick_in_P:"add_Tick_refusal_trace (s @ [[X]\<^sub>R] @ xs) \<in> P"
-    using assms unfolding TT4_def by blast
-
-  have add_Tick_dist:"add_Tick_refusal_trace (s @ [[X]\<^sub>R] @ xs) =
-     add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ add_Tick_refusal_trace(xs)"
-    by (simp add: add_Tick_refusal_trace_concat add_Tick_refusal_trace_end_refusal)
-  
-  have s_le_addTick:"s \<lesssim>\<^sub>C add_Tick_refusal_trace s"
-    by (simp add: add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset)
-  have "xs \<lesssim>\<^sub>C add_Tick_refusal_trace(xs)"
-    by (simp add: add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset)
-
-  then have a:"add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ xs
-              \<lesssim>\<^sub>C
-              add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ add_Tick_refusal_trace(xs)"
-  using add_Tick_in_P add_Tick_dist tt_prefix_common_concat
-    by blast
-  then have b:"s @ [[X \<union> {Tick}]\<^sub>R] @ xs \<lesssim>\<^sub>C add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ xs"
-    using tt_prefix_common_concat_eq_size add_Tick_refusal_trace_same_length s_le_addTick by blast
-
-  have "s @ [[X \<union> {Tick}]\<^sub>R] @ xs \<in> P"
-    using a b add_Tick_in_P assms
-    by (metis TT1_def add_Tick_dist)
-  then show ?thesis by auto
-qed
-
-lemma TT2_TT4_extends_Ref:
-  assumes "TT2 P" "TT4 P" "TT1 P" "s @ [[X]\<^sub>R] @ xs \<in> P"
-  shows "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R] @ xs \<in> P"
-proof -
-  obtain Y where Y:"Y = {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}"
-    by auto
-  then have "Y \<inter> {e. (e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> s @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
-    by auto
-  then have "s @ [[X \<union> Y]\<^sub>R] @ xs \<in> P"
-    using assms unfolding TT2_def by auto
-  then have "s @ [[X \<union> Y \<union> {Tick}]\<^sub>R] @ xs \<in> P"
-    using assms TT4_middle_Ref_with_Tick by blast
-  then show ?thesis using Y by auto
-qed
 
 lemma TTMPick_extend_Ref:
   assumes "TTMPick zs (s @ [[X]\<^sub>R]) P" "TT4 P" "TT2 P" "TT1 P"
@@ -886,22 +670,6 @@ next
   then show ?case by auto
 qed
 
-(*
-lemma
-  "TTickTrace (mkTTMP (add_Tick_refusal_trace s) i P)"
-proof (induct s i P rule:mkTTMP.induct)
-  case (1 s P)
-then show ?case by auto
-next
-  case (2 X xs s P)
-  then show ?case
-    apply auto
-next
-case (3 e xs s P)
-  then show ?case by auto
-qed
-  sledgehammer
-*)
 lemma TTM3_mkTTMP_singleton:
   "TTM3 {(mkTTMP s i P)}"
   unfolding TTM3_def by (induct s i P rule:mkTTMP.induct, auto)
@@ -1068,12 +836,6 @@ lemma
   "aa \<lesssim>\<^sub>C (mkTTMP aa i P)"
   by (induct aa i P rule:mkTTMP.induct, auto)
 
-lemma
-  assumes "prirelRef2 p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) s Q" "TTMPick s [] Q" "TT1 Q" "TT2 Q" "TT4 Q"
-  shows "TTMPick (s @ [[S]\<^sub>R,[Tock]\<^sub>E]) [] Q"
-  using assms apply(induct p aa zz s Q arbitrary:S R rule:prirelRef2.induct, auto)
-  oops
-
 (* Too strong, as in general it is not possible to pick a trace 'aa' and apply
     mkTTMP to it and get a satisfactory result in prirelRef, I think? Because
     such closure woult be based on the trace in P, which are not necessarily
@@ -1113,26 +875,6 @@ lemma mkTTMP_dist_concat:
 lemma mkTTMP_fixpoint_eq_TTMPick:
   "(mkTTMP s i P = s) = TTMPick s i P"
   by (induct s i P rule:mkTTMP.induct, auto)
-
-lemma TT2_aux1:
-  assumes "TT2 P" "\<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P" "Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
-  shows "\<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P"
-  using assms TT2_def by blast
-
-lemma TT2_aux2:
-  assumes "TT2 P" "[[X]\<^sub>R] @ \<sigma> \<in> P" "Y \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
-  shows "[[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P"
-  using assms TT2_def by (metis (no_types, lifting) Collect_cong append.left_neutral)
-
-lemma TT2_aux3:
-  assumes "TT2 P" "[[X]\<^sub>R] \<in> P" "Y \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
-  shows "[[X \<union> Y]\<^sub>R] \<in> P"
-  using TT2_aux2 assms(1) assms(2) assms(3) by auto
-
-thm list.induct
-thm rev_induct
-thm mkTTMP.induct
-thm wf_TT2_induct
 
 lemma mkTTMP_absorb_event:
   "mkTTMP xs i P @ ([[x]\<^sub>E] @ z) = mkTTMP (xs @ [[x]\<^sub>E]) i P @ z"
@@ -1385,119 +1127,6 @@ lemma prirelRef_start_Ref_extends:
   qed
 qed
 
-(*
-lemma prirelRef_start_Ref_extends:
-  assumes "TT1 Q" "TT2 Q" "TT4w Q" "prirelRef pa t s ((mkTTMP zs [] Q) @ z) (unTT1 Q)" 
-  shows "prirelRef pa t s (zs @ z) (unTT1 Q)"
-  using assms proof(induct pa t s z Q arbitrary:zs rule:prirelRef.induct, auto)
-  fix p 
-  fix aa::"'a ttobs list" 
-  fix e\<^sub>2 zz sa Qa zsa Z
-  assume 
-    hyp:  "(\<And>zs. prirelRef p aa zz (mkTTMP zs [] Qa @ sa @ [[e\<^sub>2]\<^sub>E]) (unTT1 Qa) \<Longrightarrow> prirelRef p aa zz (zs @ sa @ [[e\<^sub>2]\<^sub>E]) (unTT1 Qa))"
-    and TT1_healthy:    "TT1 Qa" 
-    and TT2_healthy:   "TT2 Qa"
-    and TT4w_healthy:   "TT4w Qa"
-    and prirelRef:      "prirelRef p aa zz (mkTTMP zsa [] Qa @ sa @ [[e\<^sub>2]\<^sub>E]) (unTT1 Qa)"
-    and assm1:          "mkTTMP zsa [] Qa @ sa @ [[Z]\<^sub>R] \<in> unTT1 Qa"
-    and assm2:          "e\<^sub>2 \<notin> Z"
-    and assm3:          "\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*p b"
-    and assm4:          "\<forall>Z. zsa @ sa @ [[Z]\<^sub>R] \<in> unTT1 Qa \<longrightarrow> e\<^sub>2 \<in> Z \<or> (\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b)"
-  then show "maximal(p,e\<^sub>2)"
-  proof -
-    have "mkTTMP zsa [] Qa @ sa @ [[Z]\<^sub>R] \<in> unTT1 Qa"
-      using assm1 by auto
-    then have "prirelRef p aa zz (mkTTMP zsa [] Qa @ sa @ [[e\<^sub>2]\<^sub>E]) (unTT1 Qa)"
-      using prirelRef by auto
-    then have "prirelRef p ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) (mkTTMP zsa [] Qa @ sa) (unTT1 Qa)"
-      using assm2 assm3 assm1 by auto
-
-    have "prirelRef p aa zz (zsa @ sa @ [[e\<^sub>2]\<^sub>E]) (unTT1 Qa)"
-      using hyp prirelRef by auto
-
-    then have "prirelRef p ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) (zsa @ sa) (unTT1 Qa)"
-      using assm2 assm3 assm1 assm4 apply auto
-   
-    then have "saa @ [[Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R] @ [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unTT1 Qa"
-      using TT1_healthy TT2_healthy TT4w_healthy concat_unTT1_extend_TT2_Refusal by blast
-    then have "saa @ [Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unTT1 Qa"
-      by auto
-    then have "\<exists>Z. saa @ [Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unTT1 Qa \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b)"
-      using assm2 assm3 by blast
-    then have "\<not>(\<forall>Z. saa @ [Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unTT1 Qa \<longrightarrow> e\<^sub>2 \<in> Z \<or> (\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))"
-      by blast
-*)
-(*
-lemma
-  assumes "prirelRef p xs ys (sa @ zs @ z) (unTT1 P)" "TT1 P" "TT3 P" "TT2 P" "TT4 P"
-  shows "prirelRef p xs ys (sa @ (mkTTMP zs sa P) @ z) (unTT1 P)"
-  using assms apply(induct p xs ys z P arbitrary:sa zs rule:prirelRef.induct, auto)
-  sledgehammer
-  oops
-
-lemma prirelRef_start_Ref_extends:
-  assumes "TT1 Q" "TT2 Q" "TT4 Q" "prirelRef pa t s (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) (unTT1 Q)"
-  shows "prirelRef pa t s (sa @ [[S \<union> {e. e \<noteq> Tock \<and> sa @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E]) (unTT1 Q)"
-  sorry (* FIXME: Proved above. *)
-*)
-
-(*
-proof (induct s arbitrary:P rule:rev_induct)
-  case Nil
-  then show ?case by auto
-next
-  case (snoc x xs)
-  then have "(mkTTMP xs [] P) \<in> P"
-    by (meson TT1_def tt_prefix_subset_front tt_prefix_subset_refl)
-  then have "TTMPick (mkTTMP xs [] P) [] P"
-    by (simp add: TT2_imp_TTMPick_mkTTMP snoc.prems(2) snoc.prems(4) snoc.prems(5))
-(*  then have "\<forall>e X. (e \<notin> X \<and> e \<noteq> Tock \<and> ((mkTTMP xs [] P) @ [[X]\<^sub>R])) \<longrightarrow> ((mkTTMP xs [] P) @ [[e]\<^sub>E]) \<in> P"
-*)
-  have "mkTTMP (xs @ [x]) [] P = (mkTTMP xs [] P) @ mkTTMP [x] ([] @ xs) P"
-    using mkTTMP_dist_concat by blast
-  also have "... = (mkTTMP xs [] P) @ mkTTMP [x] xs P"
-    by auto
-  show ?case using snoc
-  proof (induct xs rule:rev_induct)
-    case Nil
-    then show ?case 
-    proof (cases x)
-      case (ObsEvent x1)
-      then show ?thesis using Nil by auto
-    next
-      case (Ref x2)
-      then have x2_in_P:"[[x2]\<^sub>R] \<in> P"
-        using Nil.prems(2) by auto
-      have "{e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<notin> P) \<or> (e = Tock \<and> [[x2]\<^sub>R,[Tock]\<^sub>E] \<notin> P)} 
-            \<inter>
-            {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[x2]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
-        by auto
-      then have "[[x2 \<union> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<notin> P) \<or> (e = Tock \<and> [[x2]\<^sub>R,[Tock]\<^sub>E] \<notin> P)}]\<^sub>R] \<in> P"
-        using snoc TT2_aux2 x2_in_P by fastforce
-      then have x2_TT:"[[x2 \<union> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<notin> P) \<or> (e = Tock \<and> [[x2]\<^sub>R,[Tock]\<^sub>E] \<notin> P)} \<union> {Tick}]\<^sub>R] \<in> P"
-        using \<open>TT4 P\<close> TT4_def by fastforce
-      then have "mkTTMP ([] @ [x]) [] P = [[x2 \<union> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<notin> P) \<or> (e = Tock \<and> [[x2]\<^sub>R,[Tock]\<^sub>E] \<notin> P)} \<union> {Tick}]\<^sub>R]"
-        using Ref by auto
-      then show ?thesis using x2_TT by auto
-    qed
-  next
-    case (snoc z zs)
-    then show ?case sorry
-  qed
-  proof (cases x)
-    case (ObsEvent x1)
-    then have "mkTTMP [[x1]\<^sub>E] (xs) P = [[x1]\<^sub>E]"
-      by simp
-    then have "(mkTTMP xs [] P) @ [[x1]\<^sub>E] \<in> P"
-      sledgehammer
-    then show ?thesis sorry
-  next
-    case (Ref x2)
-    then show ?thesis sorry
-  qed
-qed
-  apply (case_tac x, auto)
-  sledgehammer*)
 
 lemma mkTTMP_absorb_Ref_Tock:
 (*  assumes "Tick \<in> x" 
@@ -2152,137 +1781,6 @@ proof -
   finally show ?thesis unfolding priTT_def by auto
 qed
 
-subsection \<open> Closure under healthiness conditions of TT and Max TT. \<close>
-
-lemma TT0_unTT1:
-  assumes "TT0 P" "TT1 P"
-  shows "TT0(unTT1(P))"
-proof -
-  have "[] \<in> P"
-    using assms TT0_TT1_empty by blast
-  then have "[] \<in> unTT1(P)"
-    unfolding unTT1_def TT0_def apply auto
-    apply (rule_tac x="{[]}" in exI, auto)
-    unfolding TTM1_def TTM2_def TTM3_def TT1w_def apply auto
-     apply (case_tac \<rho>, auto)
-    unfolding mkTT1_def apply auto
-    by (case_tac x, auto)
-  then have "TT0(unTT1(P))"
-    unfolding TT0_def by auto
-  then show ?thesis .
-qed
-
-lemma TT1w_unTT1:
-  "TT1w(unTT1(P))"
-  unfolding unTT1_def TT1w_def by auto
-
-
-
-lemma TTM1_mkTT4:
-  assumes "TTM1 P" "TTM3 P"
-  shows "TTM1 (mkTT4 P)"
-  using assms unfolding TTM1_def TTM3_def mkTT4_def apply auto
-  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
-
-lemma TTM2_mkTT4:
-  assumes "TTM2 P" "TTM3 P"
-  shows "TTM2 (mkTT4 P)"
-  using assms unfolding TTM2_def TTM3_def mkTT4_def apply auto
-  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
-
-lemma TTM3_mkTT4:
-  assumes "TTM3 P"
-  shows "TTM3 (mkTT4 P)"
-  using assms unfolding TTM3_def mkTT4_def apply auto
-  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
-
-lemma TT1w_mkTT4:
-  assumes "TT1w P"
-  shows "TT1w (mkTT4 P)"
-  using assms unfolding TT1w_def TTM3_def mkTT4_def apply auto
-  by (smt add_Tick_refusal_trace_concat add_Tick_refusal_trace_tt_subset append_eq_append_conv tt_prefix_decompose tt_prefix_tt_subset tt_subset_same_length)
-
-lemma TT4_unTT1:
-  assumes "TT1 P" "TT4 P" 
-  shows "TT4(unTT1(P))"
-  using assms unfolding TT4_def unTT1_def  apply auto
-  apply (rule_tac x="mkTT4(x)" in exI, auto)
-  using TTM1_mkTT4 apply blast
-  using TTM2_mkTT4 apply blast
-  using TTM3_mkTT4 apply blast
-  using TT1w_mkTT4 apply blast
-   apply (smt TT1_fixpoint_mkTT1 TT1_mkTT1_simp UnE mem_Collect_eq mkTT1_mono mkTT4_def subsetI)
-  unfolding mkTT4_def by auto
-
-lemma TT2_TT:
-  assumes "TT P"
-          "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> unTT1 P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> unTT1 P} = {}"
-          "\<rho> @ [X]\<^sub>R # \<sigma> \<in> unTT1 P"
-  shows   "\<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> unTT1 P"
-proof -
-  obtain x where x:"TTM1 x" "TTM2 x" "TTM3 x" "TT1w x" "mkTT1 x \<subseteq> P" "\<rho> @ [X]\<^sub>R # \<sigma> \<in> x"
-    using assms unfolding unTT1_def by auto
-  
-  have def1:"(Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> unTT1 P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> unTT1 P} = {})
-              =
-             (Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
-                 e = Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {})"
-    unfolding unTT1_def by auto
-
-  have "\<rho> @ [[X]\<^sub>R] \<le>\<^sub>C \<rho> @ [X]\<^sub>R # \<sigma>"
-    by (simp add: tt_prefix_same_front)
-  then have "\<rho> @ [[X]\<^sub>R] \<in> x"
-    using TT1w_def x assms by blast
-  then have "\<rho> @ [[X]\<^sub>R] \<in> P"
-    using assms x mkTT1_def by fastforce
-
-  have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<not>(\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x)"
-    using assms def1 by blast
-  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<notin> x"
-    using assms x by blast
-  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> (\<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> e \<in> X)"
-    using assms x TTM1_def \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> by blast
-  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> e \<in> X"
-    using \<open>\<rho> @ [[X]\<^sub>R] \<in> P\<close> by blast
-  
-  have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<not>(\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)"
-    using assms def1 by blast
-  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x"
-    using assms x by blast
-  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> (\<rho> @ [[X]\<^sub>R,[e]\<^sub>E] \<in> P \<longrightarrow> e \<in> X)"
-    using TTM2_def \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> assms x by auto
-  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> e \<in> X"
-    using TTM2_def \<open>\<forall>e. e = Tock \<and> e \<in> Y \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x\<close> \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> assms x by auto
-
-  have "Y \<subseteq> X"
-    using \<open>\<forall>e. e = Tock \<and> e \<in> Y \<longrightarrow> e \<in> X\<close> \<open>\<forall>e. e \<noteq> Tock \<and> e \<in> Y \<longrightarrow> e \<in> X\<close> by blast
-  then show ?thesis using def1 x unfolding unTT1_def apply auto
-    by (metis assms sup.order_iff)
-qed
-
-lemma TT2_unTT1:
-  assumes "TT P"
-  shows "TT2(unTT1(P))"
-  using assms unfolding TT2_def apply auto
-  using TT2_TT by fastforce
-
-lemma TT3_unTT1:
-  assumes "TT1 P" "TT3 P" 
-  shows "TT3(unTT1(P))"
-  using assms unfolding TT3_def unTT1_def  apply auto
-  using TT1_mkTT1_simp TT3_def TT_TT3 by blast
-
-lemma TTM1_unTT1:
-  "TTM1(unTT1(P))"
-  unfolding unTT1_def TTM1_def by auto
-
-lemma TTM2_unTT1:
-  "TTM2(unTT1(P))"
-  unfolding unTT1_def TTM2_def by auto
-
-lemma TTM3_unTT1:
-  "TTM3(unTT1(P))"
-  unfolding unTT1_def TTM3_def by auto
 
 (* Redundant stuff below? *)
 

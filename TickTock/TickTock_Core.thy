@@ -331,6 +331,20 @@ lemma tt_prefix_subset_concat2: "r \<lesssim>\<^sub>C s @ t \<Longrightarrow> r 
   apply (rule_tac x="x # xa" in exI, auto simp add: tt_subset_refl)
   done
 
+lemma tt_prefix_common_concat:
+  assumes "zs \<lesssim>\<^sub>C ys"
+  shows "xs @ zs \<lesssim>\<^sub>C xs @ ys"
+  using assms apply (induct zs ys arbitrary:xs rule:tt_prefix_subset.induct, auto)
+  using tt_prefix_concat tt_prefix_imp_prefix_subset apply blast
+  apply (meson tt_prefix_subset.simps(2) tt_prefix_subset_same_front)
+  by (meson tt_prefix_subset.simps(3) tt_prefix_subset_same_front)
+
+lemma tt_prefix_common_concat_eq_size:
+  assumes "zs \<lesssim>\<^sub>C ys" "size zs = size ys"
+  shows "zs @ xs \<lesssim>\<^sub>C ys @ xs"
+  using assms apply (induct zs ys arbitrary:xs rule:tt_prefix_subset.induct, auto)
+  by (simp add: tt_prefix_subset_refl)
+
 lemma ttWF_prefix_is_ttWF: "ttWF (s @ t) \<Longrightarrow> ttWF s"
   using tt_prefix_concat tt_prefix_imp_prefix_subset tt_prefix_subset_ttWF by blast
 
@@ -516,8 +530,65 @@ definition TT0 :: "'e ttobs list set \<Rightarrow> bool" where
 definition TT1w :: "'e ttobs list set \<Rightarrow> bool" where
   "TT1w P = (\<forall> \<rho> \<sigma>. (\<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
 
+definition mkTT1w :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
+"mkTT1w P = P \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
+
+lemma TT1w_fixpoint_mkTT1w:
+  "TT1w P = (P = mkTT1w(P))"
+  unfolding TT1w_def mkTT1w_def by auto
+
+lemma TT1w_prefix_concat_in:
+  assumes "xs @ ys \<in> P" "TT1w P"
+  shows "xs \<in> P"
+proof -
+  have "xs \<le>\<^sub>C xs @ ys"
+    using tt_prefix_concat by blast
+  then have "xs \<in> P"
+    using assms TT1w_def by blast
+  then show ?thesis .
+qed
+
+lemma TT1w_mkTT1w [simp]: "TT1w (mkTT1w P)"
+  unfolding mkTT1w_def TT1w_def apply auto
+  using tt_prefix_trans by blast
+
 definition TT1 :: "'e ttobs list set \<Rightarrow> bool" where
   "TT1 P = (\<forall> \<rho> \<sigma>. (\<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
+
+text \<open> mkTT1 is the fixed-point version of TT1 as established below. \<close>
+
+definition mkTT1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
+"mkTT1 P = P \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
+
+lemma TT1_fixpoint_mkTT1:
+  "(mkTT1 P = P) = TT1 P"
+  unfolding mkTT1_def TT1_def by auto
+
+lemma mkTT1_simp:
+  "mkTT1 P = {\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
+  unfolding mkTT1_def apply auto
+  using tt_prefix_subset_refl by blast
+
+lemma mkTT1_mono:
+  assumes "P \<subseteq> Q"
+  shows "mkTT1 P \<subseteq> mkTT1 Q"
+  using assms unfolding mkTT1_def by auto
+
+lemma TT0_mkTT1:
+  assumes "TT0 P"
+  shows "TT0(mkTT1(P))"
+  using assms unfolding mkTT1_def TT0_def by auto
+
+lemma TT1_mkTT1:
+  shows "TT1(mkTT1(P))"
+  by (smt TT1_def mem_Collect_eq mkTT1_simp tt_prefix_subset_trans)
+
+lemma TT1_mkTT1_simp:
+  assumes "TT1 P"
+  shows "(\<exists>x. s \<in> x \<and> (mkTT1 x) \<subseteq> P) = (s \<in> P)"
+  using assms apply safe
+  using mkTT1_def apply fastforce
+  using TT1_fixpoint_mkTT1 by blast
 
 definition TT2w :: "'e ttobs list set \<Rightarrow> bool" where
   "TT2w P = (\<forall> \<rho> X Y. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}))
@@ -569,6 +640,34 @@ qed
 
 lemma TT2_imp_TT2w: "TT2 P \<Longrightarrow> TT2w P"
   unfolding TT2_def TT2w_def by auto
+
+lemma TT2_extends_Ref:
+  assumes "TT2 P" "s @ [[X]\<^sub>R] @ xs \<in> P"
+  shows "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}]\<^sub>R] @ xs \<in> P"
+proof -
+  obtain Y where Y:"Y = {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}"
+    by auto
+  then have "Y \<inter> {e. (e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> s @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
+    by auto
+  then have "s @ [[X \<union> Y]\<^sub>R] @ xs \<in> P"
+    using assms unfolding TT2_def by auto
+  then show ?thesis using Y by auto
+qed
+
+lemma TT2_aux1:
+  assumes "TT2 P" "\<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P" "Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
+  shows "\<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P"
+  using assms TT2_def by blast
+
+lemma TT2_aux2:
+  assumes "TT2 P" "[[X]\<^sub>R] @ \<sigma> \<in> P" "Y \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
+  shows "[[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P"
+  using assms TT2_def by (metis (no_types, lifting) Collect_cong append.left_neutral)
+
+lemma TT2_aux3:
+  assumes "TT2 P" "[[X]\<^sub>R] \<in> P" "Y \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
+  shows "[[X \<union> Y]\<^sub>R] \<in> P"
+  using TT2_aux2 assms(1) assms(2) assms(3) by auto
 
 fun TT3_trace :: "'e ttobs list \<Rightarrow> bool" where
   "TT3_trace [] = True" |
@@ -673,6 +772,14 @@ lemma TT4w_fixpoint_mkTT4w:
   "(mkTT4w P = P) = TT4w P"
   unfolding mkTT4w_def TT4w_def by auto
 
+lemma mkTT1_mkTT4w_iff_TT14:
+  "(mkTT1(mkTT4w P) = P) = (TT1 P \<and> TT4w P)"
+  apply auto
+  using TT1_def mkTT1_simp mkTT4w_def apply fastforce
+  apply (metis (mono_tags, lifting) TT1_def TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w CollectI UnI1 mkTT1_simp mkTT4w_def)  
+    apply (metis TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w)
+    by (metis TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w)
+
 fun add_Tick_refusal_trace :: "'e ttobs list \<Rightarrow> 'e ttobs list" where
   "add_Tick_refusal_trace [] = []" |
   "add_Tick_refusal_trace ([e]\<^sub>E # t) = [e]\<^sub>E # add_Tick_refusal_trace t" |
@@ -752,7 +859,86 @@ proof auto
   then show "\<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P"
     using TT1_P unfolding TT1_def apply auto
     by (metis Un_insert_left Un_insert_right add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset insert_absorb2)
-qed  
+qed
+
+lemma TT4_TT1_imp_Ref_Tock:
+  assumes "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "TT1 P" "TT4 P"
+  shows "s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E] \<in> P"
+  using assms unfolding TT1_def TT4_def
+proof (auto)
+  fix \<rho> X s
+  assume TT1_P: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P"
+  assume "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "\<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P"
+  then have "add_Tick_refusal_trace (s @ [[X]\<^sub>R, [Tock]\<^sub>E]) \<in> P"
+    by auto
+  then have "add_Tick_refusal_trace s @ add_Tick_refusal_trace ([[X]\<^sub>R, [Tock]\<^sub>E]) \<in> P"
+    by (simp add: add_Tick_refusal_trace_concat)
+  then have "add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E] \<in> P"
+    by auto
+  also have "s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E] \<subseteq>\<^sub>C add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E]"
+    by (simp add: add_Tick_refusal_trace_tt_subset tt_subset_combine)
+  then show "s @ [[insert Tick X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+    using TT1_P calculation tt_subset_imp_prefix_subset by auto
+qed
+
+lemma TT2_Ref_Tock_augment:
+  assumes "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "TT2 P" "TT1 P" "TT4 P"
+  shows "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+proof -
+  have "{e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P} \<inter> {e. (e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> s @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
+    by auto
+  then have "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P}]\<^sub>R] @ [[Tock]\<^sub>E] \<in> P"
+    using assms by (simp add: TT2_def) 
+  then have "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R] @ [[Tock]\<^sub>E] \<in> P"
+    using TT4_TT1_imp_Ref_Tock assms
+    by auto
+  then show ?thesis by auto
+qed
+
+lemma TT4_middle_Ref_with_Tick:
+  assumes "s @ [[X]\<^sub>R] @ xs \<in> P" "TT1 P" "TT4 P"
+  shows "s @ [[X \<union> {Tick}]\<^sub>R] @ xs \<in> P"
+proof -
+  have add_Tick_in_P:"add_Tick_refusal_trace (s @ [[X]\<^sub>R] @ xs) \<in> P"
+    using assms unfolding TT4_def by blast
+
+  have add_Tick_dist:"add_Tick_refusal_trace (s @ [[X]\<^sub>R] @ xs) =
+     add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ add_Tick_refusal_trace(xs)"
+    by (simp add: add_Tick_refusal_trace_concat add_Tick_refusal_trace_end_refusal)
+  
+  have s_le_addTick:"s \<lesssim>\<^sub>C add_Tick_refusal_trace s"
+    by (simp add: add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset)
+  have "xs \<lesssim>\<^sub>C add_Tick_refusal_trace(xs)"
+    by (simp add: add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset)
+
+  then have a:"add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ xs
+              \<lesssim>\<^sub>C
+              add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ add_Tick_refusal_trace(xs)"
+  using add_Tick_in_P add_Tick_dist tt_prefix_common_concat
+    by blast
+  then have b:"s @ [[X \<union> {Tick}]\<^sub>R] @ xs \<lesssim>\<^sub>C add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ xs"
+    using tt_prefix_common_concat_eq_size add_Tick_refusal_trace_same_length s_le_addTick by blast
+
+  have "s @ [[X \<union> {Tick}]\<^sub>R] @ xs \<in> P"
+    using a b add_Tick_in_P assms
+    by (metis TT1_def add_Tick_dist)
+  then show ?thesis by auto
+qed
+
+lemma TT2_TT4_extends_Ref:
+  assumes "TT2 P" "TT4 P" "TT1 P" "s @ [[X]\<^sub>R] @ xs \<in> P"
+  shows "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R] @ xs \<in> P"
+proof -
+  obtain Y where Y:"Y = {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}"
+    by auto
+  then have "Y \<inter> {e. (e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> s @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
+    by auto
+  then have "s @ [[X \<union> Y]\<^sub>R] @ xs \<in> P"
+    using assms unfolding TT2_def by auto
+  then have "s @ [[X \<union> Y \<union> {Tick}]\<^sub>R] @ xs \<in> P"
+    using assms TT4_middle_Ref_with_Tick by blast
+  then show ?thesis using Y by auto
+qed
 
 definition mkTT4 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTT4 P = P \<union> {add_Tick_refusal_trace \<rho>|\<rho>. \<rho> \<in> P}"
@@ -765,6 +951,25 @@ lemma TTwf_cons_end_not_refusal_refusal:
   shows "\<not> sa @ [[S]\<^sub>R, [Z]\<^sub>R] \<in> P"
   using assms unfolding TTwf_def using ttWF_dist_cons_refusal
   using ttWF.simps(13) by blast
+
+lemma TTwf_mkTT1:
+  assumes "TTwf P"
+  shows "TTwf(mkTT1(P))"
+  using assms unfolding mkTT1_def apply auto
+  by (smt TTwf_def Un_iff mem_Collect_eq tt_prefix_subset_ttWF)
+
+lemma TT3_mkTT1:
+  assumes "TT3 P"
+  shows "TT3(mkTT1(P))"
+  using assms unfolding mkTT1_def TT3_def apply auto
+  using tt_prefix_of_TT3_trace by blast
+
+lemma TT4_mkTT1:
+  assumes "TT4 P"
+  shows "TT4(mkTT1(P))"
+  using assms unfolding mkTT1_def TT4_def apply auto
+  using add_Tick_refusal_trace_tt_prefix_subset_mono by blast
+
 
 definition TT :: "'e ttobs list set \<Rightarrow> bool" where
   "TT P = ((\<forall>x\<in>P. ttWF x) \<and> TT0 P \<and> TT1 P \<and> TT2w P \<and> TT3 P)"
