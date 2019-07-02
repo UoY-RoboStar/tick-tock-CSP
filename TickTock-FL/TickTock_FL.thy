@@ -239,69 +239,67 @@ lemma TT4_unTT1:
    apply (smt TT1_fixpoint_mkTT1 TT1_mkTT1_simp UnE mem_Collect_eq mkTT1_mono mkTT4_def subsetI)
   unfolding mkTT4_def by auto
 
-(* We have that: lemma TT2_mkTT1:
-  assumes "TT2 P" "TT1w P" "TTM1 P" "TTM2 P"
-  shows "TT2(mkTT1(P))" *)
-
-lemma
-  assumes "TTM1 x\<^sub>0" "TTM2 x\<^sub>0" "TTM3 x\<^sub>0" "TT1w x\<^sub>0" "TT0 x\<^sub>0" "mkTT1 x\<^sub>0 \<subseteq> P"
-          "TTM1 x\<^sub>1" "TTM2 x\<^sub>1" "TTM3 x\<^sub>1" "TT1w x\<^sub>1" "TT0 x\<^sub>1" "mkTT1 x\<^sub>1 \<subseteq> P" "y \<in> x\<^sub>0"
-  shows "y \<in> x\<^sub>1"
-  using assms apply (induct y rule:rev_induct, auto)
-  unfolding mkTT1_def apply auto
+lemma TT2_TT_TT4w:
+  assumes "TT P" "TT4w P"
+          "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> unTT1 P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> unTT1 P} = {}"
+          "\<rho> @ [X]\<^sub>R # \<sigma> \<in> unTT1 P"
+  shows   "\<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> unTT1 P"
+proof -
+  obtain x where x:"TTM1 x" "TTM2 x" "TTM3 x" "TT1w x" "mkTT1 x \<subseteq> P" "\<rho> @ [X]\<^sub>R # \<sigma> \<in> x"
+    using assms unfolding unTT1_def by auto
   
-  using TT0_TT1w_empty apply blast
-  apply (case_tac x, auto)
-  sledgehammer
+  have def1:"(Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> unTT1 P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> unTT1 P} = {})
+              =
+             (Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
+                 e = Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {})"
+    unfolding unTT1_def by auto
 
-lemma
-  assumes "TT P" "TT4w P"
-          "TTM1 x\<^sub>0" "TTM2 x\<^sub>0" "TTM3 x\<^sub>0" "TT1w x\<^sub>0" "mkTT1 x\<^sub>0 \<subseteq> P"
-          "TTM1 x\<^sub>1" "TTM2 x\<^sub>1" "TTM3 x\<^sub>1" "TT1w x\<^sub>1" "mkTT1 x\<^sub>1 \<subseteq> P"
-          "TTM1 x" "TTM2 x" "TTM3 x" "TT1w x" "mkTT1 x \<subseteq> P"
-          "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> x\<^sub>0 \<or>
-                 e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x\<^sub>1} = {}"
-         "\<rho> @ [X]\<^sub>R # \<sigma> \<in> x"
-      shows "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
-proof -
-  have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<notin> x\<^sub>0"
-    using assms(18) by blast
-  have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x\<^sub>1"
-    using assms(18) by blast
+  have "\<rho> @ [[X]\<^sub>R] \<le>\<^sub>C \<rho> @ [X]\<^sub>R # \<sigma>"
+    by (simp add: tt_prefix_same_front)
+  then have "\<rho> @ [[X]\<^sub>R] \<in> x"
+    using TT1w_def x assms by blast
+  then have "\<rho> @ [[X]\<^sub>R] \<in> P"
+    using assms x mkTT1_def by fastforce
 
-  (* Seems likely to hold.. but not sure *)
-  assume A1:"\<forall>e. \<rho> @ [[e]\<^sub>E] \<in> x\<^sub>0 \<longleftrightarrow> \<rho> @ [[e]\<^sub>E] \<in> x"
-            "\<forall>e. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x\<^sub>1 \<longleftrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x"
-  then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> x \<or>
-                 e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x} = {}"
-    using assms(18) by auto
-  then have "Y \<subseteq> X"
-                                                             
-  (* What we need is to show that Y \<subseteq> X *)
+  have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<not>(\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x)"
+    using assms def1 by blast
+  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<notin> x"
+    using assms x by blast
+  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> (\<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> e \<in> X)"
+    using assms x TTM1_def \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> by blast
+  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> e \<in> X"
+    using \<open>\<rho> @ [[X]\<^sub>R] \<in> P\<close> by blast
+  
+  have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<not>(\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)"
+    using assms def1 by blast
+  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x"
+    using assms x by blast
+  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> (\<rho> @ [[X]\<^sub>R,[e]\<^sub>E] \<in> P \<longrightarrow> e \<in> X)"
+    using TTM2_def \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> assms x by auto
+  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> e \<in> X"
+    using TTM2_def \<open>\<forall>e. e = Tock \<and> e \<in> Y \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x\<close> \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> assms x by auto
 
-lemma
-  assumes "TT P" "TT4w P"
-        "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
-                 e = Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {}"
-        "TTM1 x" "TTM2 x" "TTM3 x" "TT1w x" "mkTT1 x \<subseteq> P" "\<rho> @ [X]\<^sub>R # \<sigma> \<in> x"
-  shows "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> x"
-proof -
-  have ""
+  have "Y \<subseteq> X"
+    using \<open>\<forall>e. e = Tock \<and> e \<in> Y \<longrightarrow> e \<in> X\<close> \<open>\<forall>e. e \<noteq> Tock \<and> e \<in> Y \<longrightarrow> e \<in> X\<close> by blast
+  then show ?thesis using def1 x unfolding unTT1_def apply auto
+    by (metis assms sup.order_iff)
+qed
 
-
-lemma
+lemma TT2_unTT1:
   assumes "TT P" "TT4w P"
   shows "TT2(unTT1(P))"
-  using assms unfolding TT2_def unTT1_def apply auto
-  apply (rule_tac x="x" in exI, auto)
+  using assms unfolding TT2_def apply auto
+  using TT2_TT_TT4w by fastforce
 
-
-
-lemma
-  assumes "TT P" "TT0(unTT1(P))" "TT2(unTT1(P))" "TT3(unTT1(P))" "TT4(unTT1(P))"
+lemma unTT1_alt:
+  assumes "TT P" "TT4 P"(* "TT0(unTT1(P))" "TT2(unTT1(P))" "TT3(unTT1(P))" "TT4(unTT1(P))"*)
   shows "unTT1 P = \<Union>{x. TT0 x \<and> TT2 x \<and> TT3 x \<and> TT4 x \<and> TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> (mkTT1 x) \<subseteq> P}"
   unfolding unTT1_def mkTT1_def apply auto
   using assms apply (rule_tac x="unTT1 P" in exI, auto)
+  using TT0_unTT1 TT_TT0 TT_TT1 apply blast
+  using TT4_TT1_imp_TT4w assms using TT2_unTT1 TT_TT1 apply blast
+  using TT3_unTT1 TT_TT1 TT_TT3 apply blast
+  using TT4_unTT1 TT_TT1 apply blast
   using TTM1_unTT1 apply blast
   using TTM2_unTT1 apply blast
   using TTM3_unTT1 apply blast
@@ -311,23 +309,6 @@ lemma
    apply (metis (mono_tags, lifting) contra_subsetD mem_Collect_eq mkTT1_simp)
   apply (rule_tac x="X" in exI, auto)
   by (metis contra_subsetD mkTT1_simp)
-          
-  
-  apply (metis assms(4) unTT1_def)
-  apply (smt Union_iff mem_Collect_eq) 
-(*  apply (smt TTM2_def Union_iff mem_Collect_eq) 
-  
-  apply (metis TTM2_def Union_iff mem_Collect_eq)*)
-  unfolding TTM2_def apply (smt Union_iff mem_Collect_eq) 
-(*
-  apply (rule_tac x="mkFL12 X" in exI, auto)
-  using FL3_mkFL12 apply blast
-  using mkFL12_is_FL2 apply blast
-  using FL1_mkFL12 apply blast
-  unfolding mkFL12_def apply auto
-  using FL2_def Un_iff mem_Collect_eq mem_simps(9) mkFL2_def subset_eq
-   apply (smt fl2ttobs_for_FL2_imp)
-  using fl2ttobs_for_FL2_imp by blast*)
 
 lemma mkFL12_is_FL2: "FL2(mkFL12(P))"
 proof -
