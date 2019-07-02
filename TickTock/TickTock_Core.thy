@@ -373,6 +373,141 @@ lemma ttWF_dist_cons_refusal:
   shows "ttWF [[S]\<^sub>R,x]"
   using assms by(induct s rule:ttWF.induct, auto)
 
+lemma ttWF_Refusal_tt_prefix:
+  assumes "ttWF \<sigma>"
+  shows "[[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma> = (\<exists>Y z. \<sigma> = ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y)"
+  using assms apply auto
+  apply (case_tac \<sigma>, auto)
+  by (case_tac a, auto)
+
+lemma tt_prefix_eq_length_imp:
+  assumes "xs @ [x] \<lesssim>\<^sub>C ys @ [y]"
+          "List.length (xs @ [x]) = List.length (ys @ [y])"
+    shows "[x] \<lesssim>\<^sub>C [y]"
+  using assms by(induct xs ys rule:tt_prefix_subset.induct, auto)
+
+lemma tt_prefix_eq_length_common_prefix:
+  assumes "xs @ [x] \<lesssim>\<^sub>C ys @ [y]" "List.length (xs @ [x]) = List.length (ys @ [y])"
+  shows "xs \<lesssim>\<^sub>C ys"
+  using assms by(induct xs ys rule:tt_prefix_subset.induct, auto)
+
+lemma tt_singleton_prefix_nonempty:
+  assumes "[x] \<lesssim>\<^sub>C xa @ z" "xa \<noteq> []"
+  shows "[x] \<lesssim>\<^sub>C xa"
+  using assms apply (induct xa, auto)
+  by (case_tac x, auto, case_tac a, auto, case_tac a, auto)
+
+lemma tt_prefix_gt_length_imp:
+  assumes "xs @ [x] \<lesssim>\<^sub>C ys @ [y]"
+          "List.length (xs @ [x]) < List.length (ys @ [y])"
+    shows "xs @ [x] \<lesssim>\<^sub>C ys"
+  using assms apply(induct xs ys rule:tt_prefix_subset.induct, auto)
+  using tt_singleton_prefix_nonempty by blast 
+
+lemma ttWF_tt_prefix_subset_exists_three_part:
+  assumes "ttWF \<sigma>" "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>"
+  shows "\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>"
+  using assms proof (induct \<sigma> arbitrary:X \<rho> rule:rev_induct)
+  case Nil
+  then show ?case using tt_prefix_subset.simps(1) tt_prefix_subset_antisym by blast
+next
+  case (snoc x xs)
+  then show ?case
+  proof (cases "size (\<rho> @ [[X]\<^sub>R]) = size (xs @ [x])")
+    case True
+    then have eq_lengths:"List.length (\<rho>) = List.length (xs)"
+      by simp
+    then show ?thesis
+    proof (cases x)
+      case (ObsEvent x1)
+      then show ?thesis using snoc True
+        by (meson tt_prefix_eq_length_imp tt_prefix_subset.simps(5))
+    next
+      case (Ref x2)
+      then have xX2:"[[X]\<^sub>R] \<lesssim>\<^sub>C [[x2]\<^sub>R]"
+                    "\<rho> \<lesssim>\<^sub>C xs"
+        using True tt_prefix_eq_length_imp snoc.prems(2) apply blast
+        using True snoc tt_prefix_eq_length_common_prefix by metis
+      then have "X \<subseteq> x2" 
+        by auto
+      then have "xs @ [x] = xs @ [[x2]\<^sub>R] @ [] \<and> X \<subseteq> x2 \<and> \<rho> \<lesssim>\<^sub>C xs \<and> List.length (xs) = List.length (\<rho>)"
+        using xX2 snoc eq_lengths Ref by auto
+      then have "\<exists>\<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[x2]\<^sub>R] @ [] \<and> X \<subseteq> x2 \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length (\<rho>\<^sub>2) = List.length (\<rho>)"
+        by blast
+      then have "\<exists>Y \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ [] \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length (\<rho>\<^sub>2) = List.length (\<rho>)"
+        by blast
+      then have "\<exists>Y z \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length (\<rho>\<^sub>2) = List.length (\<rho>)"
+        by blast
+      then show ?thesis by blast
+    qed
+  next
+    case False
+    then have "List.length (\<rho> @ [[X]\<^sub>R]) < List.length (xs @ [x])"
+      using snoc 
+      by (meson tt_prefix_subset_length le_neq_trans)
+    then have "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C xs"
+      using snoc tt_prefix_gt_length_imp by metis
+    then have "\<exists>Y z \<rho>\<^sub>2. xs = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
+      using snoc ttWF_prefix_is_ttWF by blast
+    then have "\<exists>Y z \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z @ [x] \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
+      by auto
+    then have "\<exists>Y z \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
+      by blast
+    then show ?thesis by blast
+  qed
+qed
+
+lemma ttWF_tt_prefix_subset_exists_three_part_concat:
+  assumes "\<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>"
+  shows "\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> s \<lesssim>\<^sub>C z \<and> size \<rho>\<^sub>2 = size \<rho>"
+  using assms proof (induct \<rho> \<sigma> arbitrary:X s rule:tt_prefix_subset.induct)
+case (1 x)
+  then show ?case 
+    apply auto
+    by (cases x, auto, case_tac a, auto)
+next
+  case (2 Z za Y ya)
+  then have "za @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C ya"
+    by simp
+  then have "\<exists>Y z \<rho>\<^sub>2.
+               ya = \<rho>\<^sub>2 @ [Y]\<^sub>R # z \<and>
+               X \<subseteq> Y \<and> za \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> s \<lesssim>\<^sub>C z \<and> List.length \<rho>\<^sub>2 = List.length za"
+    using 2 by auto
+  then show ?case 
+    apply auto
+    by (metis "2.prems" append_Cons tt_prefix_subset.simps(2) length_Cons)
+next
+  case (3 x xa y ya)
+  then show ?case apply auto
+    by (metis append_Cons tt_prefix_subset.simps(3) length_Cons)
+next
+  case ("4_1" v xa va ya)
+  then show ?case by auto
+next
+  case ("4_2" va xa v ya)
+  then show ?case by auto
+next
+  case (5 x xa)
+  then show ?case by auto
+qed
+
+lemma tt_prefix_subset_eq_length_common_prefix_eq:
+  assumes "List.length xs = List.length ys"
+  shows "((xs @ z) \<lesssim>\<^sub>C (ys @ s)) = (xs \<lesssim>\<^sub>C ys \<and> z \<lesssim>\<^sub>C s)"
+  using assms by(induct xs ys rule:tt_prefix_subset.induct, auto)
+
+lemma ttWF_tt_prefix_subset_exists_three_part':
+  assumes "\<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>" "ttWF \<sigma>"
+  shows "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>"
+  using assms apply auto 
+  by (simp add: tt_prefix_subset_eq_length_common_prefix_eq)
+
+lemma ttWF_tt_prefix_subset_exists_three_part_iff:
+  assumes "ttWF \<sigma>"
+  shows "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma> = (\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>)"
+  using assms
+  by (meson ttWF_tt_prefix_subset_exists_three_part ttWF_tt_prefix_subset_exists_three_part')
+
 section {* Healthiness Conditions *}
 
 definition TT0 :: "'e ttobs list set \<Rightarrow> bool" where
@@ -498,11 +633,45 @@ lemma TT3_trace_cons_imp_cons:
   apply(induct fl rule:TT3_trace.induct, auto)
   by (case_tac va, auto)
 
+lemma tt_prefix_of_TT3_trace:
+  assumes "x \<lesssim>\<^sub>C \<sigma>" "TT3_trace \<sigma>"
+  shows "TT3_trace x"
+  using assms 
+proof (induct x \<sigma> rule:tt_prefix_subset.induct)
+  case (1 x)
+  then show ?case by auto
+next
+  case (2 X xa Y ya)
+  then show ?case
+    apply (induct xa ya rule:tt_prefix_subset.induct, auto)
+    apply (case_tac y, auto)
+    using TT3_trace.simps(3) TT3_trace_cons_imp_cons by blast
+next
+  case (3 x xa y ya)
+  then show ?case by (induct xa ya rule:tt_prefix_subset.induct, auto)
+next
+  case ("4_1" v xa va ya)
+  then show ?case by auto
+next
+  case ("4_2" va xa v ya)
+  then show ?case by auto
+next
+  case (5 x xa)
+  then show ?case by auto
+qed
+
 (*definition TT4w :: "'e ttobs list set \<Rightarrow> bool" where
   "TT4w P = (\<forall> \<rho>. \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<nexists> X. \<rho> @ [[X]\<^sub>R] \<in> P))"*)
 
 definition TT4w :: "'e ttobs list set \<Rightarrow> bool" where
 "TT4w P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
+
+definition mkTT4w :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
+"mkTT4w P = P \<union> {\<rho> @ [[R \<union> {Tick}]\<^sub>R]|\<rho> R. \<rho> @ [[R]\<^sub>R] \<in> P}"
+
+lemma TT4w_fixpoint_mkTT4w:
+  "(mkTT4w P = P) = TT4w P"
+  unfolding mkTT4w_def TT4w_def by auto
 
 fun add_Tick_refusal_trace :: "'e ttobs list \<Rightarrow> 'e ttobs list" where
   "add_Tick_refusal_trace [] = []" |
@@ -540,6 +709,11 @@ lemma add_Tick_refusal_trace_filter_Tock_same_length:
 lemma add_Tick_refusal_trace_concat:
   "add_Tick_refusal_trace (\<rho> @ \<sigma>) = add_Tick_refusal_trace \<rho> @ add_Tick_refusal_trace \<sigma>"
   by (induct \<rho> rule:add_Tick_refusal_trace.induct, auto)
+
+lemma add_Tick_refusal_trace_tt_prefix_subset_mono:
+  assumes "\<rho> \<lesssim>\<^sub>C \<sigma>"
+  shows   "add_Tick_refusal_trace \<rho> \<lesssim>\<^sub>C add_Tick_refusal_trace \<sigma>"
+  using assms by(induct \<rho> \<sigma> rule:tt_prefix_subset.induct, auto)
 
 definition TT4 :: "'e ttobs list set \<Rightarrow> bool" where
   "TT4 P = (\<forall> \<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P)"
@@ -579,6 +753,9 @@ proof auto
     using TT1_P unfolding TT1_def apply auto
     by (metis Un_insert_left Un_insert_right add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset insert_absorb2)
 qed  
+
+definition mkTT4 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
+"mkTT4 P = P \<union> {add_Tick_refusal_trace \<rho>|\<rho>. \<rho> \<in> P}"
 
 definition TTwf :: "'e ttobs list set \<Rightarrow> bool" where
   "TTwf P = (\<forall>x\<in>P. ttWF x)"

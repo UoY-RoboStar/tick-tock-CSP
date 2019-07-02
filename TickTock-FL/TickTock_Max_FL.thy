@@ -33,6 +33,10 @@ fun TTickTrace :: "('a ttobs) list \<Rightarrow> bool" where
 "TTickTrace ([e]\<^sub>E # xs) = TTickTrace xs" |
 "TTickTrace ([r]\<^sub>R # xs) = (Tick \<in> r \<and> TTickTrace xs)"
 
+lemma TTickTrace_eq_add_Tick_refusal_trace_fixpoint:
+  "TTickTrace t \<longleftrightarrow> add_Tick_refusal_trace t = t"
+  by (induct t rule:add_Tick_refusal_trace.induct, auto)
+
 text \<open> TTM3 requires that every refusal in every trace contains Tick. \<close>
 
 definition TTM3 :: "('a ttobs) list set \<Rightarrow> bool" where
@@ -264,13 +268,6 @@ lemma fl2ttobs_fl_acceptance:
     apply (case_tac A, auto)
    apply (case_tac A, auto, case_tac b, auto)
      by (case_tac "fl2ttobs fla = []", auto, case_tac fla, auto, meson list.discI)+
-
-lemma funFLTTockl_last_fl_not_bullet_dist_list_cons:
-  assumes "last fl \<noteq> \<bullet>"
-  shows "fl2ttobs(fl) = fl2ttobs(butlast fl) @ fl2ttobs(\<langle>last fl\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  nitpick
-  using assms apply (induct fl, auto)
-  oops
 
 subsection \<open> From Tick-Tock to FL \<close>
 
@@ -1358,7 +1355,7 @@ lemma prefixFL_same_length_imp:
   assumes "length xs = length ys" "last ys = \<bullet>" "last xs = \<bullet>" 
           "xs &\<^sub>\<F>\<^sub>\<L> x \<le> ys &\<^sub>\<F>\<^sub>\<L> y"
   shows "x \<le> y"
-  using assms by (induct xs ys arbitrary:a b rule:less_eq_fltrace.induct, auto)
+  using assms by (induct xs ys rule:less_eq_fltrace.induct, auto)
 
 lemma prefixFL_same_length_imp_1:
   assumes "xs \<le> ys" "a \<le> b" "last ys = \<bullet>" "last xs = \<bullet>" "length xs = length ys"

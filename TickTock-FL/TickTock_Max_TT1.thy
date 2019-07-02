@@ -6,8 +6,18 @@ imports
   "TickTock.TickTock_Prioritise"
 begin
 
+text \<open> This theory consists in the definition of a Galois connection between
+       tick-tock (that is TT-healthy, and so TT1-healthy) and the superset 
+       that is not TT1-healhty, where refusals are maximal. \<close>
+
+section \<open> Definitions \<close>
+
+subsection \<open> From Maximal Refusals to subset-closed traces of tick-tock. \<close>
+
 definition mkTT1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTT1 P = P \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
+
+text \<open> mkTT1 is the fixed-point version of TT1 as established below. \<close>
 
 lemma TT1_fixpoint_mkTT1:
   "(mkTT1 P = P) = TT1 P"
@@ -23,153 +33,7 @@ lemma mkTT1_mono:
   shows "mkTT1 P \<subseteq> mkTT1 Q"
   using assms unfolding mkTT1_def by auto
 
-definition unTT1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
-"unTT1 P = \<Union>{x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> (mkTT1 x) \<subseteq> P}"
-
-lemma unTT1_mono:
-  assumes "P \<subseteq> Q"
-  shows "unTT1(P) \<subseteq> unTT1(Q)"
-  using assms unfolding unTT1_def by auto
-
-lemma
-  assumes "TT4w P" "TT1 P"
-  shows "P \<subseteq> mkTT1 (unTT1 P)"
-  using assms unfolding mkTT1_def unTT1_def apply auto oops
-
-lemma ttWF_Refusal_tt_prefix:
-  assumes "ttWF \<sigma>"
-  shows "[[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma> = (\<exists>Y z. \<sigma> = ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y)"
-  using assms apply auto
-  apply (case_tac \<sigma>, auto)
-  by (case_tac a, auto)
-
-lemma tt_prefix_eq_length_imp:
-  assumes "xs @ [x] \<lesssim>\<^sub>C ys @ [y]"
-          "List.length (xs @ [x]) = List.length (ys @ [y])"
-    shows "[x] \<lesssim>\<^sub>C [y]"
-  using assms by(induct xs ys rule:tt_prefix_subset.induct, auto)
-
-lemma tt_prefix_eq_length_common_prefix:
-  assumes "xs @ [x] \<lesssim>\<^sub>C ys @ [y]" "List.length (xs @ [x]) = List.length (ys @ [y])"
-  shows "xs \<lesssim>\<^sub>C ys"
-  using assms by(induct xs ys rule:tt_prefix_subset.induct, auto)
-
-lemma tt_singleton_prefix_nonempty:
-  assumes "[x] \<lesssim>\<^sub>C xa @ z" "xa \<noteq> []"
-  shows "[x] \<lesssim>\<^sub>C xa"
-  using assms apply (induct xa, auto)
-  by (case_tac x, auto, case_tac a, auto, case_tac a, auto)
-
-lemma tt_prefix_gt_length_imp:
-  assumes "xs @ [x] \<lesssim>\<^sub>C ys @ [y]"
-          "List.length (xs @ [x]) < List.length (ys @ [y])"
-    shows "xs @ [x] \<lesssim>\<^sub>C ys"
-  using assms apply(induct xs ys rule:tt_prefix_subset.induct, auto)
-  using tt_singleton_prefix_nonempty by blast 
-
-lemma ttWF_tt_prefix_subset_exists_three_part:
-  assumes "ttWF \<sigma>" "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>"
-  shows "\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>"
-  using assms proof (induct \<sigma> arbitrary:X \<rho> rule:rev_induct)
-  case Nil
-  then show ?case using tt_prefix_subset.simps(1) tt_prefix_subset_antisym by blast
-next
-  case (snoc x xs)
-  then show ?case
-  proof (cases "size (\<rho> @ [[X]\<^sub>R]) = size (xs @ [x])")
-    case True
-    then have eq_lengths:"List.length (\<rho>) = List.length (xs)"
-      by simp
-    then show ?thesis
-    proof (cases x)
-      case (ObsEvent x1)
-      then show ?thesis using snoc True
-        by (meson tt_prefix_eq_length_imp tt_prefix_subset.simps(5))
-    next
-      case (Ref x2)
-      then have xX2:"[[X]\<^sub>R] \<lesssim>\<^sub>C [[x2]\<^sub>R]"
-                    "\<rho> \<lesssim>\<^sub>C xs"
-        using True tt_prefix_eq_length_imp snoc.prems(2) apply blast
-        using True snoc tt_prefix_eq_length_common_prefix by metis
-      then have "X \<subseteq> x2" 
-        by auto
-      then have "xs @ [x] = xs @ [[x2]\<^sub>R] @ [] \<and> X \<subseteq> x2 \<and> \<rho> \<lesssim>\<^sub>C xs \<and> List.length (xs) = List.length (\<rho>)"
-        using xX2 snoc eq_lengths Ref by auto
-      then have "\<exists>\<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[x2]\<^sub>R] @ [] \<and> X \<subseteq> x2 \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length (\<rho>\<^sub>2) = List.length (\<rho>)"
-        by blast
-      then have "\<exists>Y \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ [] \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length (\<rho>\<^sub>2) = List.length (\<rho>)"
-        by blast
-      then have "\<exists>Y z \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length (\<rho>\<^sub>2) = List.length (\<rho>)"
-        by blast
-      then show ?thesis by blast
-    qed
-  next
-    case False
-    then have "List.length (\<rho> @ [[X]\<^sub>R]) < List.length (xs @ [x])"
-      using snoc 
-      by (meson tt_prefix_subset_length le_neq_trans)
-    then have "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C xs"
-      using snoc tt_prefix_gt_length_imp by metis
-    then have "\<exists>Y z \<rho>\<^sub>2. xs = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
-      using snoc ttWF_prefix_is_ttWF by blast
-    then have "\<exists>Y z \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z @ [x] \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
-      by auto
-    then have "\<exists>Y z \<rho>\<^sub>2. xs @ [x] = \<rho>\<^sub>2 @ [[Y]\<^sub>R] @ z \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> List.length \<rho>\<^sub>2 = List.length \<rho>"
-      by blast
-    then show ?thesis by blast
-  qed
-qed
-
-lemma ttWF_tt_prefix_subset_exists_three_part_concat:
-  assumes "\<rho> @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C \<sigma>"
-  shows "\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> s \<lesssim>\<^sub>C z \<and> size \<rho>\<^sub>2 = size \<rho>"
-  using assms proof (induct \<rho> \<sigma> arbitrary:X s rule:tt_prefix_subset.induct)
-case (1 x)
-  then show ?case 
-    apply auto
-    by (cases x, auto, case_tac a, auto)
-next
-  case (2 Z za Y ya)
-  then have "za @ [[X]\<^sub>R] @ s \<lesssim>\<^sub>C ya"
-    by simp
-  then have "\<exists>Y z \<rho>\<^sub>2.
-               ya = \<rho>\<^sub>2 @ [Y]\<^sub>R # z \<and>
-               X \<subseteq> Y \<and> za \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> s \<lesssim>\<^sub>C z \<and> List.length \<rho>\<^sub>2 = List.length za"
-    using 2 by auto
-  then show ?case 
-    apply auto
-    by (metis "2.prems" append_Cons tt_prefix_subset.simps(2) length_Cons)
-next
-  case (3 x xa y ya)
-  then show ?case apply auto
-    by (metis append_Cons tt_prefix_subset.simps(3) length_Cons)
-next
-  case ("4_1" v xa va ya)
-  then show ?case by auto
-next
-  case ("4_2" va xa v ya)
-  then show ?case by auto
-next
-  case (5 x xa)
-  then show ?case by auto
-qed
-
-lemma tt_prefix_subset_eq_length_common_prefix_eq:
-  assumes "List.length xs = List.length ys"
-  shows "((xs @ z) \<lesssim>\<^sub>C (ys @ s)) = (xs \<lesssim>\<^sub>C ys \<and> z \<lesssim>\<^sub>C s)"
-  using assms by(induct xs ys rule:tt_prefix_subset.induct, auto)
-
-lemma ttWF_tt_prefix_subset_exists_three_part':
-  assumes "\<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>" "ttWF \<sigma>"
-  shows "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>"
-  using assms apply auto 
-  by (simp add: tt_prefix_subset_eq_length_common_prefix_eq)
-
-lemma ttWF_tt_prefix_subset_exists_three_part_iff:
-  assumes "ttWF \<sigma>"
-  shows "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma> = (\<exists>Y z \<rho>\<^sub>2. \<sigma> = \<rho>\<^sub>2 @ ([[Y]\<^sub>R] @ z) \<and> X \<subseteq> Y \<and> \<rho> \<lesssim>\<^sub>C \<rho>\<^sub>2 \<and> size \<rho>\<^sub>2 = size \<rho>)"
-  using assms
-  by (meson ttWF_tt_prefix_subset_exists_three_part ttWF_tt_prefix_subset_exists_three_part')
+subsubsection \<open> Closure properties \<close>
 
 lemma TTwf_imp_dist:
   assumes "TTwf(P \<union> Q)" 
@@ -319,43 +183,11 @@ proof -
   then show ?thesis using calculation by auto
 qed
 
-lemma tt_prefix_of_TT3_trace:
-  assumes "x \<lesssim>\<^sub>C \<sigma>" "TT3_trace \<sigma>"
-  shows "TT3_trace x"
-  using assms 
-proof (induct x \<sigma> rule:tt_prefix_subset.induct)
-  case (1 x)
-  then show ?case by auto
-next
-  case (2 X xa Y ya)
-  then show ?case
-    apply (induct xa ya rule:tt_prefix_subset.induct, auto)
-    apply (case_tac y, auto)
-    using TT3_trace.simps(3) TT3_trace_cons_imp_cons by blast
-next
-  case (3 x xa y ya)
-  then show ?case by (induct xa ya rule:tt_prefix_subset.induct, auto)
-next
-  case ("4_1" v xa va ya)
-  then show ?case by auto
-next
-  case ("4_2" va xa v ya)
-  then show ?case by auto
-next
-  case (5 x xa)
-  then show ?case by auto
-qed
-
 lemma TT3_mkTT1:
   assumes "TT3 P"
   shows "TT3(mkTT1(P))"
   using assms unfolding mkTT1_def TT3_def apply auto
   using tt_prefix_of_TT3_trace by blast
-
-lemma add_Tick_refusal_trace_tt_prefix_subset_mono:
-  assumes "\<rho> \<lesssim>\<^sub>C \<sigma>"
-  shows   "add_Tick_refusal_trace \<rho> \<lesssim>\<^sub>C add_Tick_refusal_trace \<sigma>"
-  using assms by(induct \<rho> \<sigma> rule:tt_prefix_subset.induct, auto)
 
 lemma TT4_mkTT1:
   assumes "TT4 P"
@@ -363,14 +195,24 @@ lemma TT4_mkTT1:
   using assms unfolding mkTT1_def TT4_def apply auto
   using add_Tick_refusal_trace_tt_prefix_subset_mono by blast
 
-lemma
+subsection \<open> From subset-closed tick-tock to maximal refusals. \<close>
+
+text \<open> Here the adjoint is defined in terms of mkTT1, undoing as much
+       as possible the effect of mkTT1. \<close>
+
+definition unTT1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
+"unTT1 P = \<Union>{x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> (mkTT1 x) \<subseteq> P}"
+
+lemma unTT1_mono:
+  assumes "P \<subseteq> Q"
+  shows "unTT1(P) \<subseteq> unTT1(Q)"
+  using assms unfolding unTT1_def by auto
+
+subsubsection \<open> Closure properties \<close>
+
+lemma TTM1_unTT1:
   "TTM1(unTT1 P)"
   unfolding unTT1_def TTM1_def by auto
-
-lemma
-  "(s \<in> (\<Union>{x. TTick x \<and> (mkTT1 x) \<subseteq> P})) = (s \<in> Q)"
-  apply safe
-  oops
 
 (* A wild guess below: *)
 
@@ -385,13 +227,6 @@ fun RprirelRef :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rig
    \<or> 
   (\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))))" |
 "RprirelRef p x y s Q = False"
-
-definition mkTT4w :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
-"mkTT4w P = P \<union> {\<rho> @ [[R \<union> {Tick}]\<^sub>R]|\<rho> R. \<rho> @ [[R]\<^sub>R] \<in> P}"
-
-lemma TT4w_fixpoint_mkTT4w:
-  "(mkTT4w P = P) = TT4w P"
-  unfolding mkTT4w_def TT4w_def by auto
 
 lemma mkTT1_mkTT4w_iff_TT14:
   "(mkTT1(mkTT4w P) = P) = (TT1 P \<and> TT4w P)"
@@ -646,39 +481,6 @@ lemma TTMPick_imp_Event_in:
   assumes "TTMPick (\<rho> @ [[X]\<^sub>R] @ x) s P" "e \<notin> X" "e \<noteq> Tock"
   shows "s @ \<rho> @ [[e]\<^sub>E] \<in> P"
   using assms by (induct \<rho> s P rule:TTMPick.induct, auto)
-
-lemma
-  assumes "TTMPick s z P" "x \<lesssim>\<^sub>C \<sigma>" "\<sigma> \<le>\<^sub>C s"
-  shows "x \<in> P"
-  using assms apply (induct s z P rule:TTMPick.induct, auto)
-  oops
-(*
-lemma
-  assumes "b \<noteq> []"
-  shows "x \<le>\<^sub>C \<rho> @ b \<Longrightarrow> \<not> x \<le>\<^sub>C \<rho> \<Longrightarrow> x = \<rho> @ b"
-  using assms apply (induct x \<rho> arbitrary:b rule:tt_prefix.induct, auto)
-    apply (case_tac x, auto, case_tac y, auto)
-  apply (case_tac y, auto)
-    apply (metis append.right_neutral tt_prefix_subset_front tt_prefix_subset_same_front)
-   apply (case_tac y, auto)
-    apply (metis tt_prefix_subset.simps(3) tt_prefix_subset.simps(5) ttobs.exhaust)
-   apply (case_tac x, auto)
-  apply (case_tac x, auto)
-*)
-
-(*
-lemma
-  assumes "TT1 P" "\<rho> @ [[X]\<^sub>R] \<in> P" "x \<lesssim>\<^sub>C \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" "Tock \<notin> X" "\<rho> @ [[X]\<^sub>R] \<le>\<^sub>C s"
-  shows "x \<in> P"
-proof -
-  have "\<forall>x. x \<lesssim>\<^sub>C \<rho> @ [[X]\<^sub>R] \<longrightarrow> x \<in> P"
-    using assms TT1_def by blast
-  have "x \<lesssim>\<^sub>C \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] = (x \<lesssim>\<^sub>C \<rho> @ [[X]\<^sub>R] \<or> (\<not> x \<lesssim>\<^sub>C \<rho> @ [[X]\<^sub>R] \<and> x = \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]))"
-    apply auto
-    sledgehammer
-  using assms apply (induct x arbitrary:X \<rho> s rule:rev_induct, auto)
-  
-*)
 
 (* FIXME: Ugly proof *)
 lemma TTM3_mkTT1_simp:
@@ -2350,6 +2152,8 @@ proof -
   finally show ?thesis unfolding priTT_def by auto
 qed
 
+subsection \<open> Closure under healthiness conditions of TT and Max TT. \<close>
+
 lemma TT0_unTT1:
   assumes "TT0 P" "TT1 P"
   shows "TT0(unTT1(P))"
@@ -2371,6 +2175,102 @@ qed
 lemma TT1w_unTT1:
   "TT1w(unTT1(P))"
   unfolding unTT1_def TT1w_def by auto
+
+
+
+lemma TTM1_mkTT4:
+  assumes "TTM1 P" "TTM3 P"
+  shows "TTM1 (mkTT4 P)"
+  using assms unfolding TTM1_def TTM3_def mkTT4_def apply auto
+  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
+
+lemma TTM2_mkTT4:
+  assumes "TTM2 P" "TTM3 P"
+  shows "TTM2 (mkTT4 P)"
+  using assms unfolding TTM2_def TTM3_def mkTT4_def apply auto
+  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
+
+lemma TTM3_mkTT4:
+  assumes "TTM3 P"
+  shows "TTM3 (mkTT4 P)"
+  using assms unfolding TTM3_def mkTT4_def apply auto
+  by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
+
+lemma TT1w_mkTT4:
+  assumes "TT1w P"
+  shows "TT1w (mkTT4 P)"
+  using assms unfolding TT1w_def TTM3_def mkTT4_def apply auto
+  by (smt add_Tick_refusal_trace_concat add_Tick_refusal_trace_tt_subset append_eq_append_conv tt_prefix_decompose tt_prefix_tt_subset tt_subset_same_length)
+
+lemma TT4_unTT1:
+  assumes "TT1 P" "TT4 P" 
+  shows "TT4(unTT1(P))"
+  using assms unfolding TT4_def unTT1_def  apply auto
+  apply (rule_tac x="mkTT4(x)" in exI, auto)
+  using TTM1_mkTT4 apply blast
+  using TTM2_mkTT4 apply blast
+  using TTM3_mkTT4 apply blast
+  using TT1w_mkTT4 apply blast
+   apply (smt TT1_fixpoint_mkTT1 TT1_mkTT1_simp UnE mem_Collect_eq mkTT1_mono mkTT4_def subsetI)
+  unfolding mkTT4_def by auto
+
+lemma TT2_TT:
+  assumes "TT P"
+          "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> unTT1 P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> unTT1 P} = {}"
+          "\<rho> @ [X]\<^sub>R # \<sigma> \<in> unTT1 P"
+  shows   "\<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> unTT1 P"
+proof -
+  obtain x where x:"TTM1 x" "TTM2 x" "TTM3 x" "TT1w x" "mkTT1 x \<subseteq> P" "\<rho> @ [X]\<^sub>R # \<sigma> \<in> x"
+    using assms unfolding unTT1_def by auto
+  
+  have def1:"(Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> unTT1 P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> unTT1 P} = {})
+              =
+             (Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x) \<or>
+                 e = Tock \<and> (\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)} = {})"
+    unfolding unTT1_def by auto
+
+  have "\<rho> @ [[X]\<^sub>R] \<le>\<^sub>C \<rho> @ [X]\<^sub>R # \<sigma>"
+    by (simp add: tt_prefix_same_front)
+  then have "\<rho> @ [[X]\<^sub>R] \<in> x"
+    using TT1w_def x assms by blast
+  then have "\<rho> @ [[X]\<^sub>R] \<in> P"
+    using assms x mkTT1_def by fastforce
+
+  have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<not>(\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[e]\<^sub>E] \<in> x)"
+    using assms def1 by blast
+  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<notin> x"
+    using assms x by blast
+  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> (\<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> e \<in> X)"
+    using assms x TTM1_def \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> by blast
+  then have "\<forall>e. (e \<noteq> Tock \<and> e \<in> Y) \<longrightarrow> e \<in> X"
+    using \<open>\<rho> @ [[X]\<^sub>R] \<in> P\<close> by blast
+  
+  have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<not>(\<exists>x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> mkTT1 x \<subseteq> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> x)"
+    using assms def1 by blast
+  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x"
+    using assms x by blast
+  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> (\<rho> @ [[X]\<^sub>R,[e]\<^sub>E] \<in> P \<longrightarrow> e \<in> X)"
+    using TTM2_def \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> assms x by auto
+  then have "\<forall>e. (e = Tock \<and> e \<in> Y) \<longrightarrow> e \<in> X"
+    using TTM2_def \<open>\<forall>e. e = Tock \<and> e \<in> Y \<longrightarrow> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> x\<close> \<open>\<rho> @ [[X]\<^sub>R] \<in> x\<close> assms x by auto
+
+  have "Y \<subseteq> X"
+    using \<open>\<forall>e. e = Tock \<and> e \<in> Y \<longrightarrow> e \<in> X\<close> \<open>\<forall>e. e \<noteq> Tock \<and> e \<in> Y \<longrightarrow> e \<in> X\<close> by blast
+  then show ?thesis using def1 x unfolding unTT1_def apply auto
+    by (metis assms sup.order_iff)
+qed
+
+lemma TT2_unTT1:
+  assumes "TT P"
+  shows "TT2(unTT1(P))"
+  using assms unfolding TT2_def apply auto
+  using TT2_TT by fastforce
+
+lemma TT3_unTT1:
+  assumes "TT1 P" "TT3 P" 
+  shows "TT3(unTT1(P))"
+  using assms unfolding TT3_def unTT1_def  apply auto
+  using TT1_mkTT1_simp TT3_def TT_TT3 by blast
 
 lemma TTM1_unTT1:
   "TTM1(unTT1(P))"
