@@ -530,6 +530,12 @@ definition TT0 :: "'e ttobs list set \<Rightarrow> bool" where
 definition TT1w :: "'e ttobs list set \<Rightarrow> bool" where
   "TT1w P = (\<forall> \<rho> \<sigma>. (\<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
 
+lemma some_x_then_nil_TT1w [elim]:
+  assumes "x \<in> P" "TT1w P"
+  shows "[] \<in> P"
+  using assms 
+  unfolding TT1w_def by force
+
 definition mkTT1w :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTT1w P = P \<union> {\<rho>|\<rho> \<sigma>. \<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P}"
 
@@ -825,6 +831,12 @@ lemma add_Tick_refusal_trace_tt_prefix_subset_mono:
 definition TT4 :: "'e ttobs list set \<Rightarrow> bool" where
   "TT4 P = (\<forall> \<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P)"
 
+lemma TT4_union_empty_trace:
+  assumes "TT0 P" "TT1w P"
+  shows "TT4(P \<union> {[]}) = TT4(P)"
+  using assms unfolding TT4_def
+  by fastforce
+
 lemma TT4_TT1_imp_TT4w:
   "TT4 P \<Longrightarrow> TT1 P \<Longrightarrow> TT4w P"
   unfolding TT4w_def TT4_def TT1_def
@@ -946,11 +958,24 @@ definition mkTT4 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 definition TTwf :: "'e ttobs list set \<Rightarrow> bool" where
   "TTwf P = (\<forall>x\<in>P. ttWF x)"
 
+lemma TTwf_imp_dist:
+  assumes "TTwf(P \<union> Q)" 
+  shows "TTwf(P) \<and> TTwf(Q)"
+  unfolding TTwf_def by (meson TTwf_def Un_iff assms)
+
 lemma TTwf_cons_end_not_refusal_refusal:
   assumes "TTwf P"
   shows "\<not> sa @ [[S]\<^sub>R, [Z]\<^sub>R] \<in> P"
   using assms unfolding TTwf_def using ttWF_dist_cons_refusal
   using ttWF.simps(13) by blast
+
+lemma TTwf_no_ill_Tock [simp]:
+  assumes "TTwf P" "e \<noteq> Tock"
+  shows "sa @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> P"
+  using assms unfolding TTwf_def apply (induct sa rule:ttWF.induct, auto)
+    apply (cases e, auto)
+  apply (metis assms(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(4) ttWF_dist_cons_refusal ttevent.exhaust)
+  by (metis append_Cons ttWF.simps(11) ttWF.simps(12) ttWF_dist_cons_refusal ttevent.exhaust)
 
 lemma TTwf_mkTT1:
   assumes "TTwf P"
@@ -970,6 +995,35 @@ lemma TT4_mkTT1:
   using assms unfolding mkTT1_def TT4_def apply auto
   using add_Tick_refusal_trace_tt_prefix_subset_mono by blast
 
+lemma TTwf_concat_two_events_not_Tick_butlast:
+  assumes "ys @ [[e1]\<^sub>E] @ [[e2]\<^sub>E] \<in> P" "TTwf P" 
+  shows "e1 \<noteq> Tick"
+proof -
+  have "ttWF (ys @ [[e1]\<^sub>E] @ [[e2]\<^sub>E])"
+    using assms unfolding TTwf_def by auto
+  then show ?thesis
+    by (induct ys rule:ttWF.induct, auto)
+qed
+
+lemma TTwf_concat_prefix_set_no_Tick:
+  assumes "ys @ [[e1]\<^sub>E] \<in> P" "TTwf P" 
+  shows "[Tick]\<^sub>E \<notin> set ys"
+proof -
+  have "ttWF (ys @ [[e1]\<^sub>E])"
+    using assms unfolding TTwf_def by auto
+  then show ?thesis
+    by (induct ys rule:ttWF.induct, auto)
+qed
+
+lemma TTwf_concat_prefix_of_ref_set_no_Tick:
+  assumes "ys @ [[e1]\<^sub>R] \<in> P" "TTwf P" 
+  shows "[Tick]\<^sub>E \<notin> set ys"
+proof -
+  have "ttWF (ys @ [[e1]\<^sub>R])"
+    using assms unfolding TTwf_def by auto
+  then show ?thesis
+    by (induct ys rule:ttWF.induct, auto)
+qed
 
 definition TT :: "'e ttobs list set \<Rightarrow> bool" where
   "TT P = ((\<forall>x\<in>P. ttWF x) \<and> TT0 P \<and> TT1 P \<and> TT2w P \<and> TT3 P)"

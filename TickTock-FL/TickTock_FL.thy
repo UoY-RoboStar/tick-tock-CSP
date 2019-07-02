@@ -110,11 +110,7 @@ lemma FL2_disj_imp:
   shows "FL2(P \<union> Q)"
   using assms unfolding FL2_def by auto
 
-lemma TT3_unTT1:
-  assumes "TT1 P" "TT3 P" 
-  shows "TT3(unTT1(P))"
-  using assms unfolding TT3_def unTT1_def  apply auto
-  using TT1_mkTT1_simp TT3_def TT_TT3 by blast
+
 
 (* TODO: Move into TickTock_Core *)
 

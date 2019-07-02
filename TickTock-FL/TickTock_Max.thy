@@ -11,6 +11,10 @@ text \<open> TTM1 requires that every event e that is not refused can be perform
 definition TTM1 :: "'e ttobs list set \<Rightarrow> bool" where
   "TTM1 P = (\<forall> \<rho> X e. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e \<noteq> Tock) \<longrightarrow> \<rho> @ [[e]\<^sub>E] \<in> P)"
 
+lemma TTM1_union_empty_trace:
+  "TTM1(P \<union> {[]}) = TTM1(P)"
+  unfolding TTM1_def by auto
+
 definition mkTTM1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTTM1 P = P \<union> {\<rho> @ [[e]\<^sub>E]|\<rho> X e. \<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e \<noteq> Tock}"
 
@@ -27,6 +31,10 @@ text \<open> TTM2 is similar to TTM1, but requires Tock to happen after the refu
 
 definition TTM2 :: "'e ttobs list set \<Rightarrow> bool" where
   "TTM2 P = (\<forall> \<rho> X e. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<notin> X \<and> e = Tock) \<longrightarrow> \<rho> @ [[X]\<^sub>R,[e]\<^sub>E] \<in> P)"
+
+lemma TTM2_union_empty_trace:
+  "TTM2(P \<union> {[]}) = TTM2(P)"
+  unfolding TTM2_def by auto
 
 definition mkTTM2 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTTM2 P = P \<union> {\<rho> @ [[X]\<^sub>R,[Tock]\<^sub>E]|\<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<and> Tock \<notin> X}"
@@ -118,6 +126,9 @@ lemma TTM3_dist_union:
   "TTM3 (P \<union> Q) = (TTM3(P) \<and> TTM3(Q))"
   unfolding TTM3_def by auto
 
+lemma TTM3_dist_empty_trace: "TTM3(P \<union> {[]}) = TTM3(P)"
+  unfolding TTM3_def by auto
+
 lemma TTM3_singleton_imp_prefixes:
   assumes "TTM3 {s}"
   shows "TTM3 {x. x \<le>\<^sub>C s}"
@@ -173,8 +184,28 @@ lemma TTick_imp_TTick_mkTTM1_mkTTM2:
   shows "TTick (mkTTM1 (mkTTM2 {s}))"
   using assms unfolding mkTTM2_def mkTTM1_def TTick_def by auto
 
+lemma TTick_Nil [simp]:
+  "TTick {[]}"
+  unfolding TTick_def by auto
 
+lemma TTick_dist_empty_trace: "TTick(P \<union> {[]}) = TTick(P)"
+  unfolding TTick_def by auto
 
+lemma TTick_Refusal_Tock [simp]:
+  assumes "TTick {saa}"
+  shows "TTick {[S]\<^sub>R # [Tock]\<^sub>E # saa}"
+  using assms unfolding TTick_def apply auto                               
+  by (metis (no_types, hide_lams) append.left_neutral append1_eq_conv append_Cons ttobs.distinct(1) rev_exhaust)                            
 
+lemma TTick_Refusal_Tock':
+  assumes "TTick {[S]\<^sub>R # [Tock]\<^sub>E # saa}"
+  shows "TTick {saa}"
+  using assms unfolding TTick_def by auto
+
+lemma TTick_event [simp]:
+  assumes "TTick {saa}"
+  shows "TTick {[e]\<^sub>E # saa}"
+  using assms unfolding TTick_def apply auto  
+  by (metis Cons_eq_append_conv ttobs.distinct(1) list.inject)
 
 end

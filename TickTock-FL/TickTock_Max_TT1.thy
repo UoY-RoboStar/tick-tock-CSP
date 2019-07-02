@@ -14,11 +14,6 @@ section \<open> From Maximal Refusals to subset-closed traces of tick-tock. \<cl
 
 subsection \<open> Closure properties of mkTT1 \<close>
 
-lemma TTwf_imp_dist:
-  assumes "TTwf(P \<union> Q)" 
-  shows "TTwf(P) \<and> TTwf(Q)"
-  unfolding TTwf_def by (meson TTwf_def Un_iff assms)
-
 lemma TT2w_mkTT1_part:
   assumes "Y \<inter> {e. e \<noteq> Tock \<and> (\<exists>\<sigma>. \<rho> @ [[e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<or> e = Tock \<and> (\<exists>\<sigma>. \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P)} = {}"
           "\<rho> @ [[X]\<^sub>R] \<lesssim>\<^sub>C \<sigma>" "\<sigma> \<in> P" "TT1w P" "TTwf P" "TTM1 P" "TTM2 P" "TT2w P"
@@ -529,18 +524,6 @@ fun prirelRef2 :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rig
       \<and> (Tock \<notin> Z \<longrightarrow> s @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> Q) \<and> Tick \<in> Z
       \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))))" |
 "prirelRef2 p x y s Q = False"
-
-
-
-
-
-lemma TTwf_no_ill_Tock [simp]:
-  assumes "TTwf P" "e \<noteq> Tock"
-  shows "sa @ [[X]\<^sub>R, [e]\<^sub>E] \<notin> P"
-  using assms unfolding TTwf_def apply (induct sa rule:ttWF.induct, auto)
-    apply (cases e, auto)
-  apply (metis assms(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(4) ttWF_dist_cons_refusal ttevent.exhaust ttobs.inject(1) ttobs.inject(2) list.inject)
-  by (metis append.left_neutral append_Cons ttWF.simps(11) ttWF.simps(12) ttWF_dist_cons_refusal' ttevent.exhaust)
 
 (* Problem below is from 's' how to achieve target 's'? Need a way to construct it
    explicitly, then just need to show that x \<lesssim>\<^sub>C t. *)
@@ -1784,37 +1767,10 @@ qed
 
 (* Redundant stuff below? *)
 
-lemma TTick_Nil [simp]:
-  "TTick {[]}"
-  unfolding TTick_def by auto
-
-lemma TTick_Refusal_Tock [simp]:
-  assumes "TTick {saa}"
-  shows "TTick {[S]\<^sub>R # [Tock]\<^sub>E # saa}"
-  using assms unfolding TTick_def apply auto                               
-  by (metis (no_types, hide_lams) append.left_neutral append1_eq_conv append_Cons ttobs.distinct(1) rev_exhaust)                            
-
-lemma TTick_Refusal_Tock':
-  assumes "TTick {[S]\<^sub>R # [Tock]\<^sub>E # saa}"
-  shows "TTick {saa}"
-  using assms unfolding TTick_def by auto
-
-lemma TTick_event [simp]:
-  assumes "TTick {saa}"
-  shows "TTick {[e]\<^sub>E # saa}"
-  using assms unfolding TTick_def apply auto  
-  by (metis Cons_eq_append_conv ttobs.distinct(1) list.inject)                            
-
 lemma
   assumes "R \<subseteq> prirelref pa S" "Tick \<in> S"
   shows "R \<subseteq> prirelref pa (insert Tick S)"
   using assms 
   by (simp add: insert_absorb)
-
-lemma
-  assumes "TTick {[S]\<^sub>R # [Tock]\<^sub>E # zz}"
-  shows "TTick {[[S]\<^sub>R]}"
-  using assms unfolding TTick_def apply auto
-  oops
 
 end

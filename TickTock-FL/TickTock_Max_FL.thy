@@ -29,39 +29,7 @@ fun fl2ttobs :: "('e ttevent) fltrace \<Rightarrow> ('e ttobs) list" where
                              (if acceptance(A) \<noteq> \<bullet> then
                               ([{z. z \<notin>\<^sub>\<F>\<^sub>\<L> acceptance(A)}]\<^sub>R # [Tock]\<^sub>E # (fl2ttobs fl))
                               else []) 
-                          else ([event A]\<^sub>E # fl2ttobs fl))" 
-
-text \<open> The following function characterises the fltraces containing Tock
-       events that do not follow from a \<bullet> acceptance. This helps in proving
-       properties about fl2ttobs that require such a proviso. \<close>
-
-fun flt2goodTock :: "('e ttevent) fltrace \<Rightarrow> bool" where
-"flt2goodTock \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> = True" |
-"flt2goodTock (A #\<^sub>\<F>\<^sub>\<L> fl) = (if acceptance(A) \<noteq> \<bullet> then (flt2goodTock fl) else
-                            (if event(A) = Tock then False else (flt2goodTock fl)))" 
-
-lemma fl2ttobs_is_ttWF:
-  assumes "tickWF Tick fltrace"
-  shows "ttWF (fl2ttobs fltrace)"
-  using assms
-  apply (induct fltrace rule:fl2ttobs.induct, auto)
-  apply (case_tac A, auto, case_tac a, auto, case_tac b, auto)
-  by (metis ttWF.simps(4) ttWF2.simps(1) ttWF2.simps(23) ttWF2_ttWF ttevent.exhaust fl2ttobs.simps(1))
-
-text \<open> So FL processes are mapped to Tick-Tock processes by fl2ttm. \<close>
-
-definition fl2ttm :: "('e ttevent) fltrace set \<Rightarrow> ('e ttobs) list set" where
-"fl2ttm P = {fl2ttobs fl|fl. fl \<in> P}"
-
-lemma fl2ttm_univ_disj:
-  "fl2ttm (\<Union> P) = \<Union>{fl2ttm fl| fl. fl \<in> P}"
-  unfolding fl2ttm_def by auto
-
-lemma some_x_then_nil_TT1w [simp]:
-  assumes "x \<in> P" "TT1w P"
-  shows "[] \<in> P"
-  using assms 
-  unfolding TT1w_def by force
+                          else ([event A]\<^sub>E # fl2ttobs fl))"
 
 lemma fl_le_TT1w:
   assumes "fl \<le> \<langle>[{z. z \<notin> x1}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" "[Ref x1] \<in> P" "TT1w P"
@@ -117,6 +85,95 @@ proof -
    apply (meson ttobs.distinct(1))
   by (case_tac b, auto)
 
+text \<open> The following function characterises the fltraces containing Tock
+       events that do not follow from a \<bullet> acceptance. This helps in proving
+       properties about fl2ttobs that require such a proviso. \<close>
+
+fun flt2goodTock :: "('e ttevent) fltrace \<Rightarrow> bool" where
+"flt2goodTock \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> = True" |
+"flt2goodTock (A #\<^sub>\<F>\<^sub>\<L> fl) = (if acceptance(A) \<noteq> \<bullet> then (flt2goodTock fl) else
+                            (if event(A) = Tock then False else (flt2goodTock fl)))" 
+
+lemma fl2ttobs_not_flt2goodTock_imp_fl2ttobs_eq_consFL_any:
+  assumes "\<not> flt2goodTock xs"
+  shows "fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> ys) = fl2ttobs (xs)"
+  using assms by(induct xs, auto)
+
+lemma fl2ttobs_is_ttWF:
+  assumes "tickWF Tick fltrace"
+  shows "ttWF (fl2ttobs fltrace)"
+  using assms
+  apply (induct fltrace rule:fl2ttobs.induct, auto)
+  apply (case_tac A, auto, case_tac a, auto, case_tac b, auto)
+  by (metis ttWF.simps(4) ttWF2.simps(1) ttWF2.simps(23) ttWF2_ttWF ttevent.exhaust fl2ttobs.simps(1))
+
+lemma fl2ttobs_flt2goodTock_less_eq_exists:
+  assumes "fl2ttobs fl \<noteq> []"
+  shows "\<exists>fla. fl2ttobs fl = fl2ttobs fla \<and> fla \<le> fl \<and> flt2goodTock fla"
+  using assms
+proof (induct fl rule:flt2goodTock.induct)
+  case (1 A)
+  then show ?case 
+    apply auto
+    by (rule exI[where x="\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+next
+  case (2 A fl)
+  then show ?case
+  proof (cases "fl2ttobs fl \<noteq> []")
+    case fl2ttobs_not_Nil:True
+    then show ?thesis
+      proof (cases "acceptance(A) \<noteq> \<bullet>")
+      case True
+        then have "\<exists>flaa. fl2ttobs fl = fl2ttobs flaa \<and> flaa \<le> fl \<and> flt2goodTock flaa"
+          using fl2ttobs_not_Nil 2 by auto
+        then show ?thesis using 2 True
+          by (metis fl2ttobs.simps(2) flt2goodTock.simps(2) less_eq_fltrace.simps(3) order_refl)
+      next
+        case False
+        then show ?thesis 
+          using fl2ttobs_not_Nil 2 apply auto
+          by (metis fl2ttobs.simps(2) flt2goodTock.simps(2) less_eq_fltrace.simps(3) order_refl)
+      qed
+  next
+    case fl2ttobs_is_Nil:False
+    then show ?thesis
+      proof (cases "acceptance(A) \<noteq> \<bullet>")
+        case True
+        then show ?thesis using fl2ttobs_is_Nil 2 apply auto
+          apply (rule exI[where x="\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+           apply (metis dual_order.refl dual_order.trans prefixFL_induct2)
+          apply (rule exI[where x="\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+          by (metis dual_order.refl dual_order.trans prefixFL_induct2)
+      next
+      case False
+      then show ?thesis using fl2ttobs_is_Nil 2 apply auto
+        apply (rule exI[where x="\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+        by (metis dual_order.refl dual_order.trans prefixFL_induct2)
+      qed
+  qed
+qed
+
+lemma fl2ttobs_FL1_exists_flt2goodTock:
+  assumes "fl2ttobs fl \<noteq> []" "fl \<in> P" "FL1 P"
+  shows "\<exists>fla. fl2ttobs fl = fl2ttobs fla \<and> fla \<in> P \<and> flt2goodTock fla"
+  using assms
+  by (meson FL1_def fl2ttobs_flt2goodTock_less_eq_exists)
+
+lemma flt2goodTock_consFL_imp:
+  assumes "flt2goodTock xs" "e \<noteq> Tock" "e \<in>\<^sub>\<F>\<^sub>\<L> [x2]\<^sub>\<F>\<^sub>\<L>"
+  shows "flt2goodTock (xs &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms apply (induct xs, auto)
+  by (case_tac x, auto)
+
+text \<open> So FL processes are mapped to Tick-Tock processes by fl2ttm. \<close>
+
+definition fl2ttm :: "('e ttevent) fltrace set \<Rightarrow> ('e ttobs) list set" where
+"fl2ttm P = {fl2ttobs fl|fl. fl \<in> P}"
+
+lemma fl2ttm_univ_disj:
+  "fl2ttm (\<Union> P) = \<Union>{fl2ttm fl| fl. fl \<in> P}"
+  unfolding fl2ttm_def by auto
+
 lemma concat_ref_tock_imp_tock_in_last_of_fl2ttobs:
   assumes "ys @ [[x1]\<^sub>R] @ [[Tock]\<^sub>E] \<in> P" "TTwf P" "TT3 P"
           "ys @ [[x1]\<^sub>R] @ [[Tock]\<^sub>E] = fl2ttobs fl @ [[Tock]\<^sub>E]"
@@ -155,24 +212,6 @@ proof -
       then show ?case using 2 last_eq by auto
     qed
   qed
-
-(*
-lemma
-  assumes "e \<in>\<^sub>\<F>\<^sub>\<L> last fl"
-  shows "fl2ttobs fl \<noteq> []"
-  nitpick
-
-lemma
-  assumes "last xs = \<bullet>" "fl2ttobs(xs) \<noteq> []" "fl2ttobs(ys) \<noteq> []"
-  shows "fl2ttobs (xs @\<^sub>\<F>\<^sub>\<L> ys) = fl2ttobs(xs) @ fl2ttobs(ys)"
-  nitpick
-
-lemma
-  assumes "fl2ttobs (butlast fl) \<noteq> []" "Tock \<in>\<^sub>\<F>\<^sub>\<L> last fl"
-  shows "fl2ttobs (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = fl2ttobs(butlast fl) @ fl2ttobs(\<langle>(last fl,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  using assms apply (induct fl, auto)
-  apply (case_tac x1a, auto, case_tac b, auto, case_tac a, auto)
-*)
 
 lemma fl2ttobs_last_tock:
   assumes "Tock \<in>\<^sub>\<F>\<^sub>\<L> last fl" "flt2goodTock fl"
@@ -231,7 +270,28 @@ lemma fl2ttobs_fl_acceptance:
   apply (induct fl rule:fl2ttobs.induct, auto)
     apply (case_tac A, auto)
    apply (case_tac A, auto, case_tac b, auto)
-     by (case_tac "fl2ttobs fla = []", auto, case_tac fla, auto, meson list.discI)+
+  by (case_tac "fl2ttobs fla = []", auto, case_tac fla, auto, meson list.discI)+
+
+lemma fl2ttobs_last_fl_not_bullet_dist_list_cons:
+  assumes "last fl \<noteq> \<bullet>" "flt2goodTock fl"
+  shows "fl2ttobs(fl) = fl2ttobs(butlast fl) @ fl2ttobs(\<langle>last fl\<rangle>\<^sub>\<F>\<^sub>\<L>)"
+  using assms by (induct fl, auto)
+
+lemma fl2ttm_FL0_FL1_flt2goodTock_non_bullet:
+  assumes "FL0 P" "FL1 P"
+  shows "fl2ttm P = {fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl \<and> fl \<noteq> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>} \<union> {[]}"
+  using assms unfolding fl2ttm_def apply auto
+  using fl2ttobs_FL1_exists_flt2goodTock
+  apply (metis Finite_Linear_Model.butlast.simps(1) Finite_Linear_Model.last.simps(1) acceptance.distinct(1) append_self_conv2 fl2ttobs_last_fl_not_bullet_dist_list_cons flt2goodTock.simps(1))
+  by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
+
+lemma fl2ttm_FL0_FL1_flt2goodTock:
+  assumes "FL0 P" "FL1 P"
+  shows "fl2ttm P = {fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]}"
+  using assms unfolding fl2ttm_def apply auto
+  using fl2ttobs_FL1_exists_flt2goodTock
+  apply (metis)
+  by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
 
 subsection \<open> From Tick-Tock to FL \<close>
 
@@ -245,7 +305,6 @@ lemma ttm2fl_mono:
 
 lemma fl2ttm_ttm2fl_refines: "fl2ttm(ttm2fl(P)) \<subseteq> P"
   unfolding ttm2fl_def fl2ttm_def by auto
-
 
 (* BEGIN: weak_less_eq_fltrace lemmas. 
    TODO: Move into Finite_Linear_Model.thy and give it a nice symbol for this prefix relation. *)
@@ -367,11 +426,6 @@ next
     by (meson dual_order.trans less_eq_fltrace.simps(4) strongFL_imp_less_eq)
 qed
 
-lemma fl2ttobs_last_fl_not_bullet_dist_list_cons:
-  assumes "last fl \<noteq> \<bullet>" "flt2goodTock fl"
-  shows "fl2ttobs(fl) = fl2ttobs(butlast fl) @ fl2ttobs(\<langle>last fl\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  using assms by (induct fl, auto)
-
 lemma FL1_extends_strong_less_eq_fltrace_last:
   assumes "FL1 x" "fl \<in> x" "e \<in>\<^sub>\<F>\<^sub>\<L> last fl"
   shows "FL1 (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})"
@@ -473,36 +527,6 @@ lemma
         shows "FL1 (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> fl @\<^sub>\<F>\<^sub>\<L> \<langle>(Finite_Linear_Model.last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>})"
   using assms FL1_extends_strong_less_eq_fltrace_last_bullet apply force  sledgehammer[debug=true]
 *)
-
-lemma TTwf_concat_two_events_not_Tick_butlast:
-  assumes "ys @ [[e1]\<^sub>E] @ [[e2]\<^sub>E] \<in> P" "TTwf P" 
-  shows "e1 \<noteq> Tick"
-proof -
-  have "ttWF (ys @ [[e1]\<^sub>E] @ [[e2]\<^sub>E])"
-    using assms unfolding TTwf_def by auto
-  then show ?thesis
-    by (induct ys rule:ttWF.induct, auto)
-qed
-
-lemma TTwf_concat_prefix_set_no_Tick:
-  assumes "ys @ [[e1]\<^sub>E] \<in> P" "TTwf P" 
-  shows "[Tick]\<^sub>E \<notin> set ys"
-proof -
-  have "ttWF (ys @ [[e1]\<^sub>E])"
-    using assms unfolding TTwf_def by auto
-  then show ?thesis
-    by (induct ys rule:ttWF.induct, auto)
-qed
-
-lemma TTwf_concat_prefix_of_ref_set_no_Tick:
-  assumes "ys @ [[e1]\<^sub>R] \<in> P" "TTwf P" 
-  shows "[Tick]\<^sub>E \<notin> set ys"
-proof -
-  have "ttWF (ys @ [[e1]\<^sub>R])"
-    using assms unfolding TTwf_def by auto
-  then show ?thesis
-    by (induct ys rule:ttWF.induct, auto)
-qed
 
 lemma event_not_in_set_of_fl2ttobs_imp_not_in_events:
   assumes "[e]\<^sub>E \<notin> set ys" "fl2ttobs zs = ys" "flt2goodTock zs"
@@ -1059,74 +1083,6 @@ lemma
   using assms unfolding ttm2fl_def apply auto
   oops
 
-lemma fl2ttobs_flt2goodTock_less_eq_exists:
-  assumes "fl2ttobs fl \<noteq> []"
-  shows "\<exists>fla. fl2ttobs fl = fl2ttobs fla \<and> fla \<le> fl \<and> flt2goodTock fla"
-  using assms
-proof (induct fl rule:flt2goodTock.induct)
-  case (1 A)
-  then show ?case 
-    apply auto
-    by (rule exI[where x="\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-next
-  case (2 A fl)
-  then show ?case
-  proof (cases "fl2ttobs fl \<noteq> []")
-    case fl2ttobs_not_Nil:True
-    then show ?thesis
-      proof (cases "acceptance(A) \<noteq> \<bullet>")
-      case True
-        then have "\<exists>flaa. fl2ttobs fl = fl2ttobs flaa \<and> flaa \<le> fl \<and> flt2goodTock flaa"
-          using fl2ttobs_not_Nil 2 by auto
-        then show ?thesis using 2 True
-          by (metis fl2ttobs.simps(2) flt2goodTock.simps(2) less_eq_fltrace.simps(3) order_refl)
-      next
-        case False
-        then show ?thesis 
-          using fl2ttobs_not_Nil 2 apply auto
-          by (metis fl2ttobs.simps(2) flt2goodTock.simps(2) less_eq_fltrace.simps(3) order_refl)
-      qed
-  next
-    case fl2ttobs_is_Nil:False
-    then show ?thesis
-      proof (cases "acceptance(A) \<noteq> \<bullet>")
-        case True
-        then show ?thesis using fl2ttobs_is_Nil 2 apply auto
-          apply (rule exI[where x="\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-           apply (metis dual_order.refl dual_order.trans prefixFL_induct2)
-          apply (rule exI[where x="\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-          by (metis dual_order.refl dual_order.trans prefixFL_induct2)
-      next
-      case False
-      then show ?thesis using fl2ttobs_is_Nil 2 apply auto
-        apply (rule exI[where x="\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-        by (metis dual_order.refl dual_order.trans prefixFL_induct2)
-      qed
-    qed
-  qed
-
-lemma fl2ttobs_FL1_exists_flt2goodTock:
-  assumes "fl2ttobs fl \<noteq> []" "fl \<in> P" "FL1 P"
-  shows "\<exists>fla. fl2ttobs fl = fl2ttobs fla \<and> fla \<in> P \<and> flt2goodTock fla"
-  using assms
-  by (meson FL1_def fl2ttobs_flt2goodTock_less_eq_exists)
-
-lemma fl2ttm_FL0_FL1_flt2goodTock_non_bullet:
-  assumes "FL0 P" "FL1 P"
-  shows "fl2ttm P = {fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl \<and> fl \<noteq> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>} \<union> {[]}"
-  using assms unfolding fl2ttm_def apply auto
-  using fl2ttobs_FL1_exists_flt2goodTock
-  apply (metis Finite_Linear_Model.butlast.simps(1) Finite_Linear_Model.last.simps(1) acceptance.distinct(1) append_self_conv2 fl2ttobs_last_fl_not_bullet_dist_list_cons flt2goodTock.simps(1))
-  by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-
-lemma fl2ttm_FL0_FL1_flt2goodTock:
-  assumes "FL0 P" "FL1 P"
-  shows "fl2ttm P = {fl2ttobs fl|fl. fl \<in> P \<and> flt2goodTock fl} \<union> {[]}"
-  using assms unfolding fl2ttm_def apply auto
-  using fl2ttobs_FL1_exists_flt2goodTock
-  apply (metis)
-  by (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-
 (* flt2goodAcceptance sufficient? *)
 
 lemma tickWF_last_bullet_imp_Tick_notin:
@@ -1196,10 +1152,6 @@ next
     qed
   qed
 
-
-
-
-
 lemma FL1_imp_disj:
   assumes "FL1(P)" "FL1(Q)"
   shows "FL1(P \<union> Q)"
@@ -1231,14 +1183,6 @@ lemma FL1_ttm2fl:
   unfolding FL1_def apply safe
   using prefix_ttm2fl_FL1 by blast
 
-(*
-lemma
-  assumes "tickWF Tick fltrace"
-  shows "TTwf (fl2ttm xa)"
-  using assms unfolding fl2ttm_def TTwf_def apply auto
-  sledgehammer
-*)
-
 lemma FLTick0_Tick_ttm2fl:
   assumes "TTwf P"
   shows "FLTick0 Tick (ttm2fl P)"
@@ -1262,6 +1206,7 @@ lemma FLTick0_dist_union:
   "FLTick0 Tick (x \<union> y) = (FLTick0 Tick x \<and> FLTick0 Tick y)"
   unfolding FLTick0_def by auto
 
+(* TODO: Move the following *)
 lemma FL_prefix_not_in_events:
   assumes "s \<le> t" "e \<notin> events t"
   shows "e \<notin> events s"
@@ -1307,13 +1252,6 @@ proof -
     by (simp add: FLTick0_def)
   then show ?thesis using a by auto
 qed
-
-
-
-lemma fl2ttobs_not_flt2goodTock_imp_fl2ttobs_eq_consFL_any:
-  assumes "\<not> flt2goodTock xs"
-  shows "fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> ys) = fl2ttobs (xs)"
-  using assms by(induct xs, auto)
 
 lemma prefixFL_same_length_imp:
   assumes "length xs = length ys" "last ys = \<bullet>" "last xs = \<bullet>" 
@@ -1511,12 +1449,6 @@ lemma FL2_ttm2fl:
    apply blast
   using strong_less_eq_fltrace_refl by blast
 
-lemma flt2goodTock_consFL_imp:
-  assumes "flt2goodTock xs" "e \<noteq> Tock" "e \<in>\<^sub>\<F>\<^sub>\<L> [x2]\<^sub>\<F>\<^sub>\<L>"
-  shows "flt2goodTock (xs &\<^sub>\<F>\<^sub>\<L> \<langle>([x2]\<^sub>\<F>\<^sub>\<L>,e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  using assms apply (induct xs, auto)
-  by (case_tac x, auto)
-
 lemma FL_ttm2fl_closed:
   assumes "TT0 P" "TT1w P" "TTM1 P" "TTM2 P" "TTM3 P"
   shows "FL0(ttm2fl(P))" "FL1(ttm2fl(P))" "FL2(ttm2fl(P))" "FL3(ttm2fl(P))"
@@ -1526,12 +1458,6 @@ lemma FL_ttm2fl_closed:
   by (metis (no_types, lifting) FLTick0_def mem_Collect_eq mem_simps(9) ttm2fl_def)
 
 subsection \<open> Closure of fl2ttm under healthiness conditions of maximal Tick-Tock. \<close>
-
-lemma TTick_dist_empty_trace: "TTick(P \<union> {[]}) = TTick(P)"
-  unfolding TTick_def by auto
-
-lemma TTM3_dist_empty_trace: "TTM3(P \<union> {[]}) = TTM3(P)"
-  unfolding TTM3_def by auto
 
 lemma TTick_fl2ttm:
   assumes "FL0 P" "FL1 P" "FLTick0 Tick P"
@@ -1762,14 +1688,6 @@ next
     qed
 qed
 
-lemma TTM1_union_empty_trace:
-  "TTM1(P \<union> {[]}) = TTM1(P)"
-  unfolding TTM1_def by auto
-
-lemma TTM2_union_empty_trace:
-  "TTM2(P \<union> {[]}) = TTM2(P)"
-  unfolding TTM2_def by auto
-
 lemma TTM1_fl2ttm_for_FL2_FL1_FL0:
   assumes "FL2 P" "FL1 P" "FL0 P"
   shows "TTM1(fl2ttm P)"
@@ -1838,10 +1756,7 @@ lemma TT4_fl2ttm_part:
   using tickWF_add_Tick_refusal_trace_fl2ttobs_idem
   by (metis FLTick0_def assms(1) assms(2))
 
-lemma TT4_union_empty_trace:
-  assumes "TT0 P" "TT1w P"
-  shows "TT4(P \<union> {[]}) = TT4(P)"
-  using assms unfolding TT4_def by auto
+
 
 lemma TT0_union_empty:
   "TT0(P \<union> {[]})"
@@ -2233,8 +2148,6 @@ next
       qed
   qed
 qed
-
-
 
 lemma TT2_fl2ttm_part:
   assumes "FL2 P" "FL1 P" "FL0 P" "FLTick0 Tick P"
