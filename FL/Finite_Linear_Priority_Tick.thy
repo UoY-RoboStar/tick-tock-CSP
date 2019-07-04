@@ -19,7 +19,7 @@ lemma pri_tickWF:
 
 lemma FLTick0_pri:
   assumes "FLTick0 tick P"
-  shows "FLTick0 tick (pri p P)"
+  shows "FLTick0 tick (Pri p P)"
   using assms unfolding FLTick0_def pri_def apply auto
   by (simp add: pri_tickWF)
 
@@ -100,11 +100,11 @@ qed
 
 lemma FL2_pri:
   assumes "FL2 P"
-  shows "FL2 (pri p P)"
+  shows "FL2 (Pri p P)"
   using assms unfolding FL2_def pri_def apply auto
   by (simp add: assms pri_FL2)
 
-text \<open>Does pri distribute through sequential composition in this model?\<close>
+text \<open>Does Pri distribute through sequential composition in this model?\<close>
 
 lemma prirel_consFL_both_imp:
   assumes "prirel p (x &\<^sub>\<F>\<^sub>\<L>y) (s &\<^sub>\<F>\<^sub>\<L> t)" "length x = length s" "last x = \<bullet>" "last s = \<bullet>"
@@ -231,7 +231,7 @@ qed
 
 lemma pri_dist_SeqComp:
   assumes "FLTick0 tick P" "maximal(p,tick)"
-  shows "pri p (P (tick);\<^sub>\<F>\<^sub>\<L> Q) = ((pri p P) (tick);\<^sub>\<F>\<^sub>\<L> (pri p Q))"
+  shows "Pri p (P (tick);\<^sub>\<F>\<^sub>\<L> Q) = ((Pri p P) (tick);\<^sub>\<F>\<^sub>\<L> (Pri p Q))"
   using assms unfolding pri_def SeqComp_def
 proof (auto)
   fix "x" "s" "t"

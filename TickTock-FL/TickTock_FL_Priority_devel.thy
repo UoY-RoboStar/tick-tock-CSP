@@ -560,7 +560,7 @@ next
           then have last_fl_acceptance:"last fl = [{x. x \<notin> r1}]\<^sub>\<F>\<^sub>\<L>"
             by (metis (mono_tags, lifting) last_fl2ttobs_eq_ref_imp_last snoc_eq_iff_butlast)
           then have r1_good_pri_acceptance:"\<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> r1}]\<^sub>\<F>\<^sub>\<L> \<and> e1 <\<^sup>*p b)"
-            using ObsEvent Tock r1_good_pri 
+            using ObsEvent Tock r1_good_Pri 
             by simp
           then have tock_in_last_fl: "Tock \<in>\<^sub>\<F>\<^sub>\<L> last fl"
             using last_fl_acceptance tock_not_in_r1 by simp
@@ -2584,23 +2584,23 @@ lemma fl2ttm_pri_ttm2fl_priNS:
       and TTM3:   "TTM3 P"
       and TT4w_healthy:    "TT4w P"
      (* and Tick_max:"maximal(p,Tick)"*)
-  shows "fl2ttm(pri p (ttm2fl P)) = priNS p P"
+  shows "fl2ttm(Pri p (ttm2fl P)) = priNS p P"
 proof -
-  have "fl2ttm(pri p (ttm2fl P)) = {fl2ttobs fl|fl. fl \<in> (pri p (ttm2fl P)) \<and> flt2goodTock fl} \<union> {[]}"
+  have "fl2ttm(Pri p (ttm2fl P)) = {fl2ttobs fl|fl. fl \<in> (Pri p (ttm2fl P)) \<and> flt2goodTock fl} \<union> {[]}"
     using fl2ttm_FL0_FL1_flt2goodTock
     by (simp add: fl2ttm_FL0_FL1_flt2goodTock TT0_healthy TT1w_healthy TickTock_Max_FL.FL0_ttm2fl FL1_ttm2fl pri_FL0 pri_FL1)
-  also have "... = {fl2ttobs fl|fl. fl \<in> (pri p (\<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P})) \<and> flt2goodTock fl} \<union> {[]}"
+  also have "... = {fl2ttobs fl|fl. fl \<in> (Pri p (\<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P})) \<and> flt2goodTock fl} \<union> {[]}"
     unfolding ttm2fl_def by auto
-  also have "... = {fl2ttobs fl|fl. fl \<in> \<Union>{pri p fl|fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P} \<and> flt2goodTock fl} \<union> {[]}"
+  also have "... = {fl2ttobs fl|fl. fl \<in> \<Union>{Pri p fl|fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P} \<and> flt2goodTock fl} \<union> {[]}"
   proof -
-    have "pri p (\<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}) = \<Union>{pri p fl|fl. fl \<in> {fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}}"
+    have "Pri p (\<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}) = \<Union>{Pri p fl|fl. fl \<in> {fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}}"
       using pri_univ_dist by (metis)
-    also have "... = \<Union>{pri p fl|fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
+    also have "... = \<Union>{Pri p fl|fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
       by auto
     then show ?thesis
       using calculation by auto
   qed
-  also have "... = {fl2ttobs fl|fl. \<exists>x. (\<exists>fl. x = pri p fl \<and> FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P) \<and> fl \<in> x \<and> flt2goodTock fl} \<union> {[]}"
+  also have "... = {fl2ttobs fl|fl. \<exists>x. (\<exists>fl. x = Pri p fl \<and> FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P) \<and> fl \<in> x \<and> flt2goodTock fl} \<union> {[]}"
     unfolding fl2ttm_def by auto
   also have "... = {fl2ttobs fl|fl. \<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> (fl2ttm fl\<^sub>0) \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0) \<and> flt2goodTock fl} \<union> {[]}"
     unfolding pri_def by auto

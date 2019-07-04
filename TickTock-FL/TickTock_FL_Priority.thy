@@ -7,7 +7,7 @@ imports
 begin
 
 lemma pri_univ_dist:
-  "pri p (\<Union> X) = \<Union>{pri p x|x. x \<in> X}"
+  "Pri p (\<Union> X) = \<Union>{Pri p x|x. x \<in> X}"
   unfolding pri_def by auto
 
 lemma fl2ttobs_extn:
@@ -61,9 +61,9 @@ qed
 
 
 lemma
-  "fl2ttm(pri p P) = priTT p fl2ttm(P)"
+  "fl2ttm(Pri p P) = priTT p fl2ttm(P)"
 proof -
-  have "fl2ttm(pri p P) = {fl2ttobs fl|fl. fl \<in> (pri p P)}"
+  have "fl2ttm(Pri p P) = {fl2ttobs fl|fl. fl \<in> (Pri p P)}"
     unfolding fl2ttm_def by simp
   also have "... = {fl2ttobs fl|fl. fl \<in> {A|A Z. prirel p A Z \<and> Z \<in> P}}"
     unfolding pri_def by simp

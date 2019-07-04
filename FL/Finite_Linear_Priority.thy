@@ -166,8 +166,8 @@ proof -
     using calculation by auto
 qed
 
-definition pri :: "'a partialorder \<Rightarrow> 'a fltraces \<Rightarrow> 'a fltraces" where
-"pri p F = {A|A Z. prirel p A Z \<and> Z \<in> F}"
+definition Pri :: "'a partialorder \<Rightarrow> 'a fltraces \<Rightarrow> 'a fltraces" where
+"Pri p F = {A|A Z. prirel p A Z \<and> Z \<in> F}"
 
 section \<open> Revised definition \<close>
 
@@ -441,12 +441,12 @@ lemma prirelAlt_in_P_imp_prirel:
   using prirelAlt_imp_prirel by blast+
 
 (*
-text \<open>For prefix-closed processes then the definition pri is equivalent to priAlt\<close>
+text \<open>For prefix-closed processes then the definition Pri is equivalent to priAlt\<close>
 
 lemma FL1_pri_eq_priAlt:
   assumes "FL1 P"
-  shows "pri p P = priAlt p P"
-  using assms unfolding pri_def priAlt_def apply auto
+  shows "Pri p P = priAlt p P"
+  using assms unfolding Pri_def priAlt_def apply auto
    apply (simp add: FL1_prirel_prirelAlt_prefix)
   using prirelAlt_imp_prirel by blast *)
 
@@ -544,18 +544,18 @@ lemma priAlt_mono:
 
 lemma pri_mono:
   assumes "P \<subseteq> Q"
-  shows "pri p P \<subseteq> pri p Q"
-  using assms unfolding pri_def by auto
+  shows "Pri p P \<subseteq> Pri p Q"
+  using assms unfolding Pri_def by auto
 
 lemma bullet_in_pri:
   assumes "FL0 P" "FL1 P"
-  shows "\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> pri p P"
-  using assms unfolding FL0_def pri_def apply auto
+  shows "\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> Pri p P"
+  using assms unfolding FL0_def Pri_def apply auto
   using FL0_FL1_bullet_in assms(1) prirel.simps(1) prirelacc.simps(1) by blast
 
 lemma pri_FL0:
   assumes "FL0 P" "FL1 P"
-  shows "FL0 (pri p P)"
+  shows "FL0 (Pri p P)"
   using assms FL0_def
   using bullet_in_pri by fastforce
 
@@ -567,8 +567,8 @@ lemma FL1_prirel:
 
 lemma pri_FL1:
   assumes "FL1 P"
-  shows "FL1 (pri p P)"
-  using assms unfolding FL1_def pri_def apply safe
+  shows "FL1 (Pri p P)"
+  using assms unfolding FL1_def Pri_def apply safe
   using FL1_prirel assms by blast
 
 (*
@@ -806,8 +806,8 @@ lemma prirel_cons_bullet_iff_exists:
 
 lemma priAlt_PrefixAlt_eq_PrefixAlt_priAlt:
   assumes "FL1 P"
-  shows "pri p (PrefixAlt a P) = (PrefixAlt a (pri p P))"
-  unfolding PrefixAlt_def pri_def prefixH_def apply auto
+  shows "Pri p (PrefixAlt a P) = (PrefixAlt a (Pri p P))"
+  unfolding PrefixAlt_def Pri_def prefixH_def apply auto
   apply (auto simp add:prirel_rhs_singleton_iff)
          apply (metis FL0_FL1_bullet_in FL0_def assms empty_iff prirel.simps(1) prirelacc.simps(1)) 
   apply (metis FL0_FL1_bullet_in_so acceptance.exhaust assms fltrace.exhaust prirel.simps(1) prirel.simps(3) prirelacc.simps(3))
@@ -819,8 +819,8 @@ lemma priAlt_PrefixAlt_eq_PrefixAlt_priAlt:
   by force+
 
 lemma pri_Prefix_eq_Prefix_pri:
-  shows "pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) = (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> (pri p P))"
-  unfolding Prefix_def pri_def prefixH_def apply auto
+  shows "Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) = (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> (Pri p P))"
+  unfolding Prefix_def Pri_def prefixH_def apply auto
          apply (simp add: prirel_rhs_singleton_iff)
   apply (metis acceptance.exhaust fltrace.exhaust prirel.simps(1) prirel.simps(3) prirelacc.simps(3))
   apply (meson prirel_cons_imp_exists)
@@ -936,38 +936,38 @@ by (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>
 *)
 lemma pri_ExtChoice_two_prefixes:
   assumes "b <\<^sup>*p a" "FL1 P"
-  shows "pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
+  shows "Pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
         =
-        pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
+        Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
 proof -
   have "((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
       =
       {X| X A B. ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)}"
     unfolding ExtChoice_def by auto
-  then have "pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
+  then have "Pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
       =
       {R|R A B X. prirel p R X \<and> ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)}"
-    unfolding pri_def by auto
+    unfolding Pri_def by auto
   also have "... = {R|R A. prirel p R A \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)}"
     using assms(1)
     by (simp add: prirel_ExtChoice_extends)
-  also have "... = pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
-    unfolding pri_def by auto 
+  also have "... = Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
+    unfolding Pri_def by auto 
   then show ?thesis using calculation 
     by auto
 qed
 
 lemma pri_IntChoice_dist:
-  "pri p (P \<sqinter>\<^sub>\<F>\<^sub>\<L> Q) = (pri p P) \<sqinter>\<^sub>\<F>\<^sub>\<L> (pri p Q)"
-  unfolding pri_def IntChoice_def by auto
+  "Pri p (P \<sqinter>\<^sub>\<F>\<^sub>\<L> Q) = (Pri p P) \<sqinter>\<^sub>\<F>\<^sub>\<L> (Pri p Q)"
+  unfolding Pri_def IntChoice_def by auto
 
 
 lemma
   assumes "\<not>a <\<^sup>*p b" "\<not>b <\<^sup>*p a"
-  shows "pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> P))
+  shows "Pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> P))
         =
-        pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> pri p (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
-  using assms unfolding ExtChoice_def pri_def apply auto
+        Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> Pri p (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
+  using assms unfolding ExtChoice_def Pri_def apply auto
   oops
 
 lemma prirel_cons_eq_length_imp:
@@ -1105,8 +1105,8 @@ lemma
   using assms prirel_decompose by blast
 
 lemma pri_idem:
-  "pri p (pri p P) = pri p P"
-  unfolding pri_def apply auto
+  "Pri p (Pri p P) = Pri p P"
+  unfolding Pri_def apply auto
   using prirel_trans apply blast
   using prirel_decompose by blast
 
