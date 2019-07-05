@@ -3,12 +3,12 @@ theory
 imports
   "TickTock.TickTock_Prioritise"
   TickTock_Max_FL
-  "FL.Finite_Linear_Priority"
+  "FL.Finite_Linear_Pri"
 begin
 
 lemma pri_univ_dist:
   "Pri p (\<Union> X) = \<Union>{Pri p x|x. x \<in> X}"
-  unfolding pri_def by auto
+  unfolding Pri_def by auto
 
 lemma fl2ttobs_extn:
   (*assumes TTwf_healthy: "TTwf P" 
@@ -66,7 +66,7 @@ proof -
   have "fl2ttm(Pri p P) = {fl2ttobs fl|fl. fl \<in> (Pri p P)}"
     unfolding fl2ttm_def by simp
   also have "... = {fl2ttobs fl|fl. fl \<in> {A|A Z. prirel p A Z \<and> Z \<in> P}}"
-    unfolding pri_def by simp
+    unfolding Pri_def by simp
   also have "... = {fl2ttobs fl|fl A Z. prirel p fl Z \<and> Z \<in> P}"
     by auto
   oops
