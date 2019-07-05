@@ -179,19 +179,27 @@ lemma acceptance_null [intro]:
   shows "acceptance A = \<bullet>"
   using assms by (cases A, auto, case_tac a, auto)
 
+lemma not_bullet_less_eq_imp [simp]:
+  assumes "a \<noteq> \<bullet>"
+          "a \<le> x"
+    shows "a = x"
+  using assms 
+  apply (cases a, auto)
+  apply (cases x, auto)
+  by presburger+
+  
 lemma prirel_two_acceptances_bullet_not_bullet:
   assumes "acceptance(A) \<noteq> \<bullet>"
   shows "pri p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = (acceptance(Z) \<noteq> \<bullet> \<and> event A = event Z \<and> acceptance(A) =  [{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>)"
   using assms apply auto
      apply (cases Z, auto, case_tac a, auto, cases A, auto)
-     apply (case_tac a, auto)
-       apply (metis (lifting) Int_iff)
-      apply (metis (mono_tags, lifting) Int_Collect)
-     apply (smt Int_Collect)
-  apply (cases Z, auto, cases A, auto, case_tac a, auto, case_tac aa, auto)
-      apply (metis (mono_tags, lifting) Int_Collect)
-  oops
-
+     apply (simp add:Int_def)
+  apply (cases A, auto, cases Z, auto, case_tac a, auto)
+      apply (case_tac aa, auto, metis (mono_tags, lifting) Int_Collect)
+     apply (case_tac aa, auto, metis (mono_tags, lifting) Int_Collect)
+    apply (case_tac aa, auto, smt Int_Collect)
+  by (cases A, auto, cases Z, auto, case_tac a, auto)+
+  
 lemma prirel_rhs_singleton_iff:
   "pri p x \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (x = \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
   by (cases x, auto)
@@ -483,10 +491,70 @@ lemma prirelacc_decompose:
   shows "\<exists>Z. priacc p xs = Z \<and> priacc p Z = ys"
   using assms by(induct p xs rule:priacc.induct, auto)
 
+lemma priacc_less_eq_some_pri:
+  assumes "(A #\<^sub>\<F>\<^sub>\<L> \<rho>) pri\<^sub>[\<^sub>p\<^sub>] Z"
+  shows "acceptance A \<le> priacc\<^sub>[\<^sub>p\<^sub>] (acceptance A)"
+  using assms 
+  apply (cases A, auto, cases Z, auto)
+  by (metis Finite_Linear_Pri.prirelacc_trans amember.simps(1) not_bullet_less_eq_imp)+
+
+lemma
+  assumes "\<rho> pri\<^sub>[\<^sub>p\<^sub>] Za" "(A #\<^sub>\<F>\<^sub>\<L> Za) pri\<^sub>[\<^sub>p\<^sub>] (Z #\<^sub>\<F>\<^sub>\<L> \<sigma>)" "acceptance A \<noteq> \<bullet>"
+  shows "(A #\<^sub>\<F>\<^sub>\<L> \<rho>) pri\<^sub>[\<^sub>p\<^sub>] (A #\<^sub>\<F>\<^sub>\<L> Za)"
+  using assms nitpick
+  oops
+
 lemma prirel_decompose:
   assumes "pri p xs ys" 
   shows "\<exists>Z. pri p xs Z \<and> pri p Z ys"
-  using assms apply(induct p xs ys rule:pri.induct, auto)
+  using assms 
+proof(induct p xs ys rule:pri.induct)
+  case (1 p A Z)
+  then show ?case 
+    by (metis pri.simps(1) prirelacc_trans)
+next
+  case (2 p A Z \<sigma>)
+  then show ?case
+    by (cases A, auto)
+next
+  case (3 p A \<rho> Z)
+  then show ?case 
+    by (cases A, auto)
+next
+  case (4 p A \<rho> Z \<sigma>) (* Split proof on acceptance(A) cases *)
+  then have "\<rho> pri\<^sub>[\<^sub>p\<^sub>] \<sigma>"
+            "\<exists>Z. \<rho> pri\<^sub>[\<^sub>p\<^sub>] Z \<and> Z pri\<^sub>[\<^sub>p\<^sub>] \<sigma>"
+    by auto
+  then have "\<exists>Za. \<rho> pri\<^sub>[\<^sub>p\<^sub>] Za \<and> (A #\<^sub>\<F>\<^sub>\<L> Za) pri\<^sub>[\<^sub>p\<^sub>] (Z #\<^sub>\<F>\<^sub>\<L> \<sigma>)"
+    using 4 by auto
+
+  obtain Y where Y:"Y = ([{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> (\<forall>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<longrightarrow> \<not> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>,event Z)\<^sub>\<F>\<^sub>\<L>"
+    by auto
+  then have "\<exists>Za. \<rho> pri\<^sub>[\<^sub>p\<^sub>] Za \<and> (Y #\<^sub>\<F>\<^sub>\<L> Za) pri\<^sub>[\<^sub>p\<^sub>] (Z #\<^sub>\<F>\<^sub>\<L> \<sigma>)"
+    using 4 apply auto
+
+  then have "\<exists>Za. (A #\<^sub>\<F>\<^sub>\<L> \<rho>) pri\<^sub>[\<^sub>p\<^sub>] (A #\<^sub>\<F>\<^sub>\<L> Za) \<and> (A #\<^sub>\<F>\<^sub>\<L> Za) pri\<^sub>[\<^sub>p\<^sub>] (Z #\<^sub>\<F>\<^sub>\<L> \<sigma>)"
+  proof -
+    have "\<forall>Za. \<rho> pri\<^sub>[\<^sub>p\<^sub>] Za \<longrightarrow> (A #\<^sub>\<F>\<^sub>\<L> \<rho>) pri\<^sub>[\<^sub>p\<^sub>] (A #\<^sub>\<F>\<^sub>\<L> Za)"
+      apply auto
+      using 4 priacc_less_eq_some_pri apply blast
+      sledgehammer
+      apply (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto)
+    apply auto
+    using 4 priacc_less_eq_some_pri apply blast
+    apply (cases A, auto, cases Z, auto)
+    
+    apply (metis "4.prems" acceptance.distinct(1) acceptance.exhaust acceptance.inject acceptance.simps(3) acceptance_event acceptance_null acceptance_set amember.elims(1) amember.elims(2) amember.simps(2) aunion.elims not_bullet_less_eq_imp pri.simps(4) priacc_less_eq_some_pri)
+    
+    apply (metis "4.prems" acceptance_set amember.simps(1) not_bullet_less_eq_imp pri.simps(4) priacc.simps(1))
+    apply (cases Z, auto)
+    apply (rule_tac x="\<sigma>" in exI, auto, case_tac a, auto)
+  sledgehammer
+    apply (cases A, auto, case_tac a, auto)
+    
+  then show ?case using 4
+    
+qed
     apply (metis pri.simps(1) prirelacc_trans)
   apply (case_tac \<rho>, auto, case_tac x1, auto)
      apply (metis Finite_Linear_Pri.prirelacc_trans less_eq_acceptance.elims(2) order_refl pri.simps(4) priacc.simps(1))
