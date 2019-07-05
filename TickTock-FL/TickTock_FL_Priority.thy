@@ -3,7 +3,8 @@ theory
 imports
   "TickTock.TickTock_Prioritise"
   TickTock_Max_FL
-  Finite_Linear_Pri
+  "FL.Finite_Linear_Pri"
+  "FL.Finite_Linear_Pri_Laws"
 begin
 
 lemma pri_univ_dist:
@@ -15,48 +16,48 @@ lemma fl2ttobs_extn:
         and TT1w_healthy: "TT1w P"
         and TT3_healthy:  "TT3 P"*)
     shows
-  "(fl2ttm fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))
+  "(fl2ttm fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))
    =
-   ({fl2ttobs fl|fl. fl \<in> fl\<^sub>0} \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P))"
+   ({fl2ttobs fl|fl. fl \<in> fl\<^sub>0} \<subseteq> P \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P))"
 proof -
 
-    have "((fl2ttm fl\<^sub>0) \<subseteq> P \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))
+    have "((fl2ttm fl\<^sub>0) \<subseteq> P \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))
           =
-          ((\<forall>x. x \<in> (fl2ttm fl\<^sub>0) \<longrightarrow> x \<in> P) \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))"
+          ((\<forall>x. x \<in> (fl2ttm fl\<^sub>0) \<longrightarrow> x \<in> P) \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))"
       by auto
     also have "... =
-          ((\<forall>x. x \<in> {fl2ttobs fl|fl. fl \<in> fl\<^sub>0} \<longrightarrow> x \<in> P) \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))"
+          ((\<forall>x. x \<in> {fl2ttobs fl|fl. fl \<in> fl\<^sub>0} \<longrightarrow> x \<in> P) \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))"
       unfolding fl2ttm_def by auto
     also have "... =
-          ((\<forall>x. (\<exists>fl. x = fl2ttobs(fl) \<and> fl \<in> fl\<^sub>0) \<longrightarrow> x \<in> P) \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))"
+          ((\<forall>x. (\<exists>fl. x = fl2ttobs(fl) \<and> fl \<in> fl\<^sub>0) \<longrightarrow> x \<in> P) \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))"
       by auto
     also have "... =
-          ((\<forall>x fl. (x = fl2ttobs(fl) \<and> fl \<in> fl\<^sub>0) \<longrightarrow> x \<in> P) \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))"
+          ((\<forall>x fl. (x = fl2ttobs(fl) \<and> fl \<in> fl\<^sub>0) \<longrightarrow> x \<in> P) \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))"
       by auto
     also have "... =
-          ((\<forall>fl. fl \<in> fl\<^sub>0 \<longrightarrow> fl2ttobs(fl) \<in> P) \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))"
+          ((\<forall>fl. fl \<in> fl\<^sub>0 \<longrightarrow> fl2ttobs(fl) \<in> P) \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))"
       by auto
     also have "... =
-          ((\<forall>fl. (fl \<in> fl\<^sub>0 \<longrightarrow> fl2ttobs(fl) \<in> P)) \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))"
+          ((\<forall>fl. (fl \<in> fl\<^sub>0 \<longrightarrow> fl2ttobs(fl) \<in> P)) \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))"
       by auto
     also have "... =
-          (\<forall>fl\<^sub>x. (fl\<^sub>x \<in> fl\<^sub>0 \<longrightarrow> fl2ttobs(fl\<^sub>x) \<in> P) \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))"
+          (\<forall>fl\<^sub>x. (fl\<^sub>x \<in> fl\<^sub>0 \<longrightarrow> fl2ttobs(fl\<^sub>x) \<in> P) \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))"
       by auto
   then have "...
         =
         (\<forall>fl\<^sub>x. (fl\<^sub>x \<in> fl\<^sub>0 \<longrightarrow> fl2ttobs(fl\<^sub>x) \<in> P) \<and> 
-              (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P))"
+              (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P))"
     by auto
   then have "... =
         ((\<forall>x fl. (x = fl2ttobs(fl) \<and> fl \<in> fl\<^sub>0) \<longrightarrow> x \<in> P) \<and>
-              (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P))"
+              (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P))"
     by auto
   then have "... =
         (({fl2ttobs fl|fl. fl \<in> fl\<^sub>0} \<subseteq> P) \<and>
-              (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P))"
+              (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P))"
     by auto
   ultimately show ?thesis
-    by (smt \<open>((\<forall>x. x \<in> fl2ttm fl\<^sub>0 \<longrightarrow> x \<in> P) \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0)) = ((\<forall>x. x \<in> {fl2ttobs fl |fl. fl \<in> fl\<^sub>0} \<longrightarrow> x \<in> P) \<and> (\<exists>Z. prirel p fl Z \<and> Z \<in> fl\<^sub>0))\<close> mem_Collect_eq subset_eq)
+    by (smt \<open>((\<forall>x. x \<in> fl2ttm fl\<^sub>0 \<longrightarrow> x \<in> P) \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0)) = ((\<forall>x. x \<in> {fl2ttobs fl |fl. fl \<in> fl\<^sub>0} \<longrightarrow> x \<in> P) \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0))\<close> mem_Collect_eq subset_eq)
 qed
 
 
@@ -65,9 +66,9 @@ lemma
 proof -
   have "fl2ttm(Pri p P) = {fl2ttobs fl|fl. fl \<in> (Pri p P)}"
     unfolding fl2ttm_def by simp
-  also have "... = {fl2ttobs fl|fl. fl \<in> {A|A Z. prirel p A Z \<and> Z \<in> P}}"
+  also have "... = {fl2ttobs fl|fl. fl \<in> {A|A Z. pri p A Z \<and> Z \<in> P}}"
     unfolding Pri_def by simp
-  also have "... = {fl2ttobs fl|fl A Z. prirel p fl Z \<and> Z \<in> P}"
+  also have "... = {fl2ttobs fl|fl A Z. pri p fl Z \<and> Z \<in> P}"
     by auto
   oops
 
@@ -91,15 +92,14 @@ proof -
 
 
 
-lemma fl2ttobs_base_prirelacc:
-  assumes "prirelacc p A Z"
+lemma fl2ttobs_base_priacc:
+  assumes "priacc p Z = A"
   shows "fl2ttobs(\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) = (if A = \<bullet> then [] else [[{z. z \<in>\<^sub>\<F>\<^sub>\<L> Z \<longrightarrow> (\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L>Z \<and> z <\<^sup>*p b)}]\<^sub>R])"
   using assms
 proof (cases Z)
   case acnil
   then show ?thesis using assms 
-    apply auto
-    by (cases A, auto)+
+    by auto
 next
   case ZS:(acset ZS)
   then show ?thesis
@@ -128,8 +128,8 @@ next
     qed
 qed
 
-lemma fl2ttobs_base_Z_prirelacc:
-  assumes "prirelacc p A Z"
+lemma fl2ttobs_base_Z_priacc:
+  assumes "priacc p Z = A"
   shows "fl2ttobs(\<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L>) 
          =
          (if Z = \<bullet> then [] else [[{z. z \<notin>\<^sub>\<F>\<^sub>\<L> Z}]\<^sub>R])"
@@ -153,12 +153,15 @@ next
     qed
   qed
 
-lemma fl2ttobs_base_Z_prirelacc_iff:
-   "prirelacc p A Z \<longleftrightarrow>
+(*
+lemma fl2ttobs_base_Z_priacc_iff:
+   "priacc p Z = A \<longleftrightarrow>
          ((fl2ttobs(\<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L>) = (if Z = \<bullet> then [] else [[{z. z \<notin>\<^sub>\<F>\<^sub>\<L> Z}]\<^sub>R]))
           \<and> 
          (fl2ttobs(\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) = (if A = \<bullet> then [] else (if Z \<noteq> \<bullet> then [[{z. z \<in>\<^sub>\<F>\<^sub>\<L> Z \<longrightarrow> (\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L>Z \<and> z <\<^sup>*p b)}]\<^sub>R] else []))))"
-  by (induct A Z rule:prirelacc.induct, auto)
+  apply (cases Z, auto)
+  sledgehammer
+by (induct Z rule:priacc.induct, auto)*)
 
 lemma
   "{z. z \<in> {z. z \<notin> Z} \<longrightarrow> (\<exists>b. b\<in> {z. z \<notin> Z} \<and> z <\<^sup>*p b)} 
@@ -172,16 +175,36 @@ proof -
   then show ?thesis .
 qed
 
-lemma prirelacc_eq_prirelref_via_fl2ttobs:
+lemma priacc_eq_priref_via_fl2ttobs1:
+  assumes "fl2ttobs(\<langle>priacc p Z\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R]" "fl2ttobs(\<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R]"
+  shows "prirelref p S = R"
+  using assms unfolding prirelref_def by (cases Z, auto)
+
+lemma priacc_eq_priref_via_fl2ttobs2:
+  assumes "fl2ttobs(\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R]" "fl2ttobs(\<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R]" "prirelref p S = R"
+  shows "priacc p Z = A"
+  using assms unfolding prirelref_def 
+  apply (cases Z, auto)
+  by (cases A, auto)
+
+lemma priacc_eq_priref_via_fl2ttobs:
   assumes "fl2ttobs(\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R]" "fl2ttobs(\<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R]"
-  shows "prirelacc p A Z \<longleftrightarrow> (prirelref p S = R)"
+  shows "(priacc p Z = A) \<longleftrightarrow> (prirelref p S = R)"
+  using assms priacc_eq_priref_via_fl2ttobs1 priacc_eq_priref_via_fl2ttobs2
+  by metis
+
+(*
+lemma priacc_eq_priref_via_fl2ttobs:
+  assumes "fl2ttobs(\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R]" "fl2ttobs(\<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R]"
+  shows "(priacc p Z = A) \<longleftrightarrow> (prirelref p S = R)"
 proof -
-  have "prirelacc p A Z 
+  have "(priacc p Z = A) 
         =
         ((fl2ttobs(\<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L>) = (if Z = \<bullet> then [] else [[{z. z \<notin>\<^sub>\<F>\<^sub>\<L> Z}]\<^sub>R]))
           \<and> 
          (fl2ttobs(\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) = (if A = \<bullet> then [] else (if Z \<noteq> \<bullet> then [[{z. z \<in>\<^sub>\<F>\<^sub>\<L> Z \<longrightarrow> (\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L>Z \<and> z <\<^sup>*p b)}]\<^sub>R] else []))))" 
-    by (induct A Z rule:prirelacc.induct, auto)
+    apply (cases Z, auto)
+    by (induct Z rule:priacc.induct, auto)
   also have "... = 
         (([[S]\<^sub>R] = (if Z = \<bullet> then [] else [[{z. z \<notin>\<^sub>\<F>\<^sub>\<L> Z}]\<^sub>R]))
           \<and> 
@@ -213,9 +236,9 @@ proof -
     by auto
   also have "... = (R = {z. z \<notin> S \<longrightarrow> (\<exists>b. b \<notin> S \<and> z <\<^sup>*p b)})"
     by auto
-  finally show ?thesis unfolding prirelref_def by auto
+  finally show ?thesis unfolding priref_def by auto
 qed
-
+*)
 lemma
   "acceptance(A) = \<bullet> \<longleftrightarrow> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = []"
   by auto
@@ -226,15 +249,18 @@ lemma acceptances_same_set:
   using assms apply (cases Z, auto)
   by (case_tac a, auto)
 
+(* TODO: to be fixed using new definition. *)
+
+(*
 lemma
   assumes "fl2ttobs(A #\<^sub>\<F>\<^sub>\<L> aa) = ctA" "fl2ttobs(Z #\<^sub>\<F>\<^sub>\<L> zz) = ctZ"
           "event(Z) = Tock \<and> acceptance(Z) \<noteq> \<bullet>"
-  shows "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
+  shows "pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
       =
-    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (prirel p aa zz) \<and>
+    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (pri p aa zz) \<and>
       ((ctA = [] \<and> (\<forall>b. (Tock <\<^sup>*p b) \<longrightarrow> b \<in> ref))
       \<or>
-      ctA = [prirelref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
+      ctA = [priref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
 proof -
   from assms(3) have event_Tock:"event(Z) = Tock \<and> acceptance(Z) \<noteq> \<bullet>"
       by auto
@@ -242,10 +268,10 @@ proof -
     using assms(2) by auto
   then have "\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> acceptance(Z) = [{z. z \<notin> ref}]\<^sub>\<F>\<^sub>\<L> \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R]"
     using event_Tock acceptances_same_set by auto
-  then have "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
+  then have "pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
     =
     (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> 
-      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock 
+      ((acceptance A) \<le> priacc p (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = Tock 
       \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or> 
@@ -253,11 +279,11 @@ proof -
        \<or>
       acceptance(A) \<noteq> \<bullet>))
     "
-    using event_Tock by (metis ttobs.inject(2) prirel.simps(4))
+    using event_Tock by (metis ttobs.inject(2) pri.simps(4))
   also have "...
     =
     (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> 
-      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock
+      (priacc p (acceptance A) (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = Tock
         \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or> 
@@ -269,7 +295,7 @@ proof -
   also have "...
     =
     (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> 
-      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock
+      (priacc p (acceptance A) (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = Tock
         \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (acceptance(A) = \<bullet> \<or> acceptance(A) \<noteq> \<bullet>) \<and>
       (maximal(p,event(A)) 
@@ -281,137 +307,137 @@ proof -
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (pri p aa zz) \<and> event(A) = Tock 
       \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((acceptance(A) = \<bullet> \<and> 
         (maximal(p,event(A)) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> event(A) <\<^sup>*p b)))
       \<or>
-      (acceptance(A) \<noteq> \<bullet> \<and> prirelacc p (acceptance A) (acceptance Z))))"
+      (acceptance(A) \<noteq> \<bullet> \<and> priacc p (acceptance A) (acceptance Z))))"
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (pri p aa zz) \<and> event(A) = Tock 
      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> 
       ((acceptance(A) = \<bullet> \<and> 
         (maximal(p,event(A)) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> event(A) <\<^sup>*p b)))
       \<or>
-      (\<exists>ref\<^sub>1. fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref\<^sub>1]\<^sub>R] \<and> prirelacc p (acceptance A) (acceptance Z))))"
+      (\<exists>ref\<^sub>1. fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref\<^sub>1]\<^sub>R] \<and> priacc p (acceptance A) (acceptance Z))))"
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (pri p aa zz) \<and> event(A) = Tock 
       \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> 
       ((acceptance(A) = \<bullet> \<and> 
         (maximal(p,event(A)) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> event(A) <\<^sup>*p b)))
       \<or>
-      (\<exists>ref\<^sub>1. fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref\<^sub>1]\<^sub>R] \<and> prirelref p ref = ref\<^sub>1)))"
-    using prirelacc_eq_prirelref_via_fl2ttobs
+      (\<exists>ref\<^sub>1. fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref\<^sub>1]\<^sub>R] \<and> priref p ref = ref\<^sub>1)))"
+    using priacc_eq_priref_via_fl2ttobs
     by blast
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (pri p aa zz) \<and> event(A) = Tock 
       \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((acceptance(A) = \<bullet> \<and> 
         (maximal(p,event(A)) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> event(A) <\<^sup>*p b)))
       \<or>
-      fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[prirelref p ref]\<^sub>R]))"
+      fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[priref p ref]\<^sub>R]))"
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (pri p aa zz) \<and> event(A) = Tock 
       \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b)))
       \<or>
-      fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[prirelref p ref]\<^sub>R]))"
+      fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[priref p ref]\<^sub>R]))"
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock 
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (pri p aa zz) \<and> event(A) = Tock 
       \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       ((fl2ttobs(A #\<^sub>\<F>\<^sub>\<L> aa) = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b)))
       \<or>
-      fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[prirelref p ref]\<^sub>R]))"
+      fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[priref p ref]\<^sub>R]))"
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (pri p aa zz) \<and> event(A) = Tock \<and>
       ((ctA = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b)))
       \<or>
-      fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[prirelref p ref]\<^sub>R]))"
+      fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[priref p ref]\<^sub>R]))"
     using assms(1) by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (pri p aa zz) \<and> event(A) = Tock \<and>
       ((ctA = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b)))
       \<or>
-      fl2ttobs(A #\<^sub>\<F>\<^sub>\<L> aa) = [prirelref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
+      fl2ttobs(A #\<^sub>\<F>\<^sub>\<L> aa) = [priref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
     by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[ref]\<^sub>R] \<and> (pri p aa zz) \<and> event(A) = Tock \<and>
       ((ctA = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b)))
       \<or>
-      ctA = [prirelref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
+      ctA = [priref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
     using assms(1) by auto
   also have "...
     =
-    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(Z #\<^sub>\<F>\<^sub>\<L> zz) = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+    (\<exists>ref. [ref]\<^sub>R = hd ctZ \<and> fl2ttobs(Z #\<^sub>\<F>\<^sub>\<L> zz) = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (pri p aa zz) \<and> event(A) = Tock \<and>
       ((ctA = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b)))
       \<or>
-      ctA = [prirelref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
+      ctA = [priref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
     using event_Tock by auto
   also have "...
     =
-    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (pri p aa zz) \<and> event(A) = Tock \<and>
       ((ctA = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b)))
       \<or>
-      ctA = [prirelref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
+      ctA = [priref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
     using assms(2) by auto
   also have "...
     =
-    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (prirel p aa zz) \<and>
+    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (pri p aa zz) \<and>
       ((ctA = [] \<and> 
         (maximal(p,Tock) 
         \<or> 
         \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b)))
       \<or>
-      ctA = [prirelref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
+      ctA = [priref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
     using assms(1) by force
   also have "...
     =
-    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (prirel p aa zz) \<and>
+    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (pri p aa zz) \<and>
       ((ctA = [] \<and> \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b))
       \<or>
-      ctA = [prirelref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
+      ctA = [priref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"
   proof -
     have "\<forall>ref. (maximal(p,Tock) \<or> \<not>(\<exists>b. b \<notin> ref \<and> Tock <\<^sup>*p b))
                 = 
@@ -422,10 +448,10 @@ proof -
   qed
   also have "...
     =
-    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (prirel p aa zz) \<and>
+    (\<exists>ref. ctZ = [ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(zz) \<and> (pri p aa zz) \<and>
       ((ctA = [] \<and> (\<forall>b. (Tock <\<^sup>*p b) \<longrightarrow> b \<in> ref))
       \<or>
-      ctA = [prirelref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"  
+      ctA = [priref p ref]\<^sub>R # [Tock]\<^sub>E # fl2ttobs(aa)))"  
     by auto
   finally show ?thesis .
 qed
@@ -433,16 +459,16 @@ qed
 lemma
   assumes "fl2ttobs(A #\<^sub>\<F>\<^sub>\<L> aa) = ctA" "fl2ttobs(Z #\<^sub>\<F>\<^sub>\<L> zz) = ctZ"
           "event(Z) = Tock \<and> acceptance(Z) = \<bullet>"
-  shows "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = (ctZ = [] \<and> ctA = [] \<and> (prirel p aa zz) \<and> maximal(p,Tock))"
+  shows "pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = (ctZ = [] \<and> ctA = [] \<and> (pri p aa zz) \<and> maximal(p,Tock))"
 proof -
   from assms(3) have event_Tock_bullet:"event(Z) = Tock \<and> acceptance(Z) = \<bullet>"
       by auto
   then have "ctZ = []"
     using assms(2) by auto
-  then have "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
+  then have "pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
     =
     (fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [] \<and> 
-      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock 
+      (priacc p (acceptance A) (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = Tock 
       \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A)) 
        \<or>
@@ -451,26 +477,26 @@ proof -
     using event_Tock_bullet by auto
   also have "... =
     (fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [] \<and> acceptance(A) = \<bullet> \<and>
-      (prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = Tock \<and>
+      (priacc p (acceptance A) (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = Tock \<and>
       (maximal(p,event(A)) 
        \<or>
       acceptance(A) \<noteq> \<bullet>))
     "
-    using acceptance_not_bullet_imp_prirelacc event_Tock_bullet by blast
+    using acceptance_not_bullet_imp_priacc event_Tock_bullet by blast
   also have "... =
     (fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [] \<and> acceptance(A) = \<bullet> \<and>
-      (prirel p aa zz) \<and> event(A) = Tock \<and> maximal(p,event(A)))"  
+      (pri p aa zz) \<and> event(A) = Tock \<and> maximal(p,event(A)))"  
     using event_Tock_bullet by auto
   also have "... =
     (ctZ = [] \<and> acceptance(A) = \<bullet> \<and>
-      (prirel p aa zz) \<and> event(A) = Tock \<and> maximal(p,event(A)))"  
+      (pri p aa zz) \<and> event(A) = Tock \<and> maximal(p,event(A)))"  
     using assms event_Tock_bullet by auto
   also have "... =
     (ctZ = [] \<and> ctA = [] \<and>
-      (prirel p aa zz) \<and> event(A) = Tock \<and> maximal(p,event(A)))" 
+      (pri p aa zz) \<and> event(A) = Tock \<and> maximal(p,event(A)))" 
     using assms(1) by force
   also have "... =
-    (ctZ = [] \<and> ctA = [] \<and> (prirel p aa zz) \<and> maximal(p,Tock))" 
+    (ctZ = [] \<and> ctA = [] \<and> (pri p aa zz) \<and> maximal(p,Tock))" 
     using assms(1) by force
   finally show ?thesis .
 qed
@@ -479,22 +505,22 @@ qed
 lemma
   assumes "fl2ttobs(A #\<^sub>\<F>\<^sub>\<L> aa) = ctA" "fl2ttobs(Z #\<^sub>\<F>\<^sub>\<L> zz) = ctZ"
           "event(Z) \<noteq> Tock"
-    shows "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
+    shows "pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
         =
-        (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
+        (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
          ((maximal(p,event(Z)) \<and> acceptance(A) = \<bullet>)
          \<or> 
          (acceptance(A) = \<bullet> \<and> (\<exists>S. fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R] \<and> event(Z) \<notin> S \<and> \<not>(\<exists>b. b \<notin> S \<and> event(Z) <\<^sup>*p b)))
          \<or>
-         (\<exists>R S. prirelref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
+         (\<exists>R S. priref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
 proof -
     from assms have event_Tock_bullet:"event(Z) \<noteq> Tock"
       by auto
     then have "ctZ = [event Z]\<^sub>E # fl2ttobs(zz)"
       using assms(2) by auto
-    then have "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
+    then have "pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)
       =
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+      ((priacc p (acceptance A) (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = event(Z) 
         \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
       (maximal(p,event(A))
        \<or> 
@@ -503,7 +529,7 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
       by auto
     also have "... =
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+      ((priacc p (acceptance A) (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = event(Z) 
         \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ctA = [event A]\<^sub>E # fl2ttobs(aa) \<and>
       (maximal(p,event(A))
@@ -513,7 +539,7 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
       using assms by auto
     also have "... =
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+      ((priacc p (acceptance A) (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = event(Z) 
         \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ctA = [event A]\<^sub>E # fl2ttobs(aa) \<and>
        (maximal(p,event(A))
@@ -523,7 +549,7 @@ proof -
        acceptance(A) \<noteq> \<bullet>))"
       using assms by auto
     also have "... =
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+      ((priacc p (acceptance A) (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = event(Z) 
         \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
       (maximal(p,event(Z))
@@ -532,8 +558,8 @@ proof -
        \<or>
       acceptance(A) \<noteq> \<bullet>))"
       by auto
-    then have p1:"prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = 
-      ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+    then have p1:"pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = 
+      ((priacc p (acceptance A) (acceptance Z)) \<and> (pri p aa zz) \<and> event(A) = event(Z) 
         \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
       (maximal(p,event(Z))
@@ -543,67 +569,67 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
       using calculation assms by auto
 
-    then have "(prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)) =
-      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
+    then have "(pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)) =
+      (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ((maximal(p,event(A)) \<and> acceptance(A) = \<bullet> \<and> event(A) = event(Z))
          \<or> 
         (acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b) \<and> event(A) = event(Z))
          \<or>
-        (prirelacc p (acceptance A) (acceptance Z) \<and> acceptance(A) \<noteq> \<bullet> \<and> event(A) = event(Z))))"
+        (priacc p (acceptance A) (acceptance Z) \<and> acceptance(A) \<noteq> \<bullet> \<and> event(A) = event(Z))))"
       by auto
     also have "... =
-      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
+      (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
         ((maximal(p,event(A)) \<and> acceptance(A) = \<bullet> \<and> event(A) = event(Z))
          \<or> 
         (acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(Z) <\<^sup>*p b))
          \<or>
-        (prirelacc p (acceptance A) (acceptance Z) \<and> acceptance(A) \<noteq> \<bullet> \<and> event(A) = event(Z))))"
+        (priacc p (acceptance A) (acceptance Z) \<and> acceptance(A) \<noteq> \<bullet> \<and> event(A) = event(Z))))"
       using assms(1) ttobs.inject(1) fl2ttobs.simps(2) by force
     also have "... =
-      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
+      (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
         ((maximal(p,event(Z)) \<and> acceptance(A) = \<bullet>)
          \<or> 
          (acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(Z) <\<^sup>*p b))
          \<or>
-         (prirelacc p (acceptance A) (acceptance Z) \<and> acceptance(A) \<noteq> \<bullet>)))"
+         (priacc p (acceptance A) (acceptance Z) \<and> acceptance(A) \<noteq> \<bullet>)))"
       using assms(1) ttobs.inject(1) fl2ttobs.simps(2) by force
     also have "... =
-      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
+      (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
         ((maximal(p,event(Z)) \<and> acceptance(A) = \<bullet>)
          \<or> 
          (acceptance(A) = \<bullet> \<and> acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(Z) <\<^sup>*p b))
          \<or>
-         (\<exists>R S. prirelref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
-      by (smt acceptance_not_bullet_imp_prirelacc fl2ttobs.simps(1) list.discI prirelacc_eq_prirelref_via_fl2ttobs)
+         (\<exists>R S. priref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
+      by (smt acceptance_not_bullet_imp_priacc fl2ttobs.simps(1) list.discI priacc_eq_priref_via_fl2ttobs)
     also have "... =
-      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
+      (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
         ((maximal(p,event(Z)) \<and> acceptance(A) = \<bullet>)
          \<or> 
          (acceptance(A) = \<bullet> \<and> (\<exists>S. fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R] \<and> \<not>(\<exists>b. b \<notin> S \<and> event(Z) <\<^sup>*p b)))
          \<or>
-         (\<exists>R S. prirelref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
+         (\<exists>R S. priref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
       by auto
     also have "... =
-      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
+      (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
         ((maximal(p,event(Z)) \<and> acceptance(A) = \<bullet>)
          \<or> 
          (acceptance(A) = \<bullet> \<and> event(Z) \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> (\<exists>S. fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R] \<and> \<not>(\<exists>b. b \<notin> S \<and> event(Z) <\<^sup>*p b)))
          \<or>
-         (\<exists>R S. prirelref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
+         (\<exists>R S. priref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
       by auto
     also have "... =
-      (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
+      (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs(aa) \<and>
         ((maximal(p,event(Z)) \<and> acceptance(A) = \<bullet>)
          \<or> 
          (acceptance(A) = \<bullet> \<and> event(Z) \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> (\<exists>S. fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R] \<and> event(Z) \<notin> S \<and> \<not>(\<exists>b. b \<notin> S \<and> event(Z) <\<^sup>*p b)))
          \<or>
-         (\<exists>R S. prirelref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
+         (\<exists>R S. priref p S = R \<and> fl2ttobs(\<langle>acceptance(A)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[R]\<^sub>R] \<and> fl2ttobs(\<langle>acceptance(Z)\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[S]\<^sub>R])))"
       by auto
     finally show ?thesis
-      using \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>))\<close> \<open>(prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>)) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> (\<exists>R S. prirelref p S = R \<and> fl2ttobs \<langle>acceptance A\<rangle>\<^sub>\<F>\<^sub>\<L> = [[R]\<^sub>R] \<and> fl2ttobs \<langle>acceptance Z\<rangle>\<^sub>\<F>\<^sub>\<L> = [[S]\<^sub>R])))\<close> \<open>prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = (prirel p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> prirelacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> by auto
+      using \<open>(pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> priacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> priacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> \<open>(pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> priacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z)) = (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> priacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>))\<close> \<open>(pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> priacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet>)) = (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (maximal(p,event Z) \<and> acceptance A = \<bullet> \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event Z <\<^sup>*p b) \<or> (\<exists>R S. priref p S = R \<and> fl2ttobs \<langle>acceptance A\<rangle>\<^sub>\<F>\<^sub>\<L> = [[R]\<^sub>R] \<and> fl2ttobs \<langle>acceptance Z\<rangle>\<^sub>\<F>\<^sub>\<L> = [[S]\<^sub>R])))\<close> \<open>pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) = (pri p aa zz \<and> ctA = [event Z]\<^sub>E # fl2ttobs aa \<and> (event A \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (maximal(p,event A) \<and> acceptance A = \<bullet> \<and> event A = event Z \<or> acceptance A = \<bullet> \<and> acceptance Z \<noteq> \<bullet> \<and> (\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z \<and> event A <\<^sup>*p b) \<and> event A = event Z \<or> priacc p (acceptance A) (acceptance Z) \<and> acceptance A \<noteq> \<bullet> \<and> event A = event Z))\<close> by auto
         
   qed
-
+*)
 lemma fl2ttobs_consFL_eq_Nil: "fl2ttobs (A #\<^sub>\<F>\<^sub>\<L> fl) = [] \<longleftrightarrow> event(A) = Tock \<and> acceptance(A) = \<bullet>"
   by auto
 
@@ -624,12 +650,13 @@ next
   then show ?thesis by auto
 qed
 
-fun prirelttobs :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> bool" where
-"prirelttobs p [[R]\<^sub>R] [[S]\<^sub>R] = (prirelref p S = R)" |
-"prirelttobs p [[A]\<^sub>R] [[e]\<^sub>E] = (maximal(p,e))"
+(*
+fun prittobs :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> bool" where
+"prittobs p [[R]\<^sub>R] [[S]\<^sub>R] = (p p S = R)" |
+"prittobs p [[A]\<^sub>R] [[e]\<^sub>E] = (maximal(p,e))"
 
-lemma fl2ttobs_base_prirelacc_2:
-  assumes "prirelacc p A Z"
+lemma fl2ttobs_base_priacc_2:
+  assumes "priacc p A Z"
   shows "fl2ttobs(\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) 
         = 
         (if A = \<bullet> then [] 
@@ -638,12 +665,12 @@ proof -
   have "fl2ttobs(\<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) 
         = 
         (if A = \<bullet> then [] else [[{z. z \<in>\<^sub>\<F>\<^sub>\<L> Z \<longrightarrow> (\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L>Z \<and> z <\<^sup>*p b)}]\<^sub>R])"
-    using assms fl2ttobs_base_prirelacc by blast
+    using assms fl2ttobs_base_priacc by blast
   then show ?thesis by (cases Z, auto)
 qed  
 
 lemma
-  assumes "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)"
+  assumes "pri p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz)"
   shows "fl2ttobs(A #\<^sub>\<F>\<^sub>\<L> aa) 
          = 
          (if event(Z) = Tock then
@@ -667,7 +694,7 @@ proof -
               else []) 
           else ([event A]\<^sub>E # fl2ttobs aa))"
     using assms
-    by (smt Collect_cong amember.simps(2) mem_Collect_eq prirel_cons_imp1 prirel_two_acceptances_bullet_not_bullet)
+    by (smt Collect_cong amember.simps(2) mem_Collect_eq pri_cons_imp1 pri_two_acceptances_bullet_not_bullet)
   also have "... = 
         (if event(Z) = Tock then
              (if acceptance(A) \<noteq> \<bullet> then
@@ -682,29 +709,29 @@ qed
 definition after :: "('e ttobs) list \<Rightarrow> ('e ttobs) list set \<Rightarrow> ('e ttobs) list set" where
 "after x P = {z|z. x @ z \<in> P}"
 
-
+*)
 
 (*
-fun prirelAltRef :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list set \<Rightarrow> bool" where
-"prirelAltRef p [] [] Q = True" |
-"prirelAltRef p [[R]\<^sub>R] [[S]\<^sub>R] Q = (prirelref p S = R)" |
-"prirelAltRef p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) Q = ((R = prirelref p S) \<and> prirelAltRef p aa zz (after [[S]\<^sub>R,[Tock]\<^sub>E] Q))" |
-"prirelAltRef p ([e\<^sub>1]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) Q
+fun priAltRef :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list \<Rightarrow> ('e ttobs) list set \<Rightarrow> bool" where
+"priAltRef p [] [] Q = True" |
+"priAltRef p [[R]\<^sub>R] [[S]\<^sub>R] Q = (priref p S = R)" |
+"priAltRef p ([R]\<^sub>R # [Tock]\<^sub>E # aa) ([S]\<^sub>R # [Tock]\<^sub>E # zz) Q = ((R = priref p S) \<and> priAltRef p aa zz (after [[S]\<^sub>R,[Tock]\<^sub>E] Q))" |
+"priAltRef p ([e\<^sub>1]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) Q
  = 
- (e\<^sub>1 = e\<^sub>2 \<and> prirelAltRef p aa zz (after [[e\<^sub>1]\<^sub>E] Q) \<and>
+ (e\<^sub>1 = e\<^sub>2 \<and> priAltRef p aa zz (after [[e\<^sub>1]\<^sub>E] Q) \<and>
   (maximal(p,e\<^sub>2) 
    \<or> 
   (\<exists>Z. [[Z]\<^sub>R] \<in> Q \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))))" |
-"prirelAltRef p x y Q = False"
+"priAltRef p x y Q = False"
 
-thm prirelAltRef.induct*)
+thm priAltRef.induct*)
 
 (* This is a nasty definition, but could be proved with 'function' using the
    following methods. *)
 
 (*  apply (pat_completeness, simp_all)
   done
-termination prirelRef
+termination priRef
   by (relation "measure (\<lambda>(p,l,r,s,q). (size r + size l))", auto)
 *)
 
