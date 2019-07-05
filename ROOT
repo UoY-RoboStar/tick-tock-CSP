@@ -22,6 +22,8 @@ session "FL" in "FL" = HOL +
      Finite_Linear_Induction
      Finite_Linear_Tick_Param
      Finite_Linear_Priority
+     Finite_Linear_Pri
+     Finite_Linear_Pri_Laws
      Finite_Linear
 
 session "TickTock-FL" in "TickTock-FL" = "FL" + 

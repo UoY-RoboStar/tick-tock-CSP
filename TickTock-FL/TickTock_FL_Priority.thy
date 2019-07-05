@@ -3,7 +3,7 @@ theory
 imports
   "TickTock.TickTock_Prioritise"
   TickTock_Max_FL
-  "FL.Finite_Linear_Pri"
+  Finite_Linear_Pri
 begin
 
 lemma pri_univ_dist:

@@ -199,7 +199,31 @@ lemma prirel_two_acceptances_bullet_not_bullet:
      apply (case_tac aa, auto, metis (mono_tags, lifting) Int_Collect)
     apply (case_tac aa, auto, smt Int_Collect)
   by (cases A, auto, cases Z, auto, case_tac a, auto)+
-  
+
+lemma prirelacc_singleton:
+  "priacc\<^sub>[\<^sub>p\<^sub>]([{b}]\<^sub>\<F>\<^sub>\<L>) = [{b}]\<^sub>\<F>\<^sub>\<L>"
+  by auto
+
+lemma preirelacc_pair_removed:
+  assumes "a <\<^sup>*p b" "priacc\<^sub>[\<^sub>p\<^sub>]([X]\<^sub>\<F>\<^sub>\<L>) = [Y]\<^sub>\<F>\<^sub>\<L>" "a \<in> Y" "b \<in> Y"
+  shows "a \<notin> X"
+  using assms by (auto simp add:my_lt_def)
+
+lemma prirel_same_from_singleton:
+  shows "pri p \<langle>([{b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>([{b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" 
+  by auto
+
+lemma prirel_same:
+  assumes "a <\<^sup>*p b" "pri p \<langle>([X]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>([Y]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "b \<in> Y" "b \<in> X"
+  shows "a \<notin> X" 
+  using assms apply auto
+  by (metis (mono_tags, lifting) Int_Collect)+
+
+lemma prirel_same_length:
+  assumes "pri p fl Y"
+  shows "length fl = length Y"
+  using assms by (induct fl Y rule:pri.induct, auto)
+
 lemma prirel_rhs_singleton_iff:
   "pri p x \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (x = \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
   by (cases x, auto)

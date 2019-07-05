@@ -20,7 +20,7 @@ lemma pri_tickWF:
 lemma FLTick0_pri:
   assumes "FLTick0 tick P"
   shows "FLTick0 tick (Pri p P)"
-  using assms unfolding FLTick0_def pri_def apply auto
+  using assms unfolding FLTick0_def Pri_def apply auto
   by (simp add: pri_tickWF)
 
 lemma prirel_extend_both_last_null_imp:
@@ -101,7 +101,7 @@ qed
 lemma FL2_pri:
   assumes "FL2 P"
   shows "FL2 (Pri p P)"
-  using assms unfolding FL2_def pri_def apply auto
+  using assms unfolding FL2_def Pri_def apply auto
   by (simp add: assms pri_FL2)
 
 text \<open>Does Pri distribute through sequential composition in this model?\<close>
@@ -232,7 +232,7 @@ qed
 lemma pri_dist_SeqComp:
   assumes "FLTick0 tick P" "maximal(p,tick)"
   shows "Pri p (P (tick);\<^sub>\<F>\<^sub>\<L> Q) = ((Pri p P) (tick);\<^sub>\<F>\<^sub>\<L> (Pri p Q))"
-  using assms unfolding pri_def SeqComp_def
+  using assms unfolding Pri_def SeqComp_def
 proof (auto)
   fix "x" "s" "t"
   assume  assm0:"FLTick0 tick P"
