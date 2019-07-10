@@ -1,4 +1,4 @@
-theory Finite_Linear_Pri_Laws
+theory Finite_Linear_Pri_Tick
 
 imports
   Finite_Linear_Pri
@@ -6,107 +6,12 @@ imports
   Finite_Linear_Induction
 begin
 
-lemma Pri_idem:
-  "Pri p (Pri p P) = Pri p P"
-  unfolding Pri_def apply auto
-  using prirel_trans apply blast
-  using prirel_decompose by blast
-
-lemma Pri_IntChoice_dist:
-  "Pri p (P \<sqinter>\<^sub>\<F>\<^sub>\<L> Q) = (Pri p P) \<sqinter>\<^sub>\<F>\<^sub>\<L> (Pri p Q)"
-  unfolding Pri_def IntChoice_def by auto
-
-lemma Pri_Prefix_eq_Prefix_pri:
-  shows "Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) = (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> (Pri p P))"
-  unfolding Prefix_def Pri_def prefixH_def apply auto
-         apply (simp add: prirel_rhs_singleton_iff)
-       apply (meson prirel_cons_imp_exists)
-      apply (meson prirel_cons_bullet_iff_exists)
-     apply force
-    apply force
-   apply (metis prirel_cons_iff_exists)
-  by (metis prirel_cons_iff_exists)
-
-lemma prirel_ExtChoice_extends:
-  assumes "b <\<^sup>*p a"
-  shows "(\<exists>A B X. pri p R X \<and> ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)) = (\<exists>A. pri p R A \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P))"
-  using assms unfolding Prefix_def apply (safe, simp_all)
-                     apply auto[4]
-                  apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-                 apply (metis prirel_cons_bullet_iff_exists some_higher_not_maximal)   
-                apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-                 apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-               apply (simp_all add: prirel_cons_bullet_iff_exists some_higher_not_maximal)
- apply blast apply safe
-                 apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-             apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-            apply (metis prirel_rel_less_eq_twoset)
-   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
-            apply (simp add: prirel_rel_less_eq_twoset)
-  using prirel_rel_less_eq_twoset apply fastforce
-                   apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-                  apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (simp_all add: prirel_cons_bullet_iff_exists some_higher_not_maximal)
-             apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-            apply (metis prirel_cons_also_prirel)
-  apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  
-          apply (metis prirel_cons_also_prirel)+
-     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-    apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (cases R, auto)
-   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
-    apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-    apply (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
-   apply (simp_all add: prirel_cons_iff_exists_less_eq_twoset prirel_cons_imp_exists)
-  by (metis ExtChoiceH.simps(3) ExtChoiceH_sym acceptance_event acceptance_set aunion.simps(2) prirel_cons_bullet_iff_exists)
-
-lemma Pri_ExtChoice_two_prefixes:
-  assumes "b <\<^sup>*p a" "FL1 P"
-  shows "Pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
-        =
-        Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
-proof -
-  have "((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
-      =
-      {X| X A B. ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)}"
-    unfolding ExtChoice_def by auto
-  then have "Pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
-      =
-      {R|R A B X. pri p R X \<and> ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)}"
-    unfolding Pri_def by auto
-  also have "... = {R|R A. pri p R A \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)}"
-    using assms(1)
-    by (simp add: prirel_ExtChoice_extends)
-  also have "... = Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
-    unfolding Pri_def by auto 
-  then show ?thesis using calculation 
-    by auto
-qed
-
-lemma
-  assumes "\<not>a <\<^sup>*p b" "\<not>b <\<^sup>*p a"
-  shows "Pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> P))
-        =
-        Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> Pri p (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
-  using assms unfolding ExtChoice_def Pri_def apply auto
-  oops
-
-lemma prirelacc_not_in_imp [simp]:
-  assumes "priacc\<^sub>[\<^sub>p\<^sub>](A) = Z" "e \<notin>\<^sub>\<F>\<^sub>\<L> A"
-  shows "e \<notin>\<^sub>\<F>\<^sub>\<L> Z"
-  using assms
-  by (cases A, auto)
-
 lemma pri_tickWF:
   assumes "pri p x Z" "tickWF tick Z"
   shows "tickWF tick x"
   using assms by (induct p x Z arbitrary:tick rule:pri.induct, auto)
 
-lemma FLTick0_Pri:
+lemma FLTick0_pri:
   assumes "FLTick0 tick P"
   shows "FLTick0 tick (Pri p P)"
   using assms unfolding FLTick0_def Pri_def apply auto
@@ -126,19 +31,7 @@ lemma prirel_eq_length_imp_last_member:
   assumes "length xs = length ys" "last xs = \<bullet>" "last ys \<noteq> \<bullet>" "pri p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) ys"
   shows  "\<forall>e. e \<in>\<^sub>\<F>\<^sub>\<L> x  \<longrightarrow> e \<in>\<^sub>\<F>\<^sub>\<L> last ys"
   using assms
-proof(induct p xs ys rule:prirel.induct)
-  case (1 p A Z)
-  then show ?case by auto
-next
-  case (2 p A Z zz)
-  then show ?case by auto
-next
-  case (3 p A aa Z)
-  then show ?case by auto
-next
-  case (4 p A aa Z zz)
-  then show ?case by auto
-qed
+  by (induct p xs ys rule:pri.induct, auto)
  
 lemma pri_FL2:
   assumes "FL2 P" "a \<in>\<^sub>\<F>\<^sub>\<L> A" "pri p (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) Z" "Z \<in> P"
@@ -147,7 +40,7 @@ lemma pri_FL2:
 proof (cases "last \<beta> = \<bullet>")
   case True
   then obtain \<Gamma> where pGama:"pri p (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) (\<Gamma> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) \<and> \<Gamma> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> = Z \<and> length \<beta> = length \<Gamma>"
-    using assms
+    using assms 
     by (metis Finite_Linear_Model.last.simps(1) acceptance.distinct(1) add_cancel_right_right amember.elims(2) concat_FL_last_not_bullet_absorb last_bullet_then_last_cons length.simps(1) length_cons prirel_cons_eq_length_imp_prirel_acceptances_last_bullet_eq prirel_cons_eq_length_imp_prirel_acceptances_last_not_bullet prirel_same_length)
   then show ?thesis
   proof (cases "last \<Gamma> = \<bullet>")
@@ -173,7 +66,7 @@ proof (cases "last \<beta> = \<bullet>")
       by (metis butlast_last_cons2_FL pGama rev_rev_butlast strong_less_eq_fltrace_cons_imp_lhs strong_less_eq_fltrace_eq_length strong_less_eq_fltrace_refl)
 
     then have "pri p (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>(A,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (butlast \<Gamma> &\<^sub>\<F>\<^sub>\<L> \<langle>(last \<Gamma>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-      using True \<open>\<forall>e. e \<in>\<^sub>\<F>\<^sub>\<L> A \<longrightarrow> e \<in>\<^sub>\<F>\<^sub>\<L> Finite_Linear_Model.last \<Gamma>\<close> \<open>pri p (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) (Finite_Linear_Model.butlast \<Gamma> &\<^sub>\<F>\<^sub>\<L> \<langle>Finite_Linear_Model.last \<Gamma>\<rangle>\<^sub>\<F>\<^sub>\<L>)\<close> assms(2) last_butlast_cons_bullet prirel_extend_both_last_null_imp2
+      using True \<open>\<forall>e. e \<in>\<^sub>\<F>\<^sub>\<L> A \<longrightarrow> e \<in>\<^sub>\<F>\<^sub>\<L> Finite_Linear_Model.last \<Gamma>\<close> \<open>pri p (\<beta> &\<^sub>\<F>\<^sub>\<L> \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L>) (Finite_Linear_Model.butlast \<Gamma> &\<^sub>\<F>\<^sub>\<L> \<langle>Finite_Linear_Model.last \<Gamma>\<rangle>\<^sub>\<F>\<^sub>\<L>)\<close> assms(2) last_butlast_cons_bullet prirel_extend_both_last_null_imp2 
       by (metis bullet_right_zero2)
     then show ?thesis
       using \<open>Finite_Linear_Model.butlast \<Gamma> &\<^sub>\<F>\<^sub>\<L> \<langle>(Finite_Linear_Model.last \<Gamma>,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P\<close> by blast
@@ -185,7 +78,7 @@ case False
     by (metis concat_FL_last_not_bullet_absorb)
 qed
 
-lemma FL2_Pri:
+lemma FL2_pri:
   assumes "FL2 P"
   shows "FL2 (Pri p P)"
   using assms unfolding FL2_def Pri_def apply auto
@@ -201,59 +94,31 @@ lemma prirel_consFL_both_imp:
 lemma prirel_consFL_both_imp':
   assumes "pri p x s" "pri p y t" 
   shows "pri p (x &\<^sub>\<F>\<^sub>\<L>y) (s &\<^sub>\<F>\<^sub>\<L> t)" 
-  using assms 
-proof(induct x s rule:pri.induct)
-  case (1 p A Z)
-  then show ?case 
-  proof (cases "Z = \<bullet>")
-    case True
-    then show ?thesis using 1 by auto
-  next
-    case False
-    then obtain ZSet where ZSet:"Z = [ZSet]\<^sub>\<F>\<^sub>\<L>"
-      by (cases Z, auto)
-    have "Finite_Linear_Model.last \<langle>[ZSet \<inter> {a. \<forall>aa. aa \<in> ZSet \<longrightarrow> \<not> a <\<^sup>*p aa}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<noteq> \<bullet>"
-      by auto
-    then have f1: "\<langle>[ZSet \<inter> {a. \<forall>aa. aa \<in> ZSet \<longrightarrow> \<not> a <\<^sup>*p aa}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> y = \<langle>[ZSet \<inter> {a. \<forall>aa. aa \<in> ZSet \<longrightarrow> \<not> a <\<^sup>*p aa}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-      using concat_FL_last_not_bullet_absorb by blast
-    have "\<langle>[ZSet]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> t = \<langle>[ZSet]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-      by (simp add: concat_FL_last_not_bullet_absorb)
-    then have "(\<langle>[ZSet \<inter> {a. \<forall>aa. aa \<in> ZSet \<longrightarrow> \<not> a <\<^sup>*p aa}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> y) pri\<^sub>[\<^sub>p\<^sub>] (\<langle>[ZSet]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> t)"
-      using f1 by auto
-    then show ?thesis using 1 False ZSet by auto
-  qed
-next
-  case (2 p A Z \<sigma>)
-  then show ?case by auto
-next
-  case (3 p A \<rho> Z)
-  then show ?case by auto
-next
-  case (4 p A \<rho> Z \<sigma>)
-  then show ?case by auto
-qed
+  using assms apply(induct x s rule:pri.induct, auto)
+  apply (case_tac Z, auto)
+  by (smt Collect_cong Finite_Linear_Model.last.simps(1) acceptance.distinct(1) concat_FL_last_not_bullet_absorb pri.simps(1) priacc.simps(2))
 
 lemma prirel_consFL_exists:
   assumes "pri p x (s &\<^sub>\<F>\<^sub>\<L> t)"
   shows "\<exists>y. pri p y s"
-  using assms apply(induct x s rule:pri.induct, auto)  
-  using pri.simps(1) apply blast+
-  by (metis pri.simps(4))+
+  using assms apply(induct x s rule:pri.induct, auto)    
+     apply (rule_tac x="\<langle>priacc\<^sub>[\<^sub>pa\<^sub>](Z)\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+  apply (rule_tac x="\<langle>priacc\<^sub>[\<^sub>pa\<^sub>](Z)\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+  using pri.simps(4) by fastforce+
+  
 
 lemma prirel_consFL_last_bullet_exists:
   assumes "pri p x (s &\<^sub>\<F>\<^sub>\<L> t)" "last s = \<bullet>"
   shows "\<exists>s0 t0. x = s0 &\<^sub>\<F>\<^sub>\<L> t0 \<and> pri p s0 s \<and> pri p t0 t"
-  using assms apply(induct x s rule:pri.induct, auto)
-  apply (metis bullet_left_zero2 pri.simps(1) priacc.simps(1))
-    apply (metis bullet_left_zero2 pri.simps(1) priacc.simps(1))
+  using assms apply(induct p x s rule:pri.induct, auto)
+     apply (metis bullet_left_zero2 pri.simps(1) priacc.simps(1) )+
   by (metis fltrace_concat2.simps(2) pri.simps(4))+
 
 lemma prirel_consFL_last_bullet_exists':
   assumes "pri p (s &\<^sub>\<F>\<^sub>\<L> t) x" "last s = \<bullet>"
   shows "\<exists>s0 t0. x = s0 &\<^sub>\<F>\<^sub>\<L> t0 \<and> pri p s s0 \<and> pri p t t0"
   using assms apply(induct x s rule:pri.induct, auto)
-     apply (metis bullet_left_zero2 pri.simps(1) priacc.simps(1))
-    apply (metis bullet_left_zero2 pri.simps(1) priacc.simps(1))
+     apply (metis bullet_left_zero2 pri.simps(1) priacc.simps(1) )+
   by (metis fltrace_concat2.simps(2) pri.simps(4))+
 
 lemma prirel_not_events:
@@ -275,10 +140,12 @@ lemma prirel_consFL_last_bullet_both:
   assumes "pri p (s &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>(a,c)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "last s = \<bullet>" "last ys = \<bullet>" "maximal(p,b)" "c \<in>\<^sub>\<F>\<^sub>\<L> a \<or> a = \<bullet>"
   shows "b = c"
   using assms apply(induct p s ys rule:pri.induct, auto)
-      apply (metis Finite_Linear_Model.butlast.simps(1) bullet_left_zero2 butlast_last_cons2_FL fltrace.exhaust fltrace_concat2.simps(2) pri.simps(2))
-     apply (metis fltrace.distinct(1) fltrace.exhaust pri.simps(2) rev3.simps(1) rev3_little_more_extra)      
-  by (metis bullet_left_zero2 dual_order.antisym pri.simps(3) prirel_consFL_last_bullet_exists' x_le_x_concat2)+
-  
+         apply (case_tac Z, auto)
+          apply (metis (no_types, hide_lams) Finite_Linear_Model.butlast.simps(1) butlast_last_cons2_FL concat_FL_last_not_bullet_absorb fltrace.exhaust pri.simps(1) pri.simps(2) rev3.simps(1) rev3_little_more_extra)
+         apply (metis fltrace.distinct(1) fltrace.exhaust pri.simps(2) rev3.simps(1) rev3_little_more_extra)
+  apply (metis Finite_Linear_Model.butlast.simps(1) bullet_left_zero2 butlast_last_cons2_FL fltrace.exhaust fltrace_concat2.simps(2) pri.simps(2))
+  by (metis Finite_Linear_Model.butlast.simps(1) bullet_right_zero2 butlast_last_cons2_FL fltrace.exhaust fltrace_concat2.simps(2) pri.simps(3) s_and_tick_iff)+
+
 lemma tickWF_consFL_tick_imp_bullet:
   assumes "tickWF tick (ys &\<^sub>\<F>\<^sub>\<L> \<langle>(y,tick)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "last ys = \<bullet>" "tick \<in>\<^sub>\<F>\<^sub>\<L> y \<or> y = \<bullet>"
   shows "y = \<bullet>"
@@ -305,36 +172,22 @@ next
     by (metis fltrace.distinct(1) rev3.simps(1) rev3_little_more)
 next
   case (3 x y xs ys)
-  then show ?case
-  proof (cases y)
-    case acnil
-    then show ?thesis
-      using 3 apply auto
-      by (metis Finite_Linear_Model.last.simps(1) bullet_right_zero2 last_bullet_then_last_cons last_cons_bullet_iff)
-  next
-    case (acset y2)
-    then show ?thesis
-    proof (cases x)
-      case acnil
-      then show ?thesis
-      proof -
-        have f1: "\<forall>f. Finite_Linear_Model.last (f &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) \<noteq> \<bullet>"
-          using acset last_cons_acceptance_not_bullet by blast
-        have f2: "\<forall>f fa fb fc fd p. (f &\<^sub>\<F>\<^sub>\<L> fb pri\<^sub>[\<^sub>(p::'a partialorder)\<^sub>] fa &\<^sub>\<F>\<^sub>\<L> (fd &\<^sub>\<F>\<^sub>\<L> fc) \<or> \<not> f pri\<^sub>[\<^sub>p\<^sub>] fa &\<^sub>\<F>\<^sub>\<L> fd) \<or> \<not> fb pri\<^sub>[\<^sub>p\<^sub>] fc"
-          by (metis fltrace_concat2_assoc prirel_consFL_both_imp')
-        have f3: "xs pri\<^sub>[\<^sub>p\<^sub>] ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
-          by (metis "3.prems"(1) acnil bullet_right_zero2)
-        then have "\<forall>f fa a. \<not> a #\<^sub>\<F>\<^sub>\<L> fa pri\<^sub>[\<^sub>p\<^sub>] f"
-          using f2 f1 by (metis (no_types) "3.hyps"(2) "3.hyps"(3) "3.hyps"(4) FL_concat_equiv Finite_Linear_Model.last.simps(2) concat_FL_last_not_bullet_absorb pri.simps(3) prirel_consFL_both_imp_prirel)
-        then show ?thesis
-          using f3 by (metis "3.prems"(4) acnil assms(2) bullet_right_zero2 prirel_consFL_last_bullet_exists')
-      qed
-  next
-    case (acset x2)
-    then show ?thesis 
-      using 3 acset by (metis last_cons_acceptance_not_bullet last_cons_bullet_iff)
-    qed
-  qed
+  have x_bullet:"x = \<bullet>"
+    by (metis "3.hyps"(3) "3.prems"(4) Finite_Linear_Model.last.simps(1) assms(2) last_bullet_then_last_cons last_cons_bullet_iff)
+  then have y_bullet:"y = \<bullet>"
+    using 3
+    by (metis bullet_right_zero2 pri_eq_length_two_last_bullet)
+  
+  then have xs_tick:"xs = s &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,tick)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+    using 3 x_bullet by auto
+
+  have xs_pri_ys:"xs pri\<^sub>[\<^sub>p\<^sub>] ys"
+    using 3 prirel_consFL_both_imp by blast
+  have "tickWF tick ys"
+    using 3 y_bullet by auto
+  then have "\<exists>z. Finite_Linear_Model.last z = \<bullet> \<and> ys = z &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,tick)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<and> Finite_Linear_Model.length s = Finite_Linear_Model.length z"
+    using 3 xs_tick assms xs_pri_ys by blast
+  then show ?case using y_bullet by auto
 next
   case (4 x y xs ys)
   then have "pri p (s &\<^sub>\<F>\<^sub>\<L> \<langle>(\<bullet>,tick)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
@@ -360,7 +213,7 @@ next
     using "4.hyps"(4) by blast
 qed
 
-lemma Pri_dist_SeqComp:
+lemma pri_dist_SeqComp:
   assumes "FLTick0 tick P" "maximal(p,tick)"
   shows "Pri p (P (tick);\<^sub>\<F>\<^sub>\<L> Q) = ((Pri p P) (tick);\<^sub>\<F>\<^sub>\<L> (Pri p Q))"
   using assms unfolding Pri_def SeqComp_def

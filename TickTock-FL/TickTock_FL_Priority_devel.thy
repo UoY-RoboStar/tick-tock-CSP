@@ -1,7 +1,8 @@
 theory
   TickTock_FL_Priority_devel
 imports
-  TickTock_FL_Priority
+  FL.Finite_Linear_Pri
+  TickTock_Max_FL_Priority
 begin
 
 fun flt2goodAcceptance :: "('e ttevent) fltrace \<Rightarrow> ('e ttevent) partialorder \<Rightarrow> bool" where
@@ -30,22 +31,9 @@ lemma lasty_concat:
   "lasty (xs @ [x]) = [x]"
   by (induct xs, auto)
 
-lemma prirelRef_imp_butlast_of_prirelRefs:
-  assumes "prirelRef p ar xs [] P"
-  shows "prirelRef p (List.butlast ar) (List.butlast xs) [] P"
-  using assms apply (induct p ar xs _ P rule:prirelRef.induct, auto)  
-  apply (metis neq_Nil_conv prirelRef.simps(46))
-      apply (metis neq_Nil_conv prirelRef.simps(28))
-     apply (metis neq_Nil_conv prirelRef.simps(46))
-    apply (metis neq_Nil_conv prirelRef.simps(28))
-   apply (metis neq_Nil_conv prirelRef.simps(46))
-  by (metis neq_Nil_conv prirelRef.simps(28))
 
-lemma prirelRef_imp_one_butlast_of_prirelRef:
-  assumes "prirelRef p ar (xs @ [x]) [] P"
-  shows "prirelRef p (List.butlast ar) xs [] P"
-  using assms prirelRef_imp_butlast_of_prirelRefs
-  by fastforce
+
+
 
 (*
 lemma
@@ -87,10 +75,7 @@ lemma
    apply (case_tac A, auto)
   oops
 
-lemma prirelref_imp_not_exists_higher_pri:
-  assumes "(R = prirelref p S)" "e\<^sub>2 \<notin> R"
-  shows "\<not>(\<exists>b. b \<notin> S \<and> e\<^sub>2 <\<^sup>*p b)"
-  using assms unfolding prirelref_def by auto
+
 
 lemma rev_induct_both:
   assumes "List.length xs = List.length ys"
@@ -107,218 +92,28 @@ proof -
   then show ?thesis using revs by blast
 qed
 
-lemma prirelRef_both_cons_extend_refusal_imp_prefix:
-  assumes "prirelRef p (x @ [[xs]\<^sub>R]) (y @ [[ys]\<^sub>R]) zs P" 
-  shows "prirelRef p x y zs P"
-  using assms apply (induct p x y zs P arbitrary:xs ys rule:prirelRef.induct, auto)
-  apply (metis list.exhaust prirelRef.simps(57) snoc_eq_iff_butlast)
-  by (metis list.exhaust prirelRef.simps(68) snoc_eq_iff_butlast)
-
-lemma prirelRef_cannot_extend_refusal_rhs:
-  assumes "prirelRef p x y zs P"
-  shows "\<not> prirelRef p x (y @ [[ys]\<^sub>R]) zs P"
-  using assms by (induct p x y zs P rule:prirelRef.induct, auto)
-
-lemma prirelRef_cannot_extend_refusal_lhs:
-  assumes "prirelRef p x y zs P"
-  shows "\<not> prirelRef p (x @ [[xs]\<^sub>R]) y zs P"
-  using assms by (induct p x y zs P rule:prirelRef.induct, auto)
-
-lemma prirelRef_extend_cons_fl2ttobs_both:
-  assumes "prirelRef p (fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P" "last xs = \<bullet>" "last ys = \<bullet>"
-  shows "prirelRef p (fl2ttobs xs) (fl2ttobs ys) s P"
+lemma priMaxTT_extend_cons_fl2ttobs_both:
+  assumes "priMaxTT p (fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P" "last xs = \<bullet>" "last ys = \<bullet>"
+  shows "priMaxTT p (fl2ttobs xs) (fl2ttobs ys) s P"
   (* FIXME: There must be a nicer proof. *)
   using assms apply (induct p xs ys arbitrary:x y s rule:pri.induct, auto)
-         apply (smt prirelRef.simps(29) prirelRef.simps(46) prirelRef.simps(68))
-        apply (smt prirelRef.simps(29) prirelRef.simps(46))
-       apply (smt prirelRef.simps(28) prirelRef.simps(57) prirelRef.simps(6))
-      apply (smt prirelRef.simps(28) prirelRef.simps(47))
-    apply (smt prirelRef.simps(28) prirelRef.simps(29))
-   apply (smt prirelRef.simps(46))
-  by (smt prirelRef.simps(46))
+         apply (smt priMaxTT.simps(29) priMaxTT.simps(46) priMaxTT.simps(68))
+        apply (smt priMaxTT.simps(29) priMaxTT.simps(46))
+       apply (smt priMaxTT.simps(28) priMaxTT.simps(57) priMaxTT.simps(6))
+      apply (smt priMaxTT.simps(28) priMaxTT.simps(47))
+    apply (smt priMaxTT.simps(28) priMaxTT.simps(29))
+   apply (smt priMaxTT.simps(46))
+  by (smt priMaxTT.simps(46))
 
-lemma prirelRef_extend_cons_acceptance_fl2ttobs_both:
-  assumes "prirelRef p (fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P" "last xs = \<bullet>" "last ys = \<bullet>"
+lemma priMaxTT_extend_cons_acceptance_fl2ttobs_both:
+  assumes "priMaxTT p (fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P" "last xs = \<bullet>" "last ys = \<bullet>"
           "length xs = length ys"
-  shows "prirelRef p (fl2ttobs xs) (fl2ttobs ys) s P"
+  shows "priMaxTT p (fl2ttobs xs) (fl2ttobs ys) s P"
   (* FIXME: There must be a nicer proof. *)
-  using assms apply (induct p xs ys arbitrary:x y s rule:prirel.induct, auto)
-    apply (smt prirelRef.simps(18) prirelRef.simps(19))
-   apply (smt prirelRef.simps(46))
-  by (smt prirelRef.simps(46))
-
-lemma not_prirelRef_concat_refTock:
-  assumes "v \<noteq> []"
-  shows "\<not> prirelRef p (v @ [[x]\<^sub>R, [Tock]\<^sub>E]) [[y]\<^sub>R, [Tock]\<^sub>E] z P"
-  using assms apply (induct p v "[]:: 'a ttobs list" z P rule:prirelRef.induct, auto)
-  apply (case_tac va, auto, case_tac vb, auto, case_tac x1, auto)
-   apply (metis append_Cons append_Nil neq_Nil_conv prirelRef.simps(28))
-  apply (case_tac va, auto, case_tac va, auto, case_tac a, auto, case_tac x1, auto)
-  by (metis append_Cons append_Nil neq_Nil_conv prirelRef.simps(28))
-
-lemma not_prirelRef_concat_refTock':
-  assumes "v \<noteq> []"
-  shows "\<not> prirelRef p [[y]\<^sub>R, [Tock]\<^sub>E] (v @ [[x]\<^sub>R, [Tock]\<^sub>E]) z P"
-  using assms apply (induct p "[]:: 'a ttobs list" v z P rule:prirelRef.induct, auto)
-   apply (case_tac va, auto, case_tac va, auto, case_tac a, auto, case_tac x1, auto)
-   apply (metis append_Cons neq_Nil_conv prirelRef.simps(46) self_append_conv2)
-  apply (case_tac va, auto, case_tac vb, auto, case_tac x1, auto)
-  by (metis append_Cons neq_Nil_conv prirelRef.simps(46) self_append_conv2)
-
-lemma prirelRef_both_concat_refTock_imp_prefixes:
-  assumes "prirelRef p (xs @ [[s]\<^sub>R, [Tock]\<^sub>E]) (ys @ [[t]\<^sub>R, [Tock]\<^sub>E]) z P" 
-  shows "prirelRef p xs ys z P"
-  using assms apply (induct p xs ys z P arbitrary:s t rule:prirelRef.induct, auto)
-  using not_prirelRef_concat_refTock 
-     apply (metis append_Cons list.discI)     
-  using not_prirelRef_concat_refTock 
-    apply fastforce
-  using not_prirelRef_concat_refTock'
-  by (metis append_Cons list.distinct(1))+
-
-lemma prirelRef_length_eq:
-  assumes "prirelRef p xs ys z P"
-  shows "List.length xs = List.length ys"
-  using assms by (induct p xs ys z P rule:prirelRef.induct, auto)
-
-lemma
-  assumes "prirelRef p (xs @ s) (ys @ t) [] P" "List.length s = List.length t"
-  shows "prirelRef p s t (ys) P"
-  using assms 
-  apply (induct s t rule:rev_induct_both, auto)
-  oops
-
-lemma ttWF_cons_simp:
-  assumes "e\<^sub>2 \<noteq> Tock" "e\<^sub>2 \<noteq> Tick" "ttWF ([e\<^sub>2]\<^sub>E # zz)"
-  shows "ttWF(zz)"
-  using assms
-  using ttWF.elims(2) by blast
-
-lemma prirelRef_concat_dist1:
-  assumes "ttWF (ys @ [[S]\<^sub>R,[Tock]\<^sub>E])"
-  shows
-   "prirelRef p (xs @ [[R]\<^sub>R,[Tock]\<^sub>E]) (ys @ [[S]\<^sub>R,[Tock]\<^sub>E]) s P
-    =
-    (prirelRef p xs ys s P \<and> prirelRef p [[R]\<^sub>R,[Tock]\<^sub>E] [[S]\<^sub>R,[Tock]\<^sub>E] (s @ ys) P)"
-  using assms apply auto 
-      apply (induct p xs ys s P rule:prirelRef.induct, auto)
-  using prirelRef_both_concat_refTock_imp_prefixes apply blast+
-         apply (metis append_Cons list.distinct(1) not_prirelRef_concat_refTock)
-  using not_prirelRef_concat_refTock apply fastforce
-       apply (metis append_Cons list.distinct(1) not_prirelRef_concat_refTock')
-      apply (metis append_Cons list.distinct(1) not_prirelRef_concat_refTock')
-     apply (induct p xs ys s P rule:prirelRef.induct, auto)
-          apply (metis ttWF.simps(1) ttWF.simps(4) ttWF.simps(6) ttWF.simps(8) ttevent.exhaust neq_Nil_conv)
-         apply (metis append.left_neutral ttWF.simps(4) ttWF.simps(6) ttWF.simps(8) ttWF_prefix_is_ttWF ttevent.exhaust neq_Nil_conv)
-        apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock)
-  using not_prirelRef_concat_refTock apply fastforce
-      apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock')
-     apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock')
-    apply (induct p xs ys s P rule:prirelRef.induct, auto)
-         apply (metis ttWF.simps(1) ttWF.simps(4) ttWF.simps(6) ttWF.simps(8) ttevent.exhaust neq_Nil_conv)
-        apply (metis append.left_neutral ttWF.simps(4) ttWF.simps(6) ttWF.simps(8) ttWF_prefix_is_ttWF ttevent.exhaust neq_Nil_conv)
-       apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock)
-      apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock) 
-     apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock')
-    apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock')
-   apply (induct p xs ys s P rule:prirelRef.induct, auto)
-        apply (metis ttWF.simps(1) ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttevent.exhaust neq_Nil_conv)
-       apply (metis ttWF.simps(1) ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttevent.exhaust neq_Nil_conv)
-      apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock)
-     apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock)
-    apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock')
-   apply (metis Cons_eq_appendI neq_Nil_conv not_prirelRef_concat_refTock')
-apply (induct p xs ys s P rule:prirelRef.induct, auto) 
-  apply (metis Cons_eq_appendI prirelRef.simps(4) prirelRef_extend_both_tock_refusal_ttWF)
-  by (metis ttWF.simps(1) ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttevent.exhaust neq_Nil_conv)
-
-lemma not_prirelRef_simp1 [simp]:
-  assumes "v \<noteq> []"
-  shows "\<not> prirelRef p (v @ [a,b]) [c,d] s Q"
-  using assms using prirelRef_length_eq by fastforce
-
-lemma not_prirelRef_simp2 [simp]:
-  shows "\<not> prirelRef p (x # y @ [a,b]) [c,d] s Q"
-  using prirelRef_length_eq by fastforce
-
-lemma not_prirelRef_simp2' [simp]:
-  shows "\<not> prirelRef p [c,d] (x # y @ [a,b]) s Q"
-  using prirelRef_length_eq by fastforce
-
-lemma not_prirelRef_simp3 [simp]:
-  shows "\<not> prirelRef p (x # y # z @ [a,b]) [c,d] s Q"
-  using prirelRef_length_eq by fastforce
-
-lemma not_prirelRef_simp3' [simp]:
-  shows "\<not> prirelRef p [c,d] (x # y # z @ [a,b]) s Q"
-  using prirelRef_length_eq by fastforce
-
-lemma not_prirelRef_simp4 [simp]:
-  shows "\<not> prirelRef p [a, b, c] (x # y # z @ [w, u]) s Q"
-  using prirelRef_length_eq by fastforce
-
-lemma not_prirelRef_simp4' [simp]:
-  shows "\<not> prirelRef p (x # y # z @ [w, u]) [a, b, c]  s Q"
-  using prirelRef_length_eq by fastforce
-
-lemma prirelRef_concat_dist2:
-  assumes "ttWF (ys @ [[S]\<^sub>R,[Tock]\<^sub>E])"
-  shows
-   "prirelRef p (xs @ [a,b]) (ys @ [[S]\<^sub>R,[Tock]\<^sub>E]) s P
-    =
-    (prirelRef p xs ys s P \<and> prirelRef p [a,b] [[S]\<^sub>R,[Tock]\<^sub>E] (s @ ys) P)"
-  using assms apply auto 
-      apply (induct p xs ys s P rule:prirelRef.induct, auto)
-  using ttWF.elims(2) apply blast
-  using ttWF.elims(2) apply blast
-   apply (induct p xs ys s P rule:prirelRef.induct, auto)
-  using ttWF.elims(2) apply blast
-  using ttWF.elims(2) apply blast
-  apply (induct p xs ys s P rule:prirelRef.induct, auto)
-  using ttWF.elims(2) apply blast
-  using ttWF.elims(2) by blast 
-
-lemma prirelRef_FIXME1:
-  assumes "prirelRef p (xs @ [a,b]) (ys @ [[S]\<^sub>R, [Tock]\<^sub>E]) s P" "ttWF (ys @ [[S]\<^sub>R,[Tock]\<^sub>E])"
-  shows "prirelRef p [a,b] [[S]\<^sub>R, [Tock]\<^sub>E] (s@ys) P"
-  using assms prirelRef_concat_dist2 by (simp add:prirelRef_concat_dist2)
-
-lemma prirelRef_rhs_refTock_imp_no_gt_Tock_pri:
-  assumes "prirelRef p ar (ys @ [[r1]\<^sub>R, [Tock]\<^sub>E]) [] P" "ttWF (ys @ [[r1]\<^sub>R, [Tock]\<^sub>E])"
-  shows "\<not>(\<exists>b. b \<notin> r1 \<and> Tock <\<^sup>*p b)"
-  using assms 
-proof -
-  from assms have ll:"List.length ar = List.length (ys @ [[r1]\<^sub>R, [Tock]\<^sub>E])"
-    using prirelRef_length_eq by blast
-  then show ?thesis
-  using assms(1)
-  proof (induct ar rule:rev_induct)
-    case Nil
-    then show ?case by auto
-  next
-    case (snoc z zs)
-    then show ?case 
-    proof (induct zs rule:rev_induct)
-      case Nil
-      then show ?case by auto
-    next
-      case (snoc x xs)
-      then show ?case 
-        apply (case_tac z, auto)
-         apply (case_tac x1, auto)
-           apply (case_tac x, auto)
-            apply (meson assms(2) prirelRef.simps(50) prirelRef_FIXME1)
-           apply (meson assms(2) prirelRef.simps(50) prirelRef_FIXME1)
-          apply (case_tac x, auto)
-        using assms(2) prirelRef.simps(47) prirelRef_FIXME1 apply blast
-          apply (metis assms(2) prirelRef.simps(3) prirelRef_FIXME1 prirelref_imp_not_exists_higher_pri)
-         apply (case_tac x, auto)
-        using assms(2) prirelRef.simps(52) prirelRef_FIXME1 apply blast
-        using assms(2) prirelRef.simps(52) prirelRef_FIXME1 apply blast
-        using assms(2) prirelRef.simps(17) prirelRef_FIXME1 by blast
-    qed
-  qed
-qed
+  using assms apply (induct p xs ys arbitrary:x y s rule:pri.induct, auto)
+    apply (smt priMaxTT.simps(18) priMaxTT.simps(19))
+   apply (smt priMaxTT.simps(46))
+  by (smt priMaxTT.simps(46))
 
 lemma flt2goodAcceptance_extend_consFL_last_fl_e:
   assumes "flt2goodAcceptance fl p" "e \<in>\<^sub>\<F>\<^sub>\<L> last fl" "\<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> last fl \<and> e <\<^sup>*p b)"
@@ -365,24 +160,6 @@ lemma flt2goodAcceptance_extend_consFL_acceptance:
   apply (case_tac A, auto, case_tac a, auto)
   by (metis acceptance_event amember.simps(2))
 
-lemma prirelRef_nonmax_Tock_imp_exists_refusal:
-  assumes "prirelRef p ar (ys @ [[e1]\<^sub>E]) s P" "e1 \<noteq> Tock"
-          "ttWF (ys @ [[e1]\<^sub>E])" "\<not>maximal(p,e1)"
-  shows "(\<exists>Z. s @ ys @ [[Z]\<^sub>R] \<in> P \<and> e1 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e1 <\<^sup>*p b))"
-  using assms apply(induct p ar ys s P rule:prirelRef.induct, auto)
-            apply (metis ttWF.simps(1) ttWF.simps(10) ttWF.simps(6) ttWF_cons_simp neq_Nil_conv)
-           apply (metis (full_types) append_Nil assms(2) ttWF.simps(10) ttWF.simps(5) ttWF.simps(6) ttWF_cons_simp ttWF_prefix_is_ttWF list.collapse rotate1.simps(2))
-          apply (metis ttobs.exhaust prirelRef.simps(29) prirelRef.simps(4))
-         apply (metis ttobs.exhaust prirelRef.simps(29) prirelRef.simps(4))
-        apply (metis ttobs.exhaust prirelRef.simps(29) prirelRef.simps(4))
-       apply (metis ttobs.exhaust prirelRef.simps(29) prirelRef.simps(4))
-      apply (case_tac va, auto, case_tac vb, auto, case_tac x1, auto, case_tac e1, auto)
-  using ttWF.elims(2) apply blast
-  apply (metis (full_types) TTickTrace.cases ttobs.exhaust list.distinct(1) prirelRef.simps(29) prirelRef.simps(4))
-  apply (case_tac v, auto)
-  using ttWF.elims(2) by blast+
-
-
 lemma TTwf_1c_3_imp_fl2ttobs_FL1_mod:
   assumes "x \<in> P" 
       and TTwf_healthy: "TTwf P" 
@@ -390,7 +167,7 @@ lemma TTwf_1c_3_imp_fl2ttobs_FL1_mod:
       and TT3_healthy:  "TT3 P"
       and TTick_healthy: "TTick P"
       and TT4w_healthy: "TT4w P"
-      and pri:"prirelRef p ar x [] P \<and> x \<in> P"
+      and pri:"priMaxTT p ar x [] P \<and> x \<in> P"
      (* and tick_Max:"maximal(p,Tick)"*)
   shows "\<exists>fl. x = fl2ttobs fl \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {fl2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
   using assms
@@ -406,10 +183,10 @@ next
   case (snoc x xs)
   then have xs_x_in_P:"xs @ [x] \<in> P"
     by blast
-  from snoc have "prirelRef p (List.butlast ar) xs [] P"
-    using prirelRef_imp_one_butlast_of_prirelRef
+  from snoc have "priMaxTT p (List.butlast ar) xs [] P"
+    using priMaxTT_imp_one_butlast_of_priMaxTT
     by metis
-  then have "\<exists>ar. prirelRef p ar xs [] P \<and> xs \<in> P"
+  then have "\<exists>ar. priMaxTT p ar xs [] P \<and> xs \<in> P"
     using xs_x_in_P apply auto
     using TT1w_def tt_prefix_concat
     using TT1w_healthy by blast
@@ -450,7 +227,7 @@ next
         
     next
       case (ObsEvent x2)
-      then have pri_x:"prirelRef p ar [x] [] P"
+      then have pri_x:"priMaxTT p ar [x] [] P"
         using Nil.prems(8) by auto
       then show ?thesis
       proof (cases x2)
@@ -474,7 +251,7 @@ next
             apply (case_tac ar, simp, case_tac list, simp, case_tac a, simp)          
             apply blast
              apply simp
-            using prirelRef_imp_butlast_of_prirelRefs by fastforce
+            using priMaxTT_imp_butlast_of_priMaxTTs by fastforce
           then have "Tick \<in> ES"
             using TTick_healthy by (metis TTick_def append.left_neutral)
           then show ?thesis using ObsEvent Event False ES
@@ -507,13 +284,13 @@ next
     qed
   next
     case yys:(snoc y ys)
-    then have prirelRefyys:"prirelRef p ar ((ys @ [y]) @ [x]) [] P \<and> (ys @ [y]) @ [x] \<in> P"
+    then have priMaxTTyys:"priMaxTT p ar ((ys @ [y]) @ [x]) [] P \<and> (ys @ [y]) @ [x] \<in> P"
       by auto
 
     from yys have ys_y_inP:"ys @ [y] \<in> P" using TT1w_def
       by (metis tt_prefix_concat)
-    from yys have "prirelRef p (List.butlast ar) (ys @ [y]) [] P"
-      using prirelRef_imp_one_butlast_of_prirelRef by blast
+    from yys have "priMaxTT p (List.butlast ar) (ys @ [y]) [] P"
+      using priMaxTT_imp_one_butlast_of_priMaxTT by blast
     then have ys_y_fl:"\<exists>fl. ys @ [y] = fl2ttobs fl \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {fl2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
       using ys_y_inP yys by auto
     then have ys_y_x: "\<exists>fl. ys @ [y] @ [x] = fl2ttobs fl @ [x] \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {fl2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
@@ -548,7 +325,7 @@ next
           then have tock_not_in_r1: "Tock \<notin> r1"
             using TT3_any_cons_end_tock TT3_healthy ObsEvent r1 yys.prems(2) by auto
           then have r1_good_pri:"\<not>(\<exists>b. b \<notin> r1 \<and> Tock <\<^sup>*p b)"
-            using r1 ObsEvent Tock prirelRefyys prirelRef_rhs_refTock_imp_no_gt_Tock_pri
+            using r1 ObsEvent Tock priMaxTTyys priMaxTT_rhs_refTock_imp_no_gt_Tock_pri
             by (metis TTwf_def TTwf_healthy append.assoc append_Cons append_Nil)
           
           text \<open>Then from the hypothesis we have the case:\<close>
@@ -667,8 +444,8 @@ next
         then show ?thesis
         proof (cases e2)
           case (Event e3)
-          have "prirelRef p ar (ys @ [[e1]\<^sub>E,[Event e3]\<^sub>E]) [] P \<and> (ys @ [[e1]\<^sub>E,[Event e3]\<^sub>E]) \<in> P"
-             using prirelRefyys e1 Event e2 by auto
+          have "priMaxTT p ar (ys @ [[e1]\<^sub>E,[Event e3]\<^sub>E]) [] P \<and> (ys @ [[e1]\<^sub>E,[Event e3]\<^sub>E]) \<in> P"
+             using priMaxTTyys e1 Event e2 by auto
           then show ?thesis
           proof (cases "maximal(p,Event e3)")
             case True
@@ -761,8 +538,8 @@ next
           next
             case False
             then obtain Z where Z:"ys @ [[e1]\<^sub>E] @ [[Z]\<^sub>R] \<in> P \<and> Event e3 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> Event e3 <\<^sup>*p b)"
-              using prirelRef_nonmax_Tock_imp_exists_refusal
-              by (metis TTwf_def TTwf_healthy Event append.assoc append_Nil ttevent.distinct(1) e1 e2 prirelRefyys)
+              using priMaxTT_nonmax_Tock_imp_exists_refusal
+              by (metis TTwf_def TTwf_healthy Event append.assoc append_Nil ttevent.distinct(1) e1 e2 priMaxTTyys)
             then have Tick_in_Z:"Tick \<in> Z"
               using TTick_healthy
               by (metis TTick_def append_assoc)
@@ -1124,23 +901,6 @@ next
   qed
 qed
 
-lemma
-  shows "(\<exists>Z fl\<^sub>0 fl. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> fl2ttobs(Z) \<in> P \<and> fl2ttobs(fl) = ar) 
-         = 
-         (\<exists>zr. prirelRef p ar zr [] P \<and> zr \<in> P)"
-  apply auto
-  oops
-
-
-  
-lemma
-  "(\<exists>Z fl. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P \<and> x = fl2ttobs fl)
-   =
-   (\<exists>Z fl. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs(Z) \<in> P \<and> flt2goodTock fl \<and> x = fl2ttobs fl)"
-  oops
-
-
-
 (* FIXME: Change flt2goodS to accommodate tickWF *)
 fun flt2goodS :: "('e ttevent) partialorder \<Rightarrow> ('e ttevent) fltrace \<Rightarrow> bool" where
 "flt2goodS p \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> = True" |
@@ -1204,27 +964,27 @@ qed*)
 
 
 lemma 
- "{fl2ttobs fl|fl. (\<exists>zr. prirelRef p (fl2ttobs(fl)) zr [] P \<and> zr \<in> P)}
+ "{fl2ttobs fl|fl. (\<exists>zr. priMaxTT p (fl2ttobs(fl)) zr [] P \<and> zr \<in> P)}
   =
-  {ar|ar. (\<exists>zr. prirelRef p ar zr [] P \<and> zr \<in> P)}"
+  {ar|ar. (\<exists>zr. priMaxTT p ar zr [] P \<and> zr \<in> P)}"
   apply auto
   oops
 
 (*
 lemma xp:
-  assumes "prirelRef p x zr s P"
-    shows "\<exists>fl. x = fl2ttobs fl \<and> (\<exists>zr. prirelRef p (fl2ttobs fl) zr s P)"
-  using assms  apply (induct p x zr s P rule:prirelRef.induct, auto)
+  assumes "priMaxTT p x zr s P"
+    shows "\<exists>fl. x = fl2ttobs fl \<and> (\<exists>zr. priMaxTT p (fl2ttobs fl) zr s P)"
+  using assms  apply (induct p x zr s P rule:priMaxTT.induct, auto)
   
-      apply (metis fl2ttobs.simps(1) prirelRef.simps(1))
-   apply (metis TT3_trace.simps(2) ttWF.simps(2) fl2ttobs_exists_flt2goodS_for_ttWF_TT3_trace insert_Nil prirelRef.simps(2))
+      apply (metis fl2ttobs.simps(1) priMaxTT.simps(1))
+   apply (metis TT3_trace.simps(2) ttWF.simps(2) fl2ttobs_exists_flt2goodS_for_ttWF_TT3_trace insert_Nil priMaxTT.simps(2))
   oops*)
 
 lemma
-  assumes "prirelRef p x zr [] P"
+  assumes "priMaxTT p x zr [] P"
           "zr \<in> P"
-    shows "\<exists>fl. x = fl2ttobs fl \<and> (\<exists>zr. prirelRef p (fl2ttobs fl) zr [] P \<and> zr \<in> P)"
-  using assms apply (induct p x zr _ P rule:prirelRef.induct, auto)
+    shows "\<exists>fl. x = fl2ttobs fl \<and> (\<exists>zr. priMaxTT p (fl2ttobs fl) zr [] P \<and> zr \<in> P)"
+  using assms apply (induct p x zr _ P rule:priMaxTT.induct, auto)
   oops
 
 lemma FL2_ttm2fl:
@@ -1270,32 +1030,32 @@ lemma
 
 lemma
   assumes "size xs = size ys"
-    shows "(prirelRef p xs ys [] P \<and> prirelRef p x y ys P) = prirelRef p (xs@x) (ys@y) [] P"
+    shows "(priMaxTT p xs ys [] P \<and> priMaxTT p x y ys P) = priMaxTT p (xs@x) (ys@y) [] P"
   using assms nitpick[card=4]
-  (*apply (induct p xs ys _ P arbitrary:x y rule:prirelRef.induct)
+  (*apply (induct p xs ys _ P arbitrary:x y rule:priMaxTT.induct)
   apply (simp_all)
   sledgehammer[debug=true]
-     apply (metis ttWF.elims(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(13) prirelRef.simps(1) prirelRef.simps(2))
+     apply (metis ttWF.elims(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(13) priMaxTT.simps(1) priMaxTT.simps(2))
  
     apply auto
   apply (induct x rule:rev_induct, auto)
-  apply (metis append_Nil2 ttWF.elims(2) prirelRef.simps(46))
+  apply (metis append_Nil2 ttWF.elims(2) priMaxTT.simps(46))
   sledgehammer[debug=true]
-  thm prirelRef.induct*)
+  thm priMaxTT.induct*)
 *)
 (*
 lemma
-  assumes "prirelRef p xs ys [] P" "size xs = size ys"
-          "prirelRef p x y ys P" "ttWF (xs@x)" "ttWF (ys@y)"
-    shows "prirelRef p (xs@x) (ys@y) [] P"
+  assumes "priMaxTT p xs ys [] P" "size xs = size ys"
+          "priMaxTT p x y ys P" "ttWF (xs@x)" "ttWF (ys@y)"
+    shows "priMaxTT p (xs@x) (ys@y) [] P"
   using assms
-proof (induct p xs ys "[]::'a ttobs list" P arbitrary:x y rule:prirelRef.induct, simp_all)
+proof (induct p xs ys "[]::'a ttobs list" P arbitrary:x y rule:priMaxTT.induct, simp_all)
   fix pa S R xa ya Q
-  assume "prirelref pa S = R"
-         "prirelRef pa xa ya [[S]\<^sub>R] Q"
+  assume "prirefMaxTT pa S = R"
+         "priMaxTT pa xa ya [[S]\<^sub>R] Q"
          "ttWF ([R]\<^sub>R # xa)"
          "ttWF ([S]\<^sub>R # ya)"
-  then show "prirelRef pa ([R]\<^sub>R # xa) ([S]\<^sub>R # ya) [] Q"
+  then show "priMaxTT pa ([R]\<^sub>R # xa) ([S]\<^sub>R # ya) [] Q"
     apply auto
     apply (case_tac xa, auto)
      apply (case_tac ya, auto)
@@ -1306,24 +1066,24 @@ proof (induct p xs ys "[]::'a ttobs list" P arbitrary:x y rule:prirelRef.induct,
 next
   fix pa R aa S zz Q ya xa
   assume "(\<And>y x. [S]\<^sub>R # [Tock]\<^sub>E # zz @ ya @ [[S]\<^sub>R, [Tock]\<^sub>E] = zz @ y \<Longrightarrow>
-               prirelRef pa aa zz [] Q \<Longrightarrow> prirelRef pa x y zz Q \<Longrightarrow> ttWF (aa @ x) \<Longrightarrow> ttWF (zz @ y) \<Longrightarrow> prirelRef pa (aa @ x) (zz @ y) [] Q)"
-      "R = prirelref pa S \<and> prirelRef pa aa zz [[S]\<^sub>R, [Tock]\<^sub>E] Q"
+               priMaxTT pa aa zz [] Q \<Longrightarrow> priMaxTT pa x y zz Q \<Longrightarrow> ttWF (aa @ x) \<Longrightarrow> ttWF (zz @ y) \<Longrightarrow> priMaxTT pa (aa @ x) (zz @ y) [] Q)"
+      "R = prirefMaxTT pa S \<and> priMaxTT pa aa zz [[S]\<^sub>R, [Tock]\<^sub>E] Q"
       "List.length aa = List.length zz"
-      "prirelRef pa xa ya ([S]\<^sub>R # [Tock]\<^sub>E # zz) Q"
+      "priMaxTT pa xa ya ([S]\<^sub>R # [Tock]\<^sub>E # zz) Q"
       "ttWF (aa @ xa)"
       "ttWF (zz @ ya)"
-  then show "prirelRef pa (aa @ xa) (zz @ ya) [[S]\<^sub>R, [Tock]\<^sub>E] Q"
+  then show "priMaxTT pa (aa @ xa) (zz @ ya) [[S]\<^sub>R, [Tock]\<^sub>E] Q"
     oops
 
 lemma
-  assumes "prirelRef p xs ys [] P" "ttWF xs" "ttWF ys" "ttWF x" "ttWF y" "TTwf P" "ys \<in> P" "TT1w P"
-          "prirelRef p x y ys P" "ttWF (xs@x)" "ttWF (ys@y)" "(ys@y) \<in> P"
-    shows "prirelRef p (xs@x) (ys@y) [] P"
+  assumes "priMaxTT p xs ys [] P" "ttWF xs" "ttWF ys" "ttWF x" "ttWF y" "TTwf P" "ys \<in> P" "TT1w P"
+          "priMaxTT p x y ys P" "ttWF (xs@x)" "ttWF (ys@y)" "(ys@y) \<in> P"
+    shows "priMaxTT p (xs@x) (ys@y) [] P"
   using assms 
-  apply (induct p xs ys "[]::'a ttobs list" P rule:prirelRef.induct)
+  apply (induct p xs ys "[]::'a ttobs list" P rule:priMaxTT.induct)
   apply (simp_all)
 (*    apply auto
-  apply (metis ttWF.elims(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(13) prirelRef.simps(2))
+  apply (metis ttWF.elims(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(13) priMaxTT.simps(2))
 sledgehammer[debug=true]
 apply (case_tac s, auto)
   apply (induct xs rule:rev_induct, auto)
@@ -1332,15 +1092,15 @@ apply (case_tac s, auto)
   apply (induct ys rule:rev_induct, auto)
    apply (case_tac xsa, auto)
   sledgehammer[debug=true] *)
-  (*apply(induct p x y xs P rule:prirelRef.induct)
+  (*apply(induct p x y xs P rule:priMaxTT.induct)
   apply (simp_all)
   apply auto
      apply (case_tac s, auto)
-      apply (metis append_self_conv2 assms(3) ttWF.elims(2) prirelRef.simps(2) prirelRef.simps(46))
+      apply (metis append_self_conv2 assms(3) ttWF.elims(2) priMaxTT.simps(2) priMaxTT.simps(46))
   apply (induct ys rule:rev_induct, auto)
   sledgehammer[debug=true]*)
-(*  apply (metis ttWF.elims(2) prirelRef.simps(2) prirelRef.simps(28))
-  apply (metis ttWF.elims(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(13) prirelRef.simps(46))
+(*  apply (metis ttWF.elims(2) priMaxTT.simps(2) priMaxTT.simps(28))
+  apply (metis ttWF.elims(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(13) priMaxTT.simps(46))
   sledgehammer[debug=true]*)
 *)
 lemma
@@ -1375,7 +1135,7 @@ lemma prirel_flt2goodTock_tgt_imp_src:
 
 (*
 lemma
-  assumes "prirelRef p (fl2ttobs xs) (fl2ttobs ys) [] P" "flt2goodTock ys" "length ys = length xs"
+  assumes "priMaxTT p (fl2ttobs xs) (fl2ttobs ys) [] P" "flt2goodTock ys" "length ys = length xs"
   shows "flt2goodTock xs"
   using assms apply (induct xs ys rule:ftrace_cons_induct_both_eq_length2, auto)
   apply (simp add: concat_FL_last_not_bullet_absorb)
@@ -1386,23 +1146,23 @@ lemma
 
 (* It would be nice to show the following, but the conclusion is stronger
    than necessary to establish the correspondence we want. It may, however,
-   be easier to prove depending on the definition of prirelRef. *)
+   be easier to prove depending on the definition of priMaxTT. *)
 
 (*
-lemma prirelRef_extend_rhs_ttWF:
-  assumes "prirelRef p xs ys s P" "ttWF (ys @ [[R]\<^sub>R])"
-  shows "prirelRef p xs (ys @ [[R]\<^sub>R]) s P"
-  using assms apply (induct p xs ys s P rule:prirelRef.induct, auto)
+lemma priMaxTT_extend_rhs_ttWF:
+  assumes "priMaxTT p xs ys s P" "ttWF (ys @ [[R]\<^sub>R])"
+  shows "priMaxTT p xs (ys @ [[R]\<^sub>R]) s P"
+  using assms apply (induct p xs ys s P rule:priMaxTT.induct, auto)
   by (metis ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttevent.exhaust list.exhaust snoc_eq_iff_butlast)+
 *)
 
 
 
-lemma prirelRef_extend_both_events_non_maximal_ttWF:
-  assumes "prirelRef p xs ys s P" "ttWF (xs @ [[e\<^sub>1]\<^sub>E])" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "TTwf P"
+lemma priMaxTT_extend_both_events_non_maximal_ttWF:
+  assumes "priMaxTT p xs ys s P" "ttWF (xs @ [[e\<^sub>1]\<^sub>E])" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "TTwf P"
           "(\<exists>Z. s @ ys @ [[Z]\<^sub>R] \<in> P \<and> e\<^sub>1 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>1 <\<^sup>*p b))" 
-  shows "prirelRef p (xs @ [[e\<^sub>1]\<^sub>E]) (ys @ [[e\<^sub>1]\<^sub>E]) s P"
-  using assms apply (induct p xs ys s P rule:prirelRef.induct, auto)
+  shows "priMaxTT p (xs @ [[e\<^sub>1]\<^sub>E]) (ys @ [[e\<^sub>1]\<^sub>E]) s P"
+  using assms apply (induct p xs ys s P rule:priMaxTT.induct, auto)
     apply (cases e\<^sub>1) apply auto[1]
   using TTwf_cons_end_not_refusal_refusal apply blast+
   by (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF ttevent.exhaust list.exhaust)+
@@ -1463,7 +1223,7 @@ lemma tt:
           "Y \<in> fl\<^sub>0"
           "fl2ttm fl\<^sub>0 \<subseteq> P"
           "fl2ttobs Y \<in> P" "size (fl2ttobs fl) = size (fl2ttobs Y)"
-    shows "prirelRef p (fl2ttobs fl) (fl2ttobs Y) [] P"
+    shows "priMaxTT p (fl2ttobs fl) (fl2ttobs Y) [] P"
   oops
 
 lemma
@@ -1471,7 +1231,7 @@ lemma
           "Y \<in> fl\<^sub>0"
           "fl2ttm fl\<^sub>0 \<subseteq> P"
           "fl2ttobs Y \<in> P"
-    shows "\<exists>zr. prirelRef p (fl2ttobs fl) zr [] P  \<and> zr \<in> P"
+    shows "\<exists>zr. priMaxTT p (fl2ttobs fl) zr [] P  \<and> zr \<in> P"
   oops
 
 lemma flt2goodTock_cons_imp_prefix:
@@ -1539,7 +1299,7 @@ lemma pp:
           "fl2ttm fl\<^sub>0 \<subseteq> P"
           "fl2ttobs Y \<in> P"
           "flt2goodTock fl" "TTwf P"
-    shows "prirelRef p (fl2ttobs fl) (fl2ttobs Y) [] P"
+    shows "priMaxTT p (fl2ttobs fl) (fl2ttobs Y) [] P"
   using assms  
 proof (induct fl Y rule:ftrace_cons_induct_both_eq_length)
   case 1
@@ -1550,10 +1310,10 @@ next
     apply (cases y, auto)
        apply (cases x, auto)
      apply (cases x, auto)
-    unfolding prirelref_def by auto
+    unfolding prirefMaxTT_def by auto
 next
   case (3 x y xs ys)
-  then have prirelRef:"prirelRef p (fl2ttobs xs) (fl2ttobs ys) [] P"
+  then have priMaxTT:"priMaxTT p (fl2ttobs xs) (fl2ttobs ys) [] P"
     by (metis (mono_tags, lifting) flt2goodTock_cons_imp_prefix fl2ttobs_extn mem_Collect_eq subset_eq x_le_concat2_FL1 prirel_cons_eq_length_imp_prirel_eq_prefix)
   then show ?case using 3
   proof (cases "flt2goodTock xs")
@@ -1571,10 +1331,10 @@ next
           using prirel_cons_lasts_bullet_cons_bullet_iff
           using "3.hyps"(3) "3.hyps"(4) "3.prems"(1) by blast
         then show ?thesis 
-          using prirelRef xnil by auto
+          using priMaxTT xnil by auto
         (*  proof (cases y)
             case acnil
-            then show ?thesis using 3 prirelRef xnil by auto
+            then show ?thesis using 3 priMaxTT xnil by auto
           next
             case (acset x2)
             
@@ -1582,8 +1342,8 @@ next
               by simp
             then have "ttWF (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))"
               by (meson "3.prems"(4) FLTick0_def assms(3) fl2ttobs_is_ttWF)
-            then have "prirelRef p (fl2ttobs xs) ((fl2ttobs ys) @ [[yR]\<^sub>R]) [] P"
-              using acset 3 prirelRef xnil flt2_ys_y prirelRef_extend_rhs_ttWF 
+            then have "priMaxTT p (fl2ttobs xs) ((fl2ttobs ys) @ [[yR]\<^sub>R]) [] P"
+              using acset 3 priMaxTT xnil flt2_ys_y priMaxTT_extend_rhs_ttWF 
               by (metis yR)*)
             then show ?thesis using acset 3 xnil flt2_ys_y prirel_cons_lasts_bullet_cons_bullet_iff by auto
           qed*)
@@ -1593,11 +1353,11 @@ next
           using "3.hyps"(3) "3.hyps"(4) "3.prems"(1) prirel_last_bullets_cons_imp by blast
         then have "pri p \<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>[yA]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
           using "3.hyps"(2) "3.hyps"(3) "3.hyps"(4) "3.prems"(1) acset prirel_cons_eq_length_imp_prirel_acceptances_eq by blast
-        then have "prirelref p {x. x \<notin> yA} = {x. x \<notin> x2}"
+        then have "prirefMaxTT p {x. x \<notin> yA} = {x. x \<notin> x2}"
           by (metis (no_types, lifting) Collect_cong acceptance.distinct(1) amember.simps(2) fl2ttobs.simps(1) pri.simps(1) priacc_eq_priref_via_fl2ttobs)
         then obtain xR where xR:"fl2ttobs(\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[xR]\<^sub>R]"
           by (simp add: acset)
-        then obtain yR where yR:"fl2ttobs(\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[yR]\<^sub>R] \<and> prirelref p yR = xR"
+        then obtain yR where yR:"fl2ttobs(\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[yR]\<^sub>R] \<and> prirefMaxTT p yR = xR"
           using 3 yA
           by (metis (no_types, lifting) \<open>pri p \<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>[yA]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>\<close> acceptance.distinct(1) acset fl2ttobs.simps(1) pri.simps(1) priacc_eq_priref_via_fl2ttobs)
 
@@ -1605,9 +1365,9 @@ next
           by (meson "3.prems"(4) FLTick0_def assms(3) fl2ttobs_is_ttWF)
         then have "ttWF ((fl2ttobs ys) @ [[yR]\<^sub>R])"
           by (metis flt2_ys_y yR)
-        then have "prirelRef p ((fl2ttobs xs) @ [[xR]\<^sub>R]) ((fl2ttobs ys) @ [[yR]\<^sub>R]) [] P"
-          using prirelRef_extend_both_refusal_ttWF
-          using prirelRef yR by blast
+        then have "priMaxTT p ((fl2ttobs xs) @ [[xR]\<^sub>R]) ((fl2ttobs ys) @ [[yR]\<^sub>R]) [] P"
+          using priMaxTT_extend_both_refusal_ttWF
+          using priMaxTT yR by blast
         then show ?thesis
           using "3.hyps"(3) True flt2_ys_y fl2ttobs_cons_acceptance_eq_cons xR yR by fastforce
       qed
@@ -1619,10 +1379,10 @@ next
       using prirel_cons_lasts_bullet_cons_bullet_iff
       using "3.prems"(7) False flt2goodTock_cons_imp_prefix by blast
     then show ?thesis
-      by (simp add: flt2_xsx prirelRef)
+      by (simp add: flt2_xsx priMaxTT)
    (* proof (cases y)
       case acnil
-      then show ?thesis using 3 prirelRef flt2_xsx by auto
+      then show ?thesis using 3 priMaxTT flt2_xsx by auto
     next
       case (acset x2)
       then obtain yR where yR:"fl2ttobs(\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[yR]\<^sub>R]"
@@ -1632,8 +1392,8 @@ next
       then show ?thesis
       proof (cases "flt2goodTock ys")
         case True
-        then have "prirelRef p (fl2ttobs xs) ((fl2ttobs ys) @ [[yR]\<^sub>R]) [] P"
-          using acset 3 prirelRef flt2_xsx prirelRef_extend_rhs_ttWF
+        then have "priMaxTT p (fl2ttobs xs) ((fl2ttobs ys) @ [[yR]\<^sub>R]) [] P"
+          using acset 3 priMaxTT flt2_xsx priMaxTT_extend_rhs_ttWF
           by (metis ttWF_ys_y fl2ttobs_cons_acceptance_eq_cons yR)
         then show ?thesis
           using "3.hyps"(4) True flt2_xsx fl2ttobs_cons_acceptance_eq_cons yR by fastforce
@@ -1642,7 +1402,7 @@ next
         then have "fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>) = fl2ttobs (ys)"
           by (simp add: fl2ttobs_cons_no_extend_not_flt2goodTock)
         then show ?thesis
-          by (simp add: flt2_xsx prirelRef)
+          by (simp add: flt2_xsx priMaxTT)
       qed
     qed*)
   qed
@@ -1652,7 +1412,7 @@ next
     using flt2goodTock_cons_imp_prefix by blast
   then have ys_is_flt2goodTock:"flt2goodTock ys"
     using "4.hyps"(2) "4.prems"(1) prirel_cons_eq_length_imp prirel_flt2goodTock_tgt_imp_src by blast
-  then have prirelRef:"prirelRef p (fl2ttobs xs) (fl2ttobs ys) [] P"
+  then have priMaxTT:"priMaxTT p (fl2ttobs xs) (fl2ttobs ys) [] P"
     using prirel_cons_eq_length_imp 4
     by (metis (mono_tags, lifting) xs_is_flt2goodTock fl2ttobs_extn mem_Collect_eq subset_eq x_le_concat2_FL1)
   then have "pri p \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
@@ -1695,7 +1455,7 @@ next
       
       then obtain xR where xR:"fl2ttobs(\<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[xR]\<^sub>R,[Tock]\<^sub>E]"
         using True xAE xA_not_bullet by auto
-      then obtain yR where yR:"fl2ttobs(\<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[yR]\<^sub>R,[Tock]\<^sub>E] \<and> prirelref p yR = xR"
+      then obtain yR where yR:"fl2ttobs(\<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[yR]\<^sub>R,[Tock]\<^sub>E] \<and> prirefMaxTT p yR = xR"
         using True xAE yAE xA_not_bullet apply auto
         using yA_not_bullet apply simp
         using yA_not_bullet apply simp
@@ -1703,11 +1463,11 @@ next
        
       then have "ttWF (fl2ttobs (ys) @ [[yR]\<^sub>R,[Tock]\<^sub>E])"
         by (metis "4.prems"(4) FLTick0_def True assms(3) flt2_ys_y fl2ttobs_is_ttWF)
-      then have "prirelRef p (fl2ttobs (xs) @ [[xR]\<^sub>R,[Tock]\<^sub>E]) (fl2ttobs (ys) @ [[yR]\<^sub>R,[Tock]\<^sub>E]) [] P"
-        using prirelRef prirelRef_extend_both_tock_refusal_ttWF
+      then have "priMaxTT p (fl2ttobs (xs) @ [[xR]\<^sub>R,[Tock]\<^sub>E]) (fl2ttobs (ys) @ [[yR]\<^sub>R,[Tock]\<^sub>E]) [] P"
+        using priMaxTT priMaxTT_extend_both_tock_refusal_ttWF
         using yR
         by (metis TT3_trace.simps(3) fl2ttobs_is_TT3_trace xR)
-      then have "prirelRef p (fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) [] P"
+      then have "priMaxTT p (fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) [] P"
         using flt2_xs_x flt2_ys_y xR yR by auto
       then show ?thesis by auto
     next
@@ -1727,12 +1487,12 @@ next
         using prirel_rhs_tickWF_imp_lhs_tickWF
         by (metis FLTick0_def fl2ttobs_is_ttWF)
 
-      then have "prirelRef p (fl2ttobs (xs) @ [[yEvent]\<^sub>E]) (fl2ttobs (ys) @ [[yEvent]\<^sub>E]) [] P"
-        using prirelRef
+      then have "priMaxTT p (fl2ttobs (xs) @ [[yEvent]\<^sub>E]) (fl2ttobs (ys) @ [[yEvent]\<^sub>E]) [] P"
+        using priMaxTT
       proof (cases "maximal(p,yEvent)")
         case True
         then show ?thesis
-          by (metis \<open>fl2ttobs \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> \<open>fl2ttobs \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> ttWF_xs_x ttWF_ys_y flt2_xs_x flt2_ys_y fl2ttobs_is_TT3_trace prirelRef prirelRef_extend_both_events_maximal_ttWF)
+          by (metis \<open>fl2ttobs \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> \<open>fl2ttobs \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> ttWF_xs_x ttWF_ys_y flt2_xs_x flt2_ys_y fl2ttobs_is_TT3_trace priMaxTT priMaxTT_extend_both_events_maximal_ttWF)
       next
         case False
         then show ?thesis
@@ -1755,7 +1515,7 @@ next
             then have "fl2ttobs (ys) @ [[yR]\<^sub>R] \<in> P \<and> yEvent \<notin> yR \<and> \<not>(\<exists>b. b \<notin> yR \<and> yEvent <\<^sup>*p b)"
               using \<open>\<nexists>b. b \<in>\<^sub>\<F>\<^sub>\<L> yA \<and> yEvent <\<^sup>*p b\<close> \<open>yA \<noteq> \<bullet>\<close> by auto
             then show ?thesis
-              by (metis \<open>fl2ttobs \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> \<open>fl2ttobs \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> append_Nil assms(8) ttWF_xs_x ttWF_ys_y flt2_xs_x flt2_ys_y prirelRef prirelRef_extend_both_events_non_maximal_ttWF)
+              by (metis \<open>fl2ttobs \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> \<open>fl2ttobs \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> append_Nil assms(8) ttWF_xs_x ttWF_ys_y flt2_xs_x flt2_ys_y priMaxTT priMaxTT_extend_both_events_non_maximal_ttWF)
               
           next
             case (acset x2)
@@ -1776,7 +1536,7 @@ next
             then have "fl2ttobs (ys) @ [[yR]\<^sub>R] \<in> P \<and> yEvent \<notin> yR \<and> \<not>(\<exists>b. b \<notin> yR \<and> yEvent <\<^sup>*p b)"
               using \<open>pri p \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>\<close> acset xAE yAE yASet False by auto
             then show ?thesis
-              by (metis \<open>fl2ttobs \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> \<open>fl2ttobs \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> append_Nil assms(8) ttWF_xs_x ttWF_ys_y flt2_xs_x flt2_ys_y prirelRef prirelRef_extend_both_events_non_maximal_ttWF)
+              by (metis \<open>fl2ttobs \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> \<open>fl2ttobs \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> append_Nil assms(8) ttWF_xs_x ttWF_ys_y flt2_xs_x flt2_ys_y priMaxTT priMaxTT_extend_both_events_non_maximal_ttWF)
               
           qed
         qed
@@ -1791,22 +1551,22 @@ lemma
           "fl2ttm fl\<^sub>0 \<subseteq> P"
           "fl2ttobs Y \<in> P"
           "ar = fl2ttobs fl" "flt2goodTock fl" "TTwf P"
-        shows "\<exists>zr. prirelRef p (fl2ttobs fl) zr [] P \<and> zr \<in> P"
+        shows "\<exists>zr. priMaxTT p (fl2ttobs fl) zr [] P \<and> zr \<in> P"
   using pp 
   using assms(1) assms(2) assms(3) assms(4) assms(5) assms(6) assms(8) assms(9) by blast
 
 lemma
-  assumes "prirelRef p (fl2ttobs fl) (fl2ttobs zr) [] P"
-  shows "prirelRef p (fl2ttobs fl) (fl2ttobs zr) [] P \<and> length fl = length zr"
+  assumes "priMaxTT p (fl2ttobs fl) (fl2ttobs zr) [] P"
+  shows "priMaxTT p (fl2ttobs fl) (fl2ttobs zr) [] P \<and> length fl = length zr"
   nitpick
   oops
 
-lemma prirelRef_fl2ttobs_both_eq_length_flt2goodTock_both:
-  assumes "prirelRef p (fl2ttobs xs) (fl2ttobs ys) zs P" "flt2goodTock xs" "length xs = length ys"
+lemma priMaxTT_fl2ttobs_both_eq_length_flt2goodTock_both:
+  assumes "priMaxTT p (fl2ttobs xs) (fl2ttobs ys) zs P" "flt2goodTock xs" "length xs = length ys"
   shows "flt2goodTock ys"
   using assms apply (induct p xs ys arbitrary: zs rule:prirel.induct, auto)
-  apply (smt prirelRef.simps(3) prirelRef.simps(30))
-    apply (smt prirelRef.simps(18) prirelRef.simps(5))
+  apply (smt priMaxTT.simps(3) priMaxTT.simps(30))
+    apply (smt priMaxTT.simps(18) priMaxTT.simps(5))
   apply (case_tac A, auto, case_tac b, auto, case_tac a, auto)
        apply meson
       apply (case_tac a, auto)
@@ -1826,20 +1586,20 @@ lemma ttWF2_ttWF_imp:
   shows "ttWF2 x y"
   using assms ttWF2_ttWF by blast
 
-lemma not_prirelRef_cases [simp]:
-  "\<not> prirelRef pa (x # xs # ys) [ysa] s P"
+lemma not_priMaxTT_cases [simp]:
+  "\<not> priMaxTT pa (x # xs # ys) [ysa] s P"
   apply (cases x, auto)
   by (cases ysa, auto)
 
-lemma not_prirelRef_cases_2 [simp]:
+lemma not_priMaxTT_cases_2 [simp]:
   assumes "ys \<noteq> []"
-  shows "\<not> prirelRef pa (x # xs @ ys) [ysa] s P"
+  shows "\<not> priMaxTT pa (x # xs @ ys) [ysa] s P"
   using assms apply (cases x, auto)
    apply (cases xs, auto, cases ys, auto)
   by (cases xs, auto, cases ys, auto)
 
 lemma
-  assumes "prirelRef p (fl2ttobs fl) (fl2ttobs zr) [] P" "length fl = length zr"
+  assumes "priMaxTT p (fl2ttobs fl) (fl2ttobs zr) [] P" "length fl = length zr"
   shows "size (fl2ttobs fl) = size (fl2ttobs zr)"
   using assms
   apply (induct fl zr rule:ftrace_cons_induct_both_eq_length, auto)
@@ -1855,22 +1615,22 @@ lemma TT1w_prefix_is_in:
   using tt_prefix_concat by blast
 
 lemma
-  assumes "prirelRef p (x @ xs) (y @ ys) s P" "size x = size y"
-  shows "prirelRef p xs ys (s @ x) P"
-  using assms apply (induct p x y s P arbitrary:xs ys rule:prirelRef.induct, auto)
+  assumes "priMaxTT p (x @ xs) (y @ ys) s P" "size x = size y"
+  shows "priMaxTT p xs ys (s @ x) P"
+  using assms apply (induct p x y s P arbitrary:xs ys rule:priMaxTT.induct, auto)
    apply (case_tac xsa, auto, case_tac ysa, auto, case_tac ysa, auto)
    apply (case_tac a, auto, case_tac aa, auto)
      apply (case_tac x1, auto, case_tac x1a, auto)
     apply (case_tac x1, auto, case_tac x1a, auto)
   oops
 
-lemma prirelRef_Event_common_extend:
-  assumes "prirelRef p ([[Event x1]\<^sub>E] @ xs) ([[Event x1]\<^sub>E] @ ys) s P"
-  shows "prirelRef p xs ys (s@[[Event x1]\<^sub>E]) P"
-  using assms by (induct p xs ys s P arbitrary:xs ys rule:prirelRef.induct, auto)
+lemma priMaxTT_Event_common_extend:
+  assumes "priMaxTT p ([[Event x1]\<^sub>E] @ xs) ([[Event x1]\<^sub>E] @ ys) s P"
+  shows "priMaxTT p xs ys (s@[[Event x1]\<^sub>E]) P"
+  using assms by (induct p xs ys s P arbitrary:xs ys rule:priMaxTT.induct, auto)
 
-lemma prirelRef_of_both_fl2ttobs_cons_acceptance_imp_prirel_acceptance:
-  assumes "prirelRef p (fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P" 
+lemma priMaxTT_of_both_fl2ttobs_cons_acceptance_imp_prirel_acceptance:
+  assumes "priMaxTT p (fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P" 
           "last xs = \<bullet>" "last ys = \<bullet>"
           "flt2goodTock xs" "flt2goodTock ys"
   shows "pri p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>" (* FIXME: better proof please.. *)
@@ -1890,7 +1650,7 @@ proof (induct p xs ys arbitrary:s x y rule:prirel.induct)
       apply (cases x, safe)
          apply force
         apply (simp_all add:acceptance.simps(1))
-      unfolding prirelref_def by auto
+      unfolding prirefMaxTT_def by auto
   qed
 next
 case (2 p A Z zz)
@@ -1916,34 +1676,34 @@ next
     using "4.prems" apply auto
     by (metis Finite_Linear_Model.last.simps(1) butlast_last_FL flt2goodTock_extend_consFL_acceptance last_bullet_butlast_last)+
     
-  from 4 have "prirelRef p (fl2ttobs ((A #\<^sub>\<F>\<^sub>\<L> aa) &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs ((Z #\<^sub>\<F>\<^sub>\<L> zz) &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+  from 4 have "priMaxTT p (fl2ttobs ((A #\<^sub>\<F>\<^sub>\<L> aa) &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs ((Z #\<^sub>\<F>\<^sub>\<L> zz) &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
     by auto
-  then have "prirelRef p (fl2ttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>))) (fl2ttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))) s P"
+  then have "priMaxTT p (fl2ttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>))) (fl2ttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))) s P"
     by auto
-  then have "prirelRef p (fl2ttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+  then have "priMaxTT p (fl2ttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
   proof -
     have "fl2ttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) = fl2ttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)"
               "fl2ttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) = fl2ttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
       using flt2goodTocks by auto
     then show ?thesis
-      using \<open>prirelRef p (fl2ttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>))) (fl2ttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))) s P\<close> by auto 
+      using \<open>priMaxTT p (fl2ttobs (\<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>))) (fl2ttobs (\<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>))) s P\<close> by auto 
   qed
 
-  then have pp:"prirelRef p (fl2ttobs (\<langle>(Aa,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+  then have pp:"priMaxTT p (fl2ttobs (\<langle>(Aa,a)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
     using A Z by auto
 
-  (* Aim is to deduce prirelRef p (fl2ttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>?x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>?y\<rangle>\<^sub>\<F>\<^sub>\<L>)) ?s P *)
+  (* Aim is to deduce priMaxTT p (fl2ttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>?x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>?y\<rangle>\<^sub>\<F>\<^sub>\<L>)) ?s P *)
   then show ?case
   proof (cases a)
     case (Event x1)
-    then have p1:"prirelRef p ([[Event x1]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+    then have p1:"priMaxTT p ([[Event x1]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
       using pp A by auto
     then have "fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[Event x1]\<^sub>E]"
       using Z flt2goodTocks by (cases z, auto)
     
-    then have "prirelRef p ([[Event x1]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) ([[Event x1]\<^sub>E] @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+    then have "priMaxTT p ([[Event x1]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) ([[Event x1]\<^sub>E] @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
       using p1 by auto
-    then have "prirelRef p (fl2ttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) (s@[[Event x1]\<^sub>E]) P"
+    then have "priMaxTT p (fl2ttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) (s@[[Event x1]\<^sub>E]) P"
       by auto
 
     then have "pri p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
@@ -1955,14 +1715,14 @@ next
     case Tock
     then have "Aa \<noteq> \<bullet>"
       using "4.prems"(4) A by auto
-    then have p1:"prirelRef p ([[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Aa}]\<^sub>R,[Tock]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+    then have p1:"priMaxTT p ([[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Aa}]\<^sub>R,[Tock]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
       using pp A Tock by (cases Aa, auto)
     then have "fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Zz}]\<^sub>R,[Tock]\<^sub>E]"
       using Z flt2goodTocks by (cases z, auto)
     
-    then have "prirelRef p ([[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Aa}]\<^sub>R,[Tock]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) ([[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Zz}]\<^sub>R,[Tock]\<^sub>E] @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+    then have "priMaxTT p ([[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Aa}]\<^sub>R,[Tock]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) ([[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Zz}]\<^sub>R,[Tock]\<^sub>E] @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
       using p1 by auto
-    then have "prirelRef p (fl2ttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) (s@[[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Zz}]\<^sub>R,[Tock]\<^sub>E]) P"
+    then have "priMaxTT p (fl2ttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) (s@[[{x. x \<notin>\<^sub>\<F>\<^sub>\<L> Zz}]\<^sub>R,[Tock]\<^sub>E]) P"
       by auto
 
     then have "pri p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
@@ -1972,14 +1732,14 @@ next
     then show ?thesis by auto
   next
     case Tick
-    then have p1:"prirelRef p ([[Tick]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+    then have p1:"priMaxTT p ([[Tick]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
       using pp A by auto
     then have "fl2ttobs (\<langle>(Zz,z)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = [[Tick]\<^sub>E]"
       using Z flt2goodTocks by (cases z, auto)
     
-    then have "prirelRef p ([[Tick]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) ([[Tick]\<^sub>E] @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
+    then have "priMaxTT p ([[Tick]\<^sub>E] @ fl2ttobs(aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) ([[Tick]\<^sub>E] @ fl2ttobs(zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) s P"
       using p1 by auto
-    then have "prirelRef p (fl2ttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) (s@[[Tick]\<^sub>E]) P"
+    then have "priMaxTT p (fl2ttobs (aa &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (zz &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)) (s@[[Tick]\<^sub>E]) P"
       by auto
 
     then have "pri p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
@@ -1997,13 +1757,13 @@ lemma flt2goodS_imp_flt2goodTock [simp]:
 
 (*
 lemma
-  assumes "prirelRef p (fl2ttobs xs) (fl2ttobs ys) s P" "flt2goodS ys" "length xs = length ys"
+  assumes "priMaxTT p (fl2ttobs xs) (fl2ttobs ys) s P" "flt2goodS ys" "length xs = length ys"
   shows "flt2goodS xs"
   nitpick*)
 
 (* So we want... *)
 lemma
-  assumes "prirelRef p ar zr [] P" 
+  assumes "priMaxTT p ar zr [] P" 
           "zr \<in> P" 
     shows "\<exists>Z fl\<^sub>0 fl. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> fl2ttobs Z \<in> P \<and> fl2ttobs fl = ar"
   (* But this is easier if done inductively over fl Z... *)
@@ -2015,15 +1775,15 @@ lemma prirel_extend_both_prefix_imp:
   using assms prirel_consFL_both_imp' by blast
 
 lemma pp1:
-  assumes "prirelRef p (fl2ttobs fl) (fl2ttobs zr) [] P" "prirel p fl zr"
+  assumes "priMaxTT p (fl2ttobs fl) (fl2ttobs zr) [] P" "prirel p fl zr"
           "(fl2ttobs zr) \<in> P" 
     shows "\<exists>fl\<^sub>0. prirel p fl zr \<and> zr \<in> fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> (fl2ttobs zr) \<in> P"
   using assms apply auto oops
 
-lemma prirelRef_is_TT3_trace_closed:
-  assumes "prirelRef p xs ys s P" "TT3_trace ys"
+lemma priMaxTT_is_TT3_trace_closed:
+  assumes "priMaxTT p xs ys s P" "TT3_trace ys"
   shows "TT3_trace xs"
-  using assms apply(induct p xs ys s P rule:prirelRef.induct, auto)
+  using assms apply(induct p xs ys s P rule:priMaxTT.induct, auto)
   using TT3_trace_cons_imp_cons by (metis TT3_trace.simps(2) TT3_trace.simps(4) neq_Nil_conv)+
 
 lemma
@@ -2064,14 +1824,14 @@ lemma flt2goodTock_of_consFL_also_flt2goodTock:
   by (induct ys, auto)
 
 lemma pp20:
-  assumes "prirelRef p xs ys s P" "TT3_trace ys" "ttWF ys" "(fl2ttobs zr) = ys" 
+  assumes "priMaxTT p xs ys s P" "TT3_trace ys" "ttWF ys" "(fl2ttobs zr) = ys" 
           "flt2goodTock zr"
           "flt2goodAcceptance zr p"
           "TTM3 P"
         (*  "maximal(p,Tick)"*) (* FIXME: probably not needed *)
   shows "\<exists>fl. pri p fl zr \<and> (fl2ttobs fl) = xs \<and> flt2goodTock fl"
   using assms 
-proof (induct p xs ys s P arbitrary:zr rule:prirelRef.induct, auto simp add:TT3_trace_cons_imp_cons)
+proof (induct p xs ys s P arbitrary:zr rule:priMaxTT.induct, auto simp add:TT3_trace_cons_imp_cons)
   fix pa::"'a ttevent partialorder"
   fix zra::"'a ttevent fltrace"
   assume assm1:"fl2ttobs zra = []"
@@ -2092,22 +1852,22 @@ next
      apply (case_tac x1, auto)
     apply (case_tac x21, auto, case_tac b, auto, case_tac a, auto)
     by (case_tac b, auto)
-  then show "\<exists>fl. pri pa fl zra \<and> fl2ttobs fl = [[prirelref pa S]\<^sub>R] \<and> flt2goodTock fl"
-    apply (intro exI[where x="\<langle>[{x. x \<notin> (prirelref pa S)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
-    unfolding prirelref_def by auto 
+  then show "\<exists>fl. pri pa fl zra \<and> fl2ttobs fl = [[prirefMaxTT pa S]\<^sub>R] \<and> flt2goodTock fl"
+    apply (intro exI[where x="\<langle>[{x. x \<notin> (prirefMaxTT pa S)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+    unfolding prirefMaxTT_def by auto 
 next
   fix pa::"'a ttevent partialorder"
   fix aa S zz sa Q
   fix zra::"'a ttevent fltrace"
   assume hyp:"(\<And>zr. fl2ttobs zr = zz \<Longrightarrow> flt2goodTock zr \<Longrightarrow> flt2goodAcceptance zr pa \<Longrightarrow> \<exists>fl. pri pa fl zr \<and> fl2ttobs fl = aa \<and> flt2goodTock fl)"
-  assume assm1:"prirelRef pa aa zz (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
+  assume assm1:"priMaxTT pa aa zz (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
   assume assm2:"ttWF zz"
   assume assm3:"flt2goodTock zra"
   assume assm4:"Tock \<notin> S"
-  assume assm5:"Tock \<notin> prirelref pa S"
+  assume assm5:"Tock \<notin> prirefMaxTT pa S"
   assume assm6:"TT3_trace zz"
   assume assm7:"fl2ttobs zra = [S]\<^sub>R # [Tock]\<^sub>E # zz"
-  then have tocks:"Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> prirelref pa S}]\<^sub>\<F>\<^sub>\<L>"
+  then have tocks:"Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> prirefMaxTT pa S}]\<^sub>\<F>\<^sub>\<L>"
                   "Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> S}]\<^sub>\<F>\<^sub>\<L>"
     using assm4 assm5
     apply (metis amember.simps(2) mem_Collect_eq)
@@ -2124,21 +1884,21 @@ next
   then obtain flaa where flaa:"pri pa flaa tt \<and> fl2ttobs flaa = aa \<and> flt2goodTock flaa"
     using hyp assm8 by blast
     
-  show "\<exists>fl. pri pa fl zra \<and> fl2ttobs fl = [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # aa \<and> flt2goodTock fl"
+  show "\<exists>fl. pri pa fl zra \<and> fl2ttobs fl = [prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # aa \<and> flt2goodTock fl"
   proof -
-    have "prirelRef pa ([prirelref pa S]\<^sub>R # [Tock]\<^sub>E # aa) 
+    have "priMaxTT pa ([prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # aa) 
                         ([S]\<^sub>R # [Tock]\<^sub>E # zz) sa Q"
       by (simp add: assm1 assm5)
 
-    obtain fla where fla:"fla = \<langle>([{x. x \<notin> prirelref pa S}]\<^sub>\<F>\<^sub>\<L>,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" by auto
+    obtain fla where fla:"fla = \<langle>([{x. x \<notin> prirefMaxTT pa S}]\<^sub>\<F>\<^sub>\<L>,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" by auto
 
     have "flt2goodTock fla"
       using fla tocks(1) by auto
     then have "flt2goodTock (fla &\<^sub>\<F>\<^sub>\<L> flaa)"
       using flt2goodTock_of_consFL_also_flt2goodTock flaa by blast
     have "pri pa fla \<langle>([{x. x \<notin> S}]\<^sub>\<F>\<^sub>\<L>,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-      using tocks fla unfolding prirelref_def by auto
-    have fl2ttobs_fla_flaa:"fl2ttobs(fla &\<^sub>\<F>\<^sub>\<L> flaa) = [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # aa"
+      using tocks fla unfolding prirefMaxTT_def by auto
+    have fl2ttobs_fla_flaa:"fl2ttobs(fla &\<^sub>\<F>\<^sub>\<L> flaa) = [prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # aa"
       using tocks fla flaa by auto
     have "pri pa (fla &\<^sub>\<F>\<^sub>\<L> flaa) zra"
       using tocks fla flaa apply auto
@@ -2160,7 +1920,7 @@ next
     by (metis ttWF.simps(1) ttWF.simps(4) ttWF.simps(8) ttevent.exhaust neq_Nil_conv no_Tock)
   assume assm3:"fl2ttobs zra = [e\<^sub>2]\<^sub>E # zz"
   assume assm4:"flt2goodTock zra"
-  assume assm5:"prirelRef pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
+  assume assm5:"priMaxTT pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
   assume assm6:"maximal(pa,e\<^sub>2)"
   assume assm7:"flt2goodAcceptance zra pa"
   from assm3 obtain tt aE where tt:"fl2ttobs tt = zz \<and> flt2goodTock tt \<and> flt2goodAcceptance tt pa \<and> zra = \<langle>(aE,e\<^sub>2)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> &\<^sub>\<F>\<^sub>\<L> tt \<and> (e\<^sub>2 \<in>\<^sub>\<F>\<^sub>\<L> aE \<or> aE = \<bullet>)"
@@ -2181,7 +1941,7 @@ next
     by blast
   show "\<exists>fl. pri pa fl zra \<and> fl2ttobs fl = [e\<^sub>2]\<^sub>E # aa \<and> flt2goodTock fl"
   proof -
-    from assm5 assm6 have "prirelRef pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) sa Q"
+    from assm5 assm6 have "priMaxTT pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) sa Q"
       by simp
 
     then show ?thesis
@@ -2215,7 +1975,7 @@ next
     by (metis ttWF.simps(1) ttWF.simps(4) ttWF.simps(8) ttevent.exhaust neq_Nil_conv no_Tock)
   assume assm3:"fl2ttobs zra = [e\<^sub>2]\<^sub>E # zz"
   assume assm4:"flt2goodTock zra"
-  assume assm5:"prirelRef pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
+  assume assm5:"priMaxTT pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
   assume assm6:"sa @ [[Z]\<^sub>R] \<in> Q"
   assume assm7:"\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*pa b"
   assume assm8:"e\<^sub>2 \<notin> Z"
@@ -2235,8 +1995,8 @@ next
     by blast
   show "\<exists>fl. pri pa fl zra \<and> fl2ttobs fl = [e\<^sub>2]\<^sub>E # aa \<and> flt2goodTock fl"
   proof -
-    from assm5 assm6 assm7 have prirelRef:"prirelRef pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) sa Q"
-      using prirelRef.simps(4) assm8 by blast
+    from assm5 assm6 assm7 have priMaxTT:"priMaxTT pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) sa Q"
+      using priMaxTT.simps(4) assm8 by blast
 
     then show ?thesis
     proof (cases "aE = \<bullet>")
@@ -2369,7 +2129,7 @@ next
     qed
   qed
 
-(*proof (induct p xs ys s P rule:prirelRef.induct, auto)
+(*proof (induct p xs ys s P rule:priMaxTT.induct, auto)
   fix pa::"'a ttevent partialorder"
   fix Q::"'a ttobs list set"
   assume assm1:"TT0 Q"
@@ -2389,16 +2149,16 @@ next
   assume assm1:"TT0 Q"
   assume assm2:"TT1 Q"
   assume assm3:"Tick \<in> S"
-  then have "Tick \<in> prirelref pa S"
-    unfolding prirelref_def by auto
-  have pp:"prirel pa \<langle>[{fl. fl \<notin> prirelref pa S}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>[{zr. zr \<notin> S}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-    unfolding prirelref_def by simp
-  show "\<exists>fl\<^sub>0 fl zr. prirel pa fl zr \<and> fl2ttobs fl = [[prirelref pa S]\<^sub>R] \<and> fl2ttobs zr = [[S]\<^sub>R] 
+  then have "Tick \<in> prirefMaxTT pa S"
+    unfolding prirefMaxTT_def by auto
+  have pp:"prirel pa \<langle>[{fl. fl \<notin> prirefMaxTT pa S}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>[{zr. zr \<notin> S}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+    unfolding prirefMaxTT_def by simp
+  show "\<exists>fl\<^sub>0 fl zr. prirel pa fl zr \<and> fl2ttobs fl = [[prirefMaxTT pa S]\<^sub>R] \<and> fl2ttobs zr = [[S]\<^sub>R] 
     \<and> zr \<in> fl\<^sub>0 \<and> FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> Q"
     apply (rule exI[where x="{\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>,\<langle>[{x. x \<notin> S}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>}"])
-    apply (rule exI[where x="\<langle>[{x. x \<notin> (prirelref pa S)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
+    apply (rule exI[where x="\<langle>[{x. x \<notin> (prirefMaxTT pa S)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
     apply (rule exI[where x="\<langle>[{x. x \<notin> S}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"])
-    unfolding prirelref_def apply auto 
+    unfolding prirefMaxTT_def apply auto 
     unfolding FLTick0_def using assm3 apply auto
     unfolding FL1_def apply auto
       apply (case_tac s, auto, case_tac x1, auto)
@@ -2407,50 +2167,50 @@ next
 next
   fix pa::"'a ttevent partialorder"
   fix S sa Q fl zr
-  assume assm1:"prirelRef pa (fl2ttobs fl) (fl2ttobs zr) (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
+  assume assm1:"priMaxTT pa (fl2ttobs fl) (fl2ttobs zr) (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
   assume assm2:"prirel pa fl zr"
-  assume assm3:"Tock \<notin> prirelref pa S"
+  assume assm3:"Tock \<notin> prirefMaxTT pa S"
   assume assm4:"Tock \<notin> S"
   show "\<exists>fla zra. prirel pa fla zra 
-          \<and> fl2ttobs fla = [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl 
+          \<and> fl2ttobs fla = [prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl 
           \<and> fl2ttobs zra = [S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs zr"
   proof -
-    have "prirelRef pa ([prirelref pa S]\<^sub>R # [Tock]\<^sub>E # (fl2ttobs fl)) 
+    have "priMaxTT pa ([prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # (fl2ttobs fl)) 
                        ([S]\<^sub>R # [Tock]\<^sub>E # (fl2ttobs zr)) sa Q"
       by (simp add: assm1 assm3)
-    have tocks:"Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> prirelref pa S}]\<^sub>\<F>\<^sub>\<L>"
+    have tocks:"Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> prirefMaxTT pa S}]\<^sub>\<F>\<^sub>\<L>"
                "Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> S}]\<^sub>\<F>\<^sub>\<L>"
-      apply (metis TT3_trace.simps(3) fl2ttobs_is_TT3_trace \<open>prirelRef pa ([prirelref pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl) ([S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs zr) sa Q\<close> amember.simps(2) mem_Collect_eq xp)
+      apply (metis TT3_trace.simps(3) fl2ttobs_is_TT3_trace \<open>priMaxTT pa ([prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl) ([S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs zr) sa Q\<close> amember.simps(2) mem_Collect_eq xp)
       by (simp_all add:  assm4)
 
-    obtain fla where fla:"fla = \<langle>([{x. x \<notin> prirelref pa S}]\<^sub>\<F>\<^sub>\<L>,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" by auto
+    obtain fla where fla:"fla = \<langle>([{x. x \<notin> prirefMaxTT pa S}]\<^sub>\<F>\<^sub>\<L>,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" by auto
     obtain zra where zra:"zra = \<langle>([{x. x \<notin> S}]\<^sub>\<F>\<^sub>\<L>,Tock)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" by auto
 
-    have "fl2ttobs(fla) = [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # Nil"
+    have "fl2ttobs(fla) = [prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # Nil"
       using tocks fla by auto
     have "fl2ttobs(zra) = [S]\<^sub>R # [Tock]\<^sub>E # Nil"
       using tocks zra by auto
-    have "fl2ttobs(fla &\<^sub>\<F>\<^sub>\<L> fl) = [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl"
+    have "fl2ttobs(fla &\<^sub>\<F>\<^sub>\<L> fl) = [prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl"
       using tocks fla by auto
     have "fl2ttobs(zra &\<^sub>\<F>\<^sub>\<L> zr) = [S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs zr"
       using tocks zra by auto
 
     have "prirel pa fla zra"
-      using tocks fla zra unfolding prirelref_def by auto
+      using tocks fla zra unfolding prirefMaxTT_def by auto
     then have "prirel pa (fla &\<^sub>\<F>\<^sub>\<L> fl) (zra &\<^sub>\<F>\<^sub>\<L> zr)"
       using assm2 by (simp add: prirel_extend_both_prefix_imp)
 
     then have "prirel pa (fla &\<^sub>\<F>\<^sub>\<L> fl) (zra &\<^sub>\<F>\<^sub>\<L> zr) 
-                \<and> fl2ttobs(fla &\<^sub>\<F>\<^sub>\<L> fl) = [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl 
+                \<and> fl2ttobs(fla &\<^sub>\<F>\<^sub>\<L> fl) = [prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl 
                 \<and> fl2ttobs(zra &\<^sub>\<F>\<^sub>\<L> zr) = [S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs zr"
-      using \<open>fl2ttobs (fla &\<^sub>\<F>\<^sub>\<L> fl) = [prirelref pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl\<close> \<open>fl2ttobs (zra &\<^sub>\<F>\<^sub>\<L> zr) = [S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs zr\<close> by blast
+      using \<open>fl2ttobs (fla &\<^sub>\<F>\<^sub>\<L> fl) = [prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs fl\<close> \<open>fl2ttobs (zra &\<^sub>\<F>\<^sub>\<L> zr) = [S]\<^sub>R # [Tock]\<^sub>E # fl2ttobs zr\<close> by blast
     then show ?thesis by blast
   qed
 next
   fix pa::"'a ttevent partialorder"
   fix aa e\<^sub>2 zz sa Q
   assume assm0:"(ttWF zz \<Longrightarrow> \<exists>fl zr. prirel pa fl zr \<and> fl2ttobs fl = aa \<and> fl2ttobs zr = zz)"
-  assume assm1:"prirelRef pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
+  assume assm1:"priMaxTT pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
   assume assm2:"maximal(pa,e\<^sub>2)"
   assume assm4:"TT3_trace ([e\<^sub>2]\<^sub>E # zz)"
   assume assm5:"ttWF ([e\<^sub>2]\<^sub>E # zz)"
@@ -2463,7 +2223,7 @@ next
   
   show "\<exists>fl zr. prirel pa fl zr \<and> fl2ttobs fl = [e\<^sub>2]\<^sub>E # aa \<and> fl2ttobs zr = [e\<^sub>2]\<^sub>E # zz"
   proof -
-    from assm1 assm2 have "prirelRef pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) sa Q"
+    from assm1 assm2 have "priMaxTT pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) sa Q"
       by simp
 
     obtain fla where fla:"fla = \<langle>(\<bullet>,e\<^sub>2)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" by auto
@@ -2491,7 +2251,7 @@ next
 
   assume assm2:"TT3_trace ([e\<^sub>2]\<^sub>E # zz)"
   assume assm3:"ttWF ([e\<^sub>2]\<^sub>E # zz)"
-  assume assm4:"prirelRef pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
+  assume assm4:"priMaxTT pa aa zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
   assume assm5:"sa @ [[Z]\<^sub>R] \<in> Q"
   assume assm6:"\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*pa b"
   from  assm2 have TT3_traces:
@@ -2508,7 +2268,7 @@ next
 
   show "\<exists>fl zr. prirel pa fl zr \<and> fl2ttobs fl = [e\<^sub>2]\<^sub>E # aa \<and> fl2ttobs zr = [e\<^sub>2]\<^sub>E # zz"
   proof -
-    from assm4 assm5 assm6 have "prirelRef pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) sa Q"
+    from assm4 assm5 assm6 have "priMaxTT pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) sa Q"
       by auto
     obtain fla where fla:"fla = \<langle>([{e\<^sub>2}]\<^sub>\<F>\<^sub>\<L>,e\<^sub>2)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" by auto
     then have "fl2ttobs fla = [e\<^sub>2]\<^sub>E # Nil"
@@ -2533,7 +2293,7 @@ qed*)
 
 (*
 lemma pp3:
-  assumes "prirelRef p xs ys s P" "TT3_trace ys" "ttWF ys"
+  assumes "priMaxTT p xs ys s P" "TT3_trace ys" "ttWF ys"
           "ys \<in> P" 
     shows "\<exists>Z fl\<^sub>0 fl. prirel p fl Z \<and> Z \<in> fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> fl2ttobs Z \<in> P \<and> fl2ttobs fl = xs"
   using pp2 
@@ -2541,7 +2301,7 @@ lemma pp3:
 *)
 
 lemma pp4:
-  assumes "prirelRef p xs ys [] P" "ys \<in> P" 
+  assumes "priMaxTT p xs ys [] P" "ys \<in> P" 
           "TT0 P" "TTwf P" "TT1w P" "TT3 P" "TTick P" "TTM3 P" "TT4w P"
     shows "\<exists>fl. fl2ttobs fl = xs \<and> (\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0)) \<and> flt2goodTock fl"
 proof -
@@ -2549,15 +2309,15 @@ proof -
     using TTwf_def assms by blast
   then obtain Z where fl:"ys = fl2ttobs Z \<and> flt2goodTock Z  \<and>
         (\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> Z \<in> fl\<^sub>0) \<and> fl2ttobs Z \<in> P \<and> flt2goodAcceptance Z p \<and> flt2goodTock Z 
-        \<and> ttWF ys \<and> prirelRef p xs ys [] P"
+        \<and> ttWF ys \<and> priMaxTT p xs ys [] P"
     unfolding fl2ttm_def using assms TTwf_1c_3_imp_fl2ttobs_FL1_mod by blast
   then have "\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs Z \<in> P \<and> fl2ttobs Z = ys \<and> flt2goodAcceptance Z p 
         \<and> flt2goodTock Z 
-        \<and> TT3_trace ys \<and> ttWF ys \<and> prirelRef p xs ys [] P"
+        \<and> TT3_trace ys \<and> ttWF ys \<and> priMaxTT p xs ys [] P"
     by auto
   then have "\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs Z \<in> P \<and> fl2ttobs Z = ys \<and> flt2goodAcceptance Z p 
         \<and> flt2goodTock Z 
-        \<and> TT3_trace ys \<and> ttWF ys \<and> prirelRef p xs ys [] P
+        \<and> TT3_trace ys \<and> ttWF ys \<and> priMaxTT p xs ys [] P
         \<and> (\<exists>fl. pri p fl Z \<and> fl2ttobs fl = xs \<and> flt2goodTock fl)"
     using pp20 assms
     by metis
@@ -2568,7 +2328,7 @@ proof -
 qed
 
 (* The key result we wish to establish is: *)
-lemma fl2ttm_pri_ttm2fl_priNS:
+lemma fl2ttm_pri_ttm2fl_PriMax:
   fixes P :: "('e ttobs) list set"
   assumes TT0_healthy:  "TT0 P" 
       and TTwf_healthy: "TTwf P" 
@@ -2578,7 +2338,7 @@ lemma fl2ttm_pri_ttm2fl_priNS:
       and TTM3:   "TTM3 P"
       and TT4w_healthy:    "TT4w P"
      (* and Tick_max:"maximal(p,Tick)"*)
-  shows "fl2ttm(Pri p (ttm2fl P)) = priNS p P"
+  shows "fl2ttm(Pri p (ttm2fl P)) = PriMax p P"
 proof -
   have "fl2ttm(Pri p (ttm2fl P)) = {fl2ttobs fl|fl. fl \<in> (Pri p (ttm2fl P)) \<and> flt2goodTock fl} \<union> {[]}"
     using fl2ttm_FL0_FL1_flt2goodTock
@@ -2598,13 +2358,13 @@ proof -
     unfolding fl2ttm_def by auto
   also have "... = {fl2ttobs fl|fl. \<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> (fl2ttm fl\<^sub>0) \<subseteq> P \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0) \<and> flt2goodTock fl} \<union> {[]}"
     unfolding Pri_def by auto
-  also have "... = {ar|ar zr. prirelRef p ar zr [] P \<and> zr \<in> P}"
+  also have "... = {ar|ar zr. priMaxTT p ar zr [] P \<and> zr \<in> P}"
     using assms apply auto
-    using TT0_TT1w_empty prirelRef.simps(1) apply blast
+    using TT0_TT1w_empty priMaxTT.simps(1) apply blast
     apply (meson fl2ttobs_extn pp)
     using assms pp4 by metis 
-  also have "... = priNS p P"
-    unfolding priNS_def by auto
+  also have "... = PriMax p P"
+    unfolding PriMax_def by auto
   finally show ?thesis .
 qed
 
@@ -2668,8 +2428,8 @@ next
   qed
 qed
 
-lemma prirelRef_of_fl2ttobs_flt2goodTocks_is_eq_length:
-  assumes "prirelRef p (fl2ttobs fl) (fl2ttobs zr) s P" "flt2goodTock fl" "flt2goodTock zr" (*"xs = (fl2ttobs fl)" "ys = (fl2ttobs zr)"*) 
+lemma priMaxTT_of_fl2ttobs_flt2goodTocks_is_eq_length:
+  assumes "priMaxTT p (fl2ttobs fl) (fl2ttobs zr) s P" "flt2goodTock fl" "flt2goodTock zr" (*"xs = (fl2ttobs fl)" "ys = (fl2ttobs zr)"*) 
   shows "length fl = length zr"
   using assms (* TODO: I'm sure there is a nicer proof... *)
   apply (induct p fl zr arbitrary:s rule:prirel.induct, auto)

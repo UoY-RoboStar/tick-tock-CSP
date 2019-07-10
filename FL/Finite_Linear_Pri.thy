@@ -28,6 +28,60 @@ translations
 definition Pri :: "'a partialorder \<Rightarrow> 'a fltraces \<Rightarrow> 'a fltraces" ("Pri\<^sub>[\<^sub>_\<^sub>] _" [51,51]) where 
 "Pri\<^sub>[\<^sub>p\<^sub>] P = {\<rho>|\<sigma> \<rho>. \<rho> pri\<^sub>[\<^sub>p\<^sub>] \<sigma> \<and> \<sigma> \<in> P}"
 
+lemma priacc_not_in [intro]:
+  assumes "e \<notin>\<^sub>\<F>\<^sub>\<L> Z"
+  shows "e \<notin>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>] Z"
+  using assms by (cases Z, auto)
+
+lemma priacc_not_in' [intro]:
+  assumes "A \<le> priacc\<^sub>[\<^sub>p\<^sub>] Z" "e \<in>\<^sub>\<F>\<^sub>\<L> A"
+  shows "e \<in>\<^sub>\<F>\<^sub>\<L> Z"
+  using assms apply (cases A, auto)
+  apply (cases Z, auto)
+  by (metis (mono_tags, lifting) Int_iff)
+
+lemma priacc_in' [intro]:
+  assumes "A \<le> priacc\<^sub>[\<^sub>p\<^sub>] Z" "e \<in>\<^sub>\<F>\<^sub>\<L> A"
+  shows "e \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>] Z"
+  using assms apply (cases A, auto)
+  apply (cases Z, auto)
+   apply (metis (no_types, lifting) IntE)
+  by (metis (no_types, lifting) Int_Collect)
+
+lemma priacc_in'' [intro]:
+  assumes "b \<in>\<^sub>\<F>\<^sub>\<L> A" "\<forall>x. \<not> b <\<^sup>*p x"
+  shows "b \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>] A"
+  using assms by (cases A, auto)
+
+lemma priacc_simp_aset [intro]:
+  assumes "A \<le> priacc\<^sub>[\<^sub>p\<^sub>] Z"  "A \<noteq> \<bullet>"
+  shows "A = [{a. a \<in>\<^sub>\<F>\<^sub>\<L> Z \<and> (\<forall>b. b \<in>\<^sub>\<F>\<^sub>\<L> Z \<longrightarrow> \<not> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>"
+proof (cases A)
+  case acnil
+  then show ?thesis using assms by auto
+next
+  case (acset x2)
+  obtain Y where Y:"[Y]\<^sub>\<F>\<^sub>\<L> = Z"
+    using assms by (cases Z, auto, cases A, auto)
+
+  have "[x2]\<^sub>\<F>\<^sub>\<L> \<le> priacc\<^sub>[\<^sub>p\<^sub>] Z"
+    using acset assms by auto
+  then have "[x2]\<^sub>\<F>\<^sub>\<L> = priacc\<^sub>[\<^sub>p\<^sub>] Z"
+    using less_eq_acceptance.elims(2) by fastforce
+  then have "[x2]\<^sub>\<F>\<^sub>\<L> = [Y \<inter> {e. \<not>(\<exists>b. b\<in>Y \<and> e <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>"
+    using Y by auto
+  then have "[x2]\<^sub>\<F>\<^sub>\<L> = [{a. a \<in>\<^sub>\<F>\<^sub>\<L> Z \<and> (\<forall>b. b \<in>\<^sub>\<F>\<^sub>\<L> Z \<longrightarrow> \<not> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>"
+    using Y by auto
+  then have "x2 = {a. a \<in>\<^sub>\<F>\<^sub>\<L> Z \<and> (\<forall>b. b \<in>\<^sub>\<F>\<^sub>\<L> Z \<longrightarrow> \<not> a <\<^sup>*p b)}"
+    by auto
+  then show ?thesis using acset by auto
+qed
+
+lemma pri_base_bullet [intro]:
+  assumes "\<rho> pri\<^sub>[\<^sub>p\<^sub>] \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+  shows "\<rho> = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+  using assms by (cases \<rho>, auto)
+
 lemma pri_mono:
   assumes "P \<subseteq> Q"
   shows "Pri p P \<subseteq> Pri p Q"
@@ -192,14 +246,9 @@ lemma prirel_two_acceptances_bullet_not_bullet:
   assumes "acceptance(A) \<noteq> \<bullet>"
   shows "pri p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = (acceptance(Z) \<noteq> \<bullet> \<and> event A = event Z \<and> acceptance(A) =  [{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>)"
   using assms apply auto
-     apply (cases Z, auto, case_tac a, auto, cases A, auto)
-     apply (simp add:Int_def)
-  apply (cases A, auto, cases Z, auto, case_tac a, auto)
-      apply (case_tac aa, auto, metis (mono_tags, lifting) Int_Collect)
-     apply (case_tac aa, auto, metis (mono_tags, lifting) Int_Collect)
-    apply (case_tac aa, auto, smt Int_Collect)
-  by (cases A, auto, cases Z, auto, case_tac a, auto)+
-
+     apply (cases Z, auto, cases A, auto, case_tac a, auto)
+  by (cases Z, auto, cases A, auto, case_tac a, auto)
+  
 lemma prirelacc_singleton:
   "priacc\<^sub>[\<^sub>p\<^sub>]([{b}]\<^sub>\<F>\<^sub>\<L>) = [{b}]\<^sub>\<F>\<^sub>\<L>"
   by auto
@@ -436,9 +485,7 @@ proof -
   have "event Z \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z) \<or> acceptance Z = \<bullet>"
     using assms
     apply (simp_all add: maximal_iff)
-    apply (cases Z, auto)
-    apply (cases A, auto)
-    by (case_tac aa, auto, case_tac a, auto, case_tac a, auto)
+    by (cases Z, auto)
   then show ?thesis
     using assms by (cases Z, auto)
 qed
@@ -450,9 +497,7 @@ lemma pri_prefix_consFL'':
   have "event Z \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z) \<or> acceptance Z = \<bullet>"
     using assms
     apply (simp_all add: maximal_iff)
-    apply (cases Z, auto)
-    apply (cases A, auto)
-    by (case_tac aa, auto, case_tac a, auto, case_tac a, auto)
+    by (cases Z, auto)
   then have "acceptance (priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z),event Z)\<^sub>\<F>\<^sub>\<L> = priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z)"
     by auto
   then have "((A #\<^sub>\<F>\<^sub>\<L> \<rho>) pri\<^sub>[\<^sub>p\<^sub>] (Z #\<^sub>\<F>\<^sub>\<L> \<sigma>))
