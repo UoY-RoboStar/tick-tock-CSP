@@ -1777,7 +1777,7 @@ lemma
 lemma priMaxTT_fl2ttobs_both_eq_length_flt2goodTock_both:
   assumes "priMaxTT p (fl2ttobs xs) (fl2ttobs ys) zs P" "flt2goodTock xs" "length xs = length ys"
   shows "flt2goodTock ys"
-  using assms apply (induct p xs ys arbitrary: zs rule:prirel.induct, auto)
+  using assms apply (induct p xs ys arbitrary: zs rule:pri.induct, auto)
   apply (smt priMaxTT.simps(3) priMaxTT.simps(30))
     apply (smt priMaxTT.simps(18) priMaxTT.simps(5))
   apply (case_tac A, auto, case_tac b, auto, case_tac a, auto)
@@ -1828,7 +1828,7 @@ lemma priMaxTT_of_both_fl2ttobs_cons_acceptance_imp_prirel_acceptance:
           "flt2goodTock xs" "flt2goodTock ys"
   shows "pri p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>" (* FIXME: better proof please.. *)
   using assms 
-proof (induct p xs ys arbitrary:s x y rule:prirel.induct)
+proof (induct p xs ys arbitrary:s x y rule:pri.induct)
   case (1 p A Z)
   then show ?case 
   proof (cases y)
@@ -2281,9 +2281,9 @@ next
                 then have "pri pa fle2 zra"
                   using tt fl apply auto
                   apply (cases aE, auto)
-                  using Collect_cong aE_not_bullet acceptance_set acceptances_same_set mem_Collect_eq prirelacc.simps(2) Event apply blast
+                  using Collect_cong aE_not_bullet acceptance_set acceptances_same_set mem_Collect_eq priacc.simps(2) Event apply blast
                   apply (cases aE, auto)
-                  using Collect_cong Event FL_concat_equiv aE_not_bullet acceptance.distinct(1) acceptance_event acceptance_set fl local.tt pri.simps(4) prirelacc_acceptances_eq by blast
+                  using Collect_cong Event FL_concat_equiv aE_not_bullet acceptance.distinct(1) acceptance_event acceptance_set fl local.tt pri.simps(4) by blast
                 then show ?thesis
                   using Event fl fle2 by auto
               next
@@ -2437,26 +2437,26 @@ lemma priMaxTT_of_fl2ttobs_flt2goodTocks_is_eq_length:
   assumes "priMaxTT p (fl2ttobs fl) (fl2ttobs zr) s P" "flt2goodTock fl" "flt2goodTock zr" (*"xs = (fl2ttobs fl)" "ys = (fl2ttobs zr)"*) 
   shows "length fl = length zr"
   using assms (* TODO: I'm sure there is a nicer proof... *)
-  apply (induct p fl zr arbitrary:s rule:prirel.induct, auto)
+  apply (induct p fl zr arbitrary:s rule:pri.induct, auto)
   apply (case_tac A, auto, case_tac Z, auto, case_tac b, auto, case_tac a, auto)
      apply (case_tac b, auto, case_tac Z, auto, case_tac b, auto, case_tac a, auto)
     apply (case_tac b, auto, case_tac Z, auto, case_tac A, auto, case_tac b, auto, case_tac a, auto)
   apply (case_tac b, auto, case_tac A, auto, case_tac b, auto, case_tac a, auto)
    apply (case_tac b, auto)
-  apply (case_tac A, auto, case_tac Z, auto, case_tac b, auto, case_tac a, auto, case_tac ba, auto, case_tac ab, auto)
-       apply (case_tac ab, auto)
-      apply (case_tac ab, auto)
+  apply (case_tac A, auto, case_tac Z, auto, case_tac b, auto, case_tac a, auto, case_tac ba, auto)
+  apply (case_tac aa, auto, case_tac aa, auto)
+  apply (case_tac aa, auto, case_tac aa, auto)
+       apply (case_tac ba, auto, case_tac a, auto, case_tac a, auto, case_tac a, auto)
+       apply (case_tac ba, auto,case_tac a, auto)
+  apply (case_tac aa, auto, case_tac aa, auto)
+      apply (case_tac a, auto)
+    apply (case_tac a, auto)
+apply (case_tac aa, auto)
   apply (case_tac a, auto, case_tac ba, auto)
-     apply (case_tac ab, auto)
-  apply (case_tac ba, auto, case_tac ab, auto)
-     apply (case_tac a, auto, case_tac ab, auto)
-    apply (case_tac a, auto, case_tac ab, auto)
-   apply (case_tac b, auto, case_tac ba, auto, case_tac a, auto, case_tac a, auto, case_tac ba, auto)
-     apply (case_tac a, auto, case_tac a, auto)
-   apply (case_tac ba, auto, case_tac a, auto, case_tac a, auto)
-  apply (case_tac b, auto, case_tac Z, auto, case_tac b, auto, case_tac a, auto, case_tac a, auto)
-    apply (case_tac a, auto, case_tac b, auto)
-  apply (case_tac Z, auto, case_tac b, auto, case_tac a, auto, case_tac a, auto, case_tac a, auto)
-  by (case_tac b, auto)
-
+    apply (case_tac b, auto)
+   apply (case_tac b, auto)
+  apply (case_tac b, auto)
+   apply (case_tac Z, auto, case_tac a, auto, case_tac b, auto, case_tac b, auto)
+  by (case_tac Z, auto, case_tac a, auto, case_tac b, auto, case_tac b, auto)
+ 
 end
