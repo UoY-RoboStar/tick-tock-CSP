@@ -27,42 +27,326 @@ lemma Pri_Prefix_eq_Prefix_pri:
    apply (metis prirel_cons_iff_exists)
   by (metis prirel_cons_iff_exists)
 
+lemma pri_singleton_simp [intro]:
+  assumes "b <\<^sup>*p a" "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" 
+  shows "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{b, a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+  using assms by (cases R, auto)
+
+lemma pri_singleton_simp' [intro]:
+  assumes "b <\<^sup>*p a" "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{b, a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" 
+  shows "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" 
+  using assms by (cases R, auto)
+
+lemma pri_acceptance_consFL_simp [intro]:
+  assumes "b <\<^sup>*p a" "R pri\<^sub>[\<^sub>p\<^sub>] (([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>)" 
+  shows "R pri\<^sub>[\<^sub>p\<^sub>] (([{b, a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>)"
+  using assms 
+  apply (cases R, auto, case_tac x21, auto)
+  apply (case_tac aa, auto)
+  by (metis partialorder.less_asym singleton_iff)+
+
+lemma pri_acceptance_consFL_simp' [intro]:
+  assumes "b <\<^sup>*p a" "R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>)" 
+  shows "R pri\<^sub>[\<^sub>p\<^sub>] (([{b, a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>)"
+  using assms 
+  apply (cases R, auto, case_tac x21, auto)
+  by (case_tac aa, auto)
+
+lemma pri_imp_ExtChoice_extends:
+  assumes "b <\<^sup>*p a" "pri p R A" "A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
+  shows "\<exists>A B X. pri p R X \<and> ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)"
+  using assms unfolding Prefix_def apply (auto)
+     apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+     apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+    apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+    apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
+   apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+  apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
+  by (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
+
+lemma ExtChoiceH_find_refl:
+  assumes "ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
+  shows "\<exists>A B. ExtChoiceH A B A \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
+  using assms ExtChoiceH_triple_refl by blast+
+
+lemma pri_ExtChoice_extends:
+  assumes "b <\<^sup>*p a" "pri p R X" "ExtChoiceH A B X" "A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)" "B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)"
+  shows "\<exists>A. pri p R A \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
+using assms
+  proof (induct A B X rule:ExtChoiceH.induct)
+    case (1 A B X)
+    then show ?case
+      apply (cases X, auto)
+      apply (cases A, auto, cases B, auto)
+      apply (cases B, auto)
+       apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, simp add:Prefix_def) 
+      apply (rule_tac x="\<langle>[x2]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, simp add:Prefix_def)
+      using assms by auto
+  next
+    case (2 A aa B bb X)
+    
+    have X_split:"X = (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa \<or> X = (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb"
+      using 2 by auto
+
+    then show ?case using X_split 2
+    proof (auto)
+      assume prefixA:"X = (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa"
+      then show ?thesis
+      proof (cases "acceptance A = \<bullet>")
+        case A_bullet:True
+        then have "R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+          using 2 prefixA by auto
+        then have "R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<and> ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+          using 2 prefixA unfolding Prefix_def by auto
+        then show ?thesis by blast
+      next
+        case A_not_bullet:False
+        then have accA:"acceptance A = [{a}]\<^sub>\<F>\<^sub>\<L>"
+          using 2 unfolding Prefix_def by auto
+        then show ?thesis
+          proof (cases "acceptance B = \<bullet>")
+            case B_bullet:True
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+              using 2 prefixA by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<and> ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+              using 2 prefixA unfolding Prefix_def by auto
+            then show ?thesis by blast
+          next
+            case B_not_bullet:False
+            then have "acceptance B = [{b}]\<^sub>\<F>\<^sub>\<L>"
+              using 2 unfolding Prefix_def by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] (([{a}]\<^sub>\<F>\<^sub>\<L> \<union>\<^sub>\<F>\<^sub>\<L> [{b}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+              using 2 prefixA accA by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] (([{b,a}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+              by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] (([{a}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+              using 2 prirel_rel_less_eq_twoset
+              by (metis A_not_bullet accA amember.simps(2) event_in_acceptance insert_absorb insert_iff insert_not_empty)
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] (([{a}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<and> (([{a}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+              using 2 prefixA unfolding Prefix_def by auto
+            then show ?thesis by blast
+          qed
+        qed
+    next
+      assume prefixB:"X = (acceptance A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb"
+      
+      have eventB:"event B = b"
+        using 2 unfolding Prefix_def by auto
+      then have B_not_maximal:"\<not> maximal(p,event B)"
+        using 2
+        by (meson some_higher_not_maximal)
+    
+      then have R_notpri_X:"\<not> R pri\<^sub>[\<^sub>p\<^sub>] X"
+      proof (cases "acceptance A = \<bullet>")
+        case A_bullet:True
+        then have "\<not>R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+          using 2 prefixB B_not_maximal by (cases R, auto)
+        then show ?thesis using 2 A_bullet prefixB by auto
+      next
+        case A_not_bullet:False
+        then have accA:"acceptance A = [{a}]\<^sub>\<F>\<^sub>\<L>"
+          using 2 unfolding Prefix_def by auto
+        then show ?thesis
+          proof (cases "acceptance B = \<bullet>")
+            case B_bullet:True
+            then have "\<not>R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+              using 2 prefixB B_not_maximal by (cases R, auto)
+            then show ?thesis using 2 B_bullet prefixB by auto
+          next
+            case B_not_bullet:False
+            then have "acceptance B = [{b}]\<^sub>\<F>\<^sub>\<L>"
+              using 2 unfolding Prefix_def by auto
+            then have X_eq:"X = (([{b,a}]\<^sub>\<F>\<^sub>\<L>,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+              using 2 prefixB accA by auto
+            then have "event B \<notin>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>](acceptance ([{b,a}]\<^sub>\<F>\<^sub>\<L>,event B)\<^sub>\<F>\<^sub>\<L>)"
+              using B_not_maximal eventB 2 by simp
+            then have "\<not>R pri\<^sub>[\<^sub>p\<^sub>] (([{b,a}]\<^sub>\<F>\<^sub>\<L>,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+              using B_not_maximal eventB by auto
+            then show ?thesis using X_eq by auto
+          qed
+        qed
+        then show ?thesis using 2 by auto
+      qed
+  next
+    case (3 A B bb X)
+    then have X_split:"X = \<langle>A \<union>\<^sub>\<F>\<^sub>\<L> acceptance(B)\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> X = ((A \<union>\<^sub>\<F>\<^sub>\<L> acceptance(B),event(B))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+      by auto
+    then show ?case using X_split 3
+    proof (auto)
+      assume prefixA:"X = \<langle>A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B\<rangle>\<^sub>\<F>\<^sub>\<L>"
+      then show ?thesis
+      proof (cases A)
+        case acnil
+        then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+          using 3 prefixA by auto
+        then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<and> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+          using 3 prefixA unfolding Prefix_def by auto
+        then show ?thesis by blast
+      next
+        case A_not_bullet:(acset x2)
+        then have x2_is_A:"x2 = {a}"
+          using 3 prefixA unfolding Prefix_def by auto
+        then show ?thesis
+        proof (cases "acceptance B = \<bullet>")
+            case B_bullet:True
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+              using A_not_bullet 3 prefixA by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<and> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+              using 3 prefixA unfolding Prefix_def by auto
+            then show ?thesis by blast
+          next
+            case B_not_bullet:False
+            then have "acceptance B = [{b}]\<^sub>\<F>\<^sub>\<L>"
+              using 3 unfolding Prefix_def by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{a}]\<^sub>\<F>\<^sub>\<L> \<union>\<^sub>\<F>\<^sub>\<L> [{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+              using 3 prefixA A_not_bullet x2_is_A by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{b,a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+              by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+              using 3 by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<and> \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+              using 3 prefixA unfolding Prefix_def by auto
+            then show ?thesis by blast
+          qed
+        qed
+    next
+      assume prefixB:"X = (A \<union>\<^sub>\<F>\<^sub>\<L> acceptance B,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb"
+
+      have eventB:"event B = b"
+        using 3 unfolding Prefix_def by auto
+      then have B_not_maximal:"\<not> maximal(p,event B)"
+        using 3
+        by (meson some_higher_not_maximal)
+    
+      then have R_notpri_X:"\<not> R pri\<^sub>[\<^sub>p\<^sub>] X"
+      proof (cases "A = \<bullet>")
+        case A_bullet:True
+        then have "\<not>R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+          using 3 prefixB B_not_maximal by (cases R, auto)
+        then show ?thesis using 3 A_bullet prefixB by auto
+      next
+        case A_not_bullet:False
+        then have accA:"A = [{a}]\<^sub>\<F>\<^sub>\<L>"
+          using 3 unfolding Prefix_def by auto
+        then show ?thesis
+          proof (cases "acceptance B = \<bullet>")
+            case B_bullet:True
+            then have X_eq:"X = ((\<bullet>,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+              using 3 prefixB accA by auto
+            then have "\<not>R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+              using 3 prefixB B_not_maximal by (cases R, auto)
+            then show ?thesis using 3 X_eq by auto
+          next
+            case B_not_bullet:False
+            then have "acceptance B = [{b}]\<^sub>\<F>\<^sub>\<L>"
+              using 3 unfolding Prefix_def by auto
+            then have X_eq:"X = (([{b,a}]\<^sub>\<F>\<^sub>\<L>,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+              using 3 prefixB accA by auto
+            then have "event B \<notin>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>](acceptance ([{b,a}]\<^sub>\<F>\<^sub>\<L>,event B)\<^sub>\<F>\<^sub>\<L>)"
+              using B_not_maximal eventB 3 by simp
+            then have "\<not>R pri\<^sub>[\<^sub>p\<^sub>] (([{b,a}]\<^sub>\<F>\<^sub>\<L>,event B)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> bb)"
+              using B_not_maximal eventB by auto
+            then show ?thesis using X_eq by auto
+          qed
+        qed
+        then show ?thesis using 3 by auto
+      qed
+  next
+    case (4 A aa B X)
+    then have X_split:"X = \<langle>acceptance A \<union>\<^sub>\<F>\<^sub>\<L> B\<rangle>\<^sub>\<F>\<^sub>\<L> \<or> X = ((acceptance(A) \<union>\<^sub>\<F>\<^sub>\<L> B,event(A))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+      by auto
+    then show ?case using X_split 4
+    proof (auto)
+      assume prefixA:"X = \<langle>B \<union>\<^sub>\<F>\<^sub>\<L> acceptance A\<rangle>\<^sub>\<F>\<^sub>\<L>"
+      then show ?thesis
+      proof (cases B)
+        case acnil
+        then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+          using 4 prefixA by auto
+        then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<and> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+          using 4 prefixA unfolding Prefix_def by auto
+        then show ?thesis by blast
+      next
+        case B_not_bullet:(acset x2)
+        then have x2_is_A:"x2 = {b}"
+          using 4 prefixA unfolding Prefix_def by auto
+        then show ?thesis
+        proof (cases "acceptance A = \<bullet>")
+            case A_bullet:True
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+              using B_not_bullet 4 prefixA by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<and> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+              using prefixA unfolding Prefix_def by auto
+            then show ?thesis by blast
+          next
+            case A_not_bullet:False
+            then have "acceptance A = [{a}]\<^sub>\<F>\<^sub>\<L>"
+              using 4 unfolding Prefix_def by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{b}]\<^sub>\<F>\<^sub>\<L> \<union>\<^sub>\<F>\<^sub>\<L> [{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+              using 4 prefixA B_not_bullet x2_is_A by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{b,a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+              by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+              using 4 by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<and> \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+              using prefixA unfolding Prefix_def by auto
+            then show ?thesis by blast
+          qed
+        qed
+    next
+      assume prefixA:"X = (B \<union>\<^sub>\<F>\<^sub>\<L> acceptance A,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa"
+
+      have eventA:"event A = a"
+        using 4 unfolding Prefix_def by auto
+      
+      then show ?thesis
+      proof (cases "acceptance A = \<bullet>")
+        case A_bullet:True
+        then have "R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+          using 4 prefixA
+          by (metis aunion.simps(1) unionA_sym)
+        then have "R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<and> ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+          using 4 prefixA unfolding Prefix_def by auto
+        then show ?thesis by blast
+      next
+        case A_not_bullet:False
+        then have accA:"acceptance A = [{a}]\<^sub>\<F>\<^sub>\<L>"
+          using 4 unfolding Prefix_def by auto
+        then show ?thesis
+          proof (cases "B = \<bullet>")
+            case B_bullet:True
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+              using 4 prefixA by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<and> ((\<bullet>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+              using 4 prefixA unfolding Prefix_def by auto
+            then show ?thesis by blast
+          next
+            case B_not_bullet:False
+            then have "B = [{b}]\<^sub>\<F>\<^sub>\<L>"
+              using 4 unfolding Prefix_def by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] (([{a}]\<^sub>\<F>\<^sub>\<L> \<union>\<^sub>\<F>\<^sub>\<L> [{b}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+              using 4 prefixA accA by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] (([{b,a}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+              by auto
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] (([{a}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa)"
+              using 4 prirel_rel_less_eq_twoset
+              by (metis A_not_bullet accA amember.simps(2) event_in_acceptance insert_absorb insert_iff insert_not_empty)
+            then have "R pri\<^sub>[\<^sub>p\<^sub>] (([{a}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<and> (([{a}]\<^sub>\<F>\<^sub>\<L>,event A)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> aa) \<in> a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P"
+              using 4 prefixA unfolding Prefix_def by auto
+            then show ?thesis by blast
+          qed
+        qed
+      qed
+qed 
+
+
 lemma prirel_ExtChoice_extends:
   assumes "b <\<^sup>*p a"
   shows "(\<exists>A B X. pri p R X \<and> ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)) = (\<exists>A. pri p R A \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P))"
-  using assms unfolding Prefix_def apply (safe, simp_all)
-                     apply auto[4]
-                  apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-                 apply (metis prirel_cons_bullet_iff_exists some_higher_not_maximal)   
-                apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-                 apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-               apply (simp_all add: prirel_cons_bullet_iff_exists some_higher_not_maximal)
- apply blast apply safe
-                 apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-             apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-            apply (metis prirel_rel_less_eq_twoset)
-   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
-            apply (simp add: prirel_rel_less_eq_twoset)
-  using prirel_rel_less_eq_twoset apply fastforce
-                   apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-                  apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (simp_all add: prirel_cons_bullet_iff_exists some_higher_not_maximal)
-             apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-            apply (metis prirel_cons_also_prirel)
-  apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  
-          apply (metis prirel_cons_also_prirel)+
-     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-    apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (cases R, auto)
-   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
-    apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-    apply (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
-   apply (simp_all add: prirel_cons_iff_exists_less_eq_twoset prirel_cons_imp_exists)
-  by (metis ExtChoiceH.simps(3) ExtChoiceH_sym acceptance_event acceptance_set aunion.simps(2) prirel_cons_bullet_iff_exists)
+  using assms apply auto
+   apply (simp add: pri_ExtChoice_extends)
+  by (simp add:pri_imp_ExtChoice_extends)
 
 lemma Pri_ExtChoice_two_prefixes:
   assumes "b <\<^sup>*p a" "FL1 P"
@@ -126,7 +410,7 @@ lemma prirel_eq_length_imp_last_member:
   assumes "length xs = length ys" "last xs = \<bullet>" "last ys \<noteq> \<bullet>" "pri p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) ys"
   shows  "\<forall>e. e \<in>\<^sub>\<F>\<^sub>\<L> x  \<longrightarrow> e \<in>\<^sub>\<F>\<^sub>\<L> last ys"
   using assms
-proof(induct p xs ys rule:prirel.induct)
+proof(induct p xs ys rule:pri.induct)
   case (1 p A Z)
   then show ?case by auto
 next

@@ -1,7 +1,9 @@
 theory Finite_Linear_Pri
 
 imports
-  "Finite_Linear_Priority"
+  "Utils.Event_Priority"
+  Finite_Linear_Model
+  Finite_Linear_Ops
 begin
 
 fun priacc :: "'a partialorder \<Rightarrow> 'a acceptance \<Rightarrow> 'a acceptance" ("priacc\<^sub>[\<^sub>_\<^sub>] _" [65,65]) where
@@ -91,22 +93,6 @@ lemma pri_mono:
   shows "Pri p P \<subseteq> Pri p Q"
   using assms unfolding Pri_def by auto
 
-lemma pri_induct_case:
-  assumes "((prirelacc p (acceptance A) (acceptance Z)) \<and> event(A) = event(Z) 
-     \<and>
-      (maximal(p,event(A)) 
-       \<or> 
-      (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
-       \<or>
-      acceptance(A) \<noteq> \<bullet>))"
-  shows "(acceptance A \<le> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z) \<and> event(A) = event(Z)  \<and>
-         (\<not> maximal(p,event(A)) \<longrightarrow> event(Z) \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z)))"
-  using assms apply auto
-         apply (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto, case_tac a, auto)
-     apply (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto)
-    apply (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto)
-    apply (cases Z, auto, case_tac a, auto)
-  by (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto, case_tac a, auto)+
 
 lemma bullet_in_pri:
   assumes "FL0 P" "FL1 P"

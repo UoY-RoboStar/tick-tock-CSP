@@ -1,9 +1,7 @@
 theory Finite_Linear_Priority
 
 imports
-  "Utils.Event_Priority"
-  Finite_Linear_Model
-  Finite_Linear_Ops
+  Finite_Linear_Pri
 begin
 
 section \<open> Original definition \<close>
@@ -55,6 +53,24 @@ fun prirel :: "'a partialorder \<Rightarrow> 'a fltrace \<Rightarrow> 'a fltrace
 "prirelacc p \<bullet> \<bullet> = True" |
 "prirelacc p [A]\<^sub>\<F>\<^sub>\<L> [Z]\<^sub>\<F>\<^sub>\<L> = (A = {a. a \<in> Z \<and> \<not>(\<exists>b. b\<in> Z \<and> a <\<^sup>*p b)})" |
 "prirelacc p X Y = False" *)
+
+lemma pri_induct_case:
+  assumes "((prirelacc p (acceptance A) (acceptance Z)) \<and> event(A) = event(Z) 
+     \<and>
+      (maximal(p,event(A)) 
+       \<or> 
+      (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
+       \<or>
+      acceptance(A) \<noteq> \<bullet>))"
+  shows "(acceptance A \<le> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z) \<and> event(A) = event(Z)  \<and>
+         (\<not> maximal(p,event(A)) \<longrightarrow> event(Z) \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z)))"
+  using assms apply auto
+         apply (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto, case_tac a, auto)
+     apply (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto)
+    apply (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto)
+    apply (cases Z, auto, case_tac a, auto)
+  by (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto, case_tac a, auto)+
+
 
 subsection \<open>Auxiliary results\<close>
 
