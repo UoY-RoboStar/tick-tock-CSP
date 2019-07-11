@@ -283,5 +283,32 @@ lemma ftrace_cons_induct_both_eq_length2:
           "(\<And>x y xs ys. P xs ys \<Longrightarrow> length xs = length ys \<Longrightarrow> last xs = \<bullet> \<Longrightarrow> last ys = \<bullet> \<Longrightarrow> P (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>))"
     shows "P x y"
   by (simp add: assms(1) assms(2) assms(4) assms(6) ftrace_cons_induct_both_eq_length)
-  
+
+lemma fltrace_cons_extend_prefix:
+  assumes "ys &\<^sub>\<F>\<^sub>\<L> xs \<le> ys &\<^sub>\<F>\<^sub>\<L> zs" "last ys = \<bullet>"
+  shows "xs \<le> zs"
+  using assms
+  apply (induct ys arbitrary: xs zs rule:fltrace_induct, auto)
+  apply (metis Finite_Linear_Model.last.simps(1) bullet_left_zero2 concat_FL_last_not_bullet_absorb fltrace_concat2_assoc last_bullet_then_last_cons)
+  by (metis FL_concat_equiv fltrace_concat2_assoc last_cons_bullet_iff less_eq_fltrace.simps(3)) 
+
+lemma fltrace_cons_prefix_common:
+  assumes "xs \<le> zs" 
+  shows "ys &\<^sub>\<F>\<^sub>\<L> xs \<le> ys &\<^sub>\<F>\<^sub>\<L> zs"
+  using assms 
+  apply (induct ys, auto)
+  apply (case_tac x, auto)
+  by (simp add: concat_FL_last_not_bullet_absorb)
+
+lemma fltrace_FL1_cons_acceptance_prefix:
+  assumes "ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P" "FL1 P"
+  shows "ys &\<^sub>\<F>\<^sub>\<L> \<langle>acceptance(y)\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P"
+proof -
+  have "ys &\<^sub>\<F>\<^sub>\<L> \<langle>acceptance(y)\<rangle>\<^sub>\<F>\<^sub>\<L> \<le> ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
+    by (simp add: fltrace_cons_prefix_common)
+  then show ?thesis
+    using assms
+    using FL1_def by blast
+qed
+
 end
