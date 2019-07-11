@@ -28,6 +28,10 @@ translations
 definition Pri :: "'a partialorder \<Rightarrow> 'a fltraces \<Rightarrow> 'a fltraces" ("Pri\<^sub>[\<^sub>_\<^sub>] _" [51,51]) where 
 "Pri\<^sub>[\<^sub>p\<^sub>] P = {\<rho>|\<sigma> \<rho>. \<rho> pri\<^sub>[\<^sub>p\<^sub>] \<sigma> \<and> \<sigma> \<in> P}"
 
+lemma Pri_univ_dist:
+  "Pri p (\<Union> X) = \<Union>{Pri p x|x. x \<in> X}"
+  unfolding Pri_def by auto
+
 lemma priacc_not_in [intro]:
   assumes "e \<notin>\<^sub>\<F>\<^sub>\<L> Z"
   shows "e \<notin>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>] Z"
