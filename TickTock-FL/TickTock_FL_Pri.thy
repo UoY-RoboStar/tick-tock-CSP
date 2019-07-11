@@ -240,10 +240,10 @@ definition priTT3 :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list se
 lemma
   fixes s :: "'a ttobs list"
   assumes "x \<lesssim>\<^sub>C t" "TT P" "prirelRef3 p x s i P" "s \<in> P" 
-  shows "\<exists>s. prirelRef2 p x s i P \<and> s \<lesssim>\<^sub>C x"
+  shows "\<exists>s. priTT1 p x s i P \<and> s \<lesssim>\<^sub>C x"
   using assms apply (induct p x s i P rule:prirelRef3.induct, auto)
   
-  using prirelRef2.simps(1) apply blast
+  using priTT1.simps(1) apply blast
 *)
 
 lemma rev_induct_eq_length:
@@ -542,15 +542,15 @@ lemma prirelRef_extend_both_tock_refusal_ttWF:
   using assms apply (induct p xs ys s P rule:prirelRef3.induct, auto)
   by (metis append_Nil list.exhaust ttWF.simps(4) ttWF.simps(6) ttWF.simps(8) ttWF_prefix_is_ttWF ttevent.exhaust)+
 
-lemma prirelRef2_imp_eq_length [intro]:
-  assumes "prirelRef2 p xs ys i P"
+lemma priTT1_imp_eq_length [intro]:
+  assumes "priTT1 p xs ys i P"
   shows "List.length xs = List.length ys"
-  using assms by (induct p xs ys i P rule:prirelRef2.induct, auto)
+  using assms by (induct p xs ys i P rule:priTT1.induct, auto)
 
 lemma
-  assumes "prirelRef2 p xs ys i P"
+  assumes "priTT1 p xs ys i P"
   shows "\<exists>zs. prirelRef3 p xs zs i P \<and> zs \<lesssim>\<^sub>C ys"
-  using assms apply (induct p xs ys i P rule:prirelRef2.induct, auto)
+  using assms apply (induct p xs ys i P rule:priTT1.induct, auto)
   using prirelRef3.simps(1) apply fastforce
   oops
 
@@ -558,7 +558,7 @@ lemma
 
 (*
 lemma
-  assumes "prirelRef2 p xs ys i P" "TT(P)" "TT2(P)" "TT4(P)" "i @ ys \<in> P"
+  assumes "priTT1 p xs ys i P" "TT(P)" "TT2(P)" "TT4(P)" "i @ ys \<in> P"
   shows "\<exists>zs. prirelRef3 p xs zs i P"
 proof -
   have a:"List.length xs = List.length ys"
@@ -566,10 +566,10 @@ proof -
   then show ?thesis using assms
   proof (induct xs ys rule:ttWF2.induct, auto)*)
 
-lemma prirelRef2_both_imp:
-  assumes "prirelRef2 p (xs @ x) (ys @ y) i P" "List.length xs = List.length ys"  "ttWF y"
-  shows "prirelRef2 p x y (i @ ys) P"
-  using assms apply(induct p xs ys i P rule:prirelRef2.induct, auto)
+lemma priTT1_both_imp:
+  assumes "priTT1 p (xs @ x) (ys @ y) i P" "List.length xs = List.length ys"  "ttWF y"
+  shows "priTT1 p x y (i @ ys) P"
+  using assms apply(induct p xs ys i P rule:priTT1.induct, auto)
   apply (cases x, auto, cases y, auto)
   apply (cases y, auto, case_tac a, auto, case_tac aa, auto)
   apply (case_tac x1, auto, case_tac x1a, auto)
@@ -577,10 +577,10 @@ lemma prirelRef2_both_imp:
    apply (case_tac x1a, auto)
   by (case_tac x1, auto, case_tac x1a, auto)
 
-lemma prirelRef2_concat_both_imp:
-  assumes "prirelRef2 p (xs @ x) (ys @ y) i P" "List.length xs = List.length ys"
-  shows "prirelRef2 p xs ys i P"
-  using assms apply(induct p xs ys i P rule:prirelRef2.induct, auto)
+lemma priTT1_concat_both_imp:
+  assumes "priTT1 p (xs @ x) (ys @ y) i P" "List.length xs = List.length ys"
+  shows "priTT1 p xs ys i P"
+  using assms apply(induct p xs ys i P rule:priTT1.induct, auto)
   apply (cases x, auto, cases y, auto, cases y, auto)
   apply (case_tac a, auto, case_tac aa, auto)
   by (case_tac x1, auto, case_tac x1a, auto)
@@ -753,8 +753,8 @@ lemma prirelRef3_trace_refTickTock:
   using prirefTT13_eq_prirefTT13_refTickTock apply fastforce
   by (metis TT2_addRefTickTock_ext_imp append_Cons append_Nil prirefTT13_eq_prirefTT13_refTickTock)
 
-lemma prirelRef2_imp_prirelRef3:
-  assumes "prirelRef2 p xs ys i P" "TT(P)" "TT2(P)" "TT4(P)"
+lemma priTT1_imp_prirelRef3:
+  assumes "priTT1 p xs ys i P" "TT(P)" "TT2(P)" "TT4(P)"
   shows "prirelRef3 p xs (addRefTickTock ys i P) i P"
   using assms proof (induct p xs ys _ P rule:prirelRef3.induct, auto)
   fix pa S s Q x
@@ -804,12 +804,12 @@ next
       "TT Q"
       "TT2 Q"
       "TT4 Q"
-      "prirelRef2 pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
+      "priTT1 pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
       "s @ [[Z]\<^sub>R] \<in> Q"
       "\<forall>e. e \<notin> Z \<and> e \<noteq> Tock \<longrightarrow> s @ [[e]\<^sub>E] \<in> Q"
       "Tick \<in> Z"
       "e\<^sub>2 \<notin> Z" "\<forall>b. b \<in> Z \<or> \<not> e\<^sub>2 <\<^sup>*pa b" "Tock \<in> Z" "\<forall>Z. s @ [[Z]\<^sub>R] \<in> Q \<longrightarrow> e\<^sub>2 = Tick \<or> e\<^sub>2 \<in> prirefTT13 pa Z s Q"
-  then have "prirelRef2 pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) s Q"
+  then have "priTT1 pa ([e\<^sub>2]\<^sub>E # aa) ([e\<^sub>2]\<^sub>E # zz) s Q"
     by auto
   then show "maximal(pa,e\<^sub>2)"
   proof (cases "s @ [[e\<^sub>2]\<^sub>E] \<in> Q")
@@ -838,7 +838,7 @@ next
       "TT Q"
       "TT2 Q"
       "TT4 Q"
-      "prirelRef2 pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
+      "priTT1 pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
       "s @ [[Z]\<^sub>R] \<in> Q"
       "\<forall>e. e \<notin> Z \<and> e \<noteq> Tock \<longrightarrow> s @ [[e]\<^sub>E] \<in> Q"
       "Tick \<in> Z"
@@ -863,10 +863,10 @@ lemma xx1:
   unfolding prirefTT13_def apply auto
   using TT3_any_cons_end_tock by blast+
 
-lemma prirelRef3_imp_prirelRef2:
+lemma prirelRef3_imp_priTT1:
   assumes "prirelRef3 p xs ys i P" "TT(P)" "TT2(P)" "TT4(P)" "i @ ys \<in> P"
-  shows "prirelRef2 p xs ys i P"
-  using assms proof (induct p xs ys i P rule:prirelRef2.induct, auto)
+  shows "priTT1 p xs ys i P"
+  using assms proof (induct p xs ys i P rule:priTT1.induct, auto)
   fix pa S s Q x
   fix R::"'a ttevent set" 
   assume "R \<subseteq> prirefTT13 pa S s Q"
@@ -878,7 +878,7 @@ lemma prirelRef3_imp_prirelRef2:
 next
   fix pa aa S zz s Q x
   fix R::"'a ttevent set" 
-  assume "prirelRef2 pa aa zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
+  assume "priTT1 pa aa zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
        "TT Q"
        "TT2 Q"
        "TT4 Q"
@@ -889,7 +889,7 @@ next
 next
   fix pa aa zz s Q
   fix S R::"'a ttevent set" 
-  assume assm:"prirelRef2 pa aa zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
+  assume assm:"priTT1 pa aa zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
        "TT Q"
        "TT2 Q"
        "TT4 Q"
@@ -909,7 +909,7 @@ next
   fix e\<^sub>2::"'a ttevent"
   fix Z::"'a ttevent set" 
   assume assms:
-    "prirelRef2 pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
+    "priTT1 pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
     "TT Q"
     "TT2 Q"
     "TT4 Q"
@@ -955,10 +955,10 @@ qed
 
 lemma priTT3_eq_priTT:
   assumes "TT(P)" "TT2(P)" "TT4(P)"
-  shows "priTT3 p P = priTT p P"
-  using assms unfolding priTT3_def priTT_def apply auto
-  using prirelRef3_imp_prirelRef2 apply fastforce
-  by (metis addRefTickTock_in append_Nil prirelRef2_imp_prirelRef3)
+  shows "priTT3 p P = PriTT1 p P"
+  using assms unfolding priTT3_def PriTT1_def apply auto
+  using prirelRef3_imp_priTT1 apply fastforce
+  by (metis addRefTickTock_in append_Nil priTT1_imp_prirelRef3)
 
 lemma
   assumes "sa @ [[S]\<^sub>R] \<in> Q" "b \<notin> S" "sa @ [[b]\<^sub>E] \<in> Q" "z <\<^sup>*pa b" "TTwf(Q)" 
@@ -1084,8 +1084,8 @@ lemma priTT4w_eq_priTT3:
   assumes "TT(P)" "TT2(P)" "TT4(P)"
   shows "priTT4w p P = priTT3 p P"
   using assms unfolding priTT4w_def priTT3_def apply auto
-  using prirelRef3_imp_prirelRef2 apply fastforce
-  by (metis addRefTickTock_in append_Nil prirelRef2_imp_prirelRef3)
+  using prirelRef3_imp_priTT1 apply fastforce
+  by (metis addRefTickTock_in append_Nil priTT1_imp_prirelRef3)
 
 lemma
   
@@ -1137,15 +1137,15 @@ lemma prirefTT1_subseteq_prirefTT1_refTickTock:
   sorry
   (*apply (smt Collect_cong Collect_empty_eq TT2_union_Ref_Tock_imp TT4_TT1_imp_Ref_Tock TT_TT1 Un_assoc Un_commute insert_is_Un)*)
 lemma 
-  assumes "prirelRef2 p xs (i@ys) i P" "TT(P)" "TT2(P)" "TT4(P)"  "i = []"
-  shows "prirelRef2 p xs (addRefTickTock (i@ys) i P) i P"
-  using assms apply (induct p xs ys i P rule:prirelRef2.induct, simp_all)
+  assumes "priTT1 p xs (i@ys) i P" "TT(P)" "TT2(P)" "TT4(P)"  "i = []"
+  shows "priTT1 p xs (addRefTickTock (i@ys) i P) i P"
+  using assms apply (induct p xs ys i P rule:priTT1.induct, simp_all)
   using prirefTT1_subseteq_prirefTT1_refTickTock apply blast
 using prirefTT1_subseteq_prirefTT1_refTickTock
   oops
 
 lemma 
-  assumes "prirelRef2 p xs ys [] P" "TT(P)" "TT2(P)" "TT4(P)" "ys \<in> P"
+  assumes "priTT1 p xs ys [] P" "TT(P)" "TT2(P)" "TT4(P)" "ys \<in> P"
   shows "prirelRef3 p xs (addRefTickTock ys [] P) [] P"
 using assms
 proof (induct xs ys rule:rev_induct_eq_length)
@@ -1178,9 +1178,9 @@ qed
       then show ?thesis sorry
     qed
 lemma 
-  assumes "prirelRef2 p xs (i@ys) i P" "TT(P)" "TT2(P)" "TT4(P)" "(i@ys) \<in> P" "i = []"
+  assumes "priTT1 p xs (i@ys) i P" "TT(P)" "TT2(P)" "TT4(P)" "(i@ys) \<in> P" "i = []"
   shows "prirelRef3 p xs (addRefTickTock (i@ys) i P) i P"
-  using assms proof (induct p xs ys i P rule:prirelRef2.induct, simp_all)
+  using assms proof (induct p xs ys i P rule:priTT1.induct, simp_all)
   fix pa 
   fix R S::"'a ttevent set" 
   fix s::"'a ttobs list"
@@ -1201,7 +1201,7 @@ next
   oops
 
 lemma
-  assumes "prirelRef2 p xs ys i P" "TT(P)" "TT2(P)" "TT4(P)" "i @ ys \<in> P"
+  assumes "priTT1 p xs ys i P" "TT(P)" "TT2(P)" "TT4(P)" "i @ ys \<in> P"
   shows "prirelRef3 p xs (addRefTickTock ys i P) i P \<and> (addRefTickTock ys i P) \<in> P"
   using assms
 proof (induct xs ys arbitrary:i rule:rev_induct_eq_length)
@@ -1265,7 +1265,7 @@ next
     case (3 z w xs ys)
     then have "ttWF (i @ ys)" "ttWF (i @ (ys @ [w]))"
       by (metis TT_wf append.assoc ttWF_prefix_is_ttWF)+
- (*   then have "prirelRef2 p ([z]@[x]) ([w]@[y]) (i @ ys) P"
+ (*   then have "priTT1 p ([z]@[x]) ([w]@[y]) (i @ ys) P"
       *)
     then show ?case using 3
     proof (cases y)
@@ -1275,8 +1275,8 @@ next
         case (Event e1)
         then have "ttWF [y]"
           by (simp add: y)
-        then have "prirelRef2 p (xs @ [z]) (ys @ [w]) i P"
-          using 3 prirelRef2_concat_both_imp by blast
+        then have "priTT1 p (xs @ [z]) (ys @ [w]) i P"
+          using 3 priTT1_concat_both_imp by blast
         then have "\<exists>zs. prirelRef3 p (xs @ [z]) zs i P \<and> i @ zs \<in> P"
           using 3 TT1_def TT_TT1 tt_prefix_common_concat tt_prefix_concat tt_prefix_imp_prefix_subset by blast
         then show ?thesis using 3 y sorry
@@ -1306,7 +1306,7 @@ qed
 
 lemma
   assumes "prirelRef3 p xs ys i P" "TT(P)" "i @ ys \<in> P"
-  shows "prirelRef2 p xs ys i P"
+  shows "priTT1 p xs ys i P"
   using assms
 proof (induct xs ys arbitrary:i rule:rev_induct_eq_length)
   case 1
@@ -1343,7 +1343,7 @@ next
 qed
   apply (case_tac x, auto, case_tac y, auto)
   sledgehammer
-  apply (induct p xs ys i P rule:prirelRef2.induct, auto)
+  apply (induct p xs ys i P rule:priTT1.induct, auto)
   using prirefTT13_imp_prirefTT1 TT_TT3 apply blast
   using prirefTT13_imp_prirefTT1 TT_TT3 apply blast
   
@@ -1351,7 +1351,7 @@ qed
 lemma
   fixes s :: "'a ttobs list"
   assumes "TT P" "prirelRef3 p x s i P" "s \<in> P" 
-  shows "\<exists>s. prirelRef2 p x s i P \<and> s \<in> P"
+  shows "\<exists>s. priTT1 p x s i P \<and> s \<in> P"
   using assms 
 proof (induct x s rule:rev_induct_eq_length)
 case 1
@@ -1359,7 +1359,7 @@ case 1
     using assms(2) by blast  
 next
   case 2
-  then show ?case using prirelRef2.simps(1) by blast
+  then show ?case using priTT1.simps(1) by blast
 next
   case (3 x y xs ys)
   then show ?case
@@ -1368,12 +1368,12 @@ next
     then show ?thesis 
     proof (cases y)
       case y1:(ObsEvent y1)
-      then have "\<exists>s. prirelRef2 p xs s i P \<and> s \<in> P"
+      then have "\<exists>s. priTT1 p xs s i P \<and> s \<in> P"
         using x1 3 apply auto 
         by (meson TT1_def TT_TT1 prirelRef3_imp_concat_prirelRef3 tt_prefix_concat tt_prefix_imp_prefix_subset)
       
-      assume "prirelRef2 p (xs @ [x]) (ys @ [y]) i P"
-      then have "\<exists>s. prirelRef2 p (xs @ [x]) s i P \<and> s \<in> P"
+      assume "priTT1 p (xs @ [x]) (ys @ [y]) i P"
+      then have "\<exists>s. priTT1 p (xs @ [x]) s i P \<and> s \<in> P"
         using 3 
         by blast
       then show ?thesis 
@@ -1387,10 +1387,10 @@ next
   qed
 qed
   
-  using prirelRef2.simps(1) apply blast
+  using priTT1.simps(1) apply blast
 
   apply (case_tac xa, case_tac y, auto)
   sledgehammer  
-   apply (metis neq_Nil_conv prirelRef2.simps(1) prirelRef3.simps(28))
+   apply (metis neq_Nil_conv priTT1.simps(1) prirelRef3.simps(28))
   apply (case_tac xa, auto)
 end
