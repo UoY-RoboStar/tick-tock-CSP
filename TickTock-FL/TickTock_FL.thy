@@ -3,6 +3,7 @@ theory TickTock_FL
 imports
   TickTock_Max_FL
   TickTock_Max_TT1
+  TickTock_FL_Pri
 begin
 
 text \<open> This theory defines the overall Galois connection between FL and Tick-Tock, using the
@@ -186,5 +187,46 @@ lemma FL3_mkFL2:
   shows "FL3 (mkFL2 X)"
   using assms unfolding mkFL2_def  apply auto
   by (smt FLTick0_def Un_iff mem_Collect_eq tickWF_acceptance_imp_tickWF_consFL)
+
+lemma TTM3_TT4w:
+  assumes "TTM3 P"
+  shows "TT4w P"
+  using assms unfolding TTM3_def TT4w_def apply auto
+  using TTM3_TTick_part assms insert_absorb by force
+
+lemma PriTT_eq_fl2tt_Pri_tt2fl:
+  assumes "TT P" "TT2 P" "TT4 P"
+  shows "PriTT p P = fl2tt(Pri p (tt2fl P))"
+proof-
+  have "PriTT p P = PriTT1 p P"
+    by (simp add: PriTT_eq_priTT assms(1) assms(2) assms(3))
+  also have "... = mkTT1(PriMax p (unTT1 P))"
+    by (simp add: TT4_TT1_imp_TT4w TT_TT1 TT_TT3 assms(1) assms(2) assms(3) mkTT1_PriMax_unTT1_priTT)
+  also have "... = mkTT1(fl2ttm(Pri p (ttm2fl (unTT1 P))))"
+  proof -
+    have TTs:
+         "TT0 (unTT1 P)"
+         "TTwf (unTT1 P)"
+         "TT1w (unTT1 P)" 
+         "TT3 (unTT1 P)" 
+         "TT4 (unTT1 P)" 
+         "TTM3 (unTT1 P)"
+      by (simp_all add: assms unTT1_TT_closure)
+    then have TT4w:"TT4w (unTT1 P)"
+      using TTM3_TT4w by auto
+
+    have TTick:"TTick (unTT1 P)"
+      using assms TTM3_TTick TTM3_unTT1 by blast
+
+    have "PriMax p (unTT1 P) = fl2ttm(Pri p (ttm2fl (unTT1 P)))"
+      using TTs TTick TT4w fl2ttm_pri_ttm2fl_PriMax by auto
+    then show ?thesis by auto
+  qed
+  also have "... = fl2tt(Pri p (ttm2fl (unTT1 P)))"
+    unfolding fl2tt_def by auto
+  also have "... = fl2tt(Pri p (tt2fl P))"
+    unfolding tt2fl_def by auto
+  finally show ?thesis .
+qed
 
 end
