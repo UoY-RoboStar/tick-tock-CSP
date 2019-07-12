@@ -43,17 +43,6 @@ fun prirel :: "'a partialorder \<Rightarrow> 'a fltrace \<Rightarrow> 'a fltrace
        \<or>
       acceptance(A) \<noteq> \<bullet>))"
 
-(* I think we will be able to show that we can simplify prirel (by defining
-   prirelacc as follows), so that pri(P) is equivalent for P that is healthy.
-
-   The definition Roscoe gives is, much in the spirit of prirelacc, healthy
-   by definition as it relates any Z on the RHS to bullet on the LHS when
-   the event on the LHS is either maximal or, if not maximal, then .
-
-"prirelacc p \<bullet> \<bullet> = True" |
-"prirelacc p [A]\<^sub>\<F>\<^sub>\<L> [Z]\<^sub>\<F>\<^sub>\<L> = (A = {a. a \<in> Z \<and> \<not>(\<exists>b. b\<in> Z \<and> a <\<^sup>*p b)})" |
-"prirelacc p X Y = False" *)
-
 lemma pri_induct_case:
   assumes "((prirelacc p (acceptance A) (acceptance Z)) \<and> event(A) = event(Z) 
      \<and>
@@ -71,6 +60,75 @@ lemma pri_induct_case:
     apply (cases Z, auto, case_tac a, auto)
   by (cases A, auto, cases Z, auto, case_tac a, auto, case_tac aa, auto, case_tac a, auto)+
 
+lemma priacc_imp_prirelacc:
+  assumes "a \<le> priacc\<^sub>[\<^sub>p\<^sub>] aa" 
+  shows "prirelacc p a aa"
+  using assms apply(induct aa rule:priacc.induct, auto)
+   apply (cases a, auto)
+  apply (cases a, auto)
+    apply (metis (mono_tags, lifting) Int_iff)
+   apply (metis (mono_tags, lifting) Int_Collect)
+  by (smt Int_Collect)
+
+lemma prirelacc_imp_priacc:
+  assumes "prirelacc p a aa" 
+  shows "a \<le> priacc\<^sub>[\<^sub>p\<^sub>] aa" 
+  using assms apply(induct aa rule:priacc.induct, auto)
+   apply (cases a, auto)
+  by (cases a, auto)
+
+lemma prirelacc_eq_priacc [simp]:
+  "prirelacc p a aa \<longleftrightarrow> a \<le> priacc\<^sub>[\<^sub>p\<^sub>] aa" 
+  using priacc_imp_prirelacc prirelacc_imp_priacc by blast
+
+lemma maximal_event_in_priacc [intro]:
+  assumes "event Z \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>] acceptance Z" "b \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z" "event Z <\<^sup>*p b"
+  shows "maximal(p,event Z)"
+  using assms by (cases Z, auto, case_tac a, auto)
+
+lemma pri_induct_case':
+  assumes "acceptance A \<le> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z)" "event(A) = event(Z)"
+          "(\<not> maximal(p,event(A)) \<longrightarrow> event(Z) \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z))"
+    shows "((prirelacc p (acceptance A) (acceptance Z)) \<and> event(A) = event(Z) 
+     \<and>
+      (maximal(p,event(A)) 
+       \<or> 
+      (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
+       \<or>
+      acceptance(A) \<noteq> \<bullet>))"
+  using assms by auto
+
+lemma prirel_alt_induct_case:
+  "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
+  = 
+  (acceptance A \<le> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z) \<and> (prirel p aa zz) \<and> event(A) = event(Z) \<and>
+   (\<not> maximal(p,event(A)) \<longrightarrow> event(Z) \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z)))"
+proof -
+  have "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
+  = 
+  ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+    \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
+      (maximal(p,event(A)) 
+       \<or> 
+      (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
+       \<or>
+      acceptance(A) \<noteq> \<bullet>))"
+    by auto
+  also have "... =
+    ((prirelacc p (acceptance A) (acceptance Z)) \<and> (prirel p aa zz) \<and> event(A) = event(Z) 
+     \<and>
+      (maximal(p,event(A)) 
+       \<or> 
+      (acceptance(Z) \<noteq> \<bullet> \<and> \<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b))
+       \<or>
+      acceptance(A) \<noteq> \<bullet>))"
+    using event_in_acceptance by blast
+  also have "... =
+      (acceptance A \<le> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z) \<and> (prirel p aa zz) \<and> event(A) = event(Z)  \<and>
+         (\<not> maximal(p,event(A)) \<longrightarrow> event(Z) \<in>\<^sub>\<F>\<^sub>\<L> priacc\<^sub>[\<^sub>p\<^sub>](acceptance Z)))"
+    using pri_induct_case pri_induct_case' by blast
+  finally show ?thesis .
+qed
 
 subsection \<open>Auxiliary results\<close>
 
@@ -80,23 +138,21 @@ lemma prirelacc_acceptances_eq:
     shows "(prirelacc p (acceptance A) (acceptance Z)) \<longleftrightarrow> acceptance(A) = [{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>"
   using assms apply auto
    apply (cases A, auto, cases Z, auto)
-  using Collect_cong amember.simps(2) prirelacc.elims(2) apply fastforce
-  using prirelacc.elims(3) by fastforce
+  by (case_tac a, auto)
 
 lemma acceptance_not_bullet_imp_prirelacc:
   assumes "acceptance(A) \<noteq> \<bullet>"
           "prirelacc p (acceptance A) (acceptance Z)"
     shows "acceptance(Z) \<noteq> \<bullet>"
-  using assms apply auto
-  apply (cases Z, auto, cases A, auto)
-  by (case_tac a, auto)
-
+  using assms by auto
+  
 lemma prirelacc_acceptance_not_bullet_imp:
   assumes "prirelacc p (acceptance A) (acceptance Z)" "acceptance(A) \<noteq> \<bullet>"
   shows "\<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b)"
   using assms apply auto
   apply (cases Z, auto, cases A, auto)
-  by (metis (mono_tags, lifting) acceptance.inject acceptance_not_bullet_imp_prirelacc acceptance_set amember.elims(2) mem_Collect_eq prirelacc_acceptances_eq)
+  apply (case_tac aa, auto, case_tac a, auto)
+  by (metis (mono_tags, lifting) Int_Collect)
 
 lemma maximal_not_exists_higher:
   assumes "maximal(p,event(A))"
@@ -105,17 +161,10 @@ lemma maximal_not_exists_higher:
   unfolding maximal_def apply (cases Z, auto)
   by (meson assms some_higher_not_maximal)
 
-(*
-lemma
-  assumes "prirelacc p (acceptance A) (acceptance Z)" "event(A) = event(Z)"
-  shows "\<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b)"
-  nitpick
-*)
-
 text \<open> We now show that the definition of prirel for the recursive case is just like
        that of Roscoe. \<close>
 
-lemma
+lemma prirel_original_induct_case:
   "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
   = 
   ((prirel p aa zz) \<and> event(A) = event(Z) \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and>
@@ -174,145 +223,34 @@ proof -
       acceptance(A) \<noteq> \<bullet>))"
     apply auto
     using maximal_not_exists_higher apply blast
-     apply (case_tac A, auto, case_tac a, auto)
-    apply (metis acceptance.distinct(1) acceptance_event acceptance_set amember.simps(2) prirelacc_acceptance_not_bullet_imp)
-    apply (case_tac A, auto)
-  by (simp add: some_higher_not_maximal)
+     apply (metis maximal_event_in_priacc not_bullet_less_eq_imp some_higher_not_maximal)
+    using maximal_not_exists_higher by blast
   then show ?thesis
     using calculation by auto
 qed
 
-definition Pri :: "'a partialorder \<Rightarrow> 'a fltraces \<Rightarrow> 'a fltraces" where
-"Pri p F = {A|A Z. prirel p A Z \<and> Z \<in> F}"
+lemma prirel_imp_pri:
+  assumes "prirel p A Z" 
+  shows "pri p A Z"
+  using assms apply (induct p A Z rule:pri.induct, auto)
+   apply (case_tac Aa, auto)
+  by (metis pri_induct_case prirelacc.simps(1))
 
-section \<open> Revised definition \<close>
+lemma pri_imp_prirel:
+  assumes "pri p A Z"
+  shows "prirel p A Z" 
+  using assms apply (induct p A Z rule:pri.induct, auto)
+    apply (case_tac Za, auto)
+  using event_in_acceptance by force+
 
-text \<open> It turns out that for healthy processes (FL1) the definition of prirel and prirelacc
-       can be simplified further. \<close>
+definition PriOriginal :: "'a partialorder \<Rightarrow> 'a fltraces \<Rightarrow> 'a fltraces" where
+"PriOriginal p F = {A|A Z. prirel p A Z \<and> Z \<in> F}"
 
-text \<open> Because processes are FL1, there is no implicit need to relate every acceptance to \<bullet>,
-       rather we can consider just two cases, where both acceptances are \<bullet>, or where they are
-       both sets. \<close>
-
-fun prirelaccAlt :: "'a partialorder \<Rightarrow> 'a acceptance \<Rightarrow> 'a acceptance \<Rightarrow> bool" where
-"prirelaccAlt p \<bullet> \<bullet> = True" |
-"prirelaccAlt p [A]\<^sub>\<F>\<^sub>\<L> [Z]\<^sub>\<F>\<^sub>\<L> = (A = {a. a \<in> Z \<and> \<not>(\<exists>b. b\<in> Z \<and> a <\<^sup>*p b)})" |
-"prirelaccAlt p X Y = False"
-
-fun prirelAlt :: "'a partialorder \<Rightarrow> 'a fltrace \<Rightarrow> 'a fltrace \<Rightarrow> bool" where
-"prirelAlt p \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L> = (prirelaccAlt p A Z)" |
-"prirelAlt p \<langle>A\<rangle>\<^sub>\<F>\<^sub>\<L> (Z #\<^sub>\<F>\<^sub>\<L> zz) = False" |
-"prirelAlt p (A #\<^sub>\<F>\<^sub>\<L> aa) \<langle>Z\<rangle>\<^sub>\<F>\<^sub>\<L> = False" |
-"prirelAlt p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
-  = ((prirelaccAlt p (acceptance A) (acceptance Z)) \<and> (prirelAlt p aa zz) \<and> event(A) = event(Z)
-      \<and> (event(A) \<in>\<^sub>\<F>\<^sub>\<L> acceptance A \<or> acceptance A = \<bullet>) \<and> (acceptance(Z) = \<bullet> \<longrightarrow> maximal(p,event(A))))"
-
-text \<open>Observe, that, in general, the recursive case for the relation is not equivalent. \<close>
-
-lemma prirelAlt_imp_prirel:
-  assumes "prirelAlt p xs ys"
-  shows "prirel p xs ys "
-  using assms apply (induct p xs ys rule:prirel.induct, auto)
-      apply (case_tac A, auto, case_tac Z, auto)
-     apply (case_tac Z, auto)
-    apply (case_tac A, auto, case_tac a, auto, case_tac Z, auto, case_tac a, auto)
-   apply (case_tac A, auto, case_tac a, auto, case_tac Z, auto, case_tac a, auto)
-  by (case_tac Z, auto, case_tac a, auto)
-
-lemma
-  assumes "prirel p xs ys"
-  shows "prirelAlt p xs ys "
-  using assms apply (induct p xs ys rule:prirelAlt.induct, auto)
-         apply (case_tac A, auto, case_tac Z, auto)
-        apply (case_tac A, auto)
-       apply (case_tac A, auto, case_tac a, auto, case_tac Z, auto, case_tac a, auto)
-      apply (case_tac Z, auto, case_tac A, auto, case_tac a, auto, case_tac ab, auto)
-     apply (case_tac A, auto, case_tac a, auto, case_tac Z, auto, case_tac a, auto)
-    apply (case_tac A, auto, case_tac a, auto)
-    apply (case_tac Z, auto, case_tac a, auto)
-  apply (case_tac A, auto)
-  oops
-
-lemma
-  "prirel p (A #\<^sub>\<F>\<^sub>\<L> aa) (Z #\<^sub>\<F>\<^sub>\<L> zz) 
-  = 
-  ((prirelAlt p aa zz) \<and> event(A) = event(Z) \<and> prirelaccAlt p (acceptance A) (acceptance Z))"
-  oops
-
-definition priAlt :: "'a partialorder \<Rightarrow> 'a fltraces \<Rightarrow> 'a fltraces" where
-"priAlt p F = {A|A Z. prirelAlt p A Z \<and> Z \<in> F}"
-
-lemma prirel_concatFL_acceptance1:
-  assumes "prirel p x xs"
-  shows "prirel p x (xs &\<^sub>\<F>\<^sub>\<L> \<langle>xa\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  using assms apply (induct p x xs rule:prirel.induct, auto)
-  apply (case_tac xa, auto)
-    apply (case_tac Z, auto, case_tac A, auto)
-   apply (case_tac A, auto)
-  oops
-
-(*
-lemma prirel_concatFL_acceptance2:
-  assumes "prirel p x xs"
-  shows "prirel p x (xs &\<^sub>\<F>\<^sub>\<L> \<langle>xa,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  using assms apply (induct p x xs rule:prirel.induct, auto)
-  apply (case_tac Z, auto)
-  by (case_tac A, auto)
-*)
-
-lemma prirelaccAlt_imp_prirelacc:
-  assumes "prirelaccAlt p x y"
-  shows "prirelacc p x y"
-  using assms by (induct p x y rule:prirelaccAlt.induct, auto)
-
-(*
-lemma prirelAlt_imp_prirel:
-  assumes "prirelAlt p x Z"
-  shows "prirel p x Z"
-  using assms apply (induct p x Z rule:prirel.induct, auto)
-  using prirelaccAlt_imp_prirelacc apply auto
-  apply (case_tac Za, auto)
-  by (smt amember.elims(2) prirelaccAlt.simps(4) prirelaccAlt_imp_prirelacc prirelacc_acceptance_not_bullet_imp)
-*)
-
-lemma prirelaccAlt_eq_event_imp_priority_choice:
-  assumes "(prirelaccAlt p (acceptance A) (acceptance Z))" "event(A) = event(Z)"
-  shows "\<not>(\<exists>b. b \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> event(A) <\<^sup>*p b)"
-  using assms apply auto
-  apply (cases A, auto, cases Z, auto)
-   apply (metis acceptance_event acceptance_set amember.simps(1) prirelaccAlt_imp_prirelacc prirelacc_acceptance_not_bullet_imp)
-  by (cases Z, auto, case_tac a, auto)
-
-(*
-lemma prirelacc_to_prirelaccAlt_refl:
-  assumes "prirelacc p A Z"
-  shows "prirelaccAlt p A A"
-  using assms by (induct p A A rule:prirelaccAlt.induct, auto)
-*)
-
-(*
-lemma prirel_to_prirelAlt_refl:
-  assumes "prirel p A Z"
-  shows "prirelAlt p A A"
-  nitpick
-  using assms apply (induct p A Z rule:prirelAlt.induct, auto)
-  by (simp add: prirelacc_to_prirelaccAlt_refl)+
-
-lemma acceptance_prirelacc_prirelaccAlt_case0:
-  assumes "acceptance A \<noteq> \<bullet>"
-          "prirelacc p (acceptance A) (acceptance Z)"
-    shows "prirelaccAlt p (acceptance A) [{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z}]\<^sub>\<F>\<^sub>\<L>"
-  using assms by (cases A, auto, case_tac a, auto)
-
-(* TODO: Generalise these results, this is cheeky. *)
-
-lemma acceptance_prirelaccAlt_prirelaccAlt_case0:
-  assumes "acceptance A \<noteq> \<bullet>"
-          "prirelaccAlt p (acceptance A) (acceptance Z)"
-    shows "prirelaccAlt p (acceptance A) [{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance Z}]\<^sub>\<F>\<^sub>\<L>"
-  using assms
-  using acceptance_prirelacc_prirelaccAlt_case0 prirelaccAlt_imp_prirelacc by fastforce
-*)
+lemma PriOriginal_eq_Pri:
+  "PriOriginal p P = Pri p P"
+  unfolding PriOriginal_def Pri_def apply auto
+  using prirel_imp_pri apply blast
+  using pri_imp_prirel by blast
 
 lemma prirel_prirel_for_FL1:
   assumes "s \<le> t"
@@ -343,11 +281,11 @@ next
       apply (cases x, simp)      
       apply (metis fltrace_concat2.simps(3) prirel.simps(1) prirelacc.simps(1) x_le_x_concat2)
       apply (cases x, simp)
-      by (metis acceptance.simps(3) eq_iff less_eq_acceptance.elims(2) less_eq_fltrace.simps(2) prirel.simps(1))
+      by (metis acceptance.distinct(1) less_eq_fltrace.simps(2) not_bullet_less_eq_imp order_refl pri.simps(1) pri_imp_prirel)
   next
     case (AEvent x z)
     then obtain C where C:"prirel p z C \<and> C \<le> zz"
-      by auto
+      by (meson less_eq_fltrace.simps(3) prirel_alt_induct_case)
     then have x_less_eq_A:"x \<le> A"
       using AEvent by auto
     then have event_x_z:"event(x) = event(Z)"
@@ -376,8 +314,7 @@ next
               apply (intro exI[where x="Z #\<^sub>\<F>\<^sub>\<L> C"], simp)
               apply (simp add: less_eq_aevent_def C)
               apply (cases x, auto, cases Z, auto)
-              apply (metis (no_types, lifting) acceptance_set less_eq_acceptance.simps(3) less_eq_aevent_def prirelacc.elims(3) prirelacc_acceptances_eq x_less_eq_A)
-              using prirelacc_acceptance_not_bullet_imp by fastforce
+              by (metis acceptance_set less_eq_aevent_def not_bullet_less_eq_imp x_less_eq_A)
           qed
        qed
   qed
@@ -437,693 +374,10 @@ next
   qed
 qed
 
-(*
-lemma FL1_prirel_prirelAlt_prefix:
-  assumes "FL1 P"
-          "prirel p x Z" "Z \<in> P"
-    shows "\<exists>Y. prirelAlt p x Y \<and> Y \<in> P"
-  by (meson FL1_def FL1_prirel_prirelAlt assms(1) assms(2) assms(3))
-*)
-
-lemma
-  assumes "prirel p x (xs &\<^sub>\<F>\<^sub>\<L> \<langle>xa,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "last xs \<noteq> \<bullet>"
-  shows "prirel p x xs"
-  by (metis assms(1) assms(2) fltrace_concat2.simps(4) fltrace_concat2_assoc plus_acceptance.elims rev3_rev3_const2_last)
-
-lemma prirelAlt_in_P_imp_prirel:
-  assumes "prirelAlt p x Z" "Z \<in> P"
-    shows "\<exists>Z. prirel p x Z \<and> Z \<in> P"
-  using assms 
-  using prirelAlt_imp_prirel by blast+
-
-(*
-text \<open>For prefix-closed processes then the definition Pri is equivalent to priAlt\<close>
-
-lemma FL1_pri_eq_priAlt:
-  assumes "FL1 P"
-  shows "Pri p P = priAlt p P"
-  using assms unfolding Pri_def priAlt_def apply auto
-   apply (simp add: FL1_prirel_prirelAlt_prefix)
-  using prirelAlt_imp_prirel by blast *)
-
-(* Likely similar to the earlier proof *)
-
-(*
-lemma prirelAlt_prefix_exists:
-  assumes "s \<le> t"
-          "prirelAlt p t Z"
-    shows "\<exists>Y. prirelAlt p s Y \<and> Y \<le> Z"
-  using assms
-proof (induct p t Z arbitrary:s rule:prirelAlt.induct)
-  case (1 p A Z)
-  then show ?case 
-    apply (cases s, auto)
-    apply (cases A, auto, cases Z, auto)
-    using "1.prems"(2) less_eq_acceptance.elims(2) apply blast
-    by (metis fltrace_trans less_eq_acceptance.elims(2) order_refl prefixFL_induct2 prirelAlt.simps(1) prirelaccAlt.simps(1))
-next
-  case (2 p A Z zz)
-  then show ?case by auto
-next
-  case (3 p A aa Z)
-  then show ?case by auto
-next
-  case (4 p A aa Z zz)
-  then show ?case
-  proof (induct s)
-    case (Acceptance x)
-    then show ?case using 4
-      apply (cases x, auto)
-      using prirelAlt.simps(1) prirelaccAlt.simps(1) apply fastforce
-      by (metis acceptance.distinct(1) acceptance.simps(3) eq_iff less_eq_acceptance.elims(2) less_eq_fltrace.simps(2) prirelAlt.simps(1))
-  next
-    case (AEvent x z)
-    then obtain C where C:"prirelAlt p z C \<and> C \<le> zz"
-      by auto
-    then have x_less_eq_A:"x \<le> A"
-      using AEvent by auto
-    then show ?case using 4 AEvent
-       proof (cases "acceptance(x) = \<bullet>")
-         case True
-         then show ?thesis using 4 x_less_eq_A
-            apply (intro exI[where x="(\<bullet>,event(Z))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> C"], auto)
-           using C apply blast
-             apply (simp add: less_eq_aevent_def)+
-           using C by blast
-       next
-         case x_not_bullet:False
-         then show ?thesis using 4
-           proof (cases "acceptance(Z) = \<bullet>")
-             case True
-             then show ?thesis using 4 x_not_bullet
-              apply (intro exI[where x="([{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>,event(Z))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> C"], auto)
-                   apply (metis less_eq_acceptance.simps(2) less_eq_aevent_def prirelaccAlt.elims(2) prirelaccAlt.elims(3) prirelaccAlt.simps(1) prirelaccAlt.simps(4) x_less_eq_A)
-               using C apply blast
-               apply (metis less_eq_acceptance.elims(2) less_eq_aevent_def prirelaccAlt.elims(2) prirelaccAlt.simps(1) prirelaccAlt.simps(4) x_less_eq_A)
-               apply (metis less_eq_acceptance.elims(2) less_eq_aevent_def prirelaccAlt.elims(2) prirelaccAlt.simps(1) prirelaccAlt.simps(4) x_less_eq_A)
-               using C by blast
-           next
-             case False
-             then have x_eq_A:"x = A"
-               by (metis dual_order.antisym less_eq_acceptance.elims(2) less_eq_aevent_def x_less_eq_A x_not_bullet)
-             then show ?thesis using False 4 x_not_bullet
-              apply (intro exI[where x="([{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z)}]\<^sub>\<F>\<^sub>\<L>,event(Z))\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> C"], auto)
-               using acceptance_prirelaccAlt_prirelaccAlt_case0 x_eq_A apply force
-               using C apply blast
-                apply (cases Z, auto, case_tac a, auto)
-               using C by blast
-           qed
-       qed
-  qed
-qed
-
-
-lemma FL1_priAlt:
-  assumes "FL1 P"
-          "t \<in> priAlt p P" "s \<le> t"
-    shows "s \<in> priAlt p P"
-  using assms 
-  unfolding priAlt_def apply auto
-  by (meson FL1_def prirelAlt_prefix_exists)
-
-lemma priAlt_FL1_closed:
-  assumes "FL1 P"
-  shows "FL1 (priAlt p P)"
-  using assms
-  using FL1_def FL1_priAlt by blast
-*)
-
-lemma priAlt_mono:
-  assumes "P \<subseteq> Q"
-  shows "priAlt p P \<subseteq> priAlt p Q"
-  using assms unfolding priAlt_def by auto
-
-lemma pri_mono:
-  assumes "P \<subseteq> Q"
-  shows "Pri p P \<subseteq> Pri p Q"
-  using assms unfolding Pri_def by auto
-
-lemma bullet_in_pri:
-  assumes "FL0 P" "FL1 P"
-  shows "\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> Pri p P"
-  using assms unfolding FL0_def Pri_def apply auto
-  using FL0_FL1_bullet_in assms(1) prirel.simps(1) prirelacc.simps(1) by blast
-
-lemma pri_FL0:
-  assumes "FL0 P" "FL1 P"
-  shows "FL0 (Pri p P)"
-  using assms FL0_def
-  using bullet_in_pri by fastforce
-
 lemma FL1_prirel:
   assumes "s \<le> t" "prirel p t Z" "Z \<in> P" "FL1 P"
   shows "\<exists>Z. prirel p s Z \<and> Z \<in> P"
   using assms 
   by (meson FL1_def prirel_prirel_for_FL1)
-
-lemma pri_FL1:
-  assumes "FL1 P"
-  shows "FL1 (Pri p P)"
-  using assms unfolding FL1_def Pri_def apply safe
-  using FL1_prirel assms by blast
-
-(*
-lemma prirel_cons_le_add:
-  assumes "prirel p A Z" "prirel p B A"
-          "prirel p (X #\<^sub>\<F>\<^sub>\<L> A) (Y #\<^sub>\<F>\<^sub>\<L> Z)"
-    shows "prirel p (X #\<^sub>\<F>\<^sub>\<L> B) (Y #\<^sub>\<F>\<^sub>\<L> Z)"
-  oops
-
-lemma prirel_cons_le_add:
-  assumes "prirel p A Z"
-          "prirel p (X #\<^sub>\<F>\<^sub>\<L> A) (Y #\<^sub>\<F>\<^sub>\<L> Z)" "x \<le> X"
-    shows "prirel p (x #\<^sub>\<F>\<^sub>\<L> A) (Y #\<^sub>\<F>\<^sub>\<L> Z)"
-  using assms nitpick apply auto
-  apply (metis less_eq_acceptance.elims(2) less_eq_aevent_def prirelacc.simps(1))
-  by (simp_all add: less_eq_aevent_def)
-*)
-
-lemma prirel_cons_imp1:
-  assumes "prirel p (x #\<^sub>\<F>\<^sub>\<L> y) (a #\<^sub>\<F>\<^sub>\<L> b)"
-  shows "prirel p \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>a,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  using assms by auto
-
-lemma prirel_cons_imp2:
-  assumes "prirel p (x #\<^sub>\<F>\<^sub>\<L> y) (a #\<^sub>\<F>\<^sub>\<L> b)"
-  shows "prirel p y b"
-  using assms by auto
-
-lemma
-  assumes "prirel p y b"
-  shows "\<exists>a. prirel p (x #\<^sub>\<F>\<^sub>\<L> y) (a #\<^sub>\<F>\<^sub>\<L> b)"
-  using assms 
-  oops
-
-(*
-lemma prirel_two_acceptances_bullet:
-  "prirelAlt p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<longleftrightarrow> (event(A) = event(Z) \<and> prirelaccAlt p (acceptance A) (acceptance Z))"
-  nitpick
-*)
-lemma prirel_two_acceptances_bullet_eq_event:
-  assumes "acceptance(A) = \<bullet>"
-  shows "prirel p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<longleftrightarrow> event A = event Z"
-  using assms apply auto
-  nitpick
-  oops
-
-lemma prirel_two_acceptances_bullet_not_bullet:
-  assumes "acceptance(A) \<noteq> \<bullet>"
-  shows "prirel p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = (acceptance(Z) \<noteq> \<bullet> \<and> event A = event Z \<and> acceptance(A) = [{a. a \<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> \<not>(\<exists>b. b\<in>\<^sub>\<F>\<^sub>\<L> acceptance(Z) \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>)"
-  using assms apply auto
-  using acceptance_not_bullet_imp_prirelacc apply force
-   apply (cases A, auto, case_tac a, auto)
-  using amember.elims(3) apply force
-    apply (metis acceptance.distinct(1) acceptance_event acceptance_set amember.simps(2) prirelacc_acceptance_not_bullet_imp)
-   by (cases Z, auto, case_tac a, auto)+
-
-lemma prirel_less_eq_imp:
-  assumes "prirel p \<langle>B,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "A \<le> B"
-  shows "prirel p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  using assms apply auto
-  apply (simp_all add:less_eq_aevent_def)
-      apply (metis less_eq_acceptance.elims(2) prirelacc.simps(1))
-     apply (metis less_eq_acceptance.elims(2) prirelacc.simps(1))
-    apply (metis less_eq_acceptance.elims(2) prirelacc.simps(1))
-   apply (cases Z, auto, cases A, auto, cases B, auto, case_tac a, auto)
-  apply (cases Z, auto, cases A, auto, cases B, auto, case_tac a, auto, case_tac aa, auto)
-   apply (cases B, auto, cases A, auto, case_tac a, auto)
-  by (cases B, auto, cases Z, auto, cases A, auto, case_tac a, auto, case_tac aa, auto)
-(*
-lemma prirel_refl_if_any_acceptance:
-  assumes "prirel p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  shows "prirel p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  using assms nitpick apply auto
-     apply (cases A, auto, case_tac a, auto)
-     apply (cases Z, auto, case_tac a, auto)
-    apply (cases A, cases Z, auto, case_tac a, auto, case_tac aa, auto)
-   apply (cases A, cases Z, auto, case_tac aa, auto)
-  oops
-
-lemma prirel_refl_if_any:
-  assumes "prirel p a z"
-  shows "prirel p a a"
-  using assms apply (induct p a z rule:prirel.induct)
-  apply (case_tac Z, simp)
-  apply (metis (full_types) acceptance.exhaust prirelacc.simps(2))
-     apply (case_tac A, simp)
-  apply auto
-    apply (case_tac A, simp)
-    apply auto
-  using prirelaccAlt_imp_prirelacc prirelacc_to_prirelaccAlt_refl apply blast
-  using prirelaccAlt_eq_event_imp_priority_choice prirelacc_to_prirelaccAlt_refl by fastforce
-*)
-
-lemma
-  assumes "prirel p s a" "prirel p \<langle>A,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  shows "prirel p (A #\<^sub>\<F>\<^sub>\<L> s) (A #\<^sub>\<F>\<^sub>\<L> a)"
-  using assms 
-  oops
-
-lemma
-  assumes "prirel p s a" "prirel p \<langle>B,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>Z,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "A \<le> B"
-  shows "\<exists>a. prirel p (A #\<^sub>\<F>\<^sub>\<L> s) a"
-  using assms 
-  oops
-
-lemma prirelacc_singleton:
-  "prirelacc p [{b}]\<^sub>\<F>\<^sub>\<L> [{b}]\<^sub>\<F>\<^sub>\<L>"
-  by auto
-
-lemma preirelacc_a_removed:
-  assumes "a \<le>\<^sup>*p b"
-  shows "prirelacc p [{b}]\<^sub>\<F>\<^sub>\<L> [{a,b}]\<^sub>\<F>\<^sub>\<L>"
-  using assms apply (simp add:my_lt_def)
-  using partialorder.dual_order.antisym by auto
-
-lemma preirelacc_pair_removed:
-  assumes "a <\<^sup>*p b" "prirelacc p [X]\<^sub>\<F>\<^sub>\<L> [Y]\<^sub>\<F>\<^sub>\<L>" "a \<in> Y" "b \<in> Y"
-  shows "a \<notin> X"
-  using assms by (auto simp add:my_lt_def)
-
-lemma prirel_same_from_singleton:
-  shows "prirel p \<langle>([{b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>([{b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" 
-  by auto
-
-lemma prirel_same:
-  assumes "a <\<^sup>*p b" "prirel p \<langle>([X]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>([Y]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" "b \<in> Y" "b \<in> X"
-  shows "a \<notin> X" 
-  using assms by auto
-
-lemma prirel_same_length:
-  assumes "prirel p fl Y"
-  shows "length fl = length Y"
-  using assms by (induct fl Y rule:prirel.induct, auto)
-
-lemma prirelAlt_acceptance_refl:
-  "prirelAlt p \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  by auto
-
-lemma prirelAlt_acceptance_refl_iff:
-  "prirelAlt p x \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<longleftrightarrow> x = \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  apply auto
-  by (cases x, auto, case_tac x1, auto)
-
-lemma prirelAlt_bullet_refl:
-  "prirelAlt p \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  by auto
-
-lemma prirelAlt_bullet_refl_iff:
-  "prirelAlt p x \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<longleftrightarrow> x = \<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  apply auto
-  by (cases x, auto, case_tac x1, auto)
-
-lemma prirelAlt_cons_acceptance_iff:
-  "prirelAlt p x (([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s) \<longleftrightarrow> (\<exists>z. x = (([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z) \<and> prirelAlt p z s)"
-  apply auto
-  apply (cases x, auto)
-  by (metis Rep_aevent_inverse acceptance.rep_eq event.rep_eq first.simps(1) prirelAlt.simps(1) prirelAlt_acceptance_refl_iff prod.collapse)
-
-(*
-lemma prirelAlt_cons_bullet_iff:
-  "prirelAlt p x ((\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s) \<longleftrightarrow> (\<exists>z. x = ((\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z) \<and> prirelAlt p z s)"
-  apply auto
-  apply (cases x, auto)
-  by (metis Rep_aevent_inverse acceptance.rep_eq acceptance_not_bullet_imp_prirelacc acceptance_set event.rep_eq prirelaccAlt_imp_prirelacc prod.collapse)
-*)
-
-lemma FL1_some_prirelAlt:
-  assumes "s \<in> P" "FL1 P"
-  shows "\<exists>Z s. prirelAlt p s Z \<and> Z \<in> P"
-  using assms apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI)
-  by (simp add: prirelAlt_bullet_refl_iff)
-
-lemma prirel_rhs_singleton_iff:
-  "prirel p x \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (x = \<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  by (cases x, auto, case_tac x1, auto)
-
-lemma prirel_cons_imp_exists:
-  assumes "prirel p x (([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s)"
-  shows "(\<exists>z. (x = ([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z \<or> x = (\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z) \<and> prirel p z s)"
-  using assms
-proof (induct p x s rule:prirel.induct)
-  case (1 p A Z)
-  then show ?case by auto
-next
-  case (2 p A Z zz)
-  then show ?case by auto
-next
-  case (3 p A aa Z)
-  then show ?case
-    apply (cases A, cases Z, cases aa, auto)
-         apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], case_tac x1, auto)
-         apply (metis acceptance.distinct(1) amember.elims(2) fltrace.exhaust fltrace.inject(1) prirel.simps(1) prirel.simps(2) prirel_rhs_singleton_iff prirelacc.simps(1))
-         apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], case_tac x1, auto)
-         apply (metis acceptance.distinct(1) amember.elims(2) fltrace.exhaust fltrace.inject(1) prirel.simps(1) prirel.simps(2) prirel_rhs_singleton_iff prirelacc.simps(1))
-         apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], case_tac x1, auto)
-         apply (metis acceptance.distinct(1) amember.elims(2) fltrace.exhaust fltrace.inject(1) prirel.simps(1) prirel.simps(2) prirel_rhs_singleton_iff prirelacc.simps(1))
-      apply (cases aa, auto, case_tac x1, auto)
-    
-    apply (metis "3.prems" acceptance.simps(3) amember.elims(2) fltrace.inject(1) prirel.simps(1) prirel_cons_imp2 prirel_rhs_singleton_iff)
-   
-     apply (metis Finite_Linear_Model.last.simps(1) prirel.simps(1) prirel_rhs_singleton_iff)
-   
-   by (metis Finite_Linear_Model.last.simps(1) prirel.simps(1) prirel_rhs_singleton_iff)
-(*     apply (rule exI[where x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
-         apply (metis acceptance.distinct(1) amember.elims(2) fltrace.exhaust fltrace.inject(1) prirel.simps(1) prirel.simps(2) prirel_rhs_singleton_iff prirelacc.simps(1))
-      apply (rule_tac x="\<langle>[{a \<in> x2. \<forall>b. b \<in> x2 \<longrightarrow> \<not> a <\<^sup>*p b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-         apply (metis acceptance.distinct(1) amember.elims(2) fltrace.exhaust fltrace.inject(1) prirel.simps(1) prirel.simps(2) prirel_rhs_singleton_iff prirelacc.simps(1))
-    apply (metis acceptance.distinct(1) amember.elims(2) fltrace.inject(1) prirel.simps(1) prirel_rhs_singleton_iff)
-    by (metis fltrace.inject(1) prirel.simps(1) prirel_rhs_singleton_iff)*)
-next
-  case (4 p A aa Z zz)
-  then show ?case
-    apply (cases A, cases Z, auto)
-    by (metis Finite_Linear_Model.last.simps(1) prirel.simps(1) prirel_rhs_singleton_iff)+
-qed
-
-lemma prirel_cons_iff_exists:
-  "prirel p x (([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s) 
-   = 
-   (\<exists>z. (x = ([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z \<or> x = (\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z) \<and> prirel p z s)"
-  apply auto
-  using prirel_cons_imp_exists
-  by (simp add: prirel_cons_imp_exists)
-
-lemma prirel_cons_bullet_iff_exists:
-  "prirel p x ((\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s) 
-   = 
-   (\<exists>z. x = (\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z \<and> maximal(p,a) \<and> prirel p z s)"
-  apply auto
-   apply (cases x, auto)
-  apply (case_tac x21, auto, case_tac aa, auto)
-   apply (case_tac x21, auto, case_tac aa, auto)
-   apply (case_tac x21, auto, case_tac aa, auto)
-  by (case_tac x21, auto)
-
-lemma priAlt_PrefixAlt_eq_PrefixAlt_priAlt:
-  assumes "FL1 P"
-  shows "Pri p (PrefixAlt a P) = (PrefixAlt a (Pri p P))"
-  unfolding PrefixAlt_def Pri_def prefixH_def apply auto
-  apply (auto simp add:prirel_rhs_singleton_iff)
-         apply (metis FL0_FL1_bullet_in FL0_def assms empty_iff prirel.simps(1) prirelacc.simps(1)) 
-  apply (metis FL0_FL1_bullet_in_so acceptance.exhaust assms fltrace.exhaust prirel.simps(1) prirel.simps(3) prirelacc.simps(3))
-   apply (meson prirel_cons_imp_exists)
-      apply (meson prirel_cons_bullet_iff_exists)
-  apply (meson prirel_rhs_singleton_iff)
-  using prirel.simps(1) prirelacc.simps(1) apply blast
-     apply (metis prirel_cons_iff_exists)
-  by force+
-
-lemma pri_Prefix_eq_Prefix_pri:
-  shows "Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) = (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> (Pri p P))"
-  unfolding Prefix_def Pri_def prefixH_def apply auto
-         apply (simp add: prirel_rhs_singleton_iff)
-  apply (metis acceptance.exhaust fltrace.exhaust prirel.simps(1) prirel.simps(3) prirelacc.simps(3))
-  apply (meson prirel_cons_imp_exists)
-  apply (meson prirel_cons_bullet_iff_exists)
-  apply force
-  apply force
-   apply (metis prirel_cons_iff_exists)
-  by (metis prirel_cons_iff_exists)
-
-lemma prirel_singleton_set_iff:
-  "prirel p A \<langle>[X]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (A = \<langle>[{a. a \<in> X \<and> \<not>(\<exists>b. b \<in> X \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  apply auto
-  by (cases A, auto, case_tac x1, auto)
-
-lemma prirel_singleton_set_iff_diff:
-  "prirel p \<langle>[A]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>[X]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (A = X - {a. a \<in> X \<and> (\<exists>b. b \<in> X \<and> a <\<^sup>*p b)})"
-  apply safe
-  apply simp_all
-  by blast
-
-lemma prirel_singleton_set_iff_diff2:
-  "prirel p A \<langle>[X]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L> = (A = \<langle>[X - {a. a \<in> X \<and> (\<exists>b. b \<in> X \<and> a <\<^sup>*p b)}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  apply (cases A, auto)
-  by (case_tac x1, auto)
-
-lemma not_prirelAlt_less_eq_both_events [simp]:
-  assumes "b <\<^sup>*p a" "a \<in> X" "b \<in> X"
-  shows "\<not> prirel p x (([X]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>)"
-  using assms apply (cases x, auto)
-   apply (case_tac x21, auto, case_tac aa, auto)
-  apply (meson some_higher_not_maximal)
-  by (case_tac x21, auto, case_tac aa, auto)
-
-lemma prirel_cons:
-  assumes "b <\<^sup>*p a" "prirel p z \<rho>"
-  shows "prirel p (([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z) (([{b, a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>) \<or> prirel p ((\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z) (([{b, a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>)"
-  using assms by auto
-
-lemma prirel_cons_also_prirel:
-  assumes "prirel p s z"
-  shows "prirel p ((\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s) (([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z)"
-  using assms by auto
-
-lemma prirel_rel_less_eq_twoset:
-  assumes "b <\<^sup>*p a" "prirel p x (([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s)"
-  shows "prirel p x (([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s)"
-  using assms by (cases x, simp, case_tac x21, simp, case_tac y, simp, case_tac aa, simp, force)
-
-lemma prirel_cons_iff_exists_less_eq_twoset:
-  assumes "b <\<^sup>*p a"
-  shows "prirel p x (([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> s) 
-   = 
-   (\<exists>z. (x = ([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z \<or> x = (\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> z) \<and> prirel p z s)"
-  using assms apply auto
-  by (simp add: prirel_cons_imp_exists prirel_rel_less_eq_twoset)
-
-lemma prirel_ExtChoice_extends:
-  assumes "b <\<^sup>*p a"
-  shows "(\<exists>A B X. prirel p R X \<and> ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)) = (\<exists>A. prirel p R A \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P))"
-  using assms unfolding Prefix_def apply (safe, simp_all)
-                     apply auto[4]
-                  apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-                 apply (metis prirel_cons_bullet_iff_exists some_higher_not_maximal)   
-                apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-                 apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-               apply (simp_all add: prirel_cons_bullet_iff_exists some_higher_not_maximal)
- apply blast apply safe
-                 apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-             apply (metis (no_types, lifting) partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel_rhs_singleton_iff prirel_singleton_set_iff prirelacc.simps(2))
-            apply (metis prirel_rel_less_eq_twoset)
-   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
-            apply (simp add: prirel_rel_less_eq_twoset)
-  using prirel_rel_less_eq_twoset apply fastforce
-                   apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-                  apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (simp_all add: prirel_cons_bullet_iff_exists some_higher_not_maximal)
-             apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-            apply (metis prirel_cons_also_prirel)
-  apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  
-          apply (metis prirel_cons_also_prirel)+
-     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-     apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-    apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-  apply (metis acceptance.simps(3) partialorder.less_imp_le preirelacc_a_removed prirel.simps(1) prirel_rhs_singleton_iff)
-    apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
-    apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI) apply auto[1]
-    apply (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI) apply auto[1]
-   apply (simp_all add: prirel_cons_iff_exists_less_eq_twoset prirel_cons_imp_exists)
-  by (metis ExtChoiceH.simps(3) ExtChoiceH_sym acceptance_event acceptance_set aunion.simps(2) prirel_cons_bullet_iff_exists)
-(*apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto, rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-  apply (rule_tac x="(\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
-apply (rule_tac x="(\<bullet>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
-  apply (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
-  apply (simp add: prirel_cons_iff_exists_less_eq_twoset prirel_cons_imp_exists)
-   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
-   apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-by (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)   apply (metis (full_types) insert_commute partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel.simps(1) prirel_rhs_singleton_iff prirel_singleton_set_iff)
-   
-apply (simp add: prirel_cons_iff_exists_less_eq_twoset prirel_cons_imp_exists)
-      apply (rule_tac x="\<langle>[{a}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto, rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, rule_tac x="\<langle>[{a,b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-  apply (metis (full_types) insert_commute partialorder.dual_order.strict_implies_order preirelacc_a_removed prirel.simps(1) prirel_rhs_singleton_iff prirel_singleton_set_iff)
-    apply (rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto, rule_tac x="\<langle>\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
-   apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-apply (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
-  apply (simp add: prirel_cons_iff_exists_less_eq_twoset prirel_cons_imp_exists)
-   apply (rule_tac x="([{a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
-   apply (rule_tac x="\<langle>[{b}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-by (rule_tac x="([{b,a}]\<^sub>\<F>\<^sub>\<L>,a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<rho>" in exI, auto)
-*)
-lemma pri_ExtChoice_two_prefixes:
-  assumes "b <\<^sup>*p a" "FL1 P"
-  shows "Pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
-        =
-        Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
-proof -
-  have "((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
-      =
-      {X| X A B. ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)}"
-    unfolding ExtChoice_def by auto
-  then have "Pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q))
-      =
-      {R|R A B X. prirel p R X \<and> ExtChoiceH A B X \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<and> B \<in> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> Q)}"
-    unfolding Pri_def by auto
-  also have "... = {R|R A. prirel p R A \<and> A \<in> (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)}"
-    using assms(1)
-    by (simp add: prirel_ExtChoice_extends)
-  also have "... = Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
-    unfolding Pri_def by auto 
-  then show ?thesis using calculation 
-    by auto
-qed
-
-lemma pri_IntChoice_dist:
-  "Pri p (P \<sqinter>\<^sub>\<F>\<^sub>\<L> Q) = (Pri p P) \<sqinter>\<^sub>\<F>\<^sub>\<L> (Pri p Q)"
-  unfolding Pri_def IntChoice_def by auto
-
-
-lemma
-  assumes "\<not>a <\<^sup>*p b" "\<not>b <\<^sup>*p a"
-  shows "Pri p ((a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> P))
-        =
-        Pri p (a \<rightarrow>\<^sub>\<F>\<^sub>\<L> P) \<box>\<^sub>\<F>\<^sub>\<L> Pri p (b \<rightarrow>\<^sub>\<F>\<^sub>\<L> P)"
-  using assms unfolding ExtChoice_def Pri_def apply auto
-  oops
-
-lemma prirel_cons_eq_length_imp:
-  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "length xs = length ys"
-  shows "prirel p xs ys"
-  using assms apply(induct xs ys rule:prirel.induct, auto)
-  apply (case_tac A, auto)
-  by (case_tac Z, auto)+
-
-lemma prirel_cons_eq_length_imp_prirel_acceptances:
-  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "length xs = length ys" "last xs = \<bullet>"
-  shows "prirel p \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  using assms apply(induct xs ys rule:prirel.induct, auto)
-     apply (case_tac Z, auto)
-    apply (case_tac Z, auto)
-     apply (case_tac Z, auto)
-  by (case_tac Z, auto)
-
-lemma prirel_cons_eq_length_imp_prirel_acceptances_last_bullet:
-  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "length xs = length ys" "last xs = \<bullet>"
-  shows "last ys = \<bullet>"
-  using assms apply(induct xs ys rule:prirel.induct, auto)
-  by (case_tac Z, auto)
-
-lemma prirel_cons_eq_length_imp_prirel_acceptances_last_bullet_eq:
-  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)" "length xs = length ys" 
-  shows "last xs = \<bullet> \<longleftrightarrow> last ys = \<bullet>"
-  using assms apply(induct xs ys rule:prirel.induct, auto)
-   apply (case_tac Z, auto)
-  by (case_tac A, auto)
-
-lemma prirel_cons_eq_length_imp_prirel_acceptances_last_not_bullet:
-  assumes "length xs = length ys" "last xs \<noteq> \<bullet>"
-  shows "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) = prirel p (xs) (ys)"
-  using assms apply(induct xs ys rule:prirel.induct, auto)
-  apply (case_tac A, auto, case_tac Z, auto)
-  by (case_tac A, auto, case_tac Z, auto)
-
-lemma prirel_cons_eq_length_imp_prirel_acceptances_eq:
-  assumes "length xs = length ys" "last xs = \<bullet>" "last ys = \<bullet>" "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  shows  "prirel p (\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (\<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  using assms by(induct xs ys rule:prirel.induct, auto)
-
-lemma prirel_cons_eq_length_imp_prirel_eq_prefix:
-  assumes "length xs = length ys" "last xs = \<bullet>" "last ys = \<bullet>" "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  shows  "prirel p xs ys"
-  using assms by(induct xs ys rule:prirel.induct, auto)
-
-lemma prirel_last_bullets_cons_imp:
-  assumes "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)" "last xs = \<bullet>" "last ys = \<bullet>"
-  shows "(x = \<bullet>) \<or> (\<exists>xA yA. x = [xA]\<^sub>\<F>\<^sub>\<L> \<and> y = [yA]\<^sub>\<F>\<^sub>\<L>)"
-  using assms apply (induct p xs ys rule:prirel.induct, auto)
-   apply (induct x y rule:prirelacc.induct, auto)
-  apply (induct x y rule:prirelacc.induct, auto)
-  by (cases x, auto)+
-
-lemma prirelacc_trans:
-  assumes "prirelacc p A Z" "prirelacc p Z Y"
-  shows "prirelacc p A Y"
-  using assms apply (induct p A Y rule:prirelacc.induct, auto)
-  by (cases Z, auto)+
-  
-lemma prirel_trans:
-  assumes "prirel p xs ys" "prirel p ys zs"
-  shows "prirel p xs zs"
-  using assms apply (induct p xs zs arbitrary:ys rule:prirel.induct, auto)
-          apply (metis fltrace.exhaust prirel.simps(1) prirel.simps(3) prirelacc_trans)
-         apply (metis fltrace.exhaust prirel.simps(1) prirel.simps(3))
-        apply (metis fltrace.exhaust prirel.simps(2))
-       apply (metis fltrace.exhaust prirel.simps(3))
-      apply (metis (mono_tags, hide_lams) fltrace.exhaust prirel.simps(3) prirel.simps(4) prirelacc_trans)
-   apply (metis fltrace.exhaust prirel.simps(3) prirel_cons_imp2)
-    apply (metis fltrace.exhaust prirel.simps(3) prirel.simps(4))
-  apply (metis Rep_aevent_inverse acceptance.rep_eq prirel.simps(4) prirel_cons_bullet_iff_exists prod.collapse)
-  by (metis fltrace.exhaust prirel.simps(3) prirel.simps(4) prirelacc_acceptance_not_bullet_imp)
-
-lemma
-  assumes "prirel p x Z" "prirel p Z Za" "Za \<in> P" 
-  shows "\<exists>Z. prirel p x Z \<and> Z \<in> P"
-  using assms(1) assms(2) assms(3) prirel_trans by blast
-
-(*
-lemma
-  assumes "prirel p xs ys" "ys \<in> P" "FL1 P"
-  shows "prirel p xs ys \<and> (\<exists>Za. prirel p ys Za \<and> Za \<in> P)"
-  using assms 
-  apply (induct xs ys rule:ftrace_cons_induct_both_eq_length)
-  
-  using assms(1) prirel_same_length apply blast
-  apply (case_tac x, auto)
-
-  using prirelAlt_bullet_refl_iff prirelAlt_imp_prirel apply blast
-    apply (case_tac y, auto)
-  apply (rule_tac x="\<langle>[x2a]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-  sledgehammer*)
-
-lemma prirel_extend_both_acceptance:
-  assumes "prirel p xs zs" "prirel p \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>"
-  shows "prirel p (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L>) (zs &\<^sub>\<F>\<^sub>\<L> \<langle>y\<rangle>\<^sub>\<F>\<^sub>\<L>)"
-  using assms
-  apply (induct p xs zs rule:prirel.induct, auto)
-  by (metis plus_acceptance.elims prirelacc.simps(3))+
-
-lemma prirelacc_decompose:
-  assumes "prirelacc p xs ys" 
-  shows "\<exists>Z. prirelacc p xs Z \<and> prirelacc p Z ys"
-  using assms apply(induct p xs ys rule:prirelacc.induct, auto)
-  using prirelacc.simps(1) apply blast
-  by (rule_tac x="[{a \<in> Z. \<forall>b. b \<in> Z \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>" in exI, auto)
-
-lemma prirel_decompose:
-  assumes "prirel p xs ys" 
-  shows "\<exists>Z. prirel p xs Z \<and> prirel p Z ys"
-  using assms apply(induct p xs ys rule:prirel.induct, auto)
-  apply (metis prirel.simps(1) prirelacc.simps(1) prirelacc_decompose prirelacc_trans)
-  using prirel.simps(1) prirelacc.simps(1) apply blast
-      apply (case_tac A, auto, case_tac Z, auto)
-       apply (case_tac a, auto, case_tac ab, auto)
-  apply (rule_tac x="(([{a \<in> x2a. \<forall>b. b \<in> x2a \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
-      apply (metis amember.elims(2) prirelacc.simps(3))
-     apply (case_tac A, auto, case_tac Z, auto, case_tac a, auto, case_tac ab, auto)
-     apply (rule_tac x="(([{a \<in> x2a. \<forall>b. b \<in> x2a \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
-apply (case_tac A, auto, case_tac Z, auto, case_tac a, auto, case_tac ab, auto)
-  apply (rule_tac x="(([{a \<in> x2a. \<forall>b. b \<in> x2a \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
-  apply (metis amember.elims(2) prirelacc.simps(3))
-apply (case_tac A, auto, case_tac Z, auto, case_tac a, auto)
-  apply (rule_tac x="((\<bullet>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
-  apply (rule_tac x="((\<bullet>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
-  apply (case_tac A, auto, case_tac Z, auto, case_tac a, auto)
-  by (rule_tac x="(([{a \<in> x2. \<forall>b. b \<in> x2 \<longrightarrow> \<not> a <\<^sup>*pa b}]\<^sub>\<F>\<^sub>\<L>,b)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> Za)" in exI, auto)
-
-lemma
-  assumes "prirel p xs ys" "ys \<in> P" "FL1 P"
-  shows "\<exists>Z. prirel p xs Z \<and> (\<exists>Za. prirel p Z Za \<and> Za \<in> P)"
-  using assms prirel_decompose by blast
-
-lemma pri_idem:
-  "Pri p (Pri p P) = Pri p P"
-  unfolding Pri_def apply auto
-  using prirel_trans apply blast
-  using prirel_decompose by blast
 
 end
