@@ -38,9 +38,9 @@ lemma TT_fl2tt_closed:
         "TT4(fl2tt(P))"
   using assms unfolding fl2tt_def 
   using TTwf_fl2ttm TTwf_mkTT1 apply blast
-      apply (simp add: TT0_mkTT1 assms(1) assms(2) assms(3) assms(4) maximal_TT_fl2ttm_closed(1))
-     apply (simp add:TT1_mkTT1)
-    apply (simp add: TT1w_fl2ttm TT2_mkTT1 assms(1) assms(2) assms(3) assms(4) maximal_TT_fl2ttm_closed(3) maximal_TT_fl2ttm_closed(6) maximal_TT_fl2ttm_closed(7))
+      apply (simp add: TT0_fl2ttm TT0_mkTT1 assms(1) assms(2) assms(3) assms(4))
+     apply (simp add: TT1_mkTT1)
+    apply (simp add: TT1w_fl2ttm TT2_fl2ttm TT2_mkTT1 TTM1_fl2ttm_for_FL2_FL1_FL0 TTM2_fl2ttm_for_FL2_FL1_FL0 assms(1) assms(2) assms(3) assms(4))
    apply (simp add: TT3_fl2ttm TT3_mkTT1)
   by (simp add: TT4_fl2ttm TT4_mkTT1 assms(4))
 
@@ -110,18 +110,13 @@ lemma FL2_disj_imp:
   shows "FL2(P \<union> Q)"
   using assms unfolding FL2_def by auto
 
-
-
-(* TODO: Move into TickTock_Core *)
-
-
 lemma
   "\<rho> \<in> x \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> mkTT4 x"
   unfolding mkTT4_def by auto
 
 lemma unTT1_alt:
   assumes "TT P" "TT4 P"
-  shows "unTT1 P = \<Union>{x. TT0 x \<and> TT2 x \<and> TT3 x \<and> TT4 x \<and> TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> (mkTT1 x) \<subseteq> P}"
+  shows "unTT1 P = \<Union>{x. TT0 x \<and> TT2 x \<and> TT3 x \<and> TT4 x \<and> TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> TTwf x \<and> (mkTT1 x) \<subseteq> P}"
   unfolding unTT1_def mkTT1_def apply auto
   using assms apply (rule_tac x="unTT1 P" in exI, auto)
   using TT0_unTT1 TT_TT0 TT_TT1 apply blast
@@ -133,6 +128,7 @@ lemma unTT1_alt:
   using TTM3_unTT1 apply blast
   using TT1w_unTT1 apply blast
   unfolding unTT1_def apply auto
+  apply (metis TT_TTwf TTwf_unTT1 unTT1_def)
   apply (metis (mono_tags, lifting) UnI1 contra_subsetD mkTT1_def) 
    apply (metis (mono_tags, lifting) contra_subsetD mem_Collect_eq mkTT1_simp)
   apply (rule_tac x="X" in exI, auto)

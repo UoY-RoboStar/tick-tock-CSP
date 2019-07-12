@@ -11,7 +11,6 @@ session "TickTock" in "TickTock" = HOL +
     TickTock_Core
     TickTock
     TickTock_Interrupt
-    TickTock_Prioritise
 
 session "FL" in "FL" = HOL +
   description "Core FL model that excludes treatment of termination."
@@ -30,3 +29,12 @@ session "TickTock-FL" in "TickTock-FL" = "FL" +
   description "Galois connection results between TickTock and FL."
   sessions
      "TickTock"
+  theories
+     TickTock_Max
+     TickTock_Max_FL
+     TickTock_Max_Pri
+     TickTock_Max_FL_Priority
+     TickTock_Max_TT1
+     TickTock_Max_TT1_Pri
+     TickTock_FL
+     TickTock_FL_Pri

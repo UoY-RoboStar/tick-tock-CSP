@@ -3,7 +3,6 @@ theory TickTock_Max_TT1
 imports
   "TickTock.TickTock_Core"
   TickTock_Max_FL
-  "TickTock.TickTock_Prioritise"
 begin
 
 text \<open> This theory consists in the definition of a Galois connection between

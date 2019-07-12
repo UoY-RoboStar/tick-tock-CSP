@@ -677,7 +677,7 @@ lemma Tock_notin_prirefTT1_imp_notin_prirefTT_refTickTock:
 lemma priTT_trace_refTickTock:
   assumes "priTT p xs ys (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q" "TT(Q)" "TT2(Q)" "TT4(Q)"
   shows "priTT p xs ys (s @ [[refTickTock S s Q]\<^sub>R, [Tock]\<^sub>E]) Q"
-  using assms apply (induct p xs ys _ Q arbitrary:S  rule:priTT.induct, auto)
+  using assms apply (induct p xs ys _ Q arbitrary:S rule:priTT.induct, auto)
   using prirefTT_eq_prirefTT_refTickTock apply fastforce
   using prirefTT_eq_prirefTT_refTickTock apply fastforce
   using prirefTT_eq_prirefTT_refTickTock apply fastforce
