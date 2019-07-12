@@ -312,4 +312,21 @@ lemma unTT1_TT_closure:
    apply (simp add: TTM2_unTT1)
     by (simp add: TTM3_unTT1)
 
+lemma mkTT1_TT_closure:
+  assumes "TT0 P"
+          "TTwf P"
+          "TT1w P" 
+          "TT2 P" 
+          "TT3 P" 
+          "TT4 P" 
+          "TTM1 P" 
+          "TTM2 P" 
+          "TTM3 P"
+    shows "TTwf(mkTT1 P)" "TT0(mkTT1 P)" "TT1(mkTT1 P)" "TT2(mkTT1 P)" "TT3(mkTT1 P)" "TT4(mkTT1 P)"
+  using assms TTwf_mkTT1 apply blast
+  using assms TT0_mkTT1 apply blast
+  using assms TT1_mkTT1 apply blast
+  using assms TT2_mkTT1 apply blast
+  using assms TT3_mkTT1 apply blast
+  using assms TT4_mkTT1 by blast
 end
