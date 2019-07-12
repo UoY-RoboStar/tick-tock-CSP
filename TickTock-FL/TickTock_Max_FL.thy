@@ -2316,7 +2316,12 @@ next
       by (metis (no_types, hide_lams) acceptance_event bullet_left_zero2 tt_prefix.simps(2) ttevent.distinct(5) fl2ttobs.simps(1) fl2ttobs.simps(2) less_eq_fltrace.simps(3) neq_Nil_conv order_refl x_le_x_concat2)
   qed
 qed
-  
+
+lemma TT0_fl2ttm:
+  assumes "FL0 P" "FL1 P" "FL2 P" "FL3 P"
+  shows "TT0(fl2ttm(P))"
+  using assms using TT0_union_empty assms(1) assms(2) fl2ttm_FL0_FL1_flt2goodTock by fastforce
+
 lemma TT1w_fl2ttm:
   assumes "FL1 P"
   shows "TT1w(fl2ttm(P))"
@@ -2325,7 +2330,8 @@ lemma TT1w_fl2ttm:
 
 lemma maximal_TT_fl2ttm_closed:
   assumes "FL0 P" "FL1 P" "FL2 P" "FL3 P"
-  shows "TT0(fl2ttm(P))"
+  shows "TTwf(fl2ttm(P))"
+        "TT0(fl2ttm(P))"
         "TT1w(fl2ttm(P))"
         "TT2(fl2ttm(P))"
         "TT3(fl2ttm(P))"
@@ -2333,7 +2339,8 @@ lemma maximal_TT_fl2ttm_closed:
         "TTM1(fl2ttm(P))"
         "TTM2(fl2ttm(P))"
         "TTM3(fl2ttm(P))"
-  using TT0_union_empty assms(1) assms(2) fl2ttm_FL0_FL1_flt2goodTock apply fastforce
+  using assms TTwf_fl2ttm apply auto
+  using assms TT0_fl2ttm apply auto
         apply (simp add: TT1w_fl2ttm assms(2))
        apply (simp add: TT2_fl2ttm assms(1) assms(2) assms(3) assms(4))
       apply (simp add: TT3_fl2ttm)

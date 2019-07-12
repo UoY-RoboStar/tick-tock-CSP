@@ -135,38 +135,7 @@ proof -
 qed
 
 (* TODO: Move to TickTock_Core? *)
-lemma ttWF_dist_notTock_cons:
-  assumes "ttWF (xs @ ([[x]\<^sub>E] @ ys))" "x \<noteq> Tock"
-  shows "ttWF ([[x]\<^sub>E] @ ys)"
-  using assms apply (induct xs rule:ttWF.induct, auto)
-  by (cases x, auto)
 
-lemma ttWF_before_Tock_not_Tock:
-  assumes "ttWF (xs @ [[x1]\<^sub>E, [Tock]\<^sub>E])"
-  shows "x1 \<noteq> Tock"
-  using assms by (induct xs rule:ttWF.induct, auto)
-
-lemma TTwf_not_event_before_Tock:
-  assumes "TTwf(Q)"
-  shows "xs @ [[x1]\<^sub>E, [Tock]\<^sub>E] \<notin> Q"
-  using assms
-proof -
-  have "\<not> ttWF (xs @ [[x1]\<^sub>E, [Tock]\<^sub>E])"
-    using assms apply (induct xs rule:ttWF.induct, auto)
-    using ttWF.elims(2) by auto
-  then have "xs @ [[x1]\<^sub>E, [Tock]\<^sub>E] \<notin> Q"
-    using assms TTwf_def by blast
-  then show ?thesis .
-qed
-
-
-lemma TTwf_Refusal_imp_no_Tock:
-  assumes "sa @ [[S]\<^sub>R] \<in> Q" "TTwf(Q)"
-  shows "sa @ [[Tock]\<^sub>E] \<notin> Q"
-  using assms apply (induct sa rule:rev_induct, auto)
-  using TTwf_def ttWF.simps(6) apply blast
-  by (metis TTwf_cons_end_not_refusal_refusal TTwf_not_event_before_Tock ttobs.exhaust)
- 
 lemma
   assumes "TTwf(Q)" 
   shows "{z. z \<in> S \<or> (sa @ [[z]\<^sub>E] \<notin> Q \<and> z \<noteq> Tock) \<or> z = Tick
@@ -927,124 +896,6 @@ lemma TT1_PriTT:
   using assms
   by (metis PriTT_eq_priTT TT1_mkTT1 TT4_TT1_imp_TT4w TT_TT1 TT_TT3 mkTT1_PriMax_unTT1_priTT)
 
-lemma TTM3_TTick_part:
-  assumes "TTM3 P" "t @ [[X]\<^sub>R] \<in> P"
-  shows "Tick \<in> X"
-  using assms apply (induct t rule:rev_induct, auto) 
-  using TTM3_def TTickTrace.simps(3) apply blast
-  by (meson TTM3_def TTickTrace.simps(3) TTickTrace_dist_concat)
-
-lemma TTM3_TTick:
-  assumes "TTM3 P"
-  shows "TTick P"
-  using assms unfolding  TTick_def apply auto
-  using TTM3_TTick_part by blast
-
-lemma TT0_fl2ttm:
-  assumes "FL0 P" "FL1 P" "FL2 P" "FL3 P"
-  shows "TT0(fl2ttm(P))"
-  using assms maximal_TT_fl2ttm_closed(1) by blast
-
-lemma FL_Pri_ttm2fl:
-  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "TT3 P" "TT4 P" "TTM1 P" "TTM2 P"
-  shows "FL0 (Pri p (ttm2fl P))"
-        "FL1 (Pri p (ttm2fl P))"
-        "FL2 (Pri p (ttm2fl P))"
-        "FL3 (Pri p (ttm2fl P))"
-  using assms 
-  using FL0_ttm2fl FL1_ttm2fl pri_FL0 apply blast
-  apply (simp add: FL1_ttm2fl pri_FL1)
-  apply (simp add: FL2_Pri FL2_ttm2fl assms(3) assms(7) assms(8))
-  by (simp add: FLTick0_Pri FLTick0_Tick_ttm2fl assms(2))
-
-lemma TTMax_PriMax_closure:
-  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "TT3 P" "TT4 P" "TTM1 P" "TTM2 P" "TTM3 P"
-  shows "TTwf(PriMax p P)"
-        "TT0(PriMax p P)"
-        "TT1w(PriMax p P)"
-        "TT2(PriMax p P)"
-        "TT3(PriMax p P)"
-        "TT4(PriMax p P)"
-        "TTM1(PriMax p P)"
-        "TTM2(PriMax p P)"
-        "TTM3(PriMax p P)"
-proof -
-  have FL_Pri:
-       "FL0 (Pri p (ttm2fl P))"
-       "FL1 (Pri p (ttm2fl P))"
-       "FL2 (Pri p (ttm2fl P))"
-       "FL3 (Pri p (ttm2fl P))"
-    using assms FL_Pri_ttm2fl by blast+
-
-  have PriMax_eq:"PriMax p P = fl2ttm(Pri p (ttm2fl P))"
-    using assms fl2ttm_pri_ttm2fl_PriMax
-    by (metis TT4w_def TTM3_TTick TTM3_TTick_part Un_insert_right in_mono insert_absorb set_eq_subset subsetD subset_refl sup_bot_right)
-
-  show "TTwf (PriMax p P)"
-    using PriMax_eq
-    using FL_Pri(4) TTwf_fl2ttm by auto
-
-  show "TT0 (PriMax p P)"
-    using PriMax_eq
-    by (simp add: FL_Pri(1) FL_Pri(2) FL_Pri(3) FL_Pri(4) TT0_fl2ttm)
-
-  show "TT1w (PriMax p P)"
-    using PriMax_eq 
-    by (simp add: FL_Pri(2) TT1w_fl2ttm)
-
-  show "TT2 (PriMax p P)"
-    using PriMax_eq 
-    using FL_Pri(1) FL_Pri(2) FL_Pri(3) FL_Pri(4) TT2_fl2ttm by auto
-
-  show "TT3(PriMax p P)"
-    using PriMax_eq
-    using TT3_fl2ttm by auto
-
-  show "TT4(PriMax p P)"
-    using PriMax_eq
-    by (simp add: FL_Pri(4) TT4_fl2ttm)
-
-  show "TTM1(PriMax p P)"
-    using PriMax_eq
-    by (simp add: FL_Pri(1) FL_Pri(2) FL_Pri(3) TTM1_fl2ttm_for_FL2_FL1_FL0)
-
-  show "TTM2(PriMax p P)"
-    using PriMax_eq
-    using FL_Pri(1) FL_Pri(2) FL_Pri(3) TTM2_fl2ttm_for_FL2_FL1_FL0 by auto
-
-  show "TTM3(PriMax p P)"
-    using PriMax_eq
-    by (simp add: FL_Pri(1) FL_Pri(2) FL_Pri(4) TTM3_fl2ttm)
-qed
-
-lemma TTwf_unTT1:
-  assumes "TTwf P"
-  shows "TTwf(unTT1 P)"
-  using assms unfolding unTT1_def TTwf_def apply auto
-  using TT1_mkTT1 TT1_mkTT1_simp by blast
-
-lemma unTT1_TT_closure:
-  assumes "TT P" "TT2 P" "TT4 P"
-  shows "TT0 (unTT1 P)"
-       "TTwf (unTT1 P)"
-       "TT1w (unTT1 P)" 
-       "TT2 (unTT1 P)" 
-       "TT3 (unTT1 P)" 
-       "TT4 (unTT1 P)" 
-       "TTM1 (unTT1 P)" 
-       "TTM2 (unTT1 P)" 
-       "TTM3 (unTT1 P)"
-    using assms TT0_unTT1 TT_def apply blast
-    using TTwf_unTT1 TT_def
-    using TT_TTwf assms(1) apply blast
-    apply (simp add: TT1w_unTT1)
-         apply (simp add: TT2_unTT1 assms(1))
-        apply (simp add: TT3_unTT1 TT_TT1 TT_TT3 assms(1))
-       apply (simp add: TT4_unTT1 TT_TT1 assms(1) assms(3))
-      apply (simp add: TTM1_unTT1)
-   apply (simp add: TTM2_unTT1)
-    by (simp add: TTM3_unTT1)
-
 lemma TT_priTT1_closure:
   assumes "TT P" "TT2 P" "TT4 P"
   shows "TTwf(PriTT1 p P)"
@@ -1115,8 +966,6 @@ proof -
   using assms TT_priTT1_closure 
   by (simp_all add: TT_priTT1_closure)
 qed
-
-(**** Redundant lemmas below ****)
 
 lemma not_Tock_notin_refTickTock_imp_possible [elim]:
   assumes "s @ [[Z]\<^sub>R] \<in> Q" "TT2(Q)" "TT4(Q)" "e \<noteq> Tock"

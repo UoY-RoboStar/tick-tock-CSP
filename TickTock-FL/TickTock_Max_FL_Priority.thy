@@ -2458,5 +2458,77 @@ apply (case_tac aa, auto)
   apply (case_tac b, auto)
    apply (case_tac Z, auto, case_tac a, auto, case_tac b, auto, case_tac b, auto)
   by (case_tac Z, auto, case_tac a, auto, case_tac b, auto, case_tac b, auto)
- 
+
+lemma FL_Pri_ttm2fl:
+  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "TT3 P" "TT4 P" "TTM1 P" "TTM2 P"
+  shows "FL0 (Pri p (ttm2fl P))"
+        "FL1 (Pri p (ttm2fl P))"
+        "FL2 (Pri p (ttm2fl P))"
+        "FL3 (Pri p (ttm2fl P))"
+  using assms 
+  using FL0_ttm2fl FL1_ttm2fl pri_FL0 apply blast
+  apply (simp add: FL1_ttm2fl pri_FL1)
+  apply (simp add: FL2_Pri FL2_ttm2fl assms(3) assms(7) assms(8))
+  by (simp add: FLTick0_Pri FLTick0_Tick_ttm2fl assms(2))
+
+lemma TTMax_PriMax_closure:
+  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "TT3 P" "TT4 P" "TTM1 P" "TTM2 P" "TTM3 P"
+  shows "TTwf(PriMax p P)"
+        "TT0(PriMax p P)"
+        "TT1w(PriMax p P)"
+        "TT2(PriMax p P)"
+        "TT3(PriMax p P)"
+        "TT4(PriMax p P)"
+        "TTM1(PriMax p P)"
+        "TTM2(PriMax p P)"
+        "TTM3(PriMax p P)"
+proof -
+  have FL_Pri:
+       "FL0 (Pri p (ttm2fl P))"
+       "FL1 (Pri p (ttm2fl P))"
+       "FL2 (Pri p (ttm2fl P))"
+       "FL3 (Pri p (ttm2fl P))"
+    using assms FL_Pri_ttm2fl by blast+
+
+  have PriMax_eq:"PriMax p P = fl2ttm(Pri p (ttm2fl P))"
+    using assms fl2ttm_pri_ttm2fl_PriMax
+    by (metis TT4w_def TTM3_TTick TTM3_TTick_part Un_insert_right in_mono insert_absorb set_eq_subset subsetD subset_refl sup_bot_right)
+
+  show "TTwf (PriMax p P)"
+    using PriMax_eq
+    using FL_Pri(4) TTwf_fl2ttm by auto
+
+  show "TT0 (PriMax p P)"
+    using PriMax_eq
+    by (simp add: FL_Pri(1) FL_Pri(2) FL_Pri(3) FL_Pri(4) TT0_fl2ttm)
+
+  show "TT1w (PriMax p P)"
+    using PriMax_eq 
+    by (simp add: FL_Pri(2) TT1w_fl2ttm)
+
+  show "TT2 (PriMax p P)"
+    using PriMax_eq 
+    using FL_Pri(1) FL_Pri(2) FL_Pri(3) FL_Pri(4) TT2_fl2ttm by auto
+
+  show "TT3(PriMax p P)"
+    using PriMax_eq
+    using TT3_fl2ttm by auto
+
+  show "TT4(PriMax p P)"
+    using PriMax_eq
+    by (simp add: FL_Pri(4) TT4_fl2ttm)
+
+  show "TTM1(PriMax p P)"
+    using PriMax_eq
+    by (simp add: FL_Pri(1) FL_Pri(2) FL_Pri(3) TTM1_fl2ttm_for_FL2_FL1_FL0)
+
+  show "TTM2(PriMax p P)"
+    using PriMax_eq
+    using FL_Pri(1) FL_Pri(2) FL_Pri(3) TTM2_fl2ttm_for_FL2_FL1_FL0 by auto
+
+  show "TTM3(PriMax p P)"
+    using PriMax_eq
+    by (simp add: FL_Pri(1) FL_Pri(2) FL_Pri(4) TTM3_fl2ttm)
+qed
+
 end

@@ -977,6 +977,38 @@ lemma TTwf_no_ill_Tock [simp]:
   apply (metis assms(2) ttWF.simps(11) ttWF.simps(12) ttWF.simps(4) ttWF_dist_cons_refusal ttevent.exhaust)
   by (metis append_Cons ttWF.simps(11) ttWF.simps(12) ttWF_dist_cons_refusal ttevent.exhaust)
 
+lemma ttWF_dist_notTock_cons:
+  assumes "ttWF (xs @ ([[x]\<^sub>E] @ ys))" "x \<noteq> Tock"
+  shows "ttWF ([[x]\<^sub>E] @ ys)"
+  using assms apply (induct xs rule:ttWF.induct, auto)
+  by (cases x, auto)
+
+lemma ttWF_before_Tock_not_Tock:
+  assumes "ttWF (xs @ [[x1]\<^sub>E, [Tock]\<^sub>E])"
+  shows "x1 \<noteq> Tock"
+  using assms by (induct xs rule:ttWF.induct, auto)
+
+lemma TTwf_not_event_before_Tock:
+  assumes "TTwf(Q)"
+  shows "xs @ [[x1]\<^sub>E, [Tock]\<^sub>E] \<notin> Q"
+  using assms
+proof -
+  have "\<not> ttWF (xs @ [[x1]\<^sub>E, [Tock]\<^sub>E])"
+    using assms apply (induct xs rule:ttWF.induct, auto)
+    using ttWF.elims(2) by auto
+  then have "xs @ [[x1]\<^sub>E, [Tock]\<^sub>E] \<notin> Q"
+    using assms TTwf_def by blast
+  then show ?thesis .
+qed
+
+
+lemma TTwf_Refusal_imp_no_Tock:
+  assumes "sa @ [[S]\<^sub>R] \<in> Q" "TTwf(Q)"
+  shows "sa @ [[Tock]\<^sub>E] \<notin> Q"
+  using assms apply (induct sa rule:rev_induct, auto)
+  using TTwf_def ttWF.simps(6) apply blast
+  by (metis TTwf_cons_end_not_refusal_refusal TTwf_not_event_before_Tock ttobs.exhaust)
+
 lemma TTwf_mkTT1:
   assumes "TTwf P"
   shows "TTwf(mkTT1(P))"

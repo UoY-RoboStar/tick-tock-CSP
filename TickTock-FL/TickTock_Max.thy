@@ -179,6 +179,19 @@ lemma TTick_dist_union:
   "TTick (P \<union> Q) = (TTick(P) \<and> TTick(Q))"
   unfolding TTick_def by auto
 
+lemma TTM3_TTick_part:
+  assumes "TTM3 P" "t @ [[X]\<^sub>R] \<in> P"
+  shows "Tick \<in> X"
+  using assms apply (induct t rule:rev_induct, auto) 
+  using TTM3_def TTickTrace.simps(3) apply blast
+  by (meson TTM3_def TTickTrace.simps(3) TTickTrace_dist_concat)
+
+lemma TTM3_TTick:
+  assumes "TTM3 P"
+  shows "TTick P"
+  using assms unfolding  TTick_def apply auto
+  using TTM3_TTick_part by blast
+
 lemma TTick_imp_TTick_mkTTM1_mkTTM2:
   assumes "TTick {s}"
   shows "TTick (mkTTM1 (mkTTM2 {s}))"

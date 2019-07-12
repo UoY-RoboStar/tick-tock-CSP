@@ -161,6 +161,12 @@ lemma TTM1_unTT1:
   "TTM1(unTT1 P)"
   unfolding unTT1_def TTM1_def by auto
 
+lemma TTwf_unTT1:
+  assumes "TTwf P"
+  shows "TTwf(unTT1 P)"
+  using assms unfolding unTT1_def TTwf_def apply auto
+  using TT1_mkTT1 TT1_mkTT1_simp by blast
+
 lemma TT0_unTT1:
   assumes "TT0 P" "TT1 P"
   shows "TT0(unTT1(P))"
@@ -285,7 +291,26 @@ lemma TTM3_unTT1:
   "TTM3(unTT1(P))"
   unfolding unTT1_def TTM3_def by auto
 
-
-
+lemma unTT1_TT_closure:
+  assumes "TT P" "TT2 P" "TT4 P"
+  shows "TT0 (unTT1 P)"
+       "TTwf (unTT1 P)"
+       "TT1w (unTT1 P)" 
+       "TT2 (unTT1 P)" 
+       "TT3 (unTT1 P)" 
+       "TT4 (unTT1 P)" 
+       "TTM1 (unTT1 P)" 
+       "TTM2 (unTT1 P)" 
+       "TTM3 (unTT1 P)"
+    using assms TT0_unTT1 TT_def apply blast
+    using TTwf_unTT1 TT_def
+    using TT_TTwf assms(1) apply blast
+    apply (simp add: TT1w_unTT1)
+         apply (simp add: TT2_unTT1 assms(1))
+        apply (simp add: TT3_unTT1 TT_TT1 TT_TT3 assms(1))
+       apply (simp add: TT4_unTT1 TT_TT1 assms(1) assms(3))
+      apply (simp add: TTM1_unTT1)
+   apply (simp add: TTM2_unTT1)
+    by (simp add: TTM3_unTT1)
 
 end
