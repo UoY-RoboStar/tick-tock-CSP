@@ -4,9 +4,14 @@ begin
 
 section {* Types and Wellformedness Conditions *}
 
+text_raw \<open>\DefineSnippet{ttevent}{\<close>
 datatype 'e ttevent = Event 'e  | Tock | Tick
+text_raw \<open>}\<close>
+text_raw \<open>\DefineSnippet{ttobs}{\<close>
 datatype 'e ttobs = ObsEvent "'e ttevent" ("[_]\<^sub>E") | Ref "'e ttevent set" ("[_]\<^sub>R") (*| TockRef "'e ttevent set" ("[_]\<^sub>T")*)
+text_raw \<open>}\<close>
 
+text_raw \<open>\DefineSnippet{ttWF}{\<close>
 fun ttWF :: "'e ttobs list \<Rightarrow> bool" where
   "ttWF [] = True" | (* an empty trace is okay*)
   "ttWF [[X]\<^sub>R] = True" | (* a refusal at the end of a trace is okay *)
@@ -14,6 +19,7 @@ fun ttWF :: "'e ttobs list \<Rightarrow> bool" where
   "ttWF ([Event e]\<^sub>E # \<sigma>) = ttWF \<sigma>" | (* a (non-tick, non-tock) event is okay *)
   "ttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = ttWF \<sigma>" | (* a tock event on its own is okay *)
   "ttWF \<sigma> = False" (* everything else is not allowed *)  
+text_raw \<open>}\<close>
 
 (* not necessary as a function but very useful for its induction rule *)
 function ttWF2 :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> bool" where
