@@ -6,10 +6,10 @@ section {* Types and Wellformedness Conditions *}
 
 text_raw \<open>\DefineSnippet{ttevent}{\<close>
 datatype 'e ttevent = Event 'e  | Tock | Tick
-text_raw \<open>}\<close>
+text_raw \<open>}%EndSnippet\<close>
 text_raw \<open>\DefineSnippet{ttobs}{\<close>
 datatype 'e ttobs = ObsEvent "'e ttevent" ("[_]\<^sub>E") | Ref "'e ttevent set" ("[_]\<^sub>R") (*| TockRef "'e ttevent set" ("[_]\<^sub>T")*)
-text_raw \<open>}\<close>
+text_raw \<open>}%EndSnippet\<close>
 
 text_raw \<open>\DefineSnippet{ttWF}{\<close>
 fun ttWF :: "'e ttobs list \<Rightarrow> bool" where
