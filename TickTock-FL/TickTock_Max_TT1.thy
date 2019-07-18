@@ -149,6 +149,15 @@ text \<open> Here the adjoint is defined in terms of mkTT1, undoing as much
 definition unTT1 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "unTT1 P = \<Union>{x. TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> (mkTT1 x) \<subseteq> P}"
 
+text \<open> Although in this definition we do not use all the healthiness conditions
+       of TickTock_Max (as standard for an adjoint of a Galois connection), note 
+       that an equivalent definition can be obtained for healthy P, that is, when
+       applied to tick-tock processes as proved in {@lemma unTT1_alt} in TickTock_FL.thy. 
+
+       The fact we do not use the conjunction of all healthiness conditions in {@term unTT1}
+       makes it simpler to construct unTT1 results, notably simplifying the proofs
+       for the Galois connections. \<close>
+
 lemma unTT1_mono:
   assumes "P \<subseteq> Q"
   shows "unTT1(P) \<subseteq> unTT1(Q)"

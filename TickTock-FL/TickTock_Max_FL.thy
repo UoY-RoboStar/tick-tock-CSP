@@ -298,6 +298,14 @@ subsection \<open> From Tick-Tock to FL \<close>
 definition ttm2fl :: "('e ttobs) list set \<Rightarrow> ('e ttevent) fltrace set" where
 "ttm2fl P = \<Union>{fl. FLTick0 Tick fl \<and> FL1 fl \<and> (fl2ttm fl) \<subseteq> P}"
 
+text \<open> Although in this definition we do not use all the healthiness conditions
+       of FL, namely FL0, (as standard for an adjoint of a Galois connection), note 
+       that an equivalent definition can be obtained for healthy P, that is, when
+       applied to FL processes as proved in {@lemma ttm2fl_alt} in TickTock_FL.thy. 
+
+       The fact we do not use the conjunction of all healthiness conditions in {@term ttm2fl}
+       made it simpler to construct some of the proofs regarding the Galois connection. \<close>
+
 lemma ttm2fl_mono:
   assumes "P \<subseteq> Q"
   shows "ttm2fl(P) \<subseteq> ttm2fl(Q)"
