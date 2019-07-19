@@ -5,8 +5,7 @@ begin
 subsection {* Sequential Composition *}
 
 text_raw \<open>\DefineSnippet{SeqCompTT}{\<close>
-definition SeqCompTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" 
-  (infixl ";\<^sub>C" 60) where
+definition SeqCompTT :: "'e ttprocess \<Rightarrow> 'e ttprocess \<Rightarrow> 'e ttprocess" (infixl ";\<^sub>C" 60) where
   "P ;\<^sub>C Q = {\<rho>\<in>P. \<nexists> s. \<rho> = s @ [[Tick]\<^sub>E]} 
             \<union> {\<rho>. \<exists> s t. s @ [[Tick]\<^sub>E] \<in> P \<and> t \<in> Q \<and> \<rho> = s @ t}"
 text_raw \<open>}%EndSnippet\<close>

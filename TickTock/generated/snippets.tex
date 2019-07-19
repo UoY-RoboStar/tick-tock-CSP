@@ -7,9 +7,17 @@
 \ {\isacharprime}e\ ttobs\ {\isacharequal}\ ObsEvent\ {\isachardoublequoteopen}{\isacharprime}e\ ttevent{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharbrackleft}{\isacharunderscore}{\isacharbrackright}\isactrlsub E{\isachardoublequoteclose}{\isacharparenright}\ {\isacharbar}\ \isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Ref\ {\isachardoublequoteopen}{\isacharprime}e\ ttevent\ set{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharbrackleft}{\isacharunderscore}{\isacharbrackright}\isactrlsub R{\isachardoublequoteclose}{\isacharparenright}%
 }%EndSnippet
+\DefineSnippet{tttrace}{
+\isacommand{type{\isacharunderscore}synonym}\isamarkupfalse%
+\ {\isacharprime}e\ tttrace\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list{\isachardoublequoteclose}%
+}%EndSnippet
+\DefineSnippet{ttprocess}{
+\isacommand{type{\isacharunderscore}synonym}\isamarkupfalse%
+\ {\isacharprime}e\ ttprocess\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharprime}e\ tttrace\ set{\isachardoublequoteclose}%
+}%EndSnippet
 \DefineSnippet{ttWF}{
 \isacommand{fun}\isamarkupfalse%
-\ ttWF\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ ttWF\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ tttrace\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}ttWF\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ True{\isachardoublequoteclose}\ {\isacharbar}\ \isanewline
 \ \ {\isachardoublequoteopen}ttWF\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isacharequal}\ True{\isachardoublequoteclose}\ {\isacharbar}\ \isanewline
 \ \ {\isachardoublequoteopen}ttWF\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ True{\isachardoublequoteclose}\ {\isacharbar}\ \isanewline
@@ -19,7 +27,7 @@
 }%EndSnippet
 \DefineSnippet{TT3_trace}{
 \isacommand{fun}\isamarkupfalse%
-\ TT{\isadigit{3}}{\isacharunderscore}trace\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ TT{\isadigit{3}}{\isacharunderscore}trace\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ tttrace\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}TT{\isadigit{3}}{\isacharunderscore}trace\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ True{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 \ \ {\isachardoublequoteopen}TT{\isadigit{3}}{\isacharunderscore}trace\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}\ True{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 \ \ {\isachardoublequoteopen}TT{\isadigit{3}}{\isacharunderscore}trace\ {\isacharparenleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isacharbrackleft}Tock{\isacharbrackright}\isactrlsub E\ {\isacharhash}\ {\isasymrho}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Tock\ {\isasymnotin}\ X\ {\isasymand}\ TT{\isadigit{3}}{\isacharunderscore}trace\ {\isasymrho}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
@@ -30,13 +38,12 @@
 }%EndSnippet
 \DefineSnippet{TT3}{
 \isacommand{definition}\isamarkupfalse%
-\ TT{\isadigit{3}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ TT{\isadigit{3}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttprocess\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}TT{\isadigit{3}}\ P\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}{\isasymrho}{\isasymin}P{\isachardot}\ TT{\isadigit{3}}{\isacharunderscore}trace\ {\isasymrho}{\isacharparenright}{\isachardoublequoteclose}%
 }%EndSnippet
 \DefineSnippet{SeqCompTT}{
 \isacommand{definition}\isamarkupfalse%
-\ SeqCompTT\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ {\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ {\isacharprime}e\ ttobs\ list\ set{\isachardoublequoteclose}\ \isanewline
-\ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharsemicolon}\isactrlsub C{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ SeqCompTT\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttprocess\ {\isasymRightarrow}\ {\isacharprime}e\ ttprocess\ {\isasymRightarrow}\ {\isacharprime}e\ ttprocess{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharsemicolon}\isactrlsub C{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}P\ {\isacharsemicolon}\isactrlsub C\ Q\ {\isacharequal}\ {\isacharbraceleft}{\isasymrho}{\isasymin}P{\isachardot}\ {\isasymnexists}\ s{\isachardot}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isacharbraceright}\ \isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ {\isasymunion}\ {\isacharbraceleft}{\isasymrho}{\isachardot}\ {\isasymexists}\ s\ t{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharbraceright}{\isachardoublequoteclose}%
 }%EndSnippet

@@ -12,8 +12,15 @@ datatype 'e ttobs = ObsEvent "'e ttevent" ("[_]\<^sub>E") |
                     Ref "'e ttevent set" ("[_]\<^sub>R") (*| TockRef "'e ttevent set" ("[_]\<^sub>T")*)
 text_raw \<open>}%EndSnippet\<close>
 
+text_raw \<open>\DefineSnippet{tttrace}{\<close>
+type_synonym 'e tttrace = "'e ttobs list"
+text_raw \<open>}%EndSnippet\<close>
+text_raw \<open>\DefineSnippet{ttprocess}{\<close>
+type_synonym 'e ttprocess = "'e tttrace set"
+text_raw \<open>}%EndSnippet\<close>
+
 text_raw \<open>\DefineSnippet{ttWF}{\<close>
-fun ttWF :: "'e ttobs list \<Rightarrow> bool" where
+fun ttWF :: "'e tttrace \<Rightarrow> bool" where
   "ttWF [] = True" | (* an empty trace is okay*)
   "ttWF [[X]\<^sub>R] = True" | (* a refusal at the end of a trace is okay *)
   "ttWF [[Tick]\<^sub>E] = True" | (* a tick at the end of a trace is okay *)
@@ -683,7 +690,7 @@ lemma TT2_aux3:
   using TT2_aux2 assms(1) assms(2) assms(3) by auto
 
 text_raw \<open>\DefineSnippet{TT3_trace}{\<close>
-fun TT3_trace :: "'e ttobs list \<Rightarrow> bool" where
+fun TT3_trace :: "'e tttrace \<Rightarrow> bool" where
   "TT3_trace [] = True" |
   "TT3_trace [x] = True" |
   "TT3_trace ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) = (Tock \<notin> X \<and> TT3_trace \<rho>)" |
@@ -694,7 +701,7 @@ fun TT3_trace :: "'e ttobs list \<Rightarrow> bool" where
 text_raw \<open>}%EndSnippet\<close>
 
 text_raw \<open>\DefineSnippet{TT3}{\<close>
-definition TT3 :: "'e ttobs list set \<Rightarrow> bool" where
+definition TT3 :: "'e ttprocess \<Rightarrow> bool" where
   "TT3 P = (\<forall>\<rho>\<in>P. TT3_trace \<rho>)"
 text_raw \<open>}%EndSnippet\<close>
 
