@@ -4,9 +4,12 @@ begin
 
 subsection {* Sequential Composition *}
 
+text_raw \<open>\DefineSnippet{SeqCompTT}{\<close>
 definition SeqCompTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" (infixl ";\<^sub>C" 60) where
   "P ;\<^sub>C Q = {\<rho>\<in>P. \<nexists> s. \<rho> = s @ [[Tick]\<^sub>E]} \<union> {\<rho>. \<exists> s t. s @ [[Tick]\<^sub>E] \<in> P \<and> t \<in> Q \<and> \<rho> = s @ t}"
+text_raw \<open>}%EndSnippet\<close>
 
+text_raw \<open>\DefineSnippet{SeqComp_wf}{\<close>
 lemma SeqComp_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t \<in> P ;\<^sub>C Q. ttWF t"
   unfolding SeqCompTT_def
 proof auto
@@ -20,6 +23,7 @@ proof auto
   from 1 2 show "ttWF (s @ ta)"
     by (induct s rule:ttWF.induct, auto)
 qed
+text_raw \<open>}%EndSnippet\<close>
 
 lemma TT0_SeqComp: "TT0 P \<Longrightarrow> TT0 Q \<Longrightarrow> TT0 (P ;\<^sub>C Q)"
   unfolding SeqCompTT_def TT0_def by blast
@@ -401,6 +405,7 @@ proof auto
   qed
 qed
 
+text_raw \<open>\DefineSnippet{TT3_SeqComp}{\<close>
 lemma TT3_SeqComp: 
   assumes "TT P" "TT Q"
   shows "TT3 (P ;\<^sub>C Q)"
@@ -419,8 +424,10 @@ next
     using TT3_def TT_TT3 TT_wf assms(2) by blast
   show "TT3_trace (s @ t)"
     using 1 2 TT3_append by auto
-qed     
+qed
+text_raw \<open>}%EndSnippet\<close>
 
+text_raw \<open>\DefineSnippet{TT4_SeqComp}{\<close>
 lemma TT4_SeqComp:
   assumes "TT4 P" "TT4 Q"
   shows "TT4 (P ;\<^sub>C Q)"
@@ -457,6 +464,7 @@ next
     using 1 2 case_assms apply (erule_tac x="add_Tick_refusal_trace s" in allE, auto)
     by (erule_tac x="add_Tick_refusal_trace t" in allE, auto simp add: add_Tick_refusal_trace_concat)
 qed
+text_raw \<open>}%EndSnippet\<close>
 
 lemma TT_SeqComp: 
   assumes "TT P" "TT Q" "TT4w P"

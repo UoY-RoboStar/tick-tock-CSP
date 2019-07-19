@@ -8,7 +8,8 @@ text_raw \<open>\DefineSnippet{ttevent}{\<close>
 datatype 'e ttevent = Event 'e  | Tock | Tick
 text_raw \<open>}%EndSnippet\<close>
 text_raw \<open>\DefineSnippet{ttobs}{\<close>
-datatype 'e ttobs = ObsEvent "'e ttevent" ("[_]\<^sub>E") | Ref "'e ttevent set" ("[_]\<^sub>R") (*| TockRef "'e ttevent set" ("[_]\<^sub>T")*)
+datatype 'e ttobs = ObsEvent "'e ttevent" ("[_]\<^sub>E") | 
+                    Ref "'e ttevent set" ("[_]\<^sub>R") (*| TockRef "'e ttevent set" ("[_]\<^sub>T")*)
 text_raw \<open>}%EndSnippet\<close>
 
 text_raw \<open>\DefineSnippet{ttWF}{\<close>
@@ -19,7 +20,7 @@ fun ttWF :: "'e ttobs list \<Rightarrow> bool" where
   "ttWF ([Event e]\<^sub>E # \<sigma>) = ttWF \<sigma>" | (* a (non-tick, non-tock) event is okay *)
   "ttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = ttWF \<sigma>" | (* a tock event on its own is okay *)
   "ttWF \<sigma> = False" (* everything else is not allowed *)  
-text_raw \<open>}\<close>
+text_raw \<open>}%EndSnippet\<close>
 
 (* not necessary as a function but very useful for its induction rule *)
 function ttWF2 :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> bool" where
@@ -681,6 +682,7 @@ lemma TT2_aux3:
   shows "[[X \<union> Y]\<^sub>R] \<in> P"
   using TT2_aux2 assms(1) assms(2) assms(3) by auto
 
+text_raw \<open>\DefineSnippet{TT3_trace}{\<close>
 fun TT3_trace :: "'e ttobs list \<Rightarrow> bool" where
   "TT3_trace [] = True" |
   "TT3_trace [x] = True" |
@@ -689,9 +691,12 @@ fun TT3_trace :: "'e ttobs list \<Rightarrow> bool" where
   "TT3_trace (v # [Event vd]\<^sub>E # vc) = TT3_trace ([Event vd]\<^sub>E # vc)" |
   "TT3_trace (v # [Tick]\<^sub>E # vc) = TT3_trace ([Tick]\<^sub>E # vc)" |
   "TT3_trace ([vb]\<^sub>R # [va]\<^sub>R # vc) = TT3_trace ([va]\<^sub>R # vc)"
+text_raw \<open>}%EndSnippet\<close>
 
+text_raw \<open>\DefineSnippet{TT3}{\<close>
 definition TT3 :: "'e ttobs list set \<Rightarrow> bool" where
   "TT3 P = (\<forall>\<rho>\<in>P. TT3_trace \<rho>)"
+text_raw \<open>}%EndSnippet\<close>
 
 lemma TT3_append: "ttWF t \<Longrightarrow> TT3_trace s \<Longrightarrow> TT3_trace t \<Longrightarrow> TT3_trace (s @ t)"
   apply (induct s rule:TT3_trace.induct, auto)
