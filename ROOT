@@ -45,5 +45,6 @@ session "Snippets-TickTock" in "TickTock" = "HOL" +
     document_output = "generated"]
   theories
     TickTock_Core
+    TickTock_SeqComp
   document_files
     build
