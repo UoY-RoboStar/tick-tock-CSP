@@ -5,8 +5,10 @@ begin
 subsection {* Sequential Composition *}
 
 text_raw \<open>\DefineSnippet{SeqCompTT}{\<close>
-definition SeqCompTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" (infixl ";\<^sub>C" 60) where
-  "P ;\<^sub>C Q = {\<rho>\<in>P. \<nexists> s. \<rho> = s @ [[Tick]\<^sub>E]} \<union> {\<rho>. \<exists> s t. s @ [[Tick]\<^sub>E] \<in> P \<and> t \<in> Q \<and> \<rho> = s @ t}"
+definition SeqCompTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" 
+  (infixl ";\<^sub>C" 60) where
+  "P ;\<^sub>C Q = {\<rho>\<in>P. \<nexists> s. \<rho> = s @ [[Tick]\<^sub>E]} 
+            \<union> {\<rho>. \<exists> s t. s @ [[Tick]\<^sub>E] \<in> P \<and> t \<in> Q \<and> \<rho> = s @ t}"
 text_raw \<open>}%EndSnippet\<close>
 
 text_raw \<open>\DefineSnippet{SeqComp_wf}{\<close>
@@ -418,7 +420,8 @@ next
   fix s t
   assume "s @ [[Tick]\<^sub>E] \<in> P"
   then have 1: "TT3_trace s"
-    by (meson TT1_def TT3_def TT_TT1 TT_TT3 assms(1) tt_prefix_concat tt_prefix_imp_prefix_subset)
+    by (meson TT1_def TT3_def TT_TT1 TT_TT3 assms(1) 
+              tt_prefix_concat tt_prefix_imp_prefix_subset)
   assume "t \<in> Q"
   then have 2: "TT3_trace t \<and> ttWF t"
     using TT3_def TT_TT3 TT_wf assms(2) by blast

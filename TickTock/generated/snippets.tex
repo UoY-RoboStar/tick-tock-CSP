@@ -35,8 +35,10 @@
 }%EndSnippet
 \DefineSnippet{SeqCompTT}{
 \isacommand{definition}\isamarkupfalse%
-\ SeqCompTT\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ {\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ {\isacharprime}e\ ttobs\ list\ set{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharsemicolon}\isactrlsub C{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}P\ {\isacharsemicolon}\isactrlsub C\ Q\ {\isacharequal}\ {\isacharbraceleft}{\isasymrho}{\isasymin}P{\isachardot}\ {\isasymnexists}\ s{\isachardot}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isacharbraceright}\ {\isasymunion}\ {\isacharbraceleft}{\isasymrho}{\isachardot}\ {\isasymexists}\ s\ t{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharbraceright}{\isachardoublequoteclose}%
+\ SeqCompTT\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ {\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ {\isacharprime}e\ ttobs\ list\ set{\isachardoublequoteclose}\ \isanewline
+\ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharsemicolon}\isactrlsub C{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}P\ {\isacharsemicolon}\isactrlsub C\ Q\ {\isacharequal}\ {\isacharbraceleft}{\isasymrho}{\isasymin}P{\isachardot}\ {\isasymnexists}\ s{\isachardot}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isacharbraceright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ {\isasymunion}\ {\isacharbraceleft}{\isasymrho}{\isachardot}\ {\isasymexists}\ s\ t{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharbraceright}{\isachardoublequoteclose}%
 }%EndSnippet
 \DefineSnippet{SeqComp_wf}{
 \isacommand{lemma}\isamarkupfalse%
@@ -114,7 +116,8 @@
 \ \isacommand{have}\isamarkupfalse%
 \ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{3}}{\isacharunderscore}trace\ s{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}meson\ TT{\isadigit{1}}{\isacharunderscore}def\ TT{\isadigit{3}}{\isacharunderscore}def\ TT{\isacharunderscore}TT{\isadigit{1}}\ TT{\isacharunderscore}TT{\isadigit{3}}\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ tt{\isacharunderscore}prefix{\isacharunderscore}concat\ tt{\isacharunderscore}prefix{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset{\isacharparenright}\isanewline
+\ {\isacharparenleft}meson\ TT{\isadigit{1}}{\isacharunderscore}def\ TT{\isadigit{3}}{\isacharunderscore}def\ TT{\isacharunderscore}TT{\isadigit{1}}\ TT{\isacharunderscore}TT{\isadigit{3}}\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ tt{\isacharunderscore}prefix{\isacharunderscore}concat\ tt{\isacharunderscore}prefix{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset{\isacharparenright}\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
 \ {\isachardoublequoteopen}t\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
