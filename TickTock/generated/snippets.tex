@@ -8,11 +8,11 @@
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Ref\ {\isachardoublequoteopen}{\isacharprime}e\ ttevent\ set{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharbrackleft}{\isacharunderscore}{\isacharbrackright}\isactrlsub R{\isachardoublequoteclose}{\isacharparenright}%
 }%EndSnippet
 \DefineSnippet{tttrace}{
-\isacommand{type{\isacharunderscore}synonym}\isamarkupfalse%
+\isacommand{typesynonym}\isamarkupfalse%
 \ {\isacharprime}e\ tttrace\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list{\isachardoublequoteclose}%
 }%EndSnippet
 \DefineSnippet{ttprocess}{
-\isacommand{type{\isacharunderscore}synonym}\isamarkupfalse%
+\isacommand{typesynonym}\isamarkupfalse%
 \ {\isacharprime}e\ ttprocess\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharprime}e\ tttrace\ set{\isachardoublequoteclose}%
 }%EndSnippet
 \DefineSnippet{ttWF}{
@@ -109,7 +109,7 @@
 \ \ \isacommand{fix}\isamarkupfalse%
 \ x\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymin}\ P\ {\isasymLongrightarrow}\ TT{\isadigit{3}}{\isacharunderscore}trace\ x{\isachardoublequoteclose}\isanewline
+\ {\setlength{\fboxsep}{0pt}\colorbox{isabkg}{{\isachardoublequoteopen}x\ {\isasymin}\ P\ {\isasymLongrightarrow}\ TT{\isadigit{3}}{\isacharunderscore}trace\ x{\isachardoublequoteclose}}}\isanewline
 \ \ \ \ \isacommand{using}\isamarkupfalse%
 \ TT{\isadigit{3}}{\isacharunderscore}def\ TT{\isacharunderscore}TT{\isadigit{3}}\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
 \ blast\isanewline
