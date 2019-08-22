@@ -680,3 +680,5 @@ qed
 
 lemma Hiding_Mono: "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> P \<setminus>\<^sub>C X \<sqsubseteq>\<^sub>C Q \<setminus>\<^sub>C X"
   unfolding RefinesTT_def HidingTT_def by auto
+
+end
