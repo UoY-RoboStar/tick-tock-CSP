@@ -3465,4 +3465,62 @@ lemma TT_ParComp:
   using TT3_ParComp unfolding TT_def apply blast
   done
 
+thm merge_traces.simps
+function merge_traces2 :: "'e ttobs list \<Rightarrow> 'e set \<Rightarrow> 'e ttobs list \<Rightarrow> 'e ttobs list set" (infixl "\<lbrakk>_\<rbrakk>\<^sup>T\<^sub>2" 55) where
+  "merge_traces2 [] Z [] = {[]}" | 
+  "merge_traces2 [] Z [[Y]\<^sub>R] = {[]}" | (* if one side lacks a refusal, the composition lacks a refusal *) 
+  "merge_traces2 [] Z [[Tick]\<^sub>E] = {}" | (* both must terminate together *)
+  "merge_traces2 [] Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces2 [] Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* the event from one side is performed *) 
+  "merge_traces2 [] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {}" | (* Tock must always synchronise *)
+  "merge_traces2 [[X]\<^sub>R] Z [] = {[]}" | (* if one side lacks a refusal, the composition lacks a refusal *) 
+  "merge_traces2 [[X]\<^sub>R] Z [[Y]\<^sub>R] = {t. {e. e \<in> Y \<and> e \<notin> ((Event ` Z) \<union> {Tock, Tick})} = {e. e \<in> X \<and> e \<notin> ((Event ` Z) \<union> {Tock, Tick})} \<and> t = [[X \<union> Y]\<^sub>R]}" | (* intersect the refusals for non-synchronised events, union for synchronised events *) 
+  "merge_traces2 [[X]\<^sub>R] Z [[Tick]\<^sub>E] = {t. \<exists>A\<subseteq>Z. t = [[X \<union> Event ` A]\<^sub>R]}" | (* treat Tick as refusing everything but Tock and Tick *) 
+  "merge_traces2 [[X]\<^sub>R] Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces2 [[X]\<^sub>R] Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* the event from one side is performed *)  
+  "merge_traces2 [[X]\<^sub>R] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {}" | (* Tock must always synchronise*)  
+  "merge_traces2 [[Tick]\<^sub>E] Z [] = {}" | (* both must terminate together *)
+  "merge_traces2 [[Tick]\<^sub>E] Z [[Y]\<^sub>R] = {t. \<exists>A\<subseteq>Z. t = [[Y \<union> Event ` A]\<^sub>R]}" | (* treat Tick as refusing everything but Tock and Tick *)
+  "merge_traces2 [[Tick]\<^sub>E] Z [[Tick]\<^sub>E] = {[[Tick]\<^sub>E]}" | (* both terminate together *)
+  "merge_traces2 [[Tick]\<^sub>E] Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces2 [[Tick]\<^sub>E] Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* the event from one side is performed *) 
+  "merge_traces2 [[Tick]\<^sub>E] Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces2 [[Tick]\<^sub>E] Z [[Y]\<^sub>R] \<and> s \<in> merge_traces2 [[Tick]\<^sub>E] Z \<sigma> \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* Tock must synchronize, but there are implicit tocks allowed after termination, the refusal set after Tick is everything *)
+  "merge_traces2 ([Event e]\<^sub>E # \<sigma>) Z [] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces2 \<sigma> Z [] \<and> t = [Event e]\<^sub>E # s)}" | (* the event from one side is performed *)
+  "merge_traces2 ([Event e]\<^sub>E # \<sigma>) Z [[Y]\<^sub>R] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces2 \<sigma> Z [[Y]\<^sub>R] \<and> t = [Event e]\<^sub>E # s)}" | (* *) 
+  "merge_traces2 ([Event e]\<^sub>E # \<sigma>) Z [[Tick]\<^sub>E] = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces2 \<sigma> Z [[Tick]\<^sub>E] \<and> t = [Event e]\<^sub>E # s)}" | (* *)  
+  "merge_traces2 ([Event e]\<^sub>E # \<rho>) Z ([Event f]\<^sub>E # \<sigma>) = 
+    {t. (e \<notin> Z \<and> f \<notin> Z \<and> ((\<exists> s. s \<in> merge_traces2 ([Event e]\<^sub>E # \<rho>) Z \<sigma> \<and> t = [Event f]\<^sub>E # s) \<or> (\<exists> s. s \<in> merge_traces2 \<rho> Z ([Event f]\<^sub>E # \<sigma>) \<and> t = [Event e]\<^sub>E # s)))
+      \<or> (e \<in> Z \<and> f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces2 ([Event e]\<^sub>E # \<rho>) Z \<sigma> \<and> t = [Event f]\<^sub>E # s))
+      \<or> (e \<notin> Z \<and> f \<in> Z \<and> (\<exists> s. s \<in> merge_traces2 \<rho> Z ([Event f]\<^sub>E # \<sigma>) \<and> t = [Event e]\<^sub>E # s))
+      \<or> (e \<in> Z \<and> f \<in> Z \<and> e = f \<and> (\<exists> s. s \<in> merge_traces2 \<rho> Z \<sigma> \<and> t = [Event e]\<^sub>E # s))}" | (* *) 
+  "merge_traces2 ([Event e]\<^sub>E # \<rho>) Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. e \<notin> Z \<and> (\<exists> s. s \<in> merge_traces2 \<rho> Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) \<and> t = [Event e]\<^sub>E # s)}" | (* *)  
+  "merge_traces2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [] = {}" | (* Tock must always synchronise*) 
+  "merge_traces2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [[Y]\<^sub>R] = {}" | (* Tock must always synchronise*)  
+  "merge_traces2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) Z [[Tick]\<^sub>E] = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces2 [[X]\<^sub>R] Z [[Tick]\<^sub>E] \<and> s \<in> merge_traces2 \<sigma> Z [[Tick]\<^sub>E] \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* Tock must synchronize, but there are implicit tocks allowed after termination, the refusal set after Tick is everything *)
+  "merge_traces2 ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) Z ([Event f]\<^sub>E # \<sigma>) = {t. f \<notin> Z \<and> (\<exists> s. s \<in> merge_traces2 ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) Z \<sigma> \<and> t = [Event f]\<^sub>E # s)}" | (* *)  
+  "merge_traces2 ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) Z ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = {t. (\<exists> W s. [[W]\<^sub>R] \<in> merge_traces2 [[X]\<^sub>R] Z [[Y]\<^sub>R] \<and> s \<in> merge_traces2 \<rho> Z \<sigma> \<and> t = [W]\<^sub>R # [Tock]\<^sub>E # s)}" | (* *) 
+  (* non-well-formed traces produce empty sets *)
+  "merge_traces2 ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) Z \<sigma> = {}" |
+  "merge_traces2 ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) Z \<sigma> = {}" |
+  "merge_traces2 ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) Z \<sigma> = {}" |
+  "merge_traces2 \<rho> Z ([X]\<^sub>R # [Tick]\<^sub>E # \<sigma>) = {}" |
+  "merge_traces2 \<rho> Z ([X]\<^sub>R # [Event e]\<^sub>E # \<sigma>) = {}" |
+  "merge_traces2 \<rho> Z ([X]\<^sub>R # [Y]\<^sub>R # \<sigma>) = {}" |
+  "merge_traces2 ([Tick]\<^sub>E # x # \<rho>) Z \<sigma> = {}" |
+  "merge_traces2 \<rho> Z ([Tick]\<^sub>E # y # \<sigma>) = {}" |
+  "merge_traces2 ([Tock]\<^sub>E # \<rho>) Z \<sigma> = {}" |
+  "merge_traces2 \<rho> Z ([Tock]\<^sub>E # \<sigma>) = {}"
+  by (pat_completeness, simp_all)
+termination by (lexicographic_order)
+
+lemma merge_traces2_subset_merge_traces:
+  "merge_traces2 x A y \<subseteq> merge_traces x A y"
+  apply (induct x A y rule:merge_traces.induct, simp_all)
+  apply (blast, blast, blast, blast, blast, blast, blast, blast)
+  by (smt Collect_mono_iff subsetCE, blast, auto)
+
+definition ParComp2TT :: "'e ttobs list set \<Rightarrow> 'e set \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" (infix "\<lbrakk>_\<rbrakk>\<^sub>2" 55) where
+  "ParComp2TT P A Q = \<Union> {t. \<exists> p \<in> P. \<exists> q \<in> Q. t = merge_traces2 p A q}"
+
+lemma ParComp2TT_subset_ParCompTT:
+  "ParComp2TT P A Q \<subseteq> ParCompTT P A Q"
+  unfolding ParComp2TT_def ParCompTT_def using merge_traces2_subset_merge_traces by blast
+
 end
