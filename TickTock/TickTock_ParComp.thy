@@ -4561,4 +4561,144 @@ lemma ParComp2_assoc:
   shows "(P \<lbrakk>A\<rbrakk>\<^sub>2 (Q \<lbrakk>A\<rbrakk>\<^sub>2 R)) = ((P \<lbrakk>A\<rbrakk>\<^sub>2 Q) \<lbrakk>A\<rbrakk>\<^sub>2 R)"
   using ParComp2_assoc_subset1 ParComp2_assoc_subset2 assms by blast
 
+lemma ParComp2_Skip_right_unit:
+  assumes "\<forall>x\<in>P. ttWF x" "TT1 P"
+  shows "(P \<lbrakk>{}\<rbrakk>\<^sub>2 SKIP\<^sub>C) = P"
+  using assms unfolding ParComp2TT_def SkipTT_def
+proof auto
+  fix x p :: "'a ttobs list"
+  show "\<And> P. TT1 P \<Longrightarrow> x \<in> p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [] \<Longrightarrow> p \<in> P \<Longrightarrow> x \<in> P"
+  proof (induct x p rule:ttWF2.induct, auto)
+    fix Y and P :: "'a ttobs list set"
+    show "TT1 P \<Longrightarrow> [[Y]\<^sub>R] \<in> P \<Longrightarrow> [] \<in> P"
+      unfolding TT1_def by force
+  next
+    fix P :: "'a ttobs list set"
+    show "TT1 P \<Longrightarrow> [[Tick]\<^sub>E] \<in> P \<Longrightarrow> [] \<in> P"
+      unfolding TT1_def by force
+  next
+    fix P :: "'a ttobs list set"
+    fix \<rho> \<sigma> :: "'a ttobs list"
+    fix f 
+    assume ind_hyp: "\<And>P. TT1 P \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> \<rho> \<in> P"
+    assume case_assms: "TT1 P" "[Event f]\<^sub>E # \<sigma> \<in> P" "\<rho> \<in> \<sigma> \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []"
+    then have "TT1 {t. [Event f]\<^sub>E # t \<in> P}"
+      by (simp add: TT1_init_event)
+    then have "\<rho> \<in> {t. [Event f]\<^sub>E # t \<in> P}"
+      using case_assms ind_hyp[where P="{t. [Event f]\<^sub>E # t \<in> P}"] by auto
+    then show "[Event f]\<^sub>E # \<rho> \<in> P"
+      by auto
+  next
+    fix X \<rho> \<sigma> and P :: "'a ttobs list set"
+    show "[X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<in> \<sigma> \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [] \<Longrightarrow> [X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<in> P"
+      by (cases \<sigma> rule:ttWF.cases, auto)
+  next
+    fix X e \<rho> \<sigma> and P :: "'a ttobs list set"
+    show "[X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<in> \<sigma> \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [] \<Longrightarrow> [X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<in> P"
+      by (cases \<sigma> rule:ttWF.cases, auto)
+  next
+    fix X Y \<rho> \<sigma> and P :: "'a ttobs list set"
+    show "[X]\<^sub>R # [Y]\<^sub>R # \<rho> \<in> \<sigma> \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [] \<Longrightarrow> [X]\<^sub>R # [Y]\<^sub>R # \<rho> \<in> P"
+      by (cases \<sigma> rule:ttWF.cases, auto)
+  next
+    fix x \<rho> \<sigma> and P :: "'a ttobs list set"
+    show "[Tick]\<^sub>E # x # \<rho> \<in> \<sigma> \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [] \<Longrightarrow> [Tick]\<^sub>E # x # \<rho> \<in> P"
+      by (cases \<sigma> rule:ttWF.cases, auto)
+  next
+    fix \<rho> \<sigma> and P :: "'a ttobs list set"
+    show "[Tock]\<^sub>E # \<rho> \<in> \<sigma> \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [] \<Longrightarrow> [Tock]\<^sub>E # \<rho> \<in> P"
+      by (cases \<sigma> rule:ttWF.cases, auto)
+  qed
+next
+  fix x p :: "'a ttobs list"
+  show "\<And>P. x \<in> p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E] \<Longrightarrow> p \<in> P \<Longrightarrow> x \<in> P"
+    by (induct x p rule:ttWF2.induct, auto, (case_tac \<sigma> rule:ttWF.cases, auto)+)
+next
+  fix x  :: "'a ttobs list"
+  show "\<And>P. \<forall>x\<in>P. ttWF x \<Longrightarrow> TT1 P \<Longrightarrow> x \<in> P \<Longrightarrow> \<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> x \<in> xa"
+  proof (induct x rule:ttWF.induct, force, force, force, simp_all)
+    fix P :: "'a ttobs list set"
+    fix \<sigma> :: "'a ttobs list"
+    fix e
+    assume ind_hyp: "\<And>P. \<forall>x\<in>P. ttWF x \<Longrightarrow> TT1 P \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow>
+      \<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> \<sigma> \<in> xa"
+    assume case_assms: "\<forall>x\<in>P. ttWF x" "TT1 P" "[Event e]\<^sub>E # \<sigma> \<in> P"
+    then have "\<forall>x\<in>{t. [Event e]\<^sub>E # t \<in> P}. ttWF x \<and> TT1 {t. [Event e]\<^sub>E # t \<in> P}"
+      by (auto simp add: TT1_init_event)
+    then have "\<exists>xa. (\<exists>p\<in>{t. [Event e]\<^sub>E # t \<in> P}. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> \<sigma> \<in> xa"
+      using case_assms ind_hyp[where P="{t. [Event e]\<^sub>E # t \<in> P}"] by auto
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [Event e]\<^sub>E # \<sigma> \<in> xa"
+      by force
+  next
+    fix P :: "'a ttobs list set"
+    fix \<sigma> :: "'a ttobs list"
+    fix X
+    assume ind_hyp: "\<And>P. \<forall>x\<in>P. ttWF x \<Longrightarrow> TT1 P \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow>
+      \<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> \<sigma> \<in> xa"
+    assume case_assms: "\<forall>x\<in>P. ttWF x" "TT1 P" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
+    then have "\<forall>x\<in>{t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. ttWF x \<and> TT1 {t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+      by (auto simp add: TT1_init_tock)
+    then have "\<exists>xa. (\<exists>p\<in>{t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> \<sigma> \<in> xa"
+      using case_assms ind_hyp[where P="{t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"] by auto
+    then have "\<exists>xa. (\<exists>p\<in>{t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> \<sigma> \<in> xa"
+    proof auto
+      fix p
+      assume inner_assms: "\<sigma> \<in> p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []" "[X]\<^sub>R # [Tock]\<^sub>E # p \<in> P"
+      then obtain p' where "p' \<lesssim>\<^sub>C p \<and> \<sigma> \<in> p' \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]"
+        using merge_traces2_empty2_prefix_subset_merge_traces2_Tick2 by blast
+      then show "\<exists>xa. (\<exists>p. [X]\<^sub>R # [Tock]\<^sub>E # p \<in> P \<and> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> \<sigma> \<in> xa"
+        apply (auto, rule_tac x="p' \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]" in exI, auto)
+        apply (rule_tac x="p'" in exI, insert case_assms inner_assms, unfold TT1_def, auto)
+        by (meson equalityE tt_prefix_subset.simps(2) tt_prefix_subset.simps(3))
+    qed
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> xa"
+      by force
+  next
+    fix va and P :: "'a ttobs list set"
+    assume "\<forall>x\<in>P. ttWF x" "[Tock]\<^sub>E # va \<in> P"
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [Tock]\<^sub>E # va \<in> xa"
+      by auto
+  next
+    fix va and P :: "'a ttobs list set"
+    assume "\<forall>x\<in>P. ttWF x" "[Tock]\<^sub>E # va \<in> P"
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [Tock]\<^sub>E # va \<in> xa"
+      by auto
+  next
+    fix va and P :: "'a ttobs list set"
+    assume "\<forall>x\<in>P. ttWF x" "[Tock]\<^sub>E # va \<in> P"
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [Tock]\<^sub>E # va \<in> xa"
+      by auto
+  next
+    fix v vc and P :: "'a ttobs list set"
+    assume "\<forall>x\<in>P. ttWF x" "[Tick]\<^sub>E # v # vc \<in> P"
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [Tick]\<^sub>E # v # vc \<in> xa"
+      by auto
+  next
+    fix v vc and P :: "'a ttobs list set"
+    assume "\<forall>x\<in>P. ttWF x" "[Tick]\<^sub>E # v # vc \<in> P"
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [Tick]\<^sub>E # v # vc \<in> xa"
+      by auto
+  next
+    fix va vd vc and P :: "'a ttobs list set"
+    assume "\<forall>x\<in>P. ttWF x" "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> P"
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> xa"
+      by auto
+  next
+    fix va vc and P :: "'a ttobs list set"
+    assume "\<forall>x\<in>P. ttWF x" "[va]\<^sub>R # [Tick]\<^sub>E # vc \<in> P"
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [va]\<^sub>R # [Tick]\<^sub>E # vc \<in> xa"
+      by auto
+  next
+    fix va v vc and P :: "'a ttobs list set"
+    assume "\<forall>x\<in>P. ttWF x" "[va]\<^sub>R # [v]\<^sub>R # vc \<in> P"
+    then show "\<exists>xa. (\<exists>p\<in>P. xa = (p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 []) \<or> xa = p \<lbrakk>{}\<rbrakk>\<^sup>T\<^sub>2 [[Tick]\<^sub>E]) \<and> [va]\<^sub>R # [v]\<^sub>R # vc \<in> xa"
+      by auto
+  qed
+qed
+
+lemma ParComp2_Skip_left_unit:
+  assumes "\<forall>x\<in>P. ttWF x" "TT1 P"
+  shows "(SKIP\<^sub>C \<lbrakk>{}\<rbrakk>\<^sub>2 P) = P"
+  by (simp add: ParComp2_Skip_right_unit ParComp2_comm assms)
+
 end
