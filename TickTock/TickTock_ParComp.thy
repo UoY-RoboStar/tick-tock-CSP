@@ -4701,4 +4701,205 @@ lemma ParComp2_Skip_left_unit:
   shows "(SKIP\<^sub>C \<lbrakk>{}\<rbrakk>\<^sub>2 P) = P"
   by (simp add: ParComp2_Skip_right_unit ParComp2_comm assms)
 
+lemma ParComp2_Stop_right_zero:
+  assumes "TT0 P" "TT1 P"
+  shows "(P \<lbrakk>UNIV\<rbrakk>\<^sub>2 div\<^sub>C) = div\<^sub>C"
+  using assms unfolding ParComp2TT_def DivTT_def
+proof auto
+  fix x p :: "'a ttobs list"
+  show "x \<in> p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 [] \<Longrightarrow> p \<in> P \<Longrightarrow> x = []"
+    by (induct x p rule:ttWF2.induct, auto, (case_tac \<sigma> rule:ttWF.cases, auto)+)
+next
+  assume "TT0 P" "TT1 P"
+  then show "\<exists>x. (\<exists>p\<in>P. x = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 []) \<and> [] \<in> x"
+    by (rule_tac x="{[]}" in exI, auto, rule_tac x="[]" in bexI, auto simp add: TT0_TT1_empty)
+qed
+
+definition deterministic :: "'a ttobs list set \<Rightarrow> bool" where
+  "deterministic P = (\<forall>\<rho> e. (\<exists>X. \<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<in> X) \<longrightarrow>
+    ((e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<notin> P) \<or> (\<forall>X. e = Tock \<and> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P)))"
+
+lemma 
+  assumes "deterministic P" "\<forall>x\<in>P. ttWF x" "TT1 P" "TT2 P" "TT4 P"
+  shows "(P \<lbrakk>UNIV\<rbrakk>\<^sub>2 P) = P"
+  using assms unfolding ParComp2TT_def
+proof auto
+  fix p q :: "'a ttobs list"
+  show "\<And> P x. deterministic P \<Longrightarrow> TT1 P \<Longrightarrow> TT2 P \<Longrightarrow> TT4 P \<Longrightarrow> x \<in> p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> P \<Longrightarrow> x \<in> P"
+  proof (induct p q rule:ttWF2.induct, simp_all, safe)
+    fix P :: "'a ttobs list set"
+    fix X Y x
+    assume deterministic_P: "deterministic P" and TT2_P: "TT2 P"
+    assume case_assms: "[[X]\<^sub>R] \<in> P" "[[Y]\<^sub>R] \<in> P"
+    have  "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {} \<Longrightarrow> [[X \<union> Y]\<^sub>R] \<in> P"
+      using TT2_P unfolding TT2_def apply (erule_tac x="[]" in allE, erule_tac x="[]" in allE)
+      by (erule_tac x="X" in allE, erule_tac x="Y" in allE, auto simp add: case_assms)
+    also have "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+      using deterministic_P unfolding deterministic_def apply (erule_tac x="[]" in allE, auto)
+      apply (erule_tac x="x" in allE, auto, erule_tac x="Y" in allE, auto simp add: case_assms)
+      by (erule_tac x="Tock" in allE, auto, erule_tac x="Y" in allE, auto simp add: case_assms)
+    then show "[[X \<union> Y]\<^sub>R] \<in> P"
+      using calculation by auto
+  next
+    fix P :: "'a ttobs list set"
+    fix X A x
+    assume deterministic_P: "deterministic P" and TT4_P: "TT4 P"
+    assume case_assms: "[[X]\<^sub>R] \<in> P" "[[Tick]\<^sub>E] \<in> P"
+    then have "[[X \<union> {Tick}]\<^sub>R] \<in> P"
+      using TT4_P unfolding TT4_def by force
+    then have False
+      using deterministic_P case_assms unfolding deterministic_def by (erule_tac x="[]" in allE, auto)
+    then show "[[X \<union> Event ` A]\<^sub>R] \<in> P"
+      by auto
+  next
+    fix P :: "'a ttobs list set"
+    fix Y A x
+    assume deterministic_P: "deterministic P" and TT4_P: "TT4 P"
+    assume case_assms: "[[Y]\<^sub>R] \<in> P" "[[Tick]\<^sub>E] \<in> P"
+    then have "[[Y \<union> {Tick}]\<^sub>R] \<in> P"
+      using TT4_P unfolding TT4_def by force
+    then have False
+      using deterministic_P case_assms unfolding deterministic_def by (erule_tac x="[]" in allE, auto)
+    then show "[[Y \<union> Event ` A]\<^sub>R] \<in> P"
+      by auto
+  next
+    fix P :: "'a ttobs list set"
+    fix Y \<sigma> x W A s
+    assume deterministic_P: "deterministic P" and TT1_P: "TT1 P" and TT4_P: "TT4 P"
+    assume case_assms: "[[Tick]\<^sub>E] \<in> P" "[Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
+    then have "[[Y]\<^sub>R] \<in> P"
+      using TT1_P unfolding TT1_def by force
+    then have "[[Y \<union> {Tick}]\<^sub>R] \<in> P"
+      using TT4_P unfolding TT4_def by force
+    then have False
+      using deterministic_P case_assms unfolding deterministic_def by (erule_tac x="[]" in allE, auto)
+    then show "[Y \<union> Event ` A]\<^sub>R # [Tock]\<^sub>E # s \<in> P"
+      by auto
+  next
+    fix P :: "'a ttobs list set"
+    fix X \<sigma> x W A s
+    assume deterministic_P: "deterministic P" and TT1_P: "TT1 P" and TT4_P: "TT4 P"
+    assume case_assms: "[[Tick]\<^sub>E] \<in> P" "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
+    then have "[[X]\<^sub>R] \<in> P"
+      using TT1_P unfolding TT1_def by force
+    then have "[[X \<union> {Tick}]\<^sub>R] \<in> P"
+      using TT4_P unfolding TT4_def by force
+    then have False
+      using deterministic_P case_assms unfolding deterministic_def by (erule_tac x="[]" in allE, auto)
+    then show "[X \<union> Event ` A]\<^sub>R # [Tock]\<^sub>E # s \<in> P"
+      by auto
+  next
+    fix P :: "'a ttobs list set"
+    fix \<rho> \<sigma> :: "'a ttobs list"
+    fix e f x s
+    assume deterministic_P: "deterministic P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT4_P: "TT4 P"
+    assume ind_hyp: "\<And>P x. deterministic P \<Longrightarrow> TT1 P \<Longrightarrow> TT2 P \<Longrightarrow> TT4 P \<Longrightarrow> x \<in> \<rho> \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 \<sigma> \<Longrightarrow> \<rho> \<in> P \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> x \<in> P"
+    assume case_assms: "[Event f]\<^sub>E # \<rho> \<in> P" "[Event f]\<^sub>E # \<sigma> \<in> P" "s \<in> \<rho> \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 \<sigma>"
+    have 1: "deterministic {t. [Event f]\<^sub>E # t \<in> P}"
+      using deterministic_P unfolding deterministic_def apply auto
+      apply (erule_tac x="[Event f]\<^sub>E # \<rho>" in allE, erule_tac x=e in allE, auto)
+      apply (erule_tac x="[Event f]\<^sub>E # \<rho>" in allE, erule_tac x=Tock in allE, auto)
+      apply (erule_tac x="[Event f]\<^sub>E # \<rho>" in allE, erule_tac x=e in allE, auto)
+      done
+    have 2: "TT1 {t. [Event f]\<^sub>E # t \<in> P}"
+      by (simp add: TT1_P TT1_init_event)
+    have 3: "TT2 {t. [Event f]\<^sub>E # t \<in> P}"
+      by (simp add: TT2_P TT2_init_event)
+    have 4: "TT4 {t. [Event f]\<^sub>E # t \<in> P}"
+      by (simp add: TT4_P TT4_init_event)
+    show "[Event f]\<^sub>E # s \<in> P"
+      using ind_hyp[where P="{t. [Event f]\<^sub>E # t \<in> P}", where x=s] 1 2 3 4 case_assms by auto
+  next
+    fix P :: "'a ttobs list set"
+    fix \<rho> \<sigma> :: "'a ttobs list"
+    fix X Y x s
+    assume deterministic_P: "deterministic P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT4_P: "TT4 P"
+    assume ind_hyp: "\<And>P x. deterministic P \<Longrightarrow> TT1 P \<Longrightarrow> TT2 P \<Longrightarrow> TT4 P \<Longrightarrow> x \<in> \<rho> \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 \<sigma> \<Longrightarrow> \<rho> \<in> P \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> x \<in> P"
+    assume case_assms: "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P" "[Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P" "s \<in> \<rho> \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 \<sigma>"
+    have 1: "deterministic {t. [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+      using deterministic_P unfolding deterministic_def apply auto
+      apply (erule_tac x="[X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, erule_tac x=e in allE, auto)
+      apply (erule_tac x="[X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, erule_tac x=Tock in allE, auto)
+      apply (erule_tac x="[X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, erule_tac x=e in allE, auto)
+      done
+    have 2: "TT1 {t. [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+      by (simp add: TT1_P TT1_init_tock)
+    have 3: "TT2 {t. [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+      by (simp add: TT2_P TT2_init_tock)
+    have 4: "TT4 {t. [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
+      by (simp add: TT1_P TT4_P TT4_TT1_init_tock)
+    have "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+      using deterministic_P unfolding deterministic_def apply auto
+      apply (erule_tac x="[]" in allE, erule_tac x="x" in allE, auto, erule_tac x="Y" in allE, auto)
+      apply (meson TT1_P TT1_def case_assms(2) equalityE tt_prefix_subset.simps(1) tt_prefix_subset.simps(2))
+      apply (erule_tac x="[]" in allE, erule_tac x="Tock" in allE, auto, erule_tac x="Y" in allE, auto)
+      apply (meson TT1_P TT1_def case_assms(2) equalityE tt_prefix_subset.simps(1) tt_prefix_subset.simps(2))
+      done
+    then have 5: "[X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P"
+      using TT2_P unfolding TT2_def apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # \<rho>" in allE)
+      by (erule_tac x="X" in allE, erule_tac x="Y" in allE, auto simp add: case_assms)
+    have "X \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> [[Y]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+      using deterministic_P unfolding deterministic_def apply auto
+      apply (erule_tac x="[]" in allE, erule_tac x="x" in allE, auto, erule_tac x="X" in allE, auto)
+      apply (meson TT1_P TT1_def case_assms(1) equalityE tt_prefix_subset.simps(1) tt_prefix_subset.simps(2))
+      apply (erule_tac x="[]" in allE, erule_tac x="Tock" in allE, auto, erule_tac x="X" in allE, auto)
+      apply (meson TT1_P TT1_def case_assms(1) equalityE tt_prefix_subset.simps(1) tt_prefix_subset.simps(2))
+      done
+    then have 6: "[X \<union> Y]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
+      using TT2_P unfolding TT2_def apply (erule_tac x="[]" in allE, erule_tac x="[Tock]\<^sub>E # \<sigma>" in allE)
+      by (erule_tac x="Y" in allE, erule_tac x="X" in allE, auto simp add: case_assms Un_commute)
+    show "[X \<union> Y]\<^sub>R # [Tock]\<^sub>E # s \<in> P"
+      using ind_hyp[where P="{t. [X \<union> Y]\<^sub>R # [Tock]\<^sub>E # t \<in> P}", where x=s] 1 2 3 4 5 6 case_assms by auto
+  qed
+next
+  fix x :: "'a ttobs list"
+  show "\<And>P. \<forall>x\<in>P. ttWF x \<Longrightarrow> x \<in> P \<Longrightarrow> \<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>P. xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q) \<and> x \<in> xa"
+  proof (induct x rule:ttWF.induct, auto)
+    fix P :: "'a ttobs list set"
+    show "[] \<in> P \<Longrightarrow> \<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>P. xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q) \<and> [] \<in> xa"
+      by (rule_tac x="{[]}" in exI, auto, rule_tac x="[]" in bexI, rule_tac x="[]" in bexI, auto)
+  next
+    fix P :: "'a ttobs list set"
+    fix X
+    show "[[X]\<^sub>R] \<in> P \<Longrightarrow> \<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>P. xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q) \<and> [[X]\<^sub>R] \<in> xa"
+      by (rule_tac x="[[X]\<^sub>R] \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 [[X]\<^sub>R]" in exI, auto, rule_tac x="[[X]\<^sub>R]" in bexI, rule_tac x="[[X]\<^sub>R]" in bexI, auto)
+  next
+    fix P :: "'a ttobs list set"
+    show "[[Tick]\<^sub>E] \<in> P \<Longrightarrow> \<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>P. xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q) \<and> [[Tick]\<^sub>E] \<in> xa"
+      by (rule_tac x="{[[Tick]\<^sub>E]}" in exI, auto, rule_tac x="[[Tick]\<^sub>E]" in bexI, rule_tac x="[[Tick]\<^sub>E]" in bexI, auto)
+  next
+    fix P :: "'a ttobs list set"
+    fix \<sigma> :: "'a ttobs list"
+    fix e
+    assume P_wf: "\<forall>x\<in>P. ttWF x"
+    assume ind_hyp: "\<And>P. \<forall>x\<in>P. ttWF x \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> \<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>P. xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q) \<and> \<sigma> \<in> xa"
+    assume case_assms: "[Event e]\<^sub>E # \<sigma> \<in> P"
+    have "\<forall>x\<in>{t. [Event e]\<^sub>E # t \<in> P}. ttWF x"
+      using P_wf by auto
+    then have "\<exists>xa. (\<exists>p. [Event e]\<^sub>E # p \<in> P \<and> (\<exists>q. [Event e]\<^sub>E # q \<in> P \<and> xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q)) \<and> \<sigma> \<in> xa"
+      using ind_hyp[where P="{t. [Event e]\<^sub>E # t \<in> P}"] P_wf case_assms by auto
+    then obtain p q where "[Event e]\<^sub>E # p \<in> P \<and> [Event e]\<^sub>E # q \<in> P \<and> \<sigma> \<in> p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q"
+      by auto
+    then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>P. xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q) \<and> [Event e]\<^sub>E # \<sigma> \<in> xa"
+      apply (rule_tac x="[Event e]\<^sub>E # p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 [Event e]\<^sub>E # q" in exI, auto)
+      by (rule_tac x="[Event e]\<^sub>E # p" in bexI, rule_tac x="[Event e]\<^sub>E # q" in bexI, auto)
+  next
+    fix P :: "'a ttobs list set"
+    fix \<sigma> :: "'a ttobs list"
+    fix X
+    assume P_wf: "\<forall>x\<in>P. ttWF x"
+    assume ind_hyp: "\<And>P. \<forall>x\<in>P. ttWF x \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> \<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>P. xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q) \<and> \<sigma> \<in> xa"
+    assume case_assms: "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
+    have "\<forall>x\<in>{t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. ttWF x"
+      using P_wf by auto
+    then have "\<exists>xa. (\<exists>p\<in>{t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. \<exists>q\<in>{t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}. xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q) \<and> \<sigma> \<in> xa"
+      using ind_hyp[where P="{t. [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"] P_wf case_assms by auto
+    then obtain p q where "[X]\<^sub>R # [Tock]\<^sub>E # p \<in> P \<and> [X]\<^sub>R # [Tock]\<^sub>E # q \<in> P \<and> \<sigma> \<in> p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q"
+      by auto
+    then show "\<exists>xa. (\<exists>p\<in>P. \<exists>q\<in>P. xa = p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 q) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> xa"
+      apply (rule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # p \<lbrakk>UNIV\<rbrakk>\<^sup>T\<^sub>2 [X]\<^sub>R # [Tock]\<^sub>E # q" in exI, auto)
+      by (rule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # p" in bexI, rule_tac x="[X]\<^sub>R # [Tock]\<^sub>E # q" in bexI, auto)
+  qed
+qed
+
 end
