@@ -8,11 +8,11 @@
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Ref\ {\isachardoublequoteopen}{\isacharprime}e\ ttevent\ set{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharbrackleft}{\isacharunderscore}{\isacharbrackright}\isactrlsub R{\isachardoublequoteclose}{\isacharparenright}%
 }%EndSnippet
 \DefineSnippet{tttrace}{
-\isacommand{typesynonym}\isamarkupfalse%
+\isacommand{type{\isacharunderscore}synonym}\isamarkupfalse%
 \ {\isacharprime}e\ tttrace\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list{\isachardoublequoteclose}%
 }%EndSnippet
 \DefineSnippet{ttprocess}{
-\isacommand{typesynonym}\isamarkupfalse%
+\isacommand{type{\isacharunderscore}synonym}\isamarkupfalse%
 \ {\isacharprime}e\ ttprocess\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharprime}e\ tttrace\ set{\isachardoublequoteclose}%
 }%EndSnippet
 \DefineSnippet{ttWF}{
@@ -24,6 +24,33 @@
 \ \ {\isachardoublequoteopen}ttWF\ {\isacharparenleft}{\isacharbrackleft}Event\ e{\isacharbrackright}\isactrlsub E\ {\isacharhash}\ {\isasymsigma}{\isacharparenright}\ {\isacharequal}\ ttWF\ {\isasymsigma}{\isachardoublequoteclose}\ {\isacharbar}\ \isanewline
 \ \ {\isachardoublequoteopen}ttWF\ {\isacharparenleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isacharbrackleft}Tock{\isacharbrackright}\isactrlsub E\ {\isacharhash}\ {\isasymsigma}{\isacharparenright}\ {\isacharequal}\ ttWF\ {\isasymsigma}{\isachardoublequoteclose}\ {\isacharbar}\ \isanewline
 \ \ {\isachardoublequoteopen}ttWF\ {\isasymsigma}\ {\isacharequal}\ False{\isachardoublequoteclose}%
+}%EndSnippet
+\DefineSnippet{TT0}{
+\isacommand{definition}\isamarkupfalse%
+\ TT{\isadigit{0}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}TT{\isadigit{0}}\ P\ {\isacharequal}\ {\isacharparenleft}P\ {\isasymnoteq}\ {\isacharbraceleft}{\isacharbraceright}{\isacharparenright}{\isachardoublequoteclose}%
+}%EndSnippet
+\DefineSnippet{TT1w}{
+\isacommand{definition}\isamarkupfalse%
+\ TT{\isadigit{1}}w\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}TT{\isadigit{1}}w\ P\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}\ {\isasymrho}\ {\isasymsigma}{\isachardot}\ {\isacharparenleft}{\isasymrho}\ {\isasymle}\isactrlsub C\ {\isasymsigma}\ {\isasymand}\ {\isasymsigma}\ {\isasymin}\ P{\isacharparenright}\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymin}\ P{\isacharparenright}{\isachardoublequoteclose}%
+}%EndSnippet
+\DefineSnippet{TT1}{
+\isacommand{definition}\isamarkupfalse%
+\ TT{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}TT{\isadigit{1}}\ P\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}\ {\isasymrho}\ {\isasymsigma}{\isachardot}\ {\isacharparenleft}{\isasymrho}\ {\isasymlesssim}\isactrlsub C\ {\isasymsigma}\ {\isasymand}\ {\isasymsigma}\ {\isasymin}\ P{\isacharparenright}\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymin}\ P{\isacharparenright}{\isachardoublequoteclose}%
+}%EndSnippet
+\DefineSnippet{TT2w}{
+\isacommand{definition}\isamarkupfalse%
+\ TT{\isadigit{2}}w\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}TT{\isadigit{2}}w\ P\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}\ {\isasymrho}\ X\ Y{\isachardot}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ {\isacharparenleft}e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharparenright}\ {\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ \ {\isasymlongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isacharparenright}{\isachardoublequoteclose}%
+}%EndSnippet
+\DefineSnippet{TT2}{
+\isacommand{definition}\isamarkupfalse%
+\ TT{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}TT{\isadigit{2}}\ P\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}\ {\isasymrho}\ {\isasymsigma}\ X\ Y{\isachardot}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isacharat}\ {\isasymsigma}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ {\isacharparenleft}e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharparenright}\ {\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ \ {\isasymlongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isacharat}\ {\isasymsigma}\ {\isasymin}\ P{\isacharparenright}{\isachardoublequoteclose}%
 }%EndSnippet
 \DefineSnippet{TT3_trace}{
 \isacommand{fun}\isamarkupfalse%
@@ -40,6 +67,11 @@
 \isacommand{definition}\isamarkupfalse%
 \ TT{\isadigit{3}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttprocess\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}TT{\isadigit{3}}\ P\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}{\isasymrho}{\isasymin}P{\isachardot}\ TT{\isadigit{3}}{\isacharunderscore}trace\ {\isasymrho}{\isacharparenright}{\isachardoublequoteclose}%
+}%EndSnippet
+\DefineSnippet{TT4}{
+\isacommand{definition}\isamarkupfalse%
+\ TT{\isadigit{4}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttobs\ list\ set\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}TT{\isadigit{4}}\ P\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}\ {\isasymrho}{\isachardot}\ {\isasymrho}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ {\isasymrho}\ {\isasymin}\ P{\isacharparenright}{\isachardoublequoteclose}%
 }%EndSnippet
 \DefineSnippet{SeqCompTT}{
 \isacommand{definition}\isamarkupfalse%
@@ -109,7 +141,7 @@
 \ \ \isacommand{fix}\isamarkupfalse%
 \ x\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\setlength{\fboxsep}{0pt}\colorbox{isabkg}{{\isachardoublequoteopen}x\ {\isasymin}\ P\ {\isasymLongrightarrow}\ TT{\isadigit{3}}{\isacharunderscore}trace\ x{\isachardoublequoteclose}}}\isanewline
+\ {\isachardoublequoteopen}x\ {\isasymin}\ P\ {\isasymLongrightarrow}\ TT{\isadigit{3}}{\isacharunderscore}trace\ x{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{using}\isamarkupfalse%
 \ TT{\isadigit{3}}{\isacharunderscore}def\ TT{\isacharunderscore}TT{\isadigit{3}}\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
 \ blast\isanewline
