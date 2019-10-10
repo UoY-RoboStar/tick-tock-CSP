@@ -4701,7 +4701,7 @@ lemma ParComp2_Skip_left_unit:
   shows "(SKIP\<^sub>C \<lbrakk>{}\<rbrakk>\<^sub>2 P) = P"
   by (simp add: ParComp2_Skip_right_unit ParComp2_comm assms)
 
-lemma ParComp2_Stop_right_zero:
+lemma ParComp2_Div_right_zero:
   assumes "TT0 P" "TT1 P"
   shows "(P \<lbrakk>UNIV\<rbrakk>\<^sub>2 div\<^sub>C) = div\<^sub>C"
   using assms unfolding ParComp2TT_def DivTT_def
@@ -4719,7 +4719,7 @@ definition deterministic :: "'a ttobs list set \<Rightarrow> bool" where
   "deterministic P = (\<forall>\<rho> e. (\<exists>X. \<rho> @ [[X]\<^sub>R] \<in> P \<and> e \<in> X) \<longrightarrow>
     ((e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<notin> P) \<or> (\<forall>X. e = Tock \<and> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P)))"
 
-lemma 
+lemma deterministic_ParComp2_idemp:
   assumes "deterministic P" "\<forall>x\<in>P. ttWF x" "TT1 P" "TT2 P" "TT4 P"
   shows "(P \<lbrakk>UNIV\<rbrakk>\<^sub>2 P) = P"
   using assms unfolding ParComp2TT_def
