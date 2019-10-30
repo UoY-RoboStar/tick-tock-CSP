@@ -686,4 +686,8 @@ lemma TockPrefix_Union_dist:
   "S \<noteq> {} \<Longrightarrow> (tock \<rightarrow>\<^sub>C \<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = tock \<rightarrow>\<^sub>C Q}"
   unfolding TockPrefixTT_def by (safe, simp_all, blast+)
 
+lemma Prefix_mono: 
+  "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> e \<rightarrow>\<^sub>C P \<sqsubseteq>\<^sub>C e \<rightarrow>\<^sub>C Q"
+  unfolding RefinesTT_def PrefixTT_def by auto
+
 end

@@ -485,6 +485,14 @@ lemma SeqComp_Union_dist1:
 
 lemma SeqComp_Union_dist2:
   "S \<noteq> {} \<Longrightarrow> (\<Union>S) ;\<^sub>C Q = \<Union>{R. \<exists>P. P \<in> S \<and> R = P ;\<^sub>C Q}"
-    unfolding SeqCompTT_def by auto
+  unfolding SeqCompTT_def by auto
+
+lemma SeqComp_mono1: 
+  "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> P ;\<^sub>C R \<sqsubseteq>\<^sub>C Q ;\<^sub>C R"
+  unfolding RefinesTT_def SeqCompTT_def by auto
+
+lemma SeqComp_mono2: 
+  "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> R ;\<^sub>C P \<sqsubseteq>\<^sub>C R ;\<^sub>C Q"
+  unfolding RefinesTT_def SeqCompTT_def by auto
 
 end

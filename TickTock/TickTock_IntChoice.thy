@@ -68,4 +68,12 @@ lemma IntChoice_Union_dist2:
   "S \<noteq> {} \<Longrightarrow> \<Union>S \<sqinter>\<^sub>C Q = \<Union>{R. \<exists>P. P \<in> S \<and> R = P \<sqinter>\<^sub>C Q}"
   unfolding IntChoiceTT_def by auto
 
+lemma IntChoice_mono1: 
+  "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> P \<sqinter>\<^sub>C R \<sqsubseteq>\<^sub>C Q \<sqinter>\<^sub>C R"
+  unfolding RefinesTT_def IntChoiceTT_def by auto
+
+lemma IntChoice_mono2: 
+  "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> R \<sqinter>\<^sub>C P \<sqsubseteq>\<^sub>C R \<sqinter>\<^sub>C Q"
+  unfolding RefinesTT_def IntChoiceTT_def by auto
+
 end

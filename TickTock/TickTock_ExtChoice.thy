@@ -2205,4 +2205,12 @@ lemma ExtChoice_Union_dist2:
   "X \<noteq> {} \<Longrightarrow> \<Union>X \<box>\<^sub>C Q = \<Union>{R. \<exists>P. P \<in> X \<and> R = P \<box>\<^sub>C Q}"
   unfolding ExtChoiceTT_def by auto
 
+lemma ExtChoice_mono1: 
+  "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> P \<box>\<^sub>C R \<sqsubseteq>\<^sub>C Q \<box>\<^sub>C R"
+  unfolding RefinesTT_def ExtChoiceTT_def by auto
+
+lemma ExtChoice_mono2: 
+  "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> R \<box>\<^sub>C P \<sqsubseteq>\<^sub>C R \<box>\<^sub>C Q"
+  unfolding RefinesTT_def ExtChoiceTT_def by auto
+
 end
