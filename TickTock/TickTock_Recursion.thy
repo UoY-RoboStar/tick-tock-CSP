@@ -52,6 +52,42 @@ lemma iterateTT_TT:
   apply (induct n, simp_all add: assms, unfold TT_def, auto simp add: TT_defs)
   using TT1_def tt_prefix_subset.elims(2) by auto
 
+lemma iterateTT_subset:
+  assumes TT0_F: "\<And> X. TT0 X \<Longrightarrow> TT0 (F X)" 
+  assumes TT1_F: "\<And> X. TT1 X \<Longrightarrow> TT1 (F X)"
+  assumes monotonic_F: "\<And> X Y. X \<sqsubseteq>\<^sub>C Y \<Longrightarrow> F X \<sqsubseteq>\<^sub>C F Y"
+  shows "iterateTT F n \<subseteq> iterateTT F (n+1)"
+proof (induct n, auto)
+  show "[] \<in> F {[]}"
+    by (metis TT0_F TT0_TT1_empty TT0_def TT1_F empty_subsetI insert_subset iterateTT.simps(1) iterateTT_TT1)
+next
+  fix n x
+  assume "iterateTT F n \<subseteq> F (iterateTT F n)"
+  then have "F (iterateTT F n) \<subseteq> F (F (iterateTT F n))"
+    by (meson RefinesTT_def monotonic_F)
+  then show "x \<in> F (iterateTT F n) \<Longrightarrow> x \<in> F (F (iterateTT F n))"
+    by blast
+qed
+
+lemma iterateTT_subset2:
+  assumes TT0_F: "\<And> X. TT0 X \<Longrightarrow> TT0 (F X)" 
+  assumes TT1_F: "\<And> X. TT1 X \<Longrightarrow> TT1 (F X)"
+  assumes monotonic_F: "\<And> X Y. X \<sqsubseteq>\<^sub>C Y \<Longrightarrow> F X \<sqsubseteq>\<^sub>C F Y"
+  shows "n > m \<Longrightarrow> iterateTT F m \<subseteq> iterateTT F n"
+  by (induct n, auto, smt TT0_F TT1_F add.commute iterateTT.simps(2) iterateTT_subset less_Suc_eq monotonic_F plus_1_eq_Suc set_mp)
+
+lemma iterateTT_subset3:
+  assumes TT0_F: "\<And> X. TT0 X \<Longrightarrow> TT0 (F X)" 
+  assumes TT1_F: "\<And> X. TT1 X \<Longrightarrow> TT1 (F X)"
+  assumes monotonic_F: "\<And> X Y. X \<sqsubseteq>\<^sub>C Y \<Longrightarrow> F X \<sqsubseteq>\<^sub>C F Y"
+  shows "iterateTT F m \<subseteq> iterateTT F n \<or> iterateTT F n \<subseteq> iterateTT F m"
+  by (metis TT0_F TT1_F eq_iff iterateTT_subset2 monotonic_F not_less)
+
+lemma iterateTT_mono:
+  assumes mono_F: "\<And>X Y. X \<sqsubseteq>\<^sub>C Y \<Longrightarrow> F X \<sqsubseteq>\<^sub>C F Y"
+  shows "(\<And>P. F P \<sqsubseteq>\<^sub>C G P) \<Longrightarrow> iterateTT F n \<sqsubseteq>\<^sub>C iterateTT G n"
+  using mono_F unfolding RefinesTT_def by (induct n, auto, blast)
+
 lemma TT0_Union: "X \<noteq> {} \<Longrightarrow> \<forall> x\<in>X. TT0 x \<Longrightarrow> TT0 (\<Union>X)"
   by (simp add: TT0_def)
 
@@ -75,7 +111,7 @@ lemma TT4_Union: "\<forall> x\<in>X. TT4 x \<Longrightarrow> TT4 (\<Union>X)"
 lemma TT4w_Union: "\<forall> x\<in>X. TT4w x \<Longrightarrow> TT4w (\<Union>X)"
   unfolding TT4w_def by auto
 
-definition RecursionTT :: "('a ttobs list set \<Rightarrow> 'a ttobs list set) \<Rightarrow> 'a ttobs list set" where
+definition RecursionTT :: "('a ttobs list set \<Rightarrow> 'a ttobs list set) \<Rightarrow> 'a ttobs list set" ("\<mu>\<^sub>C(_)") where
   "RecursionTT F = \<Union> {P. \<exists> n. P = iterateTT F n}"
 
 lemma RecursionTT_wf:
@@ -90,37 +126,37 @@ lemma RecursionTT_TT0:
   unfolding RecursionTT_def by (smt Collect_empty_eq TT0_Union assms iterateTT_TT0 mem_Collect_eq) 
 
 lemma RecursionTT_TT1:
-  assumes "\<And> X. TT1 X \<Longrightarrow>TT1 (F X)"
+  assumes "\<And> X. TT1 X \<Longrightarrow> TT1 (F X)"
   shows "TT1 (RecursionTT F)"
   unfolding RecursionTT_def by (smt TT1_Union assms iterateTT_TT1 mem_Collect_eq) 
 
 lemma RecursionTT_TT2:
-  assumes "\<And> X. TT2 X \<Longrightarrow>TT2 (F X)"
+  assumes "\<And> X. TT2 X \<Longrightarrow> TT2 (F X)"
   shows "TT2 (RecursionTT F)"
   unfolding RecursionTT_def by (smt Collect_empty_eq TT2_Union assms iterateTT_TT2 mem_Collect_eq)
 
 lemma RecursionTT_TT2w:
-  assumes "\<And> X. TT2w X \<Longrightarrow>TT2w (F X)"
+  assumes "\<And> X. TT2w X \<Longrightarrow> TT2w (F X)"
   shows "TT2w (RecursionTT F)"
   unfolding RecursionTT_def by (smt TT2w_Union assms empty_iff iterateTT_TT2w mem_Collect_eq) 
 
 lemma RecursionTT_TT3:
-  assumes "\<And> X. TT3 X \<Longrightarrow>TT3 (F X)"
+  assumes "\<And> X. TT3 X \<Longrightarrow> TT3 (F X)"
   shows "TT3 (RecursionTT F)"
   unfolding RecursionTT_def by (smt TT3_Union assms iterateTT_TT3 mem_Collect_eq)
 
 lemma RecursionTT_TT4:
-  assumes "\<And> X. TT4 X \<Longrightarrow>TT4 (F X)"
+  assumes "\<And> X. TT4 X \<Longrightarrow> TT4 (F X)"
   shows "TT4 (RecursionTT F)"
   unfolding RecursionTT_def by (smt TT4_Union assms iterateTT_TT4 mem_Collect_eq) 
 
 lemma RecursionTT_TT4w:
-  assumes "\<And> X. TT4w X \<Longrightarrow>TT4w (F X)"
+  assumes "\<And> X. TT4w X \<Longrightarrow> TT4w (F X)"
   shows "TT4w (RecursionTT F)"
   unfolding RecursionTT_def by (smt TT4w_Union assms iterateTT_TT4w mem_Collect_eq)
 
 lemma RecursionTT_TT:
-  assumes "\<And> X. TT X \<Longrightarrow>TT (F X)"
+  assumes "\<And> X. TT X \<Longrightarrow> TT (F X)"
   shows "TT (RecursionTT F)"
   unfolding RecursionTT_def TT_def apply auto
   using TT_def assms iterateTT_TT apply auto
@@ -129,5 +165,102 @@ lemma RecursionTT_TT:
   apply (smt TT2w_Union TT_TT2w assms empty_iff iterateTT_TT mem_Collect_eq)
   apply (smt TT3_Union TT_TT3 assms iterateTT_TT mem_Collect_eq)
   done
+
+lemma RecursionTT_strengthen:
+  assumes monotonic_F: "\<And> X Y. X \<sqsubseteq>\<^sub>C Y \<Longrightarrow> F X \<sqsubseteq>\<^sub>C F Y"
+  assumes TT0_F: "\<And> X. TT0 X \<Longrightarrow> TT0 (F X)" 
+  assumes TT1_F: "\<And> X. TT1 X \<Longrightarrow> TT1 (F X)" 
+  shows "F (\<mu>\<^sub>C F) \<sqsubseteq>\<^sub>C \<mu>\<^sub>C F"
+  unfolding RefinesTT_def RecursionTT_def
+proof auto
+  fix x n
+  show "x \<in> iterateTT F n \<Longrightarrow> x \<in> F (\<Union>{P. \<exists>n. P = iterateTT F n})"
+  proof (induct n, auto)
+    show "[] \<in> F (\<Union>{P. \<exists>n. P = iterateTT F n})"
+      by (metis (full_types) RecursionTT_TT0 RecursionTT_TT1 RecursionTT_def TT0_F TT0_TT1_empty TT1_F)
+  next
+    fix n
+    have "iterateTT F n \<subseteq> \<Union>{P. \<exists>n. P = iterateTT F n}"
+      by auto
+    then have "F (iterateTT F n) \<subseteq> F (\<Union>{P. \<exists>n. P = iterateTT F n})"
+      by (meson RefinesTT_def monotonic_F)
+    then show "x \<in> F (iterateTT F n) \<Longrightarrow> x \<in> F (\<Union>{P. \<exists>n. P = iterateTT F n})"
+      by auto
+  qed
+qed
+
+lemma RecursionTT_sfp:
+  assumes monotonic_F: "\<And> X Y. X \<sqsubseteq>\<^sub>C Y \<Longrightarrow> F X \<sqsubseteq>\<^sub>C F Y"
+  assumes Y_TT0: "TT0 Y" and Y_TT1: "TT1 Y"
+  shows "Y \<sqsubseteq>\<^sub>C F(Y) \<Longrightarrow> Y \<sqsubseteq>\<^sub>C (\<mu>\<^sub>C F)"
+  unfolding RefinesTT_def RecursionTT_def
+proof (auto)
+  fix x n
+  assume assm: "F Y \<subseteq> Y"
+  have "iterateTT F n \<subseteq> Y"
+  proof (induct n, auto)
+    show "[] \<in> Y"
+      by (simp add: TT0_TT1_empty Y_TT0 Y_TT1)
+  next
+    fix x n
+    assume "iterateTT F n \<subseteq> Y"
+    then have "F (iterateTT F n) \<subseteq> F Y"
+      by (meson RefinesTT_def monotonic_F)
+    then have "F (iterateTT F n) \<subseteq> Y"
+      using assm by blast
+    then show "x \<in> F (iterateTT F n) \<Longrightarrow> x \<in> Y"
+      by auto
+  qed
+  then show "F Y \<subseteq> Y \<Longrightarrow> x \<in> iterateTT F n \<Longrightarrow> x \<in> Y"
+    by auto
+qed
+
+lemma RecursionTT_unfold:
+  assumes TT0_F: "\<And> X. TT0 X \<Longrightarrow> TT0 (F X)" 
+  assumes TT1_F: "\<And> X. TT1 X \<Longrightarrow> TT1 (F X)"
+  assumes dist_F: "\<And>S. S \<noteq> {} \<Longrightarrow> (\<And> x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<subseteq> y \<or> y \<subseteq> x) \<Longrightarrow> F (\<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = F Q}"
+  shows "(\<mu>\<^sub>C F) = F (\<mu>\<^sub>C F)"
+proof -
+  have F_mono: "\<And>X Y. X \<sqsubseteq>\<^sub>C Y \<Longrightarrow> F X \<sqsubseteq>\<^sub>C F Y"
+  proof -
+    fix X Y :: "'a ttobs list set"
+    assume X_refines_Y: "X \<sqsubseteq>\<^sub>C Y"
+    then have "\<And>x y. x \<in> {X, Y} \<Longrightarrow> y \<in> {X, Y} \<Longrightarrow> x \<subseteq> y \<or> y \<subseteq> x"
+      unfolding RefinesTT_def by auto
+    then have "F (\<Union>{X, Y}) = \<Union>{R. \<exists>Q. Q \<in> {X, Y} \<and> R = F Q}"
+      using dist_F[where S="{X, Y}"] by auto
+    then have "F (X \<union> Y) = (F X) \<union> (F Y)"
+      by auto
+    then have "F X = (F X) \<union> (F Y)"
+      using X_refines_Y unfolding RefinesTT_def by (metis sup.orderE) 
+    then show "F X \<sqsubseteq>\<^sub>C F Y"
+      using X_refines_Y unfolding RefinesTT_def by auto
+  qed
+  have 1: "{P. \<exists>n. P = iterateTT F n} \<noteq> {}"
+    by blast
+  have 2: "\<And>x y. x \<in> {P. \<exists>n. P = iterateTT F n} \<Longrightarrow> y \<in> {P. \<exists>n. P = iterateTT F n} \<Longrightarrow> x \<subseteq> y \<or> y \<subseteq> x"
+    using F_mono TT0_F TT1_F iterateTT_subset3 by blast
+  then have "\<Union>{P. \<exists>n. P = F (iterateTT F n)} = F (\<Union>{P. \<exists>n. P = iterateTT F n})"
+    using dist_F[where S="{P. \<exists>n. P = iterateTT F n}"] 1 2 by auto
+  also have "\<Union>{P. \<exists>n. P = F (iterateTT F n)} = \<Union>{P. \<exists>n. P = (iterateTT F n)}"
+  proof auto
+    fix x n
+    show "x \<in> F (iterateTT F n) \<Longrightarrow> \<exists>xa. (\<exists>n. xa = iterateTT F n) \<and> x \<in> xa"
+      by (rule_tac x="iterateTT F (n+1)" in exI, auto, rule_tac x="n+1" in exI, auto)
+  next
+    fix x n
+    show "x \<in> iterateTT F n \<Longrightarrow> \<exists>xa. (\<exists>n. xa = F (iterateTT F n)) \<and> x \<in> xa"
+      apply (induct n, auto, rule_tac x="iterateTT F 1" in exI, auto, rule_tac x="0" in exI, auto)
+      by (metis TT0_F TT0_TT1_empty TT0_def TT1_F insert_not_empty iterateTT.simps(1) iterateTT_TT1)
+  qed
+  then show ?thesis
+    unfolding RefinesTT_def RecursionTT_def using calculation by auto
+qed
+
+lemma RecursionTT_mono:
+  assumes mono_F: "\<And>X Y. X \<sqsubseteq>\<^sub>C Y \<Longrightarrow> F X \<sqsubseteq>\<^sub>C F Y"
+  shows "(\<And> P. F P \<sqsubseteq>\<^sub>C G P) \<Longrightarrow> (\<mu>\<^sub>C F) \<sqsubseteq>\<^sub>C (\<mu>\<^sub>C G)"
+  using iterateTT_mono unfolding RecursionTT_def RefinesTT_def apply auto
+  by (rule_tac x="iterateTT F n" in exI, auto, metis RefinesTT_def iterateTT_mono mono_F subsetCE)
 
 end
