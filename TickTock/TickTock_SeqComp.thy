@@ -479,4 +479,12 @@ lemma TT_SeqComp:
   apply (simp add: TT3_SeqComp assms(1) assms(2))
   done
 
+lemma SeqComp_Union_dist1:
+  "S \<noteq> {} \<Longrightarrow> P ;\<^sub>C (\<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = P ;\<^sub>C Q}"
+  unfolding SeqCompTT_def by auto
+
+lemma SeqComp_Union_dist2:
+  "S \<noteq> {} \<Longrightarrow> (\<Union>S) ;\<^sub>C Q = \<Union>{R. \<exists>P. P \<in> S \<and> R = P ;\<^sub>C Q}"
+    unfolding SeqCompTT_def by auto
+
 end

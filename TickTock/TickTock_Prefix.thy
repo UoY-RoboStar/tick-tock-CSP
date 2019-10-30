@@ -355,6 +355,10 @@ next
     by (metis (no_types, lifting) TT3_append TT3_trace.simps(2) TT3_trace.simps(4) TT_wf assms ttWF.elims(2) ttWF.simps(4)) 
 qed
 
+lemma Prefix_Union_dist:
+  "S \<noteq> {} \<Longrightarrow> (e \<rightarrow>\<^sub>C \<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = e \<rightarrow>\<^sub>C Q}"
+    unfolding PrefixTT_def by (safe, simp_all, blast+)
+
 definition TockPrefixTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" ("tock \<rightarrow>\<^sub>C _") where
   "TockPrefixTT P = {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Tock}). t = s \<or> (\<exists> X. Tock \<notin> X \<and> Tock \<notin> X \<and> t = s @ [[X]\<^sub>R])}
      \<union> {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Tock}). t = s \<or> (\<exists> \<sigma>\<in>P. \<exists> X. Tock \<notin> X \<and> t = s @ [[X]\<^sub>R, [Tock]\<^sub>E] @ \<sigma>)}"
@@ -677,5 +681,9 @@ lemma TT_TockPrefix:
   shows "TT (tock \<rightarrow>\<^sub>C P)"
   using assms unfolding TT_def
   using TT0_TockPrefixTT TT1_TockPrefixTT TT2_TockPrefix TT2_imp_TT2w TT3_TockPrefix TockPrefixTT_wf by blast
+
+lemma TockPrefix_Union_dist:
+  "S \<noteq> {} \<Longrightarrow> (tock \<rightarrow>\<^sub>C \<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = tock \<rightarrow>\<^sub>C Q}"
+  unfolding TockPrefixTT_def by (safe, simp_all, blast+)
 
 end

@@ -4902,4 +4902,20 @@ next
   qed
 qed
 
+lemma ParComp_Union_dist1:
+  "S \<noteq> {} \<Longrightarrow> (P \<lbrakk>A\<rbrakk>\<^sub>C \<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = P \<lbrakk>A\<rbrakk>\<^sub>C Q}"
+  unfolding ParCompTT_def by auto
+
+lemma ParComp_Union_dist2:
+  "S \<noteq> {} \<Longrightarrow> (\<Union>S \<lbrakk>A\<rbrakk>\<^sub>C Q) = \<Union>{R. \<exists>P. P \<in> S \<and> R = P \<lbrakk>A\<rbrakk>\<^sub>C Q}"
+  unfolding ParCompTT_def by auto
+
+lemma ParComp2_Union_dist1:
+  "S \<noteq> {} \<Longrightarrow> (P \<lbrakk>A\<rbrakk>\<^sub>2 \<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = P \<lbrakk>A\<rbrakk>\<^sub>2 Q}"
+  unfolding ParComp2TT_def by auto
+
+lemma ParComp2_Union_dist2:
+  "S \<noteq> {} \<Longrightarrow> (\<Union>S \<lbrakk>A\<rbrakk>\<^sub>2 Q) = \<Union>{R. \<exists>P. P \<in> S \<and> R = P \<lbrakk>A\<rbrakk>\<^sub>2 Q}"
+  unfolding ParComp2TT_def by auto
+
 end

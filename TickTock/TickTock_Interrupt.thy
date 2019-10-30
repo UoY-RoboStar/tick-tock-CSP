@@ -2985,6 +2985,40 @@ lemma TT_UntimedInterrupt:
   using TT3_UntimedInterrupt apply blast
   done
 
+lemma UntimedInterrupt_Union_dist1:
+  assumes S_nonempty: "S \<noteq> {}"
+  assumes S_nested: "\<And> x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<subseteq> y \<or> y \<subseteq> x"
+  shows "(P \<triangle>\<^sub>U \<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = P \<triangle>\<^sub>U Q}"
+  using assms unfolding UntimedInterruptTT_def apply (safe, simp_all)
+  apply (rule_tac x="P \<triangle>\<^sub>U Xa" in exI, unfold UntimedInterruptTT_def, simp, safe, blast, blast, simp)
+  apply (erule_tac x="P \<triangle>\<^sub>U xa" in allE, unfold UntimedInterruptTT_def, simp, blast, simp)
+  apply (erule_tac x="P \<triangle>\<^sub>U Xa" in allE, unfold UntimedInterruptTT_def, simp, blast, simp)
+  apply (case_tac "Xa \<subseteq> Xb")
+  apply (erule_tac x="P \<triangle>\<^sub>U Xb" in allE, unfold UntimedInterruptTT_def, simp, safe, blast, metis subsetCE)
+  apply (erule_tac x="P \<triangle>\<^sub>U Xa" in allE, unfold UntimedInterruptTT_def, simp, safe, blast, smt subset_eq, simp)
+  apply (erule_tac x="P \<triangle>\<^sub>U X" in allE, unfold UntimedInterruptTT_def, simp, safe, blast, metis+)
+  done
+
+lemma UntimedInterrupt_union_dist1:
+  "P \<triangle>\<^sub>U (Q \<union> R) \<sqsubseteq>\<^sub>C (P \<triangle>\<^sub>U Q) \<union> (P \<triangle>\<^sub>U R)"
+  unfolding UntimedInterruptTT_def RefinesTT_def apply (safe, simp_all)
+  by (blast, force, metis, metis, blast, force, metis, metis)
+
+lemma UntimedInterrupt_mono1:
+  "Q \<sqsubseteq>\<^sub>C R \<Longrightarrow> P \<triangle>\<^sub>U Q \<sqsubseteq>\<^sub>C P \<triangle>\<^sub>U R"
+  unfolding UntimedInterruptTT_def RefinesTT_def by (safe, simp_all, blast, (metis subsetCE)+)
+
+lemma UntimedInterrupt_Union_dist2:
+  assumes S_nonempty: "S \<noteq> {}"
+  shows "(\<Union>S \<triangle>\<^sub>U Q) = \<Union>{R. \<exists>P. P \<in> S \<and> R = P \<triangle>\<^sub>U Q}"
+  using S_nonempty unfolding UntimedInterruptTT_def apply (safe, simp_all)
+  apply (rule_tac x="Xa \<triangle>\<^sub>U Q" in exI, unfold UntimedInterruptTT_def, simp, safe, blast, blast, simp)
+  apply (erule_tac x="X \<triangle>\<^sub>U Q" in allE, unfold UntimedInterruptTT_def, simp, blast, simp)
+  apply (erule_tac x="Xa \<triangle>\<^sub>U Q" in allE, unfold UntimedInterruptTT_def, simp, blast, simp)
+  apply (erule_tac x="Xa \<triangle>\<^sub>U Q" in allE, unfold UntimedInterruptTT_def, simp, safe, blast, metis, simp)
+  apply (erule_tac x="X \<triangle>\<^sub>U Q" in allE, unfold UntimedInterruptTT_def, simp, safe, blast, metis+)
+  done
+
 subsection {* Time-synchronising Interrupt *}
 
 fun filter_tocks :: "'e ttobs list \<Rightarrow> 'e ttobs list" where
@@ -4226,5 +4260,24 @@ lemma TT_TimeSyncInterrupt:
   using TT2w_TimeSyncInterrupt apply blast
   using TT3_TimeSyncInterrupt apply blast
   done
+
+lemma TimeSyncInterrupt_Union_dist1:
+  "S \<noteq> {} \<Longrightarrow> (P \<triangle>\<^sub>T \<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = P \<triangle>\<^sub>T Q}"
+    unfolding TimeSyncInterruptTT_def apply (safe, simp_all)
+    apply (rule_tac x="P \<triangle>\<^sub>T X" in exI, unfold TimeSyncInterruptTT_def, simp, blast)
+    apply (rule_tac x="P \<triangle>\<^sub>T Xa" in exI, unfold TimeSyncInterruptTT_def, simp, blast)
+    apply (rule_tac x="P \<triangle>\<^sub>T X" in exI, unfold TimeSyncInterruptTT_def, simp, blast, blast, force)
+    by (metis (no_types, hide_lams))
+  
+lemma TimeSyncInterrupt_Union_dist2:
+  assumes S_nonempty: "S \<noteq> {}"
+  shows "(\<Union>S \<triangle>\<^sub>T Q) = \<Union>{R. \<exists>P. P \<in> S \<and> R = P \<triangle>\<^sub>T Q}"
+  using S_nonempty unfolding TimeSyncInterruptTT_def apply (safe, simp_all)
+  apply (rule_tac x="X \<triangle>\<^sub>T Q" in exI, unfold TimeSyncInterruptTT_def, simp, blast)
+  apply (rule_tac x="Xa \<triangle>\<^sub>T Q" in exI, unfold TimeSyncInterruptTT_def, simp, blast)
+  apply (rule_tac x="X \<triangle>\<^sub>T Q" in exI, unfold TimeSyncInterruptTT_def, simp, blast, metis, force)
+  by (metis (no_types, hide_lams))
+  
+  
 
 end

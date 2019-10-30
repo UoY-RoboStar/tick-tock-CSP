@@ -60,4 +60,12 @@ next
     by (metis TT3_def TT_TT3 IntChoiceTT_def UnE assms(1) assms(2))
 qed 
 
+lemma IntChoice_Union_dist1:
+  "S \<noteq> {} \<Longrightarrow> P \<sqinter>\<^sub>C \<Union>S = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = P \<sqinter>\<^sub>C Q}"
+  unfolding IntChoiceTT_def by auto
+
+lemma IntChoice_Union_dist2:
+  "S \<noteq> {} \<Longrightarrow> \<Union>S \<sqinter>\<^sub>C Q = \<Union>{R. \<exists>P. P \<in> S \<and> R = P \<sqinter>\<^sub>C Q}"
+  unfolding IntChoiceTT_def by auto
+
 end

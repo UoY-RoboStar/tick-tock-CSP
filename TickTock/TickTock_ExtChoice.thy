@@ -2197,4 +2197,12 @@ lemma ExtChoice_idempotent: "TT P \<Longrightarrow> P \<box>\<^sub>C P = P"
   unfolding ExtChoiceTT_def apply auto
   using TT_wf split_tocks_longest by fastforce
 
+lemma ExtChoice_Union_dist1:
+  "X \<noteq> {} \<Longrightarrow> P \<box>\<^sub>C \<Union>X = \<Union>{R. \<exists>Q. Q \<in> X \<and> R = P \<box>\<^sub>C Q}"
+  unfolding ExtChoiceTT_def by auto
+
+lemma ExtChoice_Union_dist2:
+  "X \<noteq> {} \<Longrightarrow> \<Union>X \<box>\<^sub>C Q = \<Union>{R. \<exists>P. P \<in> X \<and> R = P \<box>\<^sub>C Q}"
+  unfolding ExtChoiceTT_def by auto
+
 end

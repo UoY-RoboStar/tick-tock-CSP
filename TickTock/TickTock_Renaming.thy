@@ -293,4 +293,8 @@ lemma TT_Renaming:
   shows "TT P \<Longrightarrow> TT2 P \<Longrightarrow> TT (RenamingTT P f)"
   unfolding TT_def by (auto simp add: RenamingTT_wf TT0_Renaming TT1_Renaming TT2_Renaming TT2_imp_TT2w TT3_Renaming)
 
+lemma Renaming_Union_dist:
+  "S \<noteq> {} \<Longrightarrow> (RenamingTT (\<Union>S) f) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = RenamingTT Q f}"
+    unfolding RenamingTT_def by (safe, simp_all, blast+)
+
 end

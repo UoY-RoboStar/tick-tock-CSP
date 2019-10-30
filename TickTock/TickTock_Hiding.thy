@@ -681,4 +681,8 @@ qed
 lemma Hiding_Mono: "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> P \<setminus>\<^sub>C X \<sqsubseteq>\<^sub>C Q \<setminus>\<^sub>C X"
   unfolding RefinesTT_def HidingTT_def by auto
 
+lemma Hiding_Union_dist:
+  "S \<noteq> {} \<Longrightarrow> \<Union>S \<setminus>\<^sub>C X = \<Union>{R. \<exists>P. P \<in> S \<and> R = P \<setminus>\<^sub>C X}"
+  unfolding HidingTT_def by auto
+
 end

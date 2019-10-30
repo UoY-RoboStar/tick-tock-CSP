@@ -578,4 +578,8 @@ lemma TT4_Guard: "TT4 P \<Longrightarrow> TT4 (g &\<^sub>C P)"
 lemma TT_Guard: "TT P \<Longrightarrow> TT (g &\<^sub>C P)"
   using GuardTT_wf TT0_Guard TT1_Guard TT2w_Guard TT3_Guard  unfolding TT_def GuardTT_def by auto
 
+lemma Guard_Union_dist:
+  "X \<noteq> {} \<Longrightarrow> g &\<^sub>C \<Union>X = \<Union>{P. \<exists>Q. Q \<in> X \<and> P = g &\<^sub>C Q}"
+  unfolding GuardTT_def by auto
+
 end
