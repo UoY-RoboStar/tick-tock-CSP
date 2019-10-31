@@ -1721,4 +1721,321 @@ lemma TimeSyncInterrupt_Union_dist2:
   apply (rule_tac x="X \<triangle>\<^sub>T Q" in exI, unfold TimeSyncInterruptTT_def, simp, blast, metis, force)
   by (metis (no_types, hide_lams))
 
+subsection {* Strict Timed Interrupt *}
+
+definition StrictTimedInterruptTT :: "'e ttobs list set \<Rightarrow> nat \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttobs list set" (infixl "\<triangle>\<^bsub>_\<^esub>" 58) where
+  "(P \<triangle>\<^bsub>n\<^esub> Q) = {t\<in>P. length (filter (\<lambda> x. x = [Tock]\<^sub>E) t) < n}
+    \<union> {t\<in>Q. n = 0}
+    \<union> {t. \<exists>p\<in>P. \<exists>q\<in>Q. n > 0 \<and> last p = [Tock]\<^sub>E \<and> length (filter (\<lambda> x. x = [Tock]\<^sub>E) p) = n \<and> t = p @ q}"
+
+lemma StrictTimedInterrupt_zero_deadline: "(P \<triangle>\<^bsub>0\<^esub> Q) = Q"
+  unfolding StrictTimedInterruptTT_def by auto
+
+lemma StrictTimedInterruptTT_wf:
+  assumes "\<forall>t\<in>P. ttWF t" "\<forall>t\<in>Q. ttWF t"
+  shows "\<forall>t\<in>(P \<triangle>\<^bsub>n\<^esub> Q). ttWF t"
+  using assms nontick_event_end_append_wf unfolding StrictTimedInterruptTT_def by (auto, fastforce)
+
+lemma TT0_StrictTimedInterrupt:
+  assumes "TT0 P" "TT0 Q" "TT1 P" "TT1 Q"
+  shows "TT0 (P \<triangle>\<^bsub>n\<^esub> Q)"
+  unfolding StrictTimedInterruptTT_def TT0_def using assms TT0_TT1_empty by fastforce
+
+lemma TT1_StrictTimedInterrupt:
+  assumes "TT1 P" "TT1 Q"
+  shows "TT1 (P \<triangle>\<^bsub>n\<^esub> Q)"
+  unfolding TT1_def
+proof auto
+  fix \<rho> \<sigma> :: "'a ttobs list"
+  assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
+  assume assm2: "\<sigma> \<in> P \<triangle>\<^bsub>n\<^esub> Q"
+  then have "(\<sigma>\<in>P \<and> length (filter (\<lambda> x. x = [Tock]\<^sub>E) \<sigma>) < n)
+    \<or> (\<sigma> \<in> Q \<and> n = 0)
+    \<or> (\<exists>p\<in>P. \<exists>q\<in>Q. n > 0 \<and> last p = [Tock]\<^sub>E \<and> length (filter (\<lambda> x. x = [Tock]\<^sub>E) p) = n \<and> \<sigma> = p @ q)"
+    unfolding StrictTimedInterruptTT_def by auto
+  then show "\<rho> \<in> P \<triangle>\<^bsub>n\<^esub> Q"
+  proof auto
+    assume case_assms: "\<sigma> \<in> P" "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<sigma>) < n"
+    have 1: "\<rho> \<in> P"
+      using TT1_def assm1 assms(1) case_assms(1) by blast
+    have 2: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) < n"
+      using assm1 case_assms(2) tt_prefix_subset_Tock_filter_length by fastforce
+    then show "\<rho> \<in> P \<triangle>\<^bsub>n\<^esub> Q"
+      using 1 2 unfolding StrictTimedInterruptTT_def by auto
+  next
+    assume case_assms: "\<sigma> \<in> Q" "n = 0"
+    have "\<rho> \<in> Q"
+      using TT1_def assm1 assms(2) case_assms(1) by blast
+    then show "\<rho> \<in> P \<triangle>\<^bsub>0\<^esub> Q"
+      unfolding StrictTimedInterruptTT_def by auto
+  next
+    fix p q :: "'a ttobs list"
+    assume case_assms: "p \<in> P" "last p = [Tock]\<^sub>E" "n = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+      "filter (\<lambda>x. x = [Tock]\<^sub>E) p \<noteq> []" "q \<in> Q" "\<sigma> = p @ q"
+    then have "(\<exists> p' q'. \<rho> = p' @ q' \<and> p' \<subseteq>\<^sub>C p \<and> q' \<lesssim>\<^sub>C q) \<or> (\<rho> \<lesssim>\<^sub>C p)"
+      using assm1 apply (auto, induct \<rho> p rule:tt_prefix_subset.induct, auto)
+      apply (metis append_Cons tt_prefix_subset_concat2 tt_subset.simps(2))
+      by (metis append_Cons tt_prefix_subset_concat2 tt_subset.simps(3))
+    then show "\<rho> \<in> P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)\<^esub> Q"
+    proof auto
+      fix p' q'
+      assume case_assms2: "\<rho> = p' @ q'" "p' \<subseteq>\<^sub>C p" "q' \<lesssim>\<^sub>C q"
+      have 1: "p' \<in> P"
+        using TT1_def assms(1) case_assms(1) case_assms2(2) tt_subset_imp_prefix_subset by blast
+      have 2: "last p' = [Tock]\<^sub>E"
+        using case_assms(2) case_assms2(2) apply (induct p' p rule:tt_subset.induct, auto)
+        using tt_subset_same_length apply force
+        apply (metis ttobs.distinct(1))
+        using tt_subset_same_length apply force
+        by (metis length_0_conv tt_subset_same_length)
+      have 3: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) p') = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+        using case_assms2(2) by (induct p' p rule:tt_subset.induct, auto)
+      have 4: "q' \<in> Q"
+        using TT1_def assms(2) case_assms(5) case_assms2(3) by blast
+      then show "p' @ q' \<in> P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)\<^esub> Q"
+        using 1 2 3 4 case_assms(4) unfolding StrictTimedInterruptTT_def by auto
+    next
+      assume case_assms2: "\<rho> \<lesssim>\<^sub>C p"
+      have 1: "\<rho> \<in> P"
+        using TT1_def assms(1) case_assms(1) case_assms2 by blast
+      have 2: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) \<le> length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+        using case_assms2 by (induct \<rho> p rule:tt_prefix_subset.induct, auto)
+      (*have 3: "filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho> \<noteq> []"
+        using case_assms(4) case_assms2 apply auto apply (induct \<rho> p rule:tt_prefix_subset.induct, auto)*)
+      (*have 3: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) \<Longrightarrow> last \<rho> = [Tock]\<^sub>E"
+        using case_assms(4) case_assms2 apply - apply (induct \<rho> p rule:tt_prefix.induct, auto)
+        using length_0_conv apply fastforce
+        apply (case_tac "x = [Tock]\<^sub>E", auto)
+         apply (case_tac "y = [Tock]\<^sub>E", auto)
+        apply (case_tac "filter (\<lambda>x. x = [Tock]\<^sub>E) ya \<noteq> []", auto)*)
+
+      show "\<rho> \<in> P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)\<^esub> Q"
+        using 1 2 unfolding StrictTimedInterruptTT_def
+      proof auto
+        show "filter (\<lambda>x. x = [Tock]\<^sub>E) p = [] \<Longrightarrow> \<rho> \<in> Q"
+          using case_assms(4) by blast
+      next
+        assume case_assms3: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+          "\<forall>pa\<in>P. length (filter (\<lambda>x. x = [Tock]\<^sub>E) pa) = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) \<longrightarrow>
+            last pa = [Tock]\<^sub>E \<longrightarrow> (\<forall>q\<in>Q. \<rho> \<noteq> pa @ q)"
+        obtain p' where p'_assms: "p = p' @ [[Tock]\<^sub>E]"
+          by (metis case_assms(2) case_assms(4) filter.simps(1) snoc_eq_iff_butlast)
+        then have p'_tock_length: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) p') < length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+          using case_assms(4) case_assms3(1) by auto
+        have \<rho>_p'_cases: "\<rho> \<lesssim>\<^sub>C p' \<or> \<rho> \<subseteq>\<^sub>C p' @ [[Tock]\<^sub>E]"
+          using p'_assms case_assms2 apply auto apply (thin_tac "p = p' @ [[Tock]\<^sub>E]")
+          apply (induct \<rho> p' rule:tt_prefix_subset.induct, auto)
+          by (case_tac x, auto, case_tac xa, auto)
+        have "\<rho> \<lesssim>\<^sub>C p' \<Longrightarrow> length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) \<le> length (filter (\<lambda>x. x = [Tock]\<^sub>E) p')"
+          using tt_prefix_subset_Tock_filter_length by blast
+        then have "\<rho> \<subseteq>\<^sub>C p' @ [[Tock]\<^sub>E]"
+          using \<rho>_p'_cases case_assms3(1) p'_tock_length by linarith
+        then obtain \<rho>' where "\<rho> = \<rho>' @ [[Tock]\<^sub>E]"
+          apply - apply (induct \<rho> p' rule:tt_subset.induct, auto)
+          apply (insert tt_subset_same_length, fastforce)
+          by (case_tac v, auto, insert tt_subset_same_length, fastforce)
+        then have "last \<rho> = [Tock]\<^sub>E"
+          by auto
+        then have "\<forall>q\<in>Q. \<rho> \<noteq> \<rho> @ q"
+          using "1" case_assms3(1) case_assms3(2) by blast
+        then show "\<rho> \<in> Q"
+          using TT0_TT1_empty TT0_def assms(2) case_assms(5) by auto
+      next
+        assume case_assms3: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+          "\<forall>pa\<in>P. length (filter (\<lambda>x. x = [Tock]\<^sub>E) pa) = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) \<longrightarrow>
+            last pa = [Tock]\<^sub>E \<longrightarrow> (\<forall>q\<in>Q. \<rho> \<noteq> pa @ q)"
+        obtain p' where p'_assms: "p = p' @ [[Tock]\<^sub>E]"
+          by (metis case_assms(2) case_assms(4) filter.simps(1) snoc_eq_iff_butlast)
+        then have p'_tock_length: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) p') < length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+          using case_assms(4) case_assms3(1) by auto
+        have \<rho>_p'_cases: "\<rho> \<lesssim>\<^sub>C p' \<or> \<rho> \<subseteq>\<^sub>C p' @ [[Tock]\<^sub>E]"
+          using p'_assms case_assms2 apply auto apply (thin_tac "p = p' @ [[Tock]\<^sub>E]")
+          apply (induct \<rho> p' rule:tt_prefix_subset.induct, auto)
+          by (case_tac x, auto, case_tac xa, auto)
+        have "\<rho> \<lesssim>\<^sub>C p' \<Longrightarrow> length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) \<le> length (filter (\<lambda>x. x = [Tock]\<^sub>E) p')"
+          using tt_prefix_subset_Tock_filter_length by blast
+        then have "\<rho> \<subseteq>\<^sub>C p' @ [[Tock]\<^sub>E]"
+          using \<rho>_p'_cases case_assms3(1) p'_tock_length by linarith
+        then obtain \<rho>' where "\<rho> = \<rho>' @ [[Tock]\<^sub>E]"
+          apply - apply (induct \<rho> p' rule:tt_subset.induct, auto)
+          apply (insert tt_subset_same_length, fastforce)
+          by (case_tac v, auto, insert tt_subset_same_length, fastforce)
+        then have "last \<rho> = [Tock]\<^sub>E"
+          by auto
+        then have "\<forall>q\<in>Q. \<rho> \<noteq> \<rho> @ q"
+          using "1" case_assms3(1) case_assms3(2) by blast
+        then show "filter (\<lambda>x. x = [Tock]\<^sub>E) p = []"
+          using TT0_TT1_empty TT0_def assms(2) case_assms(5) by auto
+      qed
+    qed
+  qed
+qed
+
+lemma TT2_StrictTimedInterrupt:
+  assumes "TT2 P" "TT2 Q" "TT0 Q" "TT1 Q"
+  shows "TT2 (P \<triangle>\<^bsub>n\<^esub> Q)"
+  unfolding TT2_def
+proof auto
+  fix \<rho> \<sigma> X Y
+  assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<triangle>\<^bsub>n\<^esub> Q"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q) \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q)} = {}"
+  from assm1 have
+    "(\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<and> length (filter (\<lambda>x. x = [Tock]\<^sub>E) (\<rho> @ [X]\<^sub>R # \<sigma>)) < n)
+      \<or> (\<rho> @ [X]\<^sub>R # \<sigma> \<in> Q \<and> n = 0)
+      \<or> \<rho> @ [X]\<^sub>R # \<sigma> \<in> {t. \<exists>p\<in>P. \<exists>q\<in>Q. 0 < n \<and> last p = [Tock]\<^sub>E \<and> length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = n \<and> t = p @ q}"
+    unfolding StrictTimedInterruptTT_def by auto
+  then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<triangle>\<^bsub>n\<^esub> Q"
+  proof auto
+    assume case_assms: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P" "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) + length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<sigma>) < n"
+    have 1: "\<And> e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<Longrightarrow> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^bsub>n\<^esub> Q"
+      unfolding StrictTimedInterruptTT_def apply auto
+      using add_lessD1 case_assms(2) by blast+  
+    have 2: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<triangle>\<^bsub>n\<^esub> Q"
+      unfolding StrictTimedInterruptTT_def apply auto
+      using case_assms(2) apply blast
+      apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in ballE, simp)
+      using Suc_lessI TT0_TT1_empty add_lessD1 assms(3) assms(4) case_assms(2) apply (blast, blast)
+      apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in ballE, simp)
+      using Suc_lessI TT0_TT1_empty add_lessD1 assms(3) assms(4) case_assms(2) apply (blast, blast)
+      done
+    have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P}
+      \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q) \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q)}"
+      using 1 2 by auto
+    then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+      using assm2 by auto
+    then have "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
+      using TT2_aux1 assms(1) case_assms(1) by fastforce
+    then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<triangle>\<^bsub>n\<^esub> Q"
+      unfolding StrictTimedInterruptTT_def using case_assms(2) by auto
+  next
+    assume case_assms: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> Q" "n = 0"
+    then have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q) \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q)}
+      = {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
+      by (simp add: StrictTimedInterrupt_zero_deadline)
+    then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+      using assm2 by auto
+    then have "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
+      using TT2_aux1 assms(2) case_assms(1) by fastforce
+    then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<triangle>\<^bsub>0\<^esub> Q"
+      using StrictTimedInterrupt_zero_deadline by blast
+  next
+    fix p q
+    assume case_assms: "p \<in> P" "last p = [Tock]\<^sub>E" "n = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+      "filter (\<lambda>x. x = [Tock]\<^sub>E) p \<noteq> []" "q \<in> Q" "\<rho> @ [X]\<^sub>R # \<sigma> = p @ q"
+    have "(\<exists> \<rho>2. \<rho> = p @ \<rho>2 \<and> q = \<rho>2 @ [X]\<^sub>R # \<sigma>) \<or> (\<exists> \<sigma>1. p = \<rho> @ [X]\<^sub>R # \<sigma>1 \<and> \<sigma> = \<sigma>1 @ q)"
+      using case_assms(6) by (induct \<rho> p rule:tt_prefix_subset.induct, auto, metis Cons_eq_append_conv)
+    then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)\<^esub> Q"
+    proof auto
+      fix \<rho>2
+      assume case_assms2: "q = \<rho>2 @ [X]\<^sub>R # \<sigma>" "\<rho> = p @ \<rho>2"
+      have "{e. e \<noteq> Tock \<and> \<rho>2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} 
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q) \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q)}"
+        unfolding StrictTimedInterruptTT_def using append_assoc case_assms case_assms2(2) by auto
+      then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>2 @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>2 @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+        using assm2 by auto
+      then have "\<rho>2 @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
+        using TT2_aux1 assms(2) case_assms(5) case_assms2(1) by fastforce
+      then show "p @ \<rho>2 @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)\<^esub> Q"
+        unfolding StrictTimedInterruptTT_def using case_assms(1) case_assms(2) case_assms(4) by blast
+    next
+      fix \<sigma>1
+      assume case_assms2: "\<sigma> = \<sigma>1 @ q" "p = \<rho> @ [X]\<^sub>R # \<sigma>1"
+      have 1: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) \<le> n"
+        by (simp add: case_assms(3) case_assms2(2))
+      have 2: "\<sigma>1 \<noteq> [] \<and> last \<sigma>1 = [Tock]\<^sub>E"
+        by (metis case_assms(2) case_assms2(2) last.simps last_appendR list.distinct(1) ttobs.simps(4))
+      then have 3: "\<exists> \<sigma>1'. \<sigma>1 = \<sigma>1' @ [[Tock]\<^sub>E]"
+        by (metis append_butlast_last_id)
+      then have 4: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<sigma>1) > 0"
+        by auto
+      then have 5: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) < n"
+        by (simp add: case_assms(3) case_assms2(2))
+      have 6: "\<And>e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<Longrightarrow> \<rho> @ [[e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q)"
+        unfolding StrictTimedInterruptTT_def by (auto, simp add: case_assms(3) case_assms(4), insert 5, blast+)
+      have 7: "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q)"
+        unfolding StrictTimedInterruptTT_def apply auto
+        using "5" apply blast+
+        apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in ballE, auto, insert 5, linarith)
+        using TT0_TT1_empty assms(3) assms(4) apply blast
+        apply (erule_tac x="\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E]" in ballE, auto)
+        using TT0_TT1_empty assms(3) assms(4) apply blast
+        done
+      have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} 
+        \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q) \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> (P \<triangle>\<^bsub>n\<^esub> Q)}"
+        using 6 7 by auto
+      then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P} = {}"
+        using assm2 by auto
+      then  have "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>1 \<in> P"
+        using TT2_aux1 assms(1) case_assms(1) case_assms2(2) by fastforce
+      then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>1 @ q \<in> P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<rho>) + length (filter (\<lambda>x. x = [Tock]\<^sub>E) \<sigma>1)\<^esub> Q"
+        unfolding StrictTimedInterruptTT_def apply auto
+        using "4" apply blast
+        by (erule_tac x="\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>1" in ballE, insert "2" case_assms(5), auto)+
+    qed
+  qed
+qed
+
+lemma TT3_StrictTimedInterrupt:
+  assumes "TT3 P" "TT3 Q"
+  shows "TT3 (P \<triangle>\<^bsub>n\<^esub> Q)"
+  unfolding TT3_def StrictTimedInterruptTT_def
+proof auto
+  fix x
+  assume "x \<in> P"
+  then show "TT3_trace x"
+    using TT3_def assms(1) by blast
+next
+  fix x
+  assume "x \<in> Q"
+  then show "TT3_trace x"
+    using TT3_def assms(2) by blast
+next
+  fix p q
+  assume case_assms: "p \<in> P" "q \<in> Q" "last p = [Tock]\<^sub>E" "n = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)" "filter (\<lambda>x. x = [Tock]\<^sub>E) p \<noteq> []"
+  have "\<And> P Q. TT3 P \<Longrightarrow> TT3 Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> last p = [Tock]\<^sub>E \<Longrightarrow> TT3_trace (p @ q)"
+    apply (induct p rule:TT3_trace.induct, auto)
+    using TT3_def apply (blast)
+          apply (case_tac x, auto)
+    apply (induct q rule:TT3_trace.induct, auto)
+    using TT3_def TT3_trace.simps(3) apply blast
+    apply (meson TT3_def TT3_trace.simps(3))
+    apply (meson TT3_def TT3_trace_cons_imp_cons)
+    apply (meson TT3_def TT3_trace_cons_imp_cons)
+    apply (meson TT3_def TT3_trace_cons_imp_cons)
+    apply (meson TT3_def TT3_trace_cons_imp_cons)
+    apply (induct q rule:TT3_trace.induct, auto)
+    apply (meson TT3_def TT3_trace.simps(3))
+    apply (meson TT3_def TT3_trace.simps(3))
+    apply (meson TT3_def TT3_trace.simps(3))
+    apply (meson TT3_def TT3_trace.simps(3))
+    apply (meson TT3_def TT3_trace.simps(3))
+    apply (meson TT3_def TT3_trace.simps(3))
+    apply (meson TT3_def TT3_trace.simps(3))
+    apply (induct q rule:TT3_trace.induct, auto)
+    apply (meson TT3_def TT3_trace.simps(3))
+    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (induct q rule:TT3_trace.induct, auto)
+    apply (meson TT3_def TT3_trace_cons_imp_cons)
+    apply (metis TT3_def TT3_trace_cons_imp_cons mem_Collect_eq)+
+    done
+  then show "TT3_trace (p @ q)"
+    using assms case_assms by auto
+qed
+
+lemma TT4_StrictTimedInterrupt:
+  assumes "TT4 P" "TT4 Q"
+  shows "TT4 (P \<triangle>\<^bsub>n\<^esub> Q)"
+  unfolding TT4_def StrictTimedInterruptTT_def apply auto
+  using TT4_def assms(1) apply blast
+  apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
+  using TT4_def assms(2) apply blast
+  apply (metis TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_Tock_same_length append_butlast_last_id assms(1) assms(2) last_appendR list.distinct(1))
+  by (metis TT4_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_end_event add_Tick_refusal_trace_filter_Tock_same_length append_butlast_last_id assms(1) assms(2) filter.simps(1) last_snoc)
+
+
 end
