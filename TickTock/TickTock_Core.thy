@@ -2332,6 +2332,11 @@ proof auto
     by (induct \<rho> rule:tocks.induct, auto simp add: assm tocks.empty_in_tocks tocks.tock_insert_in_tocks)
 qed
 
+lemma in_tocks_last:
+  "t \<noteq> [] \<Longrightarrow> t \<in> tocks X \<Longrightarrow> last t = [Tock]\<^sub>E"
+  apply (induct t rule:ttWF.induct, auto simp add: notin_tocks)
+  using tocks.simps by auto
+
 section {* Refinement *}
 
 definition RefinesTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where

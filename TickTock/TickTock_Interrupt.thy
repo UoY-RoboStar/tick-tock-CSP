@@ -1,5 +1,5 @@
 theory TickTock_Interrupt
-  imports TickTock_Core
+  imports TickTock_Core TickTock_Basic_Ops TickTock_SeqComp
 begin
 
 subsection {* Intersecting a refusal with refusals in a trace *}
@@ -2037,5 +2037,93 @@ lemma TT4_StrictTimedInterrupt:
   apply (metis TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_Tock_same_length append_butlast_last_id assms(1) assms(2) last_appendR list.distinct(1))
   by (metis TT4_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_end_event add_Tick_refusal_trace_filter_Tock_same_length append_butlast_last_id assms(1) assms(2) filter.simps(1) last_snoc)
 
+lemma Stop_StrictTimedInterrupt:
+  assumes "TT0 Q" "TT1 Q"
+  shows "(STOP\<^sub>C \<triangle>\<^bsub>n\<^esub> Q) = wait\<^sub>C[n] ;\<^sub>C Q"
+  unfolding StrictTimedInterruptTT_def
+proof (auto)
+  fix x
+  show "x \<in> STOP\<^sub>C \<Longrightarrow> length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) < n \<Longrightarrow> x \<in> wait\<^sub>C[n] ;\<^sub>C Q"
+    unfolding StopTT_def WaitTT_def SeqCompTT_def using end_tick_notin_tocks by auto
+next
+  fix x
+  show "x \<in> Q \<Longrightarrow> n = 0 \<Longrightarrow> x \<in> wait\<^sub>C[0] ;\<^sub>C Q"
+    unfolding WaitTT_def SeqCompTT_def using tocks.empty_in_tocks by fastforce 
+next
+  fix p q
+  show "p \<in> STOP\<^sub>C \<Longrightarrow> q \<in> Q \<Longrightarrow> last p = [Tock]\<^sub>E \<Longrightarrow> p @ q \<in> wait\<^sub>C[length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)] ;\<^sub>C Q"
+    unfolding StopTT_def WaitTT_def SeqCompTT_def by auto
+next
+  fix x
+  show "x \<in> wait\<^sub>C[0] ;\<^sub>C Q \<Longrightarrow> n = 0 \<Longrightarrow> x \<notin> Q \<Longrightarrow> x \<in> STOP\<^sub>C"
+    unfolding StopTT_def WaitTT_def SeqCompTT_def apply auto
+    using end_tick_notin_tocks apply blast
+    using tocks_length_eq by fastforce
+next
+  fix x
+  show "x \<in> wait\<^sub>C[0] ;\<^sub>C Q \<Longrightarrow> n = 0 \<Longrightarrow> x \<notin> Q \<Longrightarrow> False"
+    unfolding  WaitTT_def SeqCompTT_def apply auto
+    using TT0_TT1_empty assms(1) assms(2) tocks_length_eq apply fastforce
+    using end_tick_notin_tocks apply blast
+    using tocks_length_eq by fastforce
+next
+  fix x
+  show "x \<in> wait\<^sub>C[n] ;\<^sub>C Q \<Longrightarrow>
+    \<forall>p\<in>STOP\<^sub>C. length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = n \<longrightarrow> last p = [Tock]\<^sub>E \<longrightarrow> (\<forall>q\<in>Q. x \<noteq> p @ q)
+    \<Longrightarrow> x \<notin> Q \<Longrightarrow> x \<in> STOP\<^sub>C"
+    unfolding SeqCompTT_def apply auto
+    unfolding WaitTT_def StopTT_def apply blast
+    apply (auto simp add: end_tick_notin_tocks)
+    apply (erule_tac x="sa" in allE, auto)
+    apply (rule_tac x="sa" in bexI, auto)
+    by (metis append_Nil in_tocks_last)
+next
+  fix x
+  show "x \<in> wait\<^sub>C[n] ;\<^sub>C Q \<Longrightarrow>
+    \<forall>p\<in>STOP\<^sub>C. length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = n \<longrightarrow> last p = [Tock]\<^sub>E \<longrightarrow> (\<forall>q\<in>Q. x \<noteq> p @ q)
+    \<Longrightarrow> x \<notin> Q \<Longrightarrow> length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) < n"
+    unfolding SeqCompTT_def apply auto
+    unfolding WaitTT_def StopTT_def apply (auto simp add: end_tick_notin_tocks)
+    apply (metis TT0_TT1_empty append.right_neutral assms(1) assms(2) in_tocks_last)
+    apply (erule_tac x="sa" in allE, auto)
+    by (metis append_Nil in_tocks_last)
+next
+  fix x
+  show "x \<in> wait\<^sub>C[n] ;\<^sub>C Q \<Longrightarrow>
+    \<forall>p\<in>STOP\<^sub>C. length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = n \<longrightarrow> last p = [Tock]\<^sub>E \<longrightarrow> (\<forall>q\<in>Q. x \<noteq> p @ q)
+    \<Longrightarrow> 0 < n \<Longrightarrow> x \<in> STOP\<^sub>C"
+    unfolding SeqCompTT_def apply auto
+    unfolding WaitTT_def StopTT_def apply (auto simp add: end_tick_notin_tocks)
+    by (metis filter.simps(1) in_tocks_last)
+next
+  fix x
+  show "x \<in> wait\<^sub>C[n] ;\<^sub>C Q \<Longrightarrow>
+    \<forall>p\<in>STOP\<^sub>C. length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = n \<longrightarrow> last p = [Tock]\<^sub>E \<longrightarrow> (\<forall>q\<in>Q. x \<noteq> p @ q)
+    \<Longrightarrow> 0 < n \<Longrightarrow> length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) < n"
+    unfolding SeqCompTT_def apply auto
+    unfolding WaitTT_def StopTT_def apply (auto simp add: end_tick_notin_tocks)
+    apply (metis TT0_TT1_empty append_Nil2 assms(1) assms(2) filter.simps(1) in_tocks_last)
+    by (metis filter.simps(1) in_tocks_last)
+qed
+
+lemma Skip_StrictTimedInterrupt:
+  shows "n > 0 \<Longrightarrow> (SKIP\<^sub>C \<triangle>\<^bsub>n\<^esub> Q) = SKIP\<^sub>C"
+  unfolding StrictTimedInterruptTT_def SkipTT_def by auto
+
+lemma StrictTimedInterrupt_union_dist1:
+  "(P \<triangle>\<^bsub>n\<^esub> (Q \<union> R)) = (P \<triangle>\<^bsub>n\<^esub> Q) \<union> (P \<triangle>\<^bsub>n\<^esub> R)"
+  unfolding StrictTimedInterruptTT_def by auto
+
+lemma StrictTimedInterrupt_union_dist2:
+  "((P \<union> Q) \<triangle>\<^bsub>n\<^esub> R) = (P \<triangle>\<^bsub>n\<^esub> R) \<union> (Q \<triangle>\<^bsub>n\<^esub> R)"
+  unfolding StrictTimedInterruptTT_def by auto
+
+lemma StrictTimedInterrupt_Union_dist1:
+  "S \<noteq> {} \<Longrightarrow> (P \<triangle>\<^bsub>n\<^esub> \<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = P \<triangle>\<^bsub>n\<^esub> Q}"
+  unfolding StrictTimedInterruptTT_def by auto
+
+lemma StrictTimedInterrupt_Union_dist2:
+  "S \<noteq> {} \<Longrightarrow> (\<Union>S \<triangle>\<^bsub>n\<^esub> Q) = \<Union>{R. \<exists>P. P \<in> S \<and> R = P \<triangle>\<^bsub>n\<^esub> Q}"
+  unfolding StrictTimedInterruptTT_def by auto
 
 end
