@@ -1995,7 +1995,6 @@ next
   have "\<And> P Q. TT3 P \<Longrightarrow> TT3 Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> last p = [Tock]\<^sub>E \<Longrightarrow> TT3_trace (p @ q)"
     apply (induct p rule:TT3_trace.induct, auto)
     using TT3_def apply (blast)
-          apply (case_tac x, auto)
     apply (induct q rule:TT3_trace.induct, auto)
     using TT3_def TT3_trace.simps(3) apply blast
     apply (meson TT3_def TT3_trace.simps(3))
@@ -2109,6 +2108,200 @@ qed
 lemma Skip_StrictTimedInterrupt:
   shows "n > 0 \<Longrightarrow> (SKIP\<^sub>C \<triangle>\<^bsub>n\<^esub> Q) = SKIP\<^sub>C"
   unfolding StrictTimedInterruptTT_def SkipTT_def by auto
+
+lemma Wait_less_StrictTimedInterrupt:
+  assumes "TT0 Q" "TT1 Q"
+  shows "m < n \<Longrightarrow> ((wait\<^sub>C[m] ;\<^sub>C P) \<triangle>\<^bsub>n\<^esub> Q) = wait\<^sub>C[m] ;\<^sub>C (P \<triangle>\<^bsub>n-m\<^esub> Q)"
+proof auto
+  fix x
+  assume case_assms: "m < n" "x \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+  then have "(x \<in> wait\<^sub>C[m] ;\<^sub>C P \<and> length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) < n) 
+    \<or> (\<exists> p q. p \<in> wait\<^sub>C[m] ;\<^sub>C P \<and> length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = n \<and> last p = [Tock]\<^sub>E \<and> q \<in> Q \<and> x = p @ q)"
+    unfolding StrictTimedInterruptTT_def by auto
+  then show "x \<in> wait\<^sub>C[m] ;\<^sub>C (P \<triangle>\<^bsub>n - m\<^esub> Q)"
+  proof auto
+    assume case_assms2: "x \<in> wait\<^sub>C[m] ;\<^sub>C P" "length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) < n"
+    then have "(x \<in> wait\<^sub>C[m] \<and> (\<nexists>s. x = s @ [[Tick]\<^sub>E])) \<or> (\<exists> w p. w @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[m] \<and> p \<in> P \<and> x = w @ p)"
+      unfolding SeqCompTT_def by auto
+    then show "x \<in> wait\<^sub>C[m] ;\<^sub>C (P \<triangle>\<^bsub>n - m\<^esub> Q)"
+    proof auto
+      assume "x \<in> wait\<^sub>C[m]" "\<forall>s. x \<noteq> s @ [[Tick]\<^sub>E]"
+      then show "x \<in> wait\<^sub>C[m] ;\<^sub>C (P \<triangle>\<^bsub>n - m\<^esub> Q)"
+        unfolding SeqCompTT_def by auto
+    next
+      fix w p
+      assume case_assms3: "w @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[m]" "p \<in> P" "x = w @ p"
+      have "length (filter (\<lambda>x. x = [Tock]\<^sub>E) w) = m"
+        using case_assms3(1) unfolding WaitTT_def by (auto simp add: notin_tocks)
+      then have "p \<in> (P \<triangle>\<^bsub>n - m\<^esub> Q)"
+        unfolding StrictTimedInterruptTT_def using case_assms case_assms2 case_assms3 by auto
+      then show "w @ p \<in> wait\<^sub>C[m] ;\<^sub>C (P \<triangle>\<^bsub>n - m\<^esub> Q)"
+        unfolding SeqCompTT_def using case_assms3 by auto
+    qed
+  next
+    fix p q
+    assume case_assms2: "p \<in> wait\<^sub>C[m] ;\<^sub>C P" "n = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+      "last p = [Tock]\<^sub>E" "q \<in> Q" "x = p @ q"
+    have "(\<exists> w p'. w @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[m] \<and> p' \<in> P \<and> p = w @ p') \<or> (p \<in> wait\<^sub>C[m] \<and> (\<nexists>s. p = s @ [[Tick]\<^sub>E]))"
+      using case_assms2(1) unfolding SeqCompTT_def by auto
+    then show "p @ q \<in> wait\<^sub>C[m] ;\<^sub>C (P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) - m\<^esub> Q)"
+    proof auto
+      fix w p'
+      assume case_assms3: "w @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[m]" "p' \<in> P" "p = w @ p'"
+      have w_Tock_length: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) w) = m"
+        using case_assms3(1) unfolding WaitTT_def by (auto simp add: notin_tocks)
+      have 1: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) p') = n-m"
+        using case_assms2(2) case_assms3(3) by (auto simp add: w_Tock_length)
+      have 2: "last p' = [Tock]\<^sub>E"
+        using case_assms2(3) case_assms3(3) 1 apply auto
+        by (metis append_Nil2 case_assms(1) case_assms2(2) last_appendR nat_less_le w_Tock_length)
+      have "p' @ q \<in> P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) w) + length (filter (\<lambda>x. x = [Tock]\<^sub>E) p') - m\<^esub> Q"
+        unfolding StrictTimedInterruptTT_def using 1 2 case_assms case_assms2 case_assms3 by auto
+      then show "w @ p' @ q \<in> wait\<^sub>C[m] ;\<^sub>C (P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) w) + length (filter (\<lambda>x. x = [Tock]\<^sub>E) p') - m\<^esub> Q)"
+        unfolding SeqCompTT_def using case_assms3 by auto
+    next
+      assume case_assms3: "p \<in> wait\<^sub>C[m]" "\<forall>s. p \<noteq> s @ [[Tick]\<^sub>E]"
+      have "p @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[m]"
+        using case_assms case_assms2 case_assms3 unfolding WaitTT_def by auto
+      then have "length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = m"
+        unfolding WaitTT_def by (auto simp add: notin_tocks)
+      then have "n = m"
+        using case_assms2(2) by blast
+      then show "p @ q \<in> wait\<^sub>C[m] ;\<^sub>C (P \<triangle>\<^bsub>length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) - m\<^esub> Q)"
+        using case_assms(1) by auto
+    qed
+  qed
+next
+  fix x
+  assume case_assms: "m < n" "x \<in> wait\<^sub>C[m] ;\<^sub>C (P \<triangle>\<^bsub>n - m\<^esub> Q)"
+  then have "(x \<in> wait\<^sub>C[m] \<and> (\<nexists>s. x = s @ [[Tick]\<^sub>E])) \<or> (\<exists> w pq. w @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[m] \<and> pq \<in> (P \<triangle>\<^bsub>n - m\<^esub> Q) \<and> x = w @ pq)"
+    unfolding SeqCompTT_def by auto
+  then show "x \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+  proof auto
+    assume case_assms2: "x \<in> wait\<^sub>C[m]" "\<forall>s. x \<noteq> s @ [[Tick]\<^sub>E]"
+    have 1: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) \<le> m"
+      using case_assms2 unfolding WaitTT_def by auto
+    have 2:  "x \<in> wait\<^sub>C[m] ;\<^sub>C P"
+      using case_assms2 unfolding SeqCompTT_def by auto
+    show "x \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+      unfolding StrictTimedInterruptTT_def using case_assms 1 2 by auto
+  next
+    fix w pq
+    assume case_assms2: "w @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[m]" "pq \<in> P \<triangle>\<^bsub>n - m\<^esub> Q" "x = w @ pq"
+    then have "(pq \<in> P \<and> length (filter (\<lambda>x. x = [Tock]\<^sub>E) pq) < n-m)
+      \<or> (\<exists> p q. p \<in> P \<and> q \<in> Q \<and> last p = [Tock]\<^sub>E \<and> length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = n-m \<and> pq = p @ q)"
+      unfolding StrictTimedInterruptTT_def using case_assms(1) by auto
+    then show "w @ pq \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+    proof auto
+      assume case_assms3: "pq \<in> P" "length (filter (\<lambda>x. x = [Tock]\<^sub>E) pq) < n - m"
+      have 1: "w @ pq \<in> wait\<^sub>C[m] ;\<^sub>C P"
+        unfolding SeqCompTT_def using case_assms2(1) case_assms3(1) by blast
+      have 2: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) (w @ pq)) < n"
+        using case_assms2 case_assms3 unfolding WaitTT_def by auto
+      show "w @ pq \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+        unfolding StrictTimedInterruptTT_def using 1 2 by auto
+    next
+      fix p q
+      assume case_assms3: "p \<in> P" "q \<in> Q" "last p = [Tock]\<^sub>E"
+        "length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = n - m" "pq = p @ q"
+      have 1: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) (w @ p)) = n"
+        using case_assms case_assms2 case_assms3 unfolding WaitTT_def by (auto simp add: notin_tocks)
+      have 2: "last (w @ p) = [Tock]\<^sub>E"
+        by (metis case_assms(1) case_assms3(3) case_assms3(4) diff_is_0_eq filter.simps(1) last_appendR leD list.size(3))
+      have 3: "w @ p \<in> wait\<^sub>C[m] ;\<^sub>C P"
+        unfolding SeqCompTT_def using case_assms2(1) case_assms3(1) by blast
+      show "w @ p @ q \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+        unfolding StrictTimedInterruptTT_def using 1 2 3 case_assms using case_assms3(2) by auto
+    qed
+  qed
+qed
+
+lemma Wait_geq_StrictTimedInterrupt:
+  assumes "TT0 Q" "TT1 Q"
+  shows "m \<ge> n \<Longrightarrow> ((wait\<^sub>C[m] ;\<^sub>C P) \<triangle>\<^bsub>n\<^esub> Q) = wait\<^sub>C[n] ;\<^sub>C Q"
+proof auto
+  fix x
+  assume case_assms: "n \<le> m" "x \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+  then have "(x \<in> wait\<^sub>C[m] ;\<^sub>C P \<and> length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) < n)
+    \<or> (n = 0 \<and> x \<in> Q)
+    \<or> (\<exists> p q. p \<in> wait\<^sub>C[m] ;\<^sub>C P \<and> q \<in> Q \<and> last p = [Tock]\<^sub>E \<and> length (filter (\<lambda>x. x = [Tock]\<^sub>E) p) = n \<and> x = p @ q)"
+    unfolding StrictTimedInterruptTT_def by auto
+  then show "x \<in> wait\<^sub>C[n] ;\<^sub>C Q"
+  proof auto
+    assume case_assms2: "x \<in> wait\<^sub>C[m] ;\<^sub>C P" "length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) < n"
+    have 1: "x \<in> wait\<^sub>C[n]"
+      using case_assms(1) case_assms2 unfolding WaitTT_def SeqCompTT_def by (auto simp add: notin_tocks)
+    then have 2: "\<nexists>s. x = s @ [[Tick]\<^sub>E]"
+      using case_assms2 unfolding WaitTT_def by (auto simp add: notin_tocks)
+    then show "x \<in> wait\<^sub>C[n] ;\<^sub>C Q"
+      using case_assms2 1 2 unfolding SeqCompTT_def by auto
+  next
+    show "x \<in> Q \<Longrightarrow> x \<in> wait\<^sub>C[0] ;\<^sub>C Q"
+      unfolding WaitTT_def SeqCompTT_def using tocks.intros by (auto, fastforce+)
+  next
+    fix p q
+    assume case_assms2: "p \<in> wait\<^sub>C[m] ;\<^sub>C P" "q \<in> Q" "last p = [Tock]\<^sub>E" "x = p @ q" "n = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)"
+    have 1: "p \<in> wait\<^sub>C[n]"
+      using case_assms case_assms2 unfolding SeqCompTT_def apply auto
+      unfolding WaitTT_def apply (auto simp add: notin_tocks)
+      by (smt append_butlast_last_id append_is_Nil_conv append_self_conv filter.simps(1) filter.simps(2) filter_append last_append not_Cons_self2)
+    then have 2: "p @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[n]"
+      unfolding WaitTT_def using case_assms2(3) by (auto simp add: case_assms2(5))
+    then show "p @ q \<in> wait\<^sub>C[length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)] ;\<^sub>C Q"
+      using case_assms2 unfolding SeqCompTT_def by auto
+  qed
+next
+  fix x
+  assume case_assms: "n \<le> m" "x \<in> wait\<^sub>C[n] ;\<^sub>C Q"
+  then have "(x \<in> wait\<^sub>C[n] \<and> (\<nexists>s. x = s @ [[Tick]\<^sub>E]))
+    \<or> (\<exists> w q. w @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[n] \<and> q \<in> Q \<and> x = w @ q)"
+    unfolding SeqCompTT_def by auto
+  then show "x \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+  proof auto
+    assume case_assms2: "x \<in> wait\<^sub>C[n]" "\<forall>s. x \<noteq> s @ [[Tick]\<^sub>E]"
+    have 1: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) \<le> n"
+      using case_assms2 unfolding WaitTT_def by auto
+    have 2: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) x) = n \<Longrightarrow> n > 0 \<Longrightarrow> last x = [Tock]\<^sub>E"
+      using case_assms2 unfolding WaitTT_def apply auto
+      apply (induct x rule:ttWF.induct, auto simp add: notin_tocks)
+      by (metis in_tocks_last last.simps list.distinct(1))
+    have 3: "x \<in> wait\<^sub>C[m]"
+      using case_assms case_assms2 unfolding WaitTT_def apply auto
+      using less_le_trans le_neq_implies_less by blast+
+    have 4: "x \<in> wait\<^sub>C[m] ;\<^sub>C P"
+      using case_assms2 3 unfolding SeqCompTT_def by auto
+    show "x \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+      using case_assms case_assms2 1 2 4 unfolding StrictTimedInterruptTT_def apply auto
+      using Stop_StrictTimedInterrupt StrictTimedInterrupt_zero_deadline assms apply blast
+      using Stop_StrictTimedInterrupt StrictTimedInterrupt_zero_deadline TT0_TT1_empty assms by fastforce+
+  next
+    fix w q
+    assume case_assms2: "w @ [[Tick]\<^sub>E] \<in> wait\<^sub>C[n]" "q \<in> Q" "x = w @ q"
+    have 1: "n > 0 \<Longrightarrow> last w = [Tock]\<^sub>E"
+      using case_assms2 unfolding WaitTT_def apply (auto simp add: notin_tocks)
+      by (induct w rule:ttWF.induct, auto simp add: notin_tocks, metis in_tocks_last last.simps neq_Nil_conv)
+    have 2: "length (filter (\<lambda>x. x = [Tock]\<^sub>E) w) = n"
+      using case_assms2 unfolding WaitTT_def by (auto simp add: notin_tocks)
+    have 3: "w \<in> wait\<^sub>C[m]"
+      using case_assms case_assms2 2 unfolding WaitTT_def apply (auto simp add: notin_tocks)
+      using nat_less_le by blast
+    have 4: "w \<in> wait\<^sub>C[m] ;\<^sub>C P"
+      using case_assms case_assms2 3 unfolding SeqCompTT_def 
+    proof auto
+      fix s :: "'a ttobs list"
+      show "s @ [[Tick]\<^sub>E, [Tick]\<^sub>E] \<in> wait\<^sub>C[n] \<Longrightarrow> False"
+        using WaitTT_wf using ttWF_dist_notTock_cons by (induct s rule:ttWF.induct, fastforce+)
+    next
+      fix s :: "'a ttobs list"
+      show "s @ [[Tick]\<^sub>E, [Tick]\<^sub>E] \<in> wait\<^sub>C[n] \<Longrightarrow> False"
+        using WaitTT_wf using ttWF_dist_notTock_cons by (induct s rule:ttWF.induct, fastforce+)
+    qed
+    show "w @ q \<in> wait\<^sub>C[m] ;\<^sub>C P \<triangle>\<^bsub>n\<^esub> Q"
+      using case_assms case_assms2 1 2 4 unfolding StrictTimedInterruptTT_def apply auto
+      using Stop_StrictTimedInterrupt StrictTimedInterrupt_zero_deadline assms(1) assms(2) apply blast
+      using Stop_StrictTimedInterrupt StrictTimedInterrupt_zero_deadline assms(1) assms(2) by fastforce
+  qed
+qed
 
 lemma StrictTimedInterrupt_union_dist1:
   "(P \<triangle>\<^bsub>n\<^esub> (Q \<union> R)) = (P \<triangle>\<^bsub>n\<^esub> Q) \<union> (P \<triangle>\<^bsub>n\<^esub> R)"
