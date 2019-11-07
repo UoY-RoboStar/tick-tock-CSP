@@ -218,30 +218,13 @@ qed
 lemma RecursionTT_unfold:
   assumes TT0_F: "\<And> X. TT0 X \<Longrightarrow> TT0 (F X)" 
   assumes TT1_F: "\<And> X. TT1 X \<Longrightarrow> TT1 (F X)"
-  assumes dist_F: "\<And>S. S \<noteq> {} \<Longrightarrow> (\<And> x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<subseteq> y \<or> y \<subseteq> x) \<Longrightarrow> F (\<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = F Q}"
+  assumes dist_F: "\<And>S. S \<noteq> {} \<Longrightarrow> F (\<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = F Q}"
   shows "(\<mu>\<^sub>C F) = F (\<mu>\<^sub>C F)"
 proof -
-  have F_mono: "\<And>X Y. X \<sqsubseteq>\<^sub>C Y \<Longrightarrow> F X \<sqsubseteq>\<^sub>C F Y"
-  proof -
-    fix X Y :: "'a ttobs list set"
-    assume X_refines_Y: "X \<sqsubseteq>\<^sub>C Y"
-    then have "\<And>x y. x \<in> {X, Y} \<Longrightarrow> y \<in> {X, Y} \<Longrightarrow> x \<subseteq> y \<or> y \<subseteq> x"
-      unfolding RefinesTT_def by auto
-    then have "F (\<Union>{X, Y}) = \<Union>{R. \<exists>Q. Q \<in> {X, Y} \<and> R = F Q}"
-      using dist_F[where S="{X, Y}"] by auto
-    then have "F (X \<union> Y) = (F X) \<union> (F Y)"
-      by auto
-    then have "F X = (F X) \<union> (F Y)"
-      using X_refines_Y unfolding RefinesTT_def by (metis sup.orderE) 
-    then show "F X \<sqsubseteq>\<^sub>C F Y"
-      using X_refines_Y unfolding RefinesTT_def by auto
-  qed
-  have 1: "{P. \<exists>n. P = iterateTT F n} \<noteq> {}"
+  have "{P. \<exists>n. P = iterateTT F n} \<noteq> {}"
     by blast
-  have 2: "\<And>x y. x \<in> {P. \<exists>n. P = iterateTT F n} \<Longrightarrow> y \<in> {P. \<exists>n. P = iterateTT F n} \<Longrightarrow> x \<subseteq> y \<or> y \<subseteq> x"
-    using F_mono TT0_F TT1_F iterateTT_subset3 by blast
   then have "\<Union>{P. \<exists>n. P = F (iterateTT F n)} = F (\<Union>{P. \<exists>n. P = iterateTT F n})"
-    using dist_F[where S="{P. \<exists>n. P = iterateTT F n}"] 1 2 by auto
+    using dist_F[where S="{P. \<exists>n. P = iterateTT F n}"] by auto
   also have "\<Union>{P. \<exists>n. P = F (iterateTT F n)} = \<Union>{P. \<exists>n. P = (iterateTT F n)}"
   proof auto
     fix x n
