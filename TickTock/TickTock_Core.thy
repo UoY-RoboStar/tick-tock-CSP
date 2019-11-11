@@ -2342,4 +2342,73 @@ section {* Refinement *}
 definition RefinesTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
   "P \<sqsubseteq>\<^sub>C Q = (Q \<subseteq> P)"
 
-end
+section {* Bottom element of refinement lattice *}
+
+lemma ttWF_traces_TT0:
+  "TT0 {t. ttWF t \<and> TT3_trace t}"
+  unfolding TT0_def by (auto, rule_tac x="[]" in exI, auto)
+
+lemma ttWF_traces_TT1:
+  "TT1 {t. ttWF t \<and> TT3_trace t}"
+  unfolding TT1_def using tt_prefix_subset_ttWF tt_prefix_of_TT3_trace by blast
+
+lemma ttWF_traces_TT2:
+  "TT2 {t. ttWF t \<and> TT3_trace t}"
+  unfolding TT2_def
+proof auto
+  fix \<rho> \<sigma> :: "'a ttobs list"
+  fix X Y
+  show "ttWF (\<rho> @ [X]\<^sub>R # \<sigma>) \<Longrightarrow> ttWF (\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>)"
+    by (induct \<rho> rule:ttWF.induct, auto, induct \<sigma> rule:ttWF.induct, auto)
+next
+  fix \<rho> \<sigma> :: "'a ttobs list"
+  fix X Y
+  show "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<rho> @ [[e]\<^sub>E]) \<and> TT3_trace (\<rho> @ [[e]\<^sub>E]) \<or> e = Tock \<and> ttWF (\<rho> @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> TT3_trace (\<rho> @ [[X]\<^sub>R, [e]\<^sub>E])} = {} \<Longrightarrow>
+    ttWF (\<rho> @ [X]\<^sub>R # \<sigma>) \<Longrightarrow> TT3_trace (\<rho> @ [X]\<^sub>R # \<sigma>) \<Longrightarrow> TT3_trace (\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>)"
+  proof (induct \<rho> rule:ttWF.induct, auto, induct "[X]\<^sub>R # \<sigma>" rule:ttWF.induct, auto)
+    fix e \<sigma>'
+    assume assm1: "Y \<inter> {ea. ea \<noteq> Tock \<and> ttWF (\<sigma>' @ [[ea]\<^sub>E]) \<and> TT3_trace ([Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E])
+        \<or> ea = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E]) \<and> TT3_trace ([Event e]\<^sub>E # \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E])} = {}"
+    assume assm2: "ttWF (\<sigma>' @ [X]\<^sub>R # \<sigma>)"
+    assume assm3: "TT3_trace ([Event e]\<^sub>E # \<sigma>' @ [X]\<^sub>R # \<sigma>)"
+    assume ind_hyp: "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<sigma>' @ [[e]\<^sub>E]) \<and> TT3_trace (\<sigma>' @ [[e]\<^sub>E]) \<or> e = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> TT3_trace (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E])} = {} \<Longrightarrow>
+        TT3_trace (\<sigma>' @ [X]\<^sub>R # \<sigma>) \<Longrightarrow> TT3_trace (\<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma>)"
+    have "{e. e \<noteq> Tock \<and> ttWF (\<sigma>' @ [[e]\<^sub>E]) \<and> TT3_trace (\<sigma>' @ [[e]\<^sub>E])
+        \<or> e = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> TT3_trace (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E])}
+      \<subseteq> {ea. ea \<noteq> Tock \<and> ttWF (\<sigma>' @ [[ea]\<^sub>E]) \<and> TT3_trace ([Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E])
+        \<or> ea = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E]) \<and> TT3_trace ([Event e]\<^sub>E # \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E])}"
+      by (auto, (metis TT3_trace.simps(2) TT3_trace.simps(4) list.exhaust)+)
+    then have "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<sigma>' @ [[e]\<^sub>E]) \<and> TT3_trace (\<sigma>' @ [[e]\<^sub>E])
+        \<or> e = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> TT3_trace (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E])}
+      \<subseteq> Y \<inter> {ea. ea \<noteq> Tock \<and> ttWF (\<sigma>' @ [[ea]\<^sub>E]) \<and> TT3_trace ([Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E])
+        \<or> ea = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E]) \<and> TT3_trace ([Event e]\<^sub>E # \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E])}"
+      by blast
+    then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<sigma>' @ [[e]\<^sub>E]) \<and> TT3_trace (\<sigma>' @ [[e]\<^sub>E])
+        \<or> e = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> TT3_trace (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E])} = {}"
+      using assm1 by auto
+    have 2: "TT3_trace (\<sigma>' @ [X]\<^sub>R # \<sigma>)"
+      using TT3_trace_cons_imp_cons assm3 by blast
+    have "TT3_trace (\<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma>)"
+      using ind_hyp 1 2 by auto
+    then show "TT3_trace ([Event e]\<^sub>E # \<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma>)"
+      by (metis TT3_trace.simps(2) TT3_trace.simps(4) list.exhaust)
+  qed
+qed
+
+lemma ttWF_traces_TT4:
+  "TT4 {t. ttWF t \<and> TT3_trace t}"
+  unfolding TT4_def
+proof auto
+  fix \<rho> :: "'a ttobs list"
+  show "ttWF \<rho> \<Longrightarrow> ttWF (add_Tick_refusal_trace \<rho>)"
+    by (induct \<rho> rule:ttWF.induct, auto)
+next
+  fix \<rho> :: "'a ttobs list"
+  show "TT3_trace \<rho> \<Longrightarrow> TT3_trace (add_Tick_refusal_trace \<rho>)"
+    by (induct \<rho> rule:TT3_trace.induct, auto, case_tac x, auto,case_tac vb, auto)
+qed
+
+lemma bottom_healthy_process:
+  assumes "\<forall> t\<in>P. ttWF t" "TT0 P" "TT1 P" "TT2 P" "TT3 P" "TT4 P"
+  shows "{t. ttWF t \<and> TT3_trace t} \<sqsubseteq>\<^sub>C P"
+  using assms unfolding TT3_def RefinesTT_def by auto
