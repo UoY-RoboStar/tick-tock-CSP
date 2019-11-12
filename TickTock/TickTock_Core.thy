@@ -2412,3 +2412,330 @@ lemma bottom_healthy_process:
   assumes "\<forall> t\<in>P. ttWF t" "TT0 P" "TT1 P" "TT2 P" "TT3 P" "TT4 P"
   shows "{t. ttWF t \<and> TT3_trace t} \<sqsubseteq>\<^sub>C P"
   using assms unfolding TT3_def RefinesTT_def by auto
+
+thm TT2_def
+
+definition SupremumTT :: "'a ttobs list set \<Rightarrow> 'a ttobs list set \<Rightarrow> 'a ttobs list set" where
+  "SupremumTT P Q = {t\<in>P\<inter>Q. \<forall> \<rho> \<sigma> X Y. t = \<rho> @ [[X]\<^sub>R] @ \<sigma>
+    \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<inter> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<inter> Q} = {} \<longrightarrow>
+      \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P \<inter> Q}"
+
+lemma SupremumTT_wf:
+  assumes P_healthy: "\<forall> t\<in>P. ttWF t" and Q_healthy: "\<forall> t\<in>Q. ttWF t"
+  shows "\<forall>t\<in>SupremumTT P Q. ttWF t"
+  unfolding SupremumTT_def using assms by auto
+
+lemma TT0_Supremum:
+  assumes TT0_P: "TT0 P" and TT1_P: "TT1 P"
+  assumes TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
+  shows "TT0 (SupremumTT P Q)"
+proof -
+  have "[] \<in> P"
+    by (simp add: TT0_P TT0_TT1_empty TT1_P)
+  also have "[] \<in> Q"
+    by (simp add: TT0_Q TT0_TT1_empty TT1_Q)
+  then show ?thesis
+    using calculation unfolding TT0_def SupremumTT_def by auto
+qed
+
+lemma TT1_Supremum:
+  assumes P_wf: "\<forall> t\<in>P. ttWF t" and TT1_P: "TT1 P" and TT2_P: "TT2 P"
+  assumes P_wf: "\<forall> t\<in>P. ttWF t" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q"
+  shows "TT1 (SupremumTT P Q)"
+  unfolding TT1_def SupremumTT_def
+proof auto
+  fix \<rho> \<sigma>
+  show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> \<rho> \<in> P"
+    using TT1_P TT1_def by blast
+next
+  fix \<rho> \<sigma>
+  show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> Q \<Longrightarrow> \<rho> \<in> Q"
+    using TT1_Q TT1_def by blast
+next
+  fix \<sigma> \<rho>' \<sigma>' :: "'a ttobs list"
+  fix X Y
+  assume assm1: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+  assume assm2: "\<rho>' @ [X]\<^sub>R # \<sigma>' \<lesssim>\<^sub>C \<sigma>"
+  assume assm3: "\<sigma> \<in> P"
+  assume assm4: "\<sigma> \<in> Q"
+  assume ind_hyp: "\<forall>\<rho> \<sigma>' X Y. \<sigma> = \<rho> @ [X]\<^sub>R # \<sigma>'
+    \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {} \<longrightarrow>
+      \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' \<in> P \<and> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' \<in> Q"
+  obtain \<tau> where \<tau>_assms: "\<rho>' @ [X]\<^sub>R # \<sigma>' \<le>\<^sub>C \<tau> \<and> \<tau> \<subseteq>\<^sub>C \<sigma>"
+    using assm2 tt_prefix_subset_imp_tt_prefix_tt_subset by blast
+  then obtain \<tau>' where "\<tau> = \<rho>' @ [X]\<^sub>R # \<sigma>' @ \<tau>'"
+    using tt_prefix_split by fastforce
+  then have "\<exists> \<rho>'' \<sigma>''. \<sigma> = \<rho>'' @ \<sigma>'' \<and> \<rho>' \<subseteq>\<^sub>C \<rho>'' \<and> [X]\<^sub>R # \<sigma>' @ \<tau>' \<subseteq>\<^sub>C \<sigma>''"
+    using \<tau>_assms by (auto simp add: tt_subset_split2)
+  then have "\<exists> \<rho>'' \<sigma>'' X'. \<sigma> = \<rho>'' @ [X']\<^sub>R # \<sigma>'' \<and> \<rho>' \<subseteq>\<^sub>C \<rho>'' \<and> X \<subseteq> X' \<and> \<sigma>' @ \<tau>' \<subseteq>\<^sub>C \<sigma>''"
+    by (auto, rule_tac x="\<rho>''" in exI, auto, case_tac \<sigma>'' rule:ttWF.cases, auto)
+  then obtain \<rho>'' \<sigma>'' X' where \<sigma>_assms: "\<sigma> = \<rho>'' @ [X']\<^sub>R # \<sigma>'' \<and> \<rho>' \<subseteq>\<^sub>C \<rho>'' \<and> X \<subseteq> X' \<and> \<sigma>' @ \<tau>' \<subseteq>\<^sub>C \<sigma>''"
+    by auto
+  then have "\<rho>' @ [[X]\<^sub>R] \<subseteq>\<^sub>C \<rho>'' @ [[X']\<^sub>R]"
+    by (simp add: tt_subset_combine)
+  then have "{e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q}
+    \<subseteq> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
+    using \<sigma>_assms
+  proof auto
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> P"
+      using TT1_P TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> P"
+      using TT1_P TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> P"
+      using TT1_P TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> Q"
+      using TT1_Q TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> Q"
+      using TT1_Q TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> Q"
+      using TT1_Q TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+      by (meson TT1_P TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+      by (meson TT1_Q TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<Longrightarrow> \<rho>' @ [[Tock]\<^sub>E] \<in> P"
+      by (meson TT1_P TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<Longrightarrow> \<rho>' @ [[Tock]\<^sub>E] \<in> Q"
+      by (meson TT1_P TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> Q \<Longrightarrow> \<rho>' @ [[Tock]\<^sub>E] \<in> P"
+      by (meson TT1_Q TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> Q \<Longrightarrow> \<rho>' @ [[Tock]\<^sub>E] \<in> Q"
+      by (meson TT1_Q TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  qed
+  then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+    using assm1 inf.order_iff by auto
+  then have "\<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>'' \<in> P \<and> \<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>'' \<in> Q"
+    by (simp add: \<sigma>_assms ind_hyp)
+  also have "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma>' \<lesssim>\<^sub>C \<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>''"
+    using \<sigma>_assms apply auto
+    by (metis (no_types, lifting) Un_commute sup.orderE sup_ge2 sup_left_commute tt_prefix_concat 
+        tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_tt_prefix_subset_trans tt_subset_imp_prefix_subset tt_subset_same_length)
+  then show "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma>' \<in> P"
+    using TT1_P TT1_def calculation by blast
+next
+  fix \<sigma> \<rho>' \<sigma>' :: "'a ttobs list"
+  fix X Y
+  assume assm1: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+  assume assm2: "\<rho>' @ [X]\<^sub>R # \<sigma>' \<lesssim>\<^sub>C \<sigma>"
+  assume assm3: "\<sigma> \<in> P"
+  assume assm4: "\<sigma> \<in> Q"
+  assume ind_hyp: "\<forall>\<rho> \<sigma>' X Y. \<sigma> = \<rho> @ [X]\<^sub>R # \<sigma>'
+    \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {} \<longrightarrow>
+      \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' \<in> P \<and> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' \<in> Q"
+  obtain \<tau> where \<tau>_assms: "\<rho>' @ [X]\<^sub>R # \<sigma>' \<le>\<^sub>C \<tau> \<and> \<tau> \<subseteq>\<^sub>C \<sigma>"
+    using assm2 tt_prefix_subset_imp_tt_prefix_tt_subset by blast
+  then obtain \<tau>' where "\<tau> = \<rho>' @ [X]\<^sub>R # \<sigma>' @ \<tau>'"
+    using tt_prefix_split by fastforce
+  then have "\<exists> \<rho>'' \<sigma>''. \<sigma> = \<rho>'' @ \<sigma>'' \<and> \<rho>' \<subseteq>\<^sub>C \<rho>'' \<and> [X]\<^sub>R # \<sigma>' @ \<tau>' \<subseteq>\<^sub>C \<sigma>''"
+    using \<tau>_assms by (auto simp add: tt_subset_split2)
+  then have "\<exists> \<rho>'' \<sigma>'' X'. \<sigma> = \<rho>'' @ [X']\<^sub>R # \<sigma>'' \<and> \<rho>' \<subseteq>\<^sub>C \<rho>'' \<and> X \<subseteq> X' \<and> \<sigma>' @ \<tau>' \<subseteq>\<^sub>C \<sigma>''"
+    by (auto, rule_tac x="\<rho>''" in exI, auto, case_tac \<sigma>'' rule:ttWF.cases, auto)
+  then obtain \<rho>'' \<sigma>'' X' where \<sigma>_assms: "\<sigma> = \<rho>'' @ [X']\<^sub>R # \<sigma>'' \<and> \<rho>' \<subseteq>\<^sub>C \<rho>'' \<and> X \<subseteq> X' \<and> \<sigma>' @ \<tau>' \<subseteq>\<^sub>C \<sigma>''"
+    by auto
+  then have "\<rho>' @ [[X]\<^sub>R] \<subseteq>\<^sub>C \<rho>'' @ [[X']\<^sub>R]"
+    by (simp add: tt_subset_combine)
+  then have "{e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q}
+    \<subseteq> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
+    using \<sigma>_assms
+  proof auto
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> P"
+      using TT1_P TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> P"
+      using TT1_P TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> P"
+      using TT1_P TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> Q"
+      using TT1_Q TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> Q"
+      using TT1_Q TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    fix x
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> \<rho>'' @ [[x]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[x]\<^sub>E] \<in> Q"
+      using TT1_Q TT1_def tt_subset_end_event tt_subset_imp_prefix_subset by blast
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+      by (meson TT1_P TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
+      by (meson TT1_Q TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<Longrightarrow> \<rho>' @ [[Tock]\<^sub>E] \<in> P"
+      by (meson TT1_P TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> P \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P \<Longrightarrow> \<rho>' @ [[Tock]\<^sub>E] \<in> Q"
+      by (meson TT1_P TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> Q \<Longrightarrow> \<rho>' @ [[Tock]\<^sub>E] \<in> P"
+      by (meson TT1_Q TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  next
+    show "\<rho>' \<subseteq>\<^sub>C \<rho>'' \<Longrightarrow> X \<subseteq> X' \<Longrightarrow> \<rho>'' @ [[X']\<^sub>R, [Tock]\<^sub>E] \<in> Q \<Longrightarrow> \<rho>' @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> Q \<Longrightarrow> \<rho>' @ [[Tock]\<^sub>E] \<in> Q"
+      by (meson TT1_Q TT1_def tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_subset_refl tt_subset_imp_prefix_subset tt_subset_same_length)
+  qed
+  then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+    using assm1 inf.order_iff by auto
+  then have "\<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>'' \<in> P \<and> \<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>'' \<in> Q"
+    by (simp add: \<sigma>_assms ind_hyp)
+  also have "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma>' \<lesssim>\<^sub>C \<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>''"
+    using \<sigma>_assms apply auto
+    by (metis (no_types, lifting) Un_commute sup.orderE sup_ge2 sup_left_commute tt_prefix_concat 
+        tt_prefix_subset.simps(2) tt_prefix_subset_eq_length_common_prefix_eq tt_prefix_tt_prefix_subset_trans tt_subset_imp_prefix_subset tt_subset_same_length)
+  then show "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma>' \<in> Q"
+    using TT1_Q TT1_def calculation by blast
+qed
+
+lemma TT3_Supremum:
+  assumes TT3_P: "TT3 P" and TT3_Q: "TT3 Q"
+  shows "TT3 (SupremumTT P Q)"
+  using assms unfolding SupremumTT_def TT3_def by auto
+
+lemma TT4_Supremum:
+  assumes TT4_P: "TT4 P" and TT4_Q: "TT4 Q"
+  shows "TT4 (SupremumTT P Q)"
+  using assms unfolding SupremumTT_def TT4_def
+proof auto
+  fix \<rho> \<rho>' \<sigma> :: "'a ttobs list"
+  fix X Y
+  assume assm1: "add_Tick_refusal_trace \<rho> = \<rho>' @ [X]\<^sub>R # \<sigma>"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+  assume ind_hyp: "\<forall>\<rho>' \<sigma> X Y. \<rho> = \<rho>' @ [X]\<^sub>R # \<sigma>
+    \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {} \<longrightarrow>
+      \<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<and> \<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
+  have "\<exists> \<rho>'' X' \<sigma>'. \<rho> = \<rho>'' @ [X']\<^sub>R # \<sigma>' \<and> add_Tick_refusal_trace \<rho>'' = \<rho>'"
+    using assm1 apply (induct \<rho> \<rho>' rule:tt_subset.induct, auto)
+    apply (metis Un_empty_right Un_insert_right add_Tick_refusal_trace.simps(3) append_Cons)
+    apply (metis add_Tick_refusal_trace.simps(2) append_Cons)
+    by (metis add_Tick_refusal_trace.elims append_Nil list.distinct(1) list.sel(1))
+  then obtain \<rho>'' X' \<sigma>' where \<rho>_assms: "\<rho> = \<rho>'' @ [X']\<^sub>R # \<sigma>' \<and> add_Tick_refusal_trace \<rho>'' = \<rho>'"
+    by auto
+  then have "{e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q}
+    \<subseteq> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
+    using assm2 apply (safe)
+    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
+    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    done
+  then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+    using assm2 subsetCE by auto
+  then have "\<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>' \<in> P \<and> \<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>' \<in> Q"
+    using \<rho>_assms ind_hyp by blast
+  then show "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
+    by (smt TT4_P TT4_def Un_commute \<rho>_assms add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat append_eq_append_conv assm1 list.inject sup_assoc ttobs.inject(2))
+next
+  fix \<rho> \<rho>' \<sigma> :: "'a ttobs list"
+  fix X Y
+  assume assm1: "add_Tick_refusal_trace \<rho> = \<rho>' @ [X]\<^sub>R # \<sigma>"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+  assume ind_hyp: "\<forall>\<rho>' \<sigma> X Y. \<rho> = \<rho>' @ [X]\<^sub>R # \<sigma>
+    \<and> Y \<inter> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {} \<longrightarrow>
+      \<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P \<and> \<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
+  have "\<exists> \<rho>'' X' \<sigma>'. \<rho> = \<rho>'' @ [X']\<^sub>R # \<sigma>' \<and> add_Tick_refusal_trace \<rho>'' = \<rho>'"
+    using assm1 apply (induct \<rho> \<rho>' rule:tt_subset.induct, auto)
+    apply (metis Un_empty_right Un_insert_right add_Tick_refusal_trace.simps(3) append_Cons)
+    apply (metis add_Tick_refusal_trace.simps(2) append_Cons)
+    by (metis add_Tick_refusal_trace.elims append_Nil list.distinct(1) list.sel(1))
+  then obtain \<rho>'' X' \<sigma>' where \<rho>_assms: "\<rho> = \<rho>'' @ [X']\<^sub>R # \<sigma>' \<and> add_Tick_refusal_trace \<rho>'' = \<rho>'"
+    by auto
+  then have "{e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q}
+    \<subseteq> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
+    using assm2 apply (safe)
+    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
+    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    done
+  then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+    using assm2 subsetCE by auto
+  then have "\<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>' \<in> P \<and> \<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>' \<in> Q"
+    using \<rho>_assms ind_hyp by blast
+  then show "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
+    by (smt TT4_Q TT4_def Un_commute \<rho>_assms add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat append_eq_append_conv assm1 list.inject sup_assoc ttobs.inject(2))
+qed
+
+lemma Supremum_upper_bound1:
+  "P \<sqsubseteq>\<^sub>C SupremumTT P Q"
+  unfolding RefinesTT_def SupremumTT_def by auto
+
+lemma Supremum_upper_bound2:
+  "Q \<sqsubseteq>\<^sub>C SupremumTT P Q"
+  unfolding RefinesTT_def SupremumTT_def by auto
+
+lemma Supremum_least_upper_bound:
+  assumes "P \<sqsubseteq>\<^sub>C R" "Q \<sqsubseteq>\<^sub>C R" "TT2 R"
+  shows "SupremumTT P Q \<sqsubseteq>\<^sub>C R"
+  using assms unfolding RefinesTT_def SupremumTT_def
+proof auto
+  fix \<rho> \<sigma> X Y
+  assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> R"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+  assume assm3: " R \<subseteq> P"
+  assume assm4: " R \<subseteq> Q"
+  have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> R \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> R}
+    \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
+    using assm3 assm4 by auto
+  then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> R \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> R} = {}"
+    using assm2 by auto
+  then have "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> R"
+    using TT2_aux1 assm1 assms(3) by fastforce
+  then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
+    using assm3 by blast
+next
+  fix \<rho> \<sigma> X Y
+  assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> R"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
+  assume assm3: " R \<subseteq> P"
+  assume assm4: " R \<subseteq> Q"
+  have "{e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> R \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> R}
+    \<subseteq> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<and> \<rho> @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
+    using assm3 assm4 by auto
+  then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> R \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> R} = {}"
+    using assm2 by auto
+  then have "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> R"
+    using TT2_aux1 assm1 assms(3) by fastforce
+  then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
+    using assm4 by blast
+qed
+
+end
