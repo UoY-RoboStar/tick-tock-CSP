@@ -539,12 +539,12 @@ lemma ttWF_tt_prefix_subset_exists_three_part_iff:
 section {* Healthiness Conditions *}
 
 text_raw \<open>\DefineSnippet{TT0}{\<close>
-definition TT0 :: "'e ttobs list set \<Rightarrow> bool" where
+definition TT0 :: "'e ttprocess \<Rightarrow> bool" where
   "TT0 P = (P \<noteq> {})"
 text_raw \<open>}%EndSnippet\<close>
 
 text_raw \<open>\DefineSnippet{TT1w}{\<close>
-definition TT1w :: "'e ttobs list set \<Rightarrow> bool" where
+definition TT1w :: "'e ttprocess \<Rightarrow> bool" where
   "TT1w P = (\<forall> \<rho> \<sigma>. (\<rho> \<le>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
 text_raw \<open>}%EndSnippet\<close>
 
@@ -577,7 +577,7 @@ lemma TT1w_mkTT1w [simp]: "TT1w (mkTT1w P)"
   using tt_prefix_trans by blast
 
 text_raw \<open>\DefineSnippet{TT1}{\<close>
-definition TT1 :: "'e ttobs list set \<Rightarrow> bool" where
+definition TT1 :: "'e ttprocess \<Rightarrow> bool" where
   "TT1 P = (\<forall> \<rho> \<sigma>. (\<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P)"
 text_raw \<open>}%EndSnippet\<close>
 
@@ -617,13 +617,13 @@ lemma TT1_mkTT1_simp:
   using TT1_fixpoint_mkTT1 by blast
 
 text_raw \<open>\DefineSnippet{TT2w}{\<close>
-definition TT2w :: "'e ttobs list set \<Rightarrow> bool" where
+definition TT2w :: "'e ttprocess \<Rightarrow> bool" where
   "TT2w P = (\<forall> \<rho> X Y. (\<rho> @ [[X]\<^sub>R] \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}))
      \<longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] \<in> P)"
 text_raw \<open>}%EndSnippet\<close>
 
 text_raw \<open>\DefineSnippet{TT2}{\<close>
-definition TT2 :: "'e ttobs list set \<Rightarrow> bool" where
+definition TT2 :: "'e ttprocess \<Rightarrow> bool" where
   "TT2 P = (\<forall> \<rho> \<sigma> X Y. (\<rho> @ [[X]\<^sub>R] @ \<sigma> \<in> P \<and> (Y \<inter> {e. (e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}))
      \<longrightarrow> \<rho> @ [[X \<union> Y]\<^sub>R] @ \<sigma> \<in> P)"
 text_raw \<open>}%EndSnippet\<close>
@@ -793,10 +793,7 @@ next
   then show ?case by auto
 qed
 
-(*definition TT4w :: "'e ttobs list set \<Rightarrow> bool" where
-  "TT4w P = (\<forall> \<rho>. \<rho> @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<nexists> X. \<rho> @ [[X]\<^sub>R] \<in> P))"*)
-
-definition TT4w :: "'e ttobs list set \<Rightarrow> bool" where
+definition TT4w :: "'e ttprocess \<Rightarrow> bool" where
 "TT4w P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
 
 definition mkTT4w :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
@@ -814,7 +811,7 @@ lemma mkTT1_mkTT4w_iff_TT14:
     apply (metis TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w)
     by (metis TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w)
 
-fun add_Tick_refusal_trace :: "'e ttobs list \<Rightarrow> 'e ttobs list" where
+fun add_Tick_refusal_trace :: "'e tttrace \<Rightarrow> 'e ttobs list" where
   "add_Tick_refusal_trace [] = []" |
   "add_Tick_refusal_trace ([e]\<^sub>E # t) = [e]\<^sub>E # add_Tick_refusal_trace t" |
   "add_Tick_refusal_trace ([X]\<^sub>R # t) = [X \<union> {Tick}]\<^sub>R # add_Tick_refusal_trace t"
@@ -857,7 +854,7 @@ lemma add_Tick_refusal_trace_tt_prefix_subset_mono:
   using assms by(induct \<rho> \<sigma> rule:tt_prefix_subset.induct, auto)
 
 text_raw \<open>\DefineSnippet{TT4}{\<close>
-definition TT4 :: "'e ttobs list set \<Rightarrow> bool" where
+definition TT4 :: "'e ttprocess \<Rightarrow> bool" where
   "TT4 P = (\<forall> \<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P)"
 text_raw \<open>}%EndSnippet\<close>
 
