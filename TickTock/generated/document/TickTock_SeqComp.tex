@@ -1,0 +1,2399 @@
+%
+\begin{isabellebody}%
+\setisabellecontext{TickTock{\isacharunderscore}SeqComp}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ TickTock{\isacharunderscore}SeqComp\isanewline
+\ \ \isakeyword{imports}\ TickTock{\isacharunderscore}Core\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isadelimdocument
+%
+\endisadelimdocument
+%
+\isatagdocument
+%
+\isamarkupsubsection{Sequential Composition%
+}
+\isamarkuptrue%
+%
+\endisatagdocument
+{\isafolddocument}%
+%
+\isadelimdocument
+%
+\endisadelimdocument
+%
+\DefineSnippet{SeqCompTT}{
+\isacommand{definition}\isamarkupfalse%
+\ SeqCompTT\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}e\ ttprocess\ {\isasymRightarrow}\ {\isacharprime}e\ ttprocess\ {\isasymRightarrow}\ {\isacharprime}e\ ttprocess{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharsemicolon}\isactrlsub C{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}P\ {\isacharsemicolon}\isactrlsub C\ Q\ {\isacharequal}\ {\isacharbraceleft}{\isasymrho}{\isasymin}P{\isachardot}\ {\isasymnexists}\ s{\isachardot}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isacharbraceright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ {\isasymunion}\ {\isacharbraceleft}{\isasymrho}{\isachardot}\ {\isasymexists}\ s\ t{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharbraceright}{\isachardoublequoteclose}%
+}%EndSnippet
+%
+\DefineSnippet{SeqComp_wf}{
+\isacommand{lemma}\isamarkupfalse%
+\ SeqComp{\isacharunderscore}wf{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}\ t{\isasymin}P{\isachardot}\ ttWF\ t\ {\isasymLongrightarrow}\ {\isasymforall}\ t{\isasymin}Q{\isachardot}\ ttWF\ t\ {\isasymLongrightarrow}\ {\isasymforall}\ t\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isachardot}\ ttWF\ t{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ s\ ta\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x{\isasymin}P{\isachardot}\ ttWF\ x{\isachardoublequoteclose}\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}ttWF\ {\isacharparenleft}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x{\isasymin}Q{\isachardot}\ ttWF\ x{\isachardoublequoteclose}\ {\isachardoublequoteopen}ta\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}ttWF\ ta{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isadigit{1}}\ {\isadigit{2}}\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}ttWF\ {\isacharparenleft}s\ {\isacharat}\ ta{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ s\ rule{\isacharcolon}ttWF{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}%EndSnippet
+\isacommand{lemma}\isamarkupfalse%
+\ TT{\isadigit{0}}{\isacharunderscore}SeqComp{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{0}}\ P\ {\isasymLongrightarrow}\ TT{\isadigit{0}}\ Q\ {\isasymLongrightarrow}\ TT{\isadigit{0}}\ {\isacharparenleft}P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\ TT{\isadigit{0}}{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}SeqComp{\isacharcolon}\ \isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isasymforall}t{\isasymin}P{\isachardot}\ ttWF\ t{\isachardoublequoteclose}\ {\isachardoublequoteopen}TT{\isadigit{1}}\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}TT{\isadigit{1}}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}TT{\isadigit{1}}\ {\isacharparenleft}P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\ TT{\isadigit{1}}{\isacharunderscore}def\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}auto{\isacharparenright}\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymrho}\ {\isasymsigma}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ ttobs\ list{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isasymlesssim}\isactrlsub C\ {\isasymsigma}\ {\isasymLongrightarrow}\ {\isasymsigma}\ {\isasymin}\ P\ {\isasymLongrightarrow}\ {\isasymrho}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}def\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymsigma}\ s\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ ttobs\ list{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymlesssim}\isactrlsub C\ {\isasymsigma}{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymsigma}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ s{\isacharprime}\ t\ \isakeyword{where}\ {\isasymsigma}{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}{\isasymsigma}\ {\isacharequal}\ s{\isacharprime}\ {\isacharat}\ t\ {\isasymand}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymsubseteq}\isactrlsub C\ s{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}meson\ tt{\isacharunderscore}prefix{\isacharunderscore}split\ tt{\isacharunderscore}prefix{\isacharunderscore}subset{\isacharunderscore}imp{\isacharunderscore}tt{\isacharunderscore}subset{\isacharunderscore}tt{\isacharunderscore}prefix{\isacharparenright}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}\ s{\isacharprime}{\isacharprime}\ x{\isachardot}\ s{\isacharprime}\ {\isacharequal}\ s{\isacharprime}{\isacharprime}\ {\isacharat}\ x\ {\isasymand}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymsubseteq}\isactrlsub C\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ tt{\isacharunderscore}subset{\isacharunderscore}split{\isadigit{2}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ s{\isacharprime}{\isacharprime}\ \isakeyword{where}\ {\isachardoublequoteopen}{\isasymsigma}\ {\isacharequal}\ s{\isacharprime}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto{\isacharcomma}\ case{\isacharunderscore}tac\ x\ rule{\isacharcolon}ttWF{\isachardot}cases{\isacharcomma}\ auto\ simp\ add{\isacharcolon}\ {\isasymsigma}{\isacharunderscore}assms{\isacharparenright}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}ttWF\ {\isasymsigma}\ {\isasymLongrightarrow}\ {\isasymsigma}\ {\isacharequal}\ s{\isacharprime}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}ttWF\ {\isacharparenleft}s{\isacharprime}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E\ {\isacharhash}\ t{\isacharparenright}\ {\isasymLongrightarrow}\ t\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ s{\isacharprime}{\isacharprime}\ rule{\isacharcolon}ttWF{\isachardot}induct{\isacharcomma}\ auto{\isacharcomma}\ cases\ t{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymsigma}\ {\isacharequal}\ s{\isacharprime}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ {\isasymsigma}\ {\isasymnoteq}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymLongrightarrow}\ False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymrho}\ {\isasymsigma}\ s\ t\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ ttobs\ list{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ assm{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}{\isasymrho}\ {\isasymsigma}{\isachardot}\ {\isasymrho}\ {\isasymlesssim}\isactrlsub C\ {\isasymsigma}\ {\isasymand}\ {\isasymsigma}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}def\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ assm{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}{\isasymrho}\ {\isasymsigma}{\isachardot}\ {\isasymrho}\ {\isasymlesssim}\isactrlsub C\ {\isasymsigma}\ {\isasymand}\ {\isasymsigma}\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}def\ assms{\isacharparenleft}{\isadigit{3}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{3}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{4}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isasymlesssim}\isactrlsub C\ s\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{5}}{\isacharcolon}\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{6}}{\isacharcolon}\ {\isachardoublequoteopen}t\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{obtain}\isamarkupfalse%
+\ r\ \isakeyword{where}\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isasymsubseteq}\isactrlsub C\ r\ {\isasymand}\ r\ {\isasymle}\isactrlsub C\ s\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{4}}\ tt{\isacharunderscore}prefix{\isacharunderscore}subset{\isacharunderscore}imp{\isacharunderscore}tt{\isacharunderscore}subset{\isacharunderscore}tt{\isacharunderscore}prefix\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ t{\isacharprime}\ \isakeyword{where}\ {\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}r\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharprime}\ {\isasymand}\ t{\isacharprime}\ {\isasymle}\isactrlsub C\ t{\isacharparenright}\ {\isasymor}\ r\ {\isasymle}\isactrlsub C\ s{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ tt{\isacharunderscore}prefix{\isacharunderscore}append{\isacharunderscore}split\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}r\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharprime}{\isachardoublequoteclose}\ {\isachardoublequoteopen}t{\isacharprime}\ {\isasymle}\isactrlsub C\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{obtain}\isamarkupfalse%
+\ s{\isacharprime}\ t{\isacharprime}{\isacharprime}\ \isakeyword{where}\ {\isasymrho}{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharequal}\ s{\isacharprime}\ {\isacharat}\ t{\isacharprime}{\isacharprime}\ {\isasymand}\ s{\isacharprime}\ {\isasymsubseteq}\isactrlsub C\ s\ {\isasymand}\ t{\isacharprime}{\isacharprime}\ {\isasymsubseteq}\isactrlsub C\ t{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{1}}{\isachardoublequoteclose}\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ tt{\isacharunderscore}subset{\isacharunderscore}split\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}s{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isasymrho}{\isacharunderscore}assms\ assm{\isadigit{1}}\ assm{\isadigit{5}}\ tt{\isacharunderscore}subset{\isacharunderscore}end{\isacharunderscore}event\ tt{\isacharunderscore}subset{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}t{\isacharprime}{\isacharprime}\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isasymrho}{\isacharunderscore}assms\ assm{\isadigit{2}}\ assm{\isadigit{6}}\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ tt{\isacharunderscore}prefix{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset\ tt{\isacharunderscore}subset{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isasymrho}{\isacharunderscore}assms\ assm{\isadigit{3}}\ calculation\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}r\ {\isasymle}\isactrlsub C\ s\ {\isasymLongrightarrow}\ {\isasymrho}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}meson\ {\isachardoublequoteopen}{\isadigit{1}}{\isachardoublequoteclose}\ assm{\isadigit{1}}\ assm{\isadigit{5}}\ tt{\isacharunderscore}prefix{\isacharunderscore}concat\ tt{\isacharunderscore}prefix{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset\ tt{\isacharunderscore}subset{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset{\isacharparenright}\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ s\ t\ sa\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ ttobs\ list{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ assm{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}{\isasymrho}\ {\isasymsigma}{\isachardot}\ {\isasymrho}\ {\isasymlesssim}\isactrlsub C\ {\isasymsigma}\ {\isasymand}\ {\isasymsigma}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}def\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ assm{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}{\isasymrho}\ {\isasymsigma}{\isachardot}\ {\isasymrho}\ {\isasymlesssim}\isactrlsub C\ {\isasymsigma}\ {\isasymand}\ {\isasymsigma}\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}def\ assms{\isacharparenleft}{\isadigit{3}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymlesssim}\isactrlsub C\ s\ {\isacharat}\ t{\isachardoublequoteclose}\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}t\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{obtain}\isamarkupfalse%
+\ r\ \isakeyword{where}\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymsubseteq}\isactrlsub C\ r\ {\isasymand}\ r\ {\isasymle}\isactrlsub C\ s\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ tt{\isacharunderscore}prefix{\isacharunderscore}subset{\isacharunderscore}imp{\isacharunderscore}tt{\isacharunderscore}subset{\isacharunderscore}tt{\isacharunderscore}prefix\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ t{\isacharprime}\ \isakeyword{where}\ {\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}r\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharprime}\ {\isasymand}\ t{\isacharprime}\ {\isasymle}\isactrlsub C\ t{\isacharparenright}\ {\isasymor}\ r\ {\isasymle}\isactrlsub C\ s{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ tt{\isacharunderscore}prefix{\isacharunderscore}append{\isacharunderscore}split\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharparenright}\ {\isasymLongrightarrow}\ False{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}r\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharprime}{\isachardoublequoteclose}\ {\isachardoublequoteopen}t{\isacharprime}\ {\isasymle}\isactrlsub C\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{obtain}\isamarkupfalse%
+\ s{\isacharprime}\ t{\isacharprime}{\isacharprime}\ \isakeyword{where}\ {\isasymrho}{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s{\isacharprime}\ {\isacharat}\ t{\isacharprime}{\isacharprime}\ {\isasymand}\ s{\isacharprime}\ {\isasymsubseteq}\isactrlsub C\ s\ {\isasymand}\ t{\isacharprime}{\isacharprime}\ {\isasymsubseteq}\isactrlsub C\ t{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{1}}{\isachardoublequoteclose}\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ tt{\isacharunderscore}subset{\isacharunderscore}split\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}s{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isasymrho}{\isacharunderscore}assms\ assm{\isadigit{1}}\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ tt{\isacharunderscore}subset{\isacharunderscore}end{\isacharunderscore}event\ tt{\isacharunderscore}subset{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}t{\isacharprime}{\isacharprime}\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isasymrho}{\isacharunderscore}assms\ assm{\isadigit{2}}\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{3}}{\isacharparenright}\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ tt{\isacharunderscore}prefix{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset\ tt{\isacharunderscore}subset{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharparenright}\ {\isasymLongrightarrow}\ False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isasymrho}{\isacharunderscore}assms\ case{\isacharunderscore}assms\ calculation\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}\ r{\isadigit{1}}\ r{\isadigit{2}}{\isachardot}\ r\ {\isacharequal}\ r{\isadigit{1}}\ {\isacharat}\ r{\isadigit{2}}\ {\isasymand}\ sa\ {\isasymsubseteq}\isactrlsub C\ r{\isadigit{1}}\ {\isasymand}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymsubseteq}\isactrlsub C\ r{\isadigit{2}}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{1}}{\isachardoublequoteclose}\ tt{\isacharunderscore}subset{\isacharunderscore}split{\isadigit{2}}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ r{\isacharprime}\ \isakeyword{where}\ {\isachardoublequoteopen}r\ {\isacharequal}\ r{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto{\isacharcomma}\ case{\isacharunderscore}tac\ r{\isadigit{2}}\ rule{\isacharcolon}ttWF{\isachardot}cases{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}r\ {\isasymle}\isactrlsub C\ s{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ s{\isacharprime}\ \isakeyword{where}\ {\isachardoublequoteopen}r{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharat}\ s{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ calculation\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ tt{\isacharunderscore}prefix{\isacharunderscore}split\ \isacommand{by}\isamarkupfalse%
+\ fastforce\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}ttWF\ {\isacharparenleft}r{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharat}\ s{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ r{\isacharprime}\ rule{\isacharcolon}ttWF{\isachardot}induct{\isacharcomma}\ auto{\isacharcomma}\ induct\ s{\isacharprime}\ rule{\isacharcolon}ttWF{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ TT{\isadigit{2}}w{\isacharunderscore}SeqComp{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{4}}w\ P\ {\isasymLongrightarrow}\ TT\ P\ {\isasymLongrightarrow}\ TT\ Q\ {\isasymLongrightarrow}\ TT{\isadigit{2}}w\ {\isacharparenleft}P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\ TT{\isadigit{2}}w{\isacharunderscore}def\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymrho}\ X\ Y\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}TT\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{3}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{4}}{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{4}}w\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharbraceright}\isanewline
+\ \ \ \ {\isacharequal}\ Y\ {\isasyminter}\ {\isacharparenleft}{\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\isanewline
+\ \ \ \ \ \ {\isasymunion}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharbraceright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharparenleft}{\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\isanewline
+\ \ \ \ \ \ {\isasymunion}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharbraceright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{1}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ {\isasymunion}\ {\isacharparenleft}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharbraceright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ Int{\isacharunderscore}Un{\isacharunderscore}distrib{\isacharparenright}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ TT{\isadigit{2}}w{\isacharunderscore}P{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{2}}w\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{2}}\ TT{\isacharunderscore}TT{\isadigit{2}}w\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isadigit{1}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{2}}w{\isacharunderscore}P\ assm{\isadigit{3}}\ \isacommand{unfolding}\isamarkupfalse%
+\ TT{\isadigit{2}}w{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}cases\ {\isachardoublequoteopen}Tick\ {\isasymin}\ Y{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assm{\isacharcolon}\ {\isachardoublequoteopen}Tick\ {\isasymin}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasymunion}\ {\isacharbraceleft}Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isadigit{2}}\ assm{\isadigit{4}}\ \isacommand{unfolding}\isamarkupfalse%
+\ TT{\isadigit{4}}w{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasymunion}\ {\isacharbraceleft}Tick{\isacharbraceright}\ {\isacharequal}\ X\ {\isasymunion}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assm\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ calculation\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}Tick\ {\isasymnotin}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isacharequal}\ X\ {\isasymunion}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isadigit{2}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymrho}\ X\ Y\ s\ t\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}TT\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{3}}{\isacharcolon}\ {\isachardoublequoteopen}TT\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{4}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{5}}{\isacharcolon}\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{6}}{\isacharcolon}\ {\isachardoublequoteopen}t\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{7}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}t\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}\ t{\isacharprime}{\isachardot}\ t\ {\isacharequal}\ t{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}metis\ append{\isacharunderscore}butlast{\isacharunderscore}last{\isacharunderscore}id\ assm{\isadigit{7}}\ last{\isacharunderscore}appendR\ last{\isacharunderscore}snoc{\isacharparenright}\ \isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assm{\isacharcolon}\ {\isachardoublequoteopen}t\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}s\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ assm{\isadigit{7}}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{5}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}ttWF\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isacharunderscore}wf\ assm{\isadigit{2}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ {\isasymrho}\ rule{\isacharcolon}ttWF{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ t{\isacharprime}\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assm{\isacharcolon}\ {\isachardoublequoteopen}t\ {\isacharequal}\ t{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ t{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ t{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q{\isacharbraceright}\isanewline
+\ \ \ \ \ \ {\isasymsubseteq}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{5}}\ assm{\isadigit{7}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharbraceright}\isanewline
+\ \ \ \ \ \ {\isacharequal}\ Y\ {\isasyminter}\ {\isacharparenleft}{\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharbraceright}\isanewline
+\ \ \ \ \ \ \ \ {\isasymunion}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharbraceright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharparenleft}{\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharbraceright}\isanewline
+\ \ \ \ \ \ \ \ {\isasymunion}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharbraceright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{1}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharbraceright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ {\isasymunion}\ {\isacharparenleft}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharbraceright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ Int{\isacharunderscore}Un{\isacharunderscore}distrib{\isacharparenright}\ \ \isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}\isanewline
+\ \ \ \ \ \ {\isasymand}\ Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ \ \ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isacharparenleft}{\isasymexists}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isacharequal}\ s\ {\isacharat}\ t{\isacharparenright}{\isacharparenright}{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\ \ \ \ \isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}\isanewline
+\ \ \ \ \ \ \ \ {\isasymand}\ Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ t{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ t{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}metis\ {\isacharparenleft}no{\isacharunderscore}types{\isacharcomma}\ lifting{\isacharparenright}\ {\isadigit{1}}\ Int{\isacharunderscore}left{\isacharunderscore}commute\ inf{\isachardot}orderE\ inf{\isacharunderscore}bot{\isacharunderscore}right{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}t{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{2}}w{\isacharunderscore}def\ TT{\isacharunderscore}def\ assm{\isadigit{3}}\ assm{\isadigit{6}}\ case{\isacharunderscore}assm\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{4}}\ assm{\isadigit{5}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assm\ assm{\isadigit{7}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}SeqComp{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ TT{\isadigit{1}}{\isacharunderscore}P{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{1}}\ P{\isachardoublequoteclose}\ \isakeyword{and}\ TT{\isadigit{4}}{\isacharunderscore}P{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{4}}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{assumes}\ TT{\isadigit{2}}{\isacharunderscore}P{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{2}}\ P{\isachardoublequoteclose}\ \isakeyword{and}\ TT{\isadigit{2}}{\isacharunderscore}Q{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{2}}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}TT{\isadigit{2}}\ {\isacharparenleft}P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}def\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymrho}\ {\isasymsigma}\ X\ Y\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ assm{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharbraceright}\ {\isasymsubseteq}\isanewline
+\ \ \ \ \ \ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ e\ {\isasymnoteq}\ Tick\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{2}}\ subset{\isacharunderscore}iff\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ P{\isacharunderscore}assm{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{2}}\ subset{\isacharunderscore}iff\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{1}}\ \isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assm{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}P\ P{\isacharunderscore}assm{\isadigit{2}}\ \isacommand{unfolding}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}cases\ {\isachardoublequoteopen}Tick\ {\isasymin}\ Y{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e\ {\isasymin}\ Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P\ {\isasymLongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e\ {\isasymin}\ Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasymunion}\ {\isacharbraceleft}Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}P\ TT{\isadigit{4}}{\isacharunderscore}TT{\isadigit{1}}{\isacharunderscore}add{\isacharunderscore}Tick\ TT{\isadigit{4}}{\isacharunderscore}P\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Tick\ {\isasymin}\ Y\ {\isasymLongrightarrow}\ X\ {\isasymunion}\ {\isacharbraceleft}e\ {\isasymin}\ Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasymunion}\ {\isacharbraceleft}Tick{\isacharbraceright}\ {\isacharequal}\ X\ {\isasymunion}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e\ {\isasymin}\ Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P\ {\isasymLongrightarrow}\ Tick\ {\isasymin}\ Y\ {\isasymLongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ calculation\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}Tick\ {\isasymnotin}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}X\ {\isasymunion}\ {\isacharbraceleft}e\ {\isasymin}\ Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isacharequal}\ X\ {\isasymunion}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e\ {\isasymin}\ Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P\ {\isasymLongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ s\ t\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}t\ {\isasymin}\ Q{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ s\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymexists}\ {\isasymsigma}{\isacharprime}{\isachardot}\ s\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}\ {\isasymrho}{\isacharprime}{\isachardot}\ t\ {\isacharequal}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymand}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ {\isasymrho}{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{3}}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymAnd}\ s\ t{\isachardot}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ s\ {\isacharat}\ t\ {\isasymLongrightarrow}\ {\isasymforall}{\isasymrho}{\isacharprime}{\isachardot}\ t\ {\isacharequal}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymnoteq}\ s\ {\isacharat}\ {\isasymrho}{\isacharprime}\ {\isasymLongrightarrow}\ {\isasymexists}{\isasymsigma}{\isacharprime}{\isachardot}\ s\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induct\ {\isasymrho}{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ s\ t\isanewline
+\ \ \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ s\ {\isacharat}\ t\ {\isasymLongrightarrow}\ s\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ {\isasymexists}{\isasymsigma}{\isacharprime}{\isachardot}\ s\ {\isacharequal}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}metis\ Cons{\isacharunderscore}eq{\isacharunderscore}append{\isacharunderscore}conv{\isacharparenright}\isanewline
+\ \ \ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ a\ {\isasymrho}\ s\ t\isanewline
+\ \ \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ ind{\isacharunderscore}hyp{\isacharcolon}\ {\isachardoublequoteopen}{\isasymAnd}s\ t{\isachardot}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ s\ {\isacharat}\ t\ {\isasymLongrightarrow}\ {\isasymforall}{\isasymrho}{\isacharprime}{\isachardot}\ t\ {\isacharequal}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymnoteq}\ s\ {\isacharat}\ {\isasymrho}{\isacharprime}\ {\isasymLongrightarrow}\ {\isasymexists}{\isasymsigma}{\isacharprime}{\isachardot}\ s\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}a\ {\isacharhash}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ s\ {\isacharat}\ t{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymforall}{\isasymrho}{\isacharprime}{\isachardot}\ t\ {\isacharequal}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymlongrightarrow}\ a\ {\isacharhash}\ {\isasymrho}\ {\isasymnoteq}\ s\ {\isacharat}\ {\isasymrho}{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}s\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}\ s{\isacharprime}{\isachardot}\ s\ {\isacharequal}\ a\ {\isacharhash}\ s{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}metis\ Cons{\isacharunderscore}eq{\isacharunderscore}append{\isacharunderscore}conv\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}{\isasymsigma}{\isacharprime}{\isachardot}\ s\ {\isacharequal}\ a\ {\isacharhash}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ t{\isacharprime}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assm{\isadigit{3}}{\isacharcolon}\ {\isachardoublequoteopen}s\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}t\ {\isacharequal}\ a\ {\isacharhash}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ t{\isacharprime}\ \isakeyword{where}\ {\isachardoublequoteopen}t\ {\isacharequal}\ a\ {\isacharhash}\ t{\isacharprime}\ {\isasymand}\ t{\isacharprime}\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}{\isasymsigma}{\isacharprime}{\isachardot}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assm{\isadigit{3}}\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ False\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ s{\isacharprime}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assm{\isadigit{3}}{\isacharcolon}\ {\isachardoublequoteopen}s\ {\isacharequal}\ a\ {\isacharhash}\ s{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ s{\isacharprime}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}{\isasymsigma}{\isacharprime}{\isachardot}\ s{\isacharprime}\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assm{\isadigit{3}}\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ ind{\isacharunderscore}hyp\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}{\isasymsigma}{\isacharprime}{\isachardot}\ s{\isacharprime}\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ s\ {\isacharat}\ t\ {\isasymLongrightarrow}\ {\isasymforall}{\isasymrho}{\isacharprime}{\isachardot}\ t\ {\isacharequal}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isasymnoteq}\ s\ {\isacharat}\ {\isasymrho}{\isacharprime}\ {\isasymLongrightarrow}\ {\isasymexists}{\isasymsigma}{\isacharprime}{\isachardot}\ s\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharparenright}\ {\isasymLongrightarrow}\ \isanewline
+\ \ \ \ \ \ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymsigma}{\isacharprime}\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}s\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}P\ P{\isacharunderscore}assm{\isadigit{2}}\ case{\isacharunderscore}assms\ case{\isacharunderscore}assms{\isadigit{2}}\ \isacommand{unfolding}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}cases\ {\isachardoublequoteopen}Tick\ {\isasymin}\ Y{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{3}}{\isacharcolon}\ {\isachardoublequoteopen}Tick\ {\isasymin}\ Y{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasymunion}\ {\isacharbraceleft}Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}P\ TT{\isadigit{4}}{\isacharunderscore}TT{\isadigit{1}}{\isacharunderscore}add{\isacharunderscore}Tick\ TT{\isadigit{4}}{\isacharunderscore}P\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasymunion}\ {\isacharbraceleft}Tick{\isacharbraceright}\ {\isacharequal}\ X\ {\isasymunion}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{3}}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ calculation\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}Tick\ {\isasymnotin}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isacharequal}\ X\ {\isasymunion}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e\ {\isasymin}\ Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymLongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}ta{\isachardot}\ ta\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t\ {\isasymnoteq}\ s\ {\isacharat}\ ta{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ \ \ \ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ t\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}erule{\isacharunderscore}tac\ x{\isacharequal}{\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharprime}{\isachardoublequoteclose}\ \isakeyword{in}\ allE{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymrho}{\isacharprime}\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}t\ {\isacharequal}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ {\isasymrho}{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q{\isacharbraceright}\ {\isasymsubseteq}\isanewline
+\ \ \ \ \ \ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms\ case{\isacharunderscore}assms{\isadigit{2}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{2}}\ subsetCE\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}Q\ P{\isacharunderscore}assm{\isadigit{2}}\ case{\isacharunderscore}assms\ case{\isacharunderscore}assms{\isadigit{2}}\ \isacommand{unfolding}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}sa{\isachardot}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ s\ {\isacharat}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymnoteq}\ sa\ {\isacharat}\ t{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ \ \ \ s\ {\isacharat}\ {\isasymrho}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms\ case{\isacharunderscore}assms{\isadigit{2}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ s\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ ttobs\ list{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ {\isasymsigma}{\isacharprime}\ \isakeyword{where}\ {\isachardoublequoteopen}{\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ {\isasymrho}\ s\ rule{\isacharcolon}tt{\isacharunderscore}subset{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymnoteq}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymLongrightarrow}\ False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ s\ t\ sa\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ ttobs\ list{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}t\ {\isasymin}\ Q{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isacharequal}\ s\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{obtain}\isamarkupfalse%
+\ {\isasymsigma}{\isacharprime}\ \isakeyword{where}\ {\isachardoublequoteopen}{\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ {\isasymrho}\ sa\ rule{\isacharcolon}tt{\isacharunderscore}subset{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymexists}\ {\isasymrho}{\isadigit{2}}{\isachardot}\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ {\isasymrho}{\isadigit{2}}\ {\isasymand}\ t\ {\isacharequal}\ {\isasymrho}{\isadigit{2}}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}\ {\isasymsigma}{\isadigit{1}}{\isachardot}\ s\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}\ {\isasymand}\ {\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isadigit{1}}\ {\isacharat}\ t{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{4}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ s\ {\isasymrho}\ rule{\isacharcolon}tt{\isacharunderscore}subset{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharparenright}\ {\isasymLongrightarrow}\ False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymrho}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ ttobs\ list{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ {\isasymrho}{\isadigit{2}}{\isachardoublequoteclose}\ {\isachardoublequoteopen}t\ {\isacharequal}\ {\isasymrho}{\isadigit{2}}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}{\isadigit{2}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}{\isadigit{2}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q{\isacharbraceright}\ {\isasymsubseteq}\isanewline
+\ \ \ \ \ \ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms\ case{\isacharunderscore}assms{\isadigit{2}}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}Y\ {\isasyminter}\ {\isacharbraceleft}e{\isachardot}\ e\ {\isasymnoteq}\ Tock\ {\isasymand}\ {\isasymrho}{\isadigit{2}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q\ {\isasymor}\ e\ {\isacharequal}\ Tock\ {\isasymand}\ {\isasymrho}{\isadigit{2}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}X{\isacharbrackright}\isactrlsub R{\isacharcomma}\ {\isacharbrackleft}e{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ Q{\isacharbraceright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assm{\isadigit{2}}\ subsetCE\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}{\isadigit{2}}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}Q\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{3}}{\isacharparenright}\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{unfolding}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharparenright}\ {\isasymLongrightarrow}\ False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}erule{\isacharunderscore}tac\ x{\isacharequal}{\isachardoublequoteopen}s{\isachardoublequoteclose}\ \isakeyword{in}\ allE{\isacharcomma}\ auto{\isacharcomma}\ erule{\isacharunderscore}tac\ x{\isacharequal}{\isachardoublequoteopen}{\isasymrho}{\isadigit{2}}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isachardoublequoteclose}\ \isakeyword{in}\ allE{\isacharcomma}\ auto\ simp\ add{\isacharcolon}\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymsigma}{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ ttobs\ list{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}s\ {\isacharequal}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymsigma}\ {\isacharequal}\ {\isasymsigma}{\isadigit{1}}\ {\isacharat}\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}P\ P{\isacharunderscore}assm{\isadigit{2}}\ case{\isacharunderscore}assms\ case{\isacharunderscore}assms{\isadigit{2}}\ \isacommand{unfolding}\isamarkupfalse%
+\ TT{\isadigit{2}}{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}cases\ {\isachardoublequoteopen}Tick\ {\isasymin}\ Y{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{3}}{\isacharcolon}\ {\isachardoublequoteopen}Tick\ {\isasymin}\ Y{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasymunion}\ {\isacharbraceleft}Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}P\ TT{\isadigit{4}}{\isacharunderscore}TT{\isadigit{1}}{\isacharunderscore}add{\isacharunderscore}Tick\ TT{\isadigit{4}}{\isacharunderscore}P\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isasymunion}\ {\isacharbraceleft}Tick{\isacharbraceright}\ {\isacharequal}\ X\ {\isasymunion}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isadigit{3}}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ calculation\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}Tick\ {\isasymnotin}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}X\ {\isasymunion}\ {\isacharbraceleft}e{\isasymin}Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}\ {\isacharequal}\ X\ {\isasymunion}\ Y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ {\isacharbraceleft}e\ {\isasymin}\ Y{\isachardot}\ e\ {\isasymnoteq}\ Tick{\isacharbraceright}{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymLongrightarrow}\ {\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharparenright}\ {\isasymLongrightarrow}\ False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}erule{\isacharunderscore}tac\ x{\isacharequal}{\isachardoublequoteopen}{\isasymrho}\ {\isacharat}\ {\isacharbrackleft}X\ {\isasymunion}\ Y{\isacharbrackright}\isactrlsub R\ {\isacharhash}\ {\isasymsigma}{\isadigit{1}}{\isachardoublequoteclose}\ \isakeyword{in}\ allE{\isacharcomma}\ auto{\isacharcomma}\ erule{\isacharunderscore}tac\ x{\isacharequal}{\isachardoublequoteopen}t{\isachardoublequoteclose}\ \isakeyword{in}\ allE{\isacharcomma}\ auto\ simp\ add{\isacharcolon}\ case{\isacharunderscore}assms{\isadigit{2}}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\DefineSnippet{TT3_SeqComp}{
+\isacommand{lemma}\isamarkupfalse%
+\ TT{\isadigit{3}}{\isacharunderscore}SeqComp{\isacharcolon}\ \isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}TT\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}TT\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}TT{\isadigit{3}}\ {\isacharparenleft}P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ TT{\isadigit{3}}{\isacharunderscore}def\ SeqCompTT{\isacharunderscore}def\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ P\ {\isasymLongrightarrow}\ TT{\isadigit{3}}{\isacharunderscore}trace\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{3}}{\isacharunderscore}def\ TT{\isacharunderscore}TT{\isadigit{3}}\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ s\ t\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{3}}{\isacharunderscore}trace\ s{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}meson\ TT{\isadigit{1}}{\isacharunderscore}def\ TT{\isadigit{3}}{\isacharunderscore}def\ TT{\isacharunderscore}TT{\isadigit{1}}\ TT{\isacharunderscore}TT{\isadigit{3}}\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ tt{\isacharunderscore}prefix{\isacharunderscore}concat\ tt{\isacharunderscore}prefix{\isacharunderscore}imp{\isacharunderscore}prefix{\isacharunderscore}subset{\isacharparenright}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}t\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}TT{\isadigit{3}}{\isacharunderscore}trace\ t\ {\isasymand}\ ttWF\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{3}}{\isacharunderscore}def\ TT{\isacharunderscore}TT{\isadigit{3}}\ TT{\isacharunderscore}wf\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}TT{\isadigit{3}}{\isacharunderscore}trace\ {\isacharparenleft}s\ {\isacharat}\ t{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isadigit{1}}\ {\isadigit{2}}\ TT{\isadigit{3}}{\isacharunderscore}append\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}%EndSnippet
+%
+\DefineSnippet{TT4_SeqComp}{
+\isacommand{lemma}\isamarkupfalse%
+\ TT{\isadigit{4}}{\isacharunderscore}SeqComp{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}TT{\isadigit{4}}\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}TT{\isadigit{4}}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}TT{\isadigit{4}}\ {\isacharparenleft}P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\ TT{\isadigit{4}}{\isacharunderscore}def\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymrho}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymrho}\ {\isasymin}\ P\ {\isasymLongrightarrow}\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ {\isasymrho}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{4}}{\isacharunderscore}def\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ s\ t\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}t\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymand}\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ t\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}metis\ TT{\isadigit{4}}{\isacharunderscore}def\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace{\isacharunderscore}end{\isacharunderscore}event\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}sa{\isachardot}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}ta{\isachardot}\ ta\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ {\isacharparenleft}s\ {\isacharat}\ t{\isacharparenright}\ {\isasymnoteq}\ sa\ {\isacharat}\ ta{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ {\isacharparenleft}s\ {\isacharat}\ t{\isacharparenright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace{\isacharunderscore}concat\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ {\isasymrho}\ s\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}{\isasymrho}\ {\isasymin}\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ {\isasymrho}\ {\isasymnoteq}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\ {\isachardoublequoteopen}add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ {\isasymrho}\ {\isacharequal}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}\ s{\isacharprime}{\isachardot}\ s\ {\isacharequal}\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ s{\isacharprime}\ {\isasymand}\ {\isasymrho}\ {\isacharequal}\ s{\isacharprime}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{3}}{\isacharparenright}\ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}induct\ {\isasymrho}\ s\ rule{\isacharcolon}tt{\isacharunderscore}subset{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace{\isachardot}elims\ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule{\isacharunderscore}tac\ x{\isacharequal}{\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule{\isacharunderscore}tac\ x{\isacharequal}{\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharcomma}\ auto{\isacharcomma}\ metis\ list{\isachardot}discI\ list{\isachardot}sel{\isacharparenleft}{\isadigit{3}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}sa{\isachardot}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymnoteq}\ sa\ {\isacharat}\ t{\isacharparenright}\ {\isasymLongrightarrow}\ False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ s\ t\ sa\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ case{\isacharunderscore}assms{\isacharcolon}\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}t\ {\isasymin}\ Q{\isachardoublequoteclose}\ {\isachardoublequoteopen}add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ {\isacharparenleft}s\ {\isacharat}\ t{\isacharparenright}\ {\isacharequal}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}metis\ TT{\isadigit{4}}{\isacharunderscore}def\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace{\isacharunderscore}end{\isacharunderscore}event\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ t\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{4}}{\isacharunderscore}def\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ case{\isacharunderscore}assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ Q\ {\isasymlongrightarrow}\ sa\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymnoteq}\ s\ {\isacharat}\ t{\isacharparenright}\ {\isasymLongrightarrow}\ False{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isadigit{1}}\ {\isadigit{2}}\ case{\isacharunderscore}assms\ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}erule{\isacharunderscore}tac\ x{\isacharequal}{\isachardoublequoteopen}add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ s{\isachardoublequoteclose}\ \isakeyword{in}\ allE{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}erule{\isacharunderscore}tac\ x{\isacharequal}{\isachardoublequoteopen}add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace\ t{\isachardoublequoteclose}\ \isakeyword{in}\ allE{\isacharcomma}\ auto\ simp\ add{\isacharcolon}\ add{\isacharunderscore}Tick{\isacharunderscore}refusal{\isacharunderscore}trace{\isacharunderscore}concat{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+}%EndSnippet
+\isacommand{lemma}\isamarkupfalse%
+\ TT{\isacharunderscore}SeqComp{\isacharcolon}\ \isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}TT\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}TT\ Q{\isachardoublequoteclose}\ {\isachardoublequoteopen}TT{\isadigit{4}}w\ P{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}TT\ {\isacharparenleft}P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ TT{\isacharunderscore}def\ \isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}metis\ TT{\isacharunderscore}def\ SeqComp{\isacharunderscore}wf\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ TT{\isadigit{0}}{\isacharunderscore}SeqComp\ TT{\isacharunderscore}TT{\isadigit{0}}\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \isacommand{using}\isamarkupfalse%
+\ TT{\isadigit{1}}{\isacharunderscore}SeqComp\ TT{\isacharunderscore}def\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{apply}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ TT{\isadigit{2}}w{\isacharunderscore}SeqComp\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ assms{\isacharparenleft}{\isadigit{3}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ TT{\isadigit{3}}{\isacharunderscore}SeqComp\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ SeqComp{\isacharunderscore}Union{\isacharunderscore}dist{\isadigit{1}}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}S\ {\isasymnoteq}\ {\isacharbraceleft}{\isacharbraceright}\ {\isasymLongrightarrow}\ P\ {\isacharsemicolon}\isactrlsub C\ {\isacharparenleft}{\isasymUnion}S{\isacharparenright}\ {\isacharequal}\ {\isasymUnion}{\isacharbraceleft}R{\isachardot}\ {\isasymexists}Q{\isachardot}\ Q\ {\isasymin}\ S\ {\isasymand}\ R\ {\isacharequal}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ SeqComp{\isacharunderscore}Union{\isacharunderscore}dist{\isadigit{2}}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}S\ {\isasymnoteq}\ {\isacharbraceleft}{\isacharbraceright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymUnion}S{\isacharparenright}\ {\isacharsemicolon}\isactrlsub C\ Q\ {\isacharequal}\ {\isasymUnion}{\isacharbraceleft}R{\isachardot}\ {\isasymexists}P{\isachardot}\ P\ {\isasymin}\ S\ {\isasymand}\ R\ {\isacharequal}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ SeqCompTT{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ SeqComp{\isacharunderscore}mono{\isadigit{1}}{\isacharcolon}\ \isanewline
+\ \ {\isachardoublequoteopen}P\ {\isasymsqsubseteq}\isactrlsub C\ Q\ {\isasymLongrightarrow}\ P\ {\isacharsemicolon}\isactrlsub C\ R\ {\isasymsqsubseteq}\isactrlsub C\ Q\ {\isacharsemicolon}\isactrlsub C\ R{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ RefinesTT{\isacharunderscore}def\ SeqCompTT{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ SeqComp{\isacharunderscore}mono{\isadigit{2}}{\isacharcolon}\ \isanewline
+\ \ {\isachardoublequoteopen}P\ {\isasymsqsubseteq}\isactrlsub C\ Q\ {\isasymLongrightarrow}\ R\ {\isacharsemicolon}\isactrlsub C\ P\ {\isasymsqsubseteq}\isactrlsub C\ R\ {\isacharsemicolon}\isactrlsub C\ Q{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ RefinesTT{\isacharunderscore}def\ SeqCompTT{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimtheory
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\end{isabellebody}%
+\endinput
+%:%file=/home/userfs/j/jeb531/tick-tock-CSP/TickTock/TickTock_SeqComp.thy%:%
+%:%10=1%:%
+%:%11=1%:%
+%:%12=2%:%
+%:%13=3%:%
+%:%27=5%:%
+%:%38=7%:%
+%:%39=8%:%
+%:%40=8%:%
+%:%41=9%:%
+%:%43=11%:%
+%:%45=13%:%
+%:%46=14%:%
+%:%47=14%:%
+%:%50=15%:%
+%:%54=15%:%
+%:%55=15%:%
+%:%56=16%:%
+%:%57=16%:%
+%:%58=17%:%
+%:%59=17%:%
+%:%60=18%:%
+%:%61=18%:%
+%:%62=19%:%
+%:%63=19%:%
+%:%64=19%:%
+%:%65=20%:%
+%:%66=20%:%
+%:%67=21%:%
+%:%68=21%:%
+%:%69=22%:%
+%:%70=22%:%
+%:%71=22%:%
+%:%72=23%:%
+%:%73=23%:%
+%:%74=24%:%
+%:%75=24%:%
+%:%76=24%:%
+%:%77=25%:%
+%:%78=25%:%
+%:%79=26%:%
+%:%88=27%:%
+%:%89=29%:%
+%:%90=29%:%
+%:%93=30%:%
+%:%97=30%:%
+%:%98=30%:%
+%:%99=30%:%
+%:%104=30%:%
+%:%107=31%:%
+%:%108=32%:%
+%:%109=32%:%
+%:%110=33%:%
+%:%111=34%:%
+%:%114=35%:%
+%:%118=35%:%
+%:%119=35%:%
+%:%120=36%:%
+%:%121=36%:%
+%:%122=37%:%
+%:%123=37%:%
+%:%124=38%:%
+%:%125=38%:%
+%:%126=39%:%
+%:%127=39%:%
+%:%128=39%:%
+%:%129=40%:%
+%:%130=40%:%
+%:%131=41%:%
+%:%132=41%:%
+%:%133=42%:%
+%:%134=42%:%
+%:%135=43%:%
+%:%136=43%:%
+%:%137=43%:%
+%:%138=44%:%
+%:%139=44%:%
+%:%140=45%:%
+%:%141=45%:%
+%:%142=45%:%
+%:%143=46%:%
+%:%144=46%:%
+%:%145=46%:%
+%:%146=47%:%
+%:%147=47%:%
+%:%148=47%:%
+%:%149=48%:%
+%:%150=48%:%
+%:%151=49%:%
+%:%152=49%:%
+%:%153=49%:%
+%:%154=50%:%
+%:%155=50%:%
+%:%156=51%:%
+%:%157=51%:%
+%:%158=52%:%
+%:%159=52%:%
+%:%160=53%:%
+%:%161=53%:%
+%:%162=54%:%
+%:%163=54%:%
+%:%164=54%:%
+%:%165=55%:%
+%:%166=55%:%
+%:%167=55%:%
+%:%168=56%:%
+%:%169=56%:%
+%:%170=56%:%
+%:%171=57%:%
+%:%172=57%:%
+%:%173=58%:%
+%:%174=58%:%
+%:%175=59%:%
+%:%176=59%:%
+%:%177=60%:%
+%:%178=60%:%
+%:%179=61%:%
+%:%180=61%:%
+%:%181=61%:%
+%:%182=62%:%
+%:%183=62%:%
+%:%184=63%:%
+%:%185=63%:%
+%:%186=63%:%
+%:%187=64%:%
+%:%188=64%:%
+%:%189=65%:%
+%:%190=65%:%
+%:%191=66%:%
+%:%192=66%:%
+%:%193=67%:%
+%:%194=67%:%
+%:%195=68%:%
+%:%196=68%:%
+%:%197=69%:%
+%:%198=69%:%
+%:%199=69%:%
+%:%200=70%:%
+%:%201=70%:%
+%:%202=70%:%
+%:%203=71%:%
+%:%204=71%:%
+%:%205=71%:%
+%:%206=72%:%
+%:%207=72%:%
+%:%208=72%:%
+%:%209=73%:%
+%:%210=73%:%
+%:%211=74%:%
+%:%212=74%:%
+%:%213=75%:%
+%:%214=75%:%
+%:%215=76%:%
+%:%216=76%:%
+%:%217=76%:%
+%:%218=77%:%
+%:%219=77%:%
+%:%220=78%:%
+%:%221=78%:%
+%:%222=78%:%
+%:%223=79%:%
+%:%224=79%:%
+%:%225=79%:%
+%:%226=80%:%
+%:%227=80%:%
+%:%228=80%:%
+%:%229=81%:%
+%:%230=81%:%
+%:%231=81%:%
+%:%232=82%:%
+%:%233=82%:%
+%:%234=82%:%
+%:%235=83%:%
+%:%236=83%:%
+%:%237=84%:%
+%:%238=84%:%
+%:%239=85%:%
+%:%240=85%:%
+%:%241=86%:%
+%:%242=86%:%
+%:%243=87%:%
+%:%244=87%:%
+%:%245=88%:%
+%:%246=88%:%
+%:%247=89%:%
+%:%248=89%:%
+%:%249=90%:%
+%:%250=90%:%
+%:%251=90%:%
+%:%252=91%:%
+%:%253=91%:%
+%:%254=92%:%
+%:%255=92%:%
+%:%256=92%:%
+%:%257=93%:%
+%:%258=93%:%
+%:%259=94%:%
+%:%260=94%:%
+%:%261=95%:%
+%:%262=95%:%
+%:%263=95%:%
+%:%264=96%:%
+%:%265=96%:%
+%:%266=96%:%
+%:%267=97%:%
+%:%268=97%:%
+%:%269=97%:%
+%:%270=98%:%
+%:%271=98%:%
+%:%272=98%:%
+%:%273=99%:%
+%:%274=99%:%
+%:%275=100%:%
+%:%276=100%:%
+%:%277=101%:%
+%:%278=101%:%
+%:%279=102%:%
+%:%280=102%:%
+%:%281=102%:%
+%:%282=103%:%
+%:%283=103%:%
+%:%284=104%:%
+%:%285=104%:%
+%:%286=104%:%
+%:%287=105%:%
+%:%288=105%:%
+%:%289=105%:%
+%:%290=106%:%
+%:%291=106%:%
+%:%292=106%:%
+%:%293=107%:%
+%:%294=107%:%
+%:%295=107%:%
+%:%296=108%:%
+%:%297=108%:%
+%:%298=108%:%
+%:%299=109%:%
+%:%300=109%:%
+%:%301=110%:%
+%:%302=110%:%
+%:%303=111%:%
+%:%304=111%:%
+%:%305=112%:%
+%:%306=112%:%
+%:%307=112%:%
+%:%308=113%:%
+%:%309=113%:%
+%:%310=114%:%
+%:%311=114%:%
+%:%312=114%:%
+%:%313=115%:%
+%:%314=115%:%
+%:%315=115%:%
+%:%316=116%:%
+%:%317=116%:%
+%:%318=116%:%
+%:%319=117%:%
+%:%320=117%:%
+%:%321=117%:%
+%:%322=118%:%
+%:%323=118%:%
+%:%324=118%:%
+%:%325=119%:%
+%:%326=119%:%
+%:%327=119%:%
+%:%328=120%:%
+%:%329=120%:%
+%:%330=121%:%
+%:%331=121%:%
+%:%332=122%:%
+%:%338=122%:%
+%:%341=123%:%
+%:%342=124%:%
+%:%343=125%:%
+%:%344=125%:%
+%:%347=126%:%
+%:%351=126%:%
+%:%352=126%:%
+%:%353=127%:%
+%:%354=127%:%
+%:%355=128%:%
+%:%356=128%:%
+%:%357=129%:%
+%:%358=129%:%
+%:%359=130%:%
+%:%360=131%:%
+%:%361=131%:%
+%:%362=132%:%
+%:%363=132%:%
+%:%364=133%:%
+%:%365=133%:%
+%:%366=134%:%
+%:%367=134%:%
+%:%371=138%:%
+%:%372=139%:%
+%:%373=139%:%
+%:%374=140%:%
+%:%375=140%:%
+%:%376=140%:%
+%:%378=142%:%
+%:%379=143%:%
+%:%380=143%:%
+%:%381=143%:%
+%:%382=144%:%
+%:%383=144%:%
+%:%384=144%:%
+%:%386=146%:%
+%:%387=147%:%
+%:%388=147%:%
+%:%389=148%:%
+%:%390=148%:%
+%:%391=149%:%
+%:%392=149%:%
+%:%393=149%:%
+%:%394=150%:%
+%:%395=150%:%
+%:%396=151%:%
+%:%397=151%:%
+%:%398=151%:%
+%:%399=152%:%
+%:%400=152%:%
+%:%401=152%:%
+%:%402=153%:%
+%:%403=153%:%
+%:%404=153%:%
+%:%405=153%:%
+%:%406=154%:%
+%:%407=154%:%
+%:%408=155%:%
+%:%409=155%:%
+%:%410=156%:%
+%:%411=156%:%
+%:%412=157%:%
+%:%413=157%:%
+%:%414=158%:%
+%:%415=158%:%
+%:%416=158%:%
+%:%417=158%:%
+%:%418=159%:%
+%:%419=159%:%
+%:%420=159%:%
+%:%421=160%:%
+%:%422=160%:%
+%:%423=160%:%
+%:%424=161%:%
+%:%425=161%:%
+%:%426=161%:%
+%:%427=162%:%
+%:%428=162%:%
+%:%429=162%:%
+%:%430=163%:%
+%:%431=163%:%
+%:%432=164%:%
+%:%433=164%:%
+%:%434=165%:%
+%:%435=165%:%
+%:%436=165%:%
+%:%437=166%:%
+%:%438=166%:%
+%:%439=167%:%
+%:%440=167%:%
+%:%441=167%:%
+%:%442=168%:%
+%:%443=168%:%
+%:%444=168%:%
+%:%445=169%:%
+%:%446=169%:%
+%:%447=170%:%
+%:%448=170%:%
+%:%449=171%:%
+%:%450=171%:%
+%:%451=172%:%
+%:%452=172%:%
+%:%453=173%:%
+%:%454=174%:%
+%:%455=174%:%
+%:%456=175%:%
+%:%457=175%:%
+%:%458=176%:%
+%:%459=176%:%
+%:%460=177%:%
+%:%461=177%:%
+%:%462=178%:%
+%:%463=178%:%
+%:%464=179%:%
+%:%465=179%:%
+%:%466=180%:%
+%:%467=180%:%
+%:%468=181%:%
+%:%469=181%:%
+%:%470=182%:%
+%:%471=182%:%
+%:%472=182%:%
+%:%473=183%:%
+%:%474=183%:%
+%:%475=184%:%
+%:%476=184%:%
+%:%477=185%:%
+%:%478=185%:%
+%:%479=185%:%
+%:%480=186%:%
+%:%481=186%:%
+%:%482=187%:%
+%:%483=187%:%
+%:%484=187%:%
+%:%485=188%:%
+%:%486=188%:%
+%:%487=188%:%
+%:%488=189%:%
+%:%489=189%:%
+%:%490=189%:%
+%:%491=190%:%
+%:%492=190%:%
+%:%493=190%:%
+%:%494=191%:%
+%:%495=191%:%
+%:%496=191%:%
+%:%497=192%:%
+%:%498=192%:%
+%:%499=193%:%
+%:%500=193%:%
+%:%501=193%:%
+%:%502=194%:%
+%:%503=194%:%
+%:%504=195%:%
+%:%505=195%:%
+%:%506=196%:%
+%:%507=196%:%
+%:%508=197%:%
+%:%509=197%:%
+%:%510=198%:%
+%:%511=198%:%
+%:%512=198%:%
+%:%514=200%:%
+%:%515=201%:%
+%:%516=201%:%
+%:%517=201%:%
+%:%518=202%:%
+%:%519=202%:%
+%:%523=206%:%
+%:%524=207%:%
+%:%525=207%:%
+%:%526=208%:%
+%:%527=208%:%
+%:%528=208%:%
+%:%530=210%:%
+%:%531=211%:%
+%:%532=211%:%
+%:%533=211%:%
+%:%534=212%:%
+%:%535=212%:%
+%:%536=212%:%
+%:%538=214%:%
+%:%539=215%:%
+%:%540=215%:%
+%:%541=216%:%
+%:%542=216%:%
+%:%543=216%:%
+%:%545=218%:%
+%:%546=219%:%
+%:%547=219%:%
+%:%548=220%:%
+%:%549=220%:%
+%:%550=220%:%
+%:%551=221%:%
+%:%552=222%:%
+%:%553=222%:%
+%:%554=223%:%
+%:%555=223%:%
+%:%556=223%:%
+%:%557=224%:%
+%:%558=224%:%
+%:%559=224%:%
+%:%560=225%:%
+%:%561=225%:%
+%:%562=225%:%
+%:%563=226%:%
+%:%564=226%:%
+%:%565=226%:%
+%:%566=227%:%
+%:%567=227%:%
+%:%568=227%:%
+%:%569=228%:%
+%:%570=228%:%
+%:%571=228%:%
+%:%572=229%:%
+%:%573=229%:%
+%:%574=229%:%
+%:%575=230%:%
+%:%576=230%:%
+%:%577=231%:%
+%:%578=231%:%
+%:%579=232%:%
+%:%585=232%:%
+%:%588=233%:%
+%:%589=234%:%
+%:%590=234%:%
+%:%591=235%:%
+%:%592=236%:%
+%:%593=237%:%
+%:%596=238%:%
+%:%600=238%:%
+%:%601=238%:%
+%:%602=239%:%
+%:%603=239%:%
+%:%604=240%:%
+%:%605=240%:%
+%:%606=241%:%
+%:%607=241%:%
+%:%608=242%:%
+%:%609=242%:%
+%:%610=243%:%
+%:%611=243%:%
+%:%612=244%:%
+%:%613=245%:%
+%:%614=245%:%
+%:%615=245%:%
+%:%616=246%:%
+%:%617=246%:%
+%:%618=246%:%
+%:%619=247%:%
+%:%620=247%:%
+%:%621=247%:%
+%:%622=248%:%
+%:%623=248%:%
+%:%624=248%:%
+%:%625=249%:%
+%:%626=249%:%
+%:%627=249%:%
+%:%628=250%:%
+%:%629=250%:%
+%:%630=251%:%
+%:%631=251%:%
+%:%632=251%:%
+%:%633=252%:%
+%:%634=252%:%
+%:%635=253%:%
+%:%636=253%:%
+%:%637=254%:%
+%:%638=254%:%
+%:%639=254%:%
+%:%640=255%:%
+%:%641=255%:%
+%:%642=255%:%
+%:%643=255%:%
+%:%644=256%:%
+%:%645=256%:%
+%:%646=256%:%
+%:%647=257%:%
+%:%648=257%:%
+%:%649=258%:%
+%:%650=258%:%
+%:%651=259%:%
+%:%652=259%:%
+%:%653=259%:%
+%:%654=260%:%
+%:%655=260%:%
+%:%656=260%:%
+%:%657=261%:%
+%:%658=261%:%
+%:%659=262%:%
+%:%660=262%:%
+%:%661=262%:%
+%:%662=263%:%
+%:%663=263%:%
+%:%664=263%:%
+%:%665=264%:%
+%:%666=264%:%
+%:%667=265%:%
+%:%668=265%:%
+%:%669=266%:%
+%:%670=266%:%
+%:%671=266%:%
+%:%672=267%:%
+%:%673=267%:%
+%:%674=268%:%
+%:%675=268%:%
+%:%676=268%:%
+%:%677=269%:%
+%:%678=269%:%
+%:%679=270%:%
+%:%680=270%:%
+%:%681=271%:%
+%:%682=271%:%
+%:%683=272%:%
+%:%684=272%:%
+%:%685=273%:%
+%:%686=273%:%
+%:%687=274%:%
+%:%688=274%:%
+%:%689=275%:%
+%:%690=275%:%
+%:%691=276%:%
+%:%692=276%:%
+%:%693=277%:%
+%:%694=277%:%
+%:%695=278%:%
+%:%696=278%:%
+%:%697=279%:%
+%:%698=279%:%
+%:%699=280%:%
+%:%700=280%:%
+%:%701=281%:%
+%:%702=281%:%
+%:%703=282%:%
+%:%704=282%:%
+%:%705=283%:%
+%:%706=283%:%
+%:%707=284%:%
+%:%708=284%:%
+%:%709=285%:%
+%:%710=285%:%
+%:%711=286%:%
+%:%712=286%:%
+%:%713=287%:%
+%:%714=287%:%
+%:%715=288%:%
+%:%716=288%:%
+%:%717=288%:%
+%:%718=289%:%
+%:%719=289%:%
+%:%720=290%:%
+%:%721=290%:%
+%:%722=291%:%
+%:%723=291%:%
+%:%724=292%:%
+%:%725=292%:%
+%:%726=292%:%
+%:%727=293%:%
+%:%728=293%:%
+%:%729=294%:%
+%:%730=294%:%
+%:%731=294%:%
+%:%732=295%:%
+%:%733=295%:%
+%:%734=296%:%
+%:%735=296%:%
+%:%736=296%:%
+%:%737=297%:%
+%:%738=297%:%
+%:%739=297%:%
+%:%740=298%:%
+%:%741=298%:%
+%:%742=298%:%
+%:%743=299%:%
+%:%744=299%:%
+%:%745=300%:%
+%:%746=300%:%
+%:%747=301%:%
+%:%748=301%:%
+%:%749=302%:%
+%:%750=302%:%
+%:%751=303%:%
+%:%752=303%:%
+%:%753=303%:%
+%:%754=304%:%
+%:%755=304%:%
+%:%756=304%:%
+%:%757=305%:%
+%:%758=305%:%
+%:%759=305%:%
+%:%760=306%:%
+%:%761=306%:%
+%:%762=306%:%
+%:%763=307%:%
+%:%764=307%:%
+%:%765=307%:%
+%:%766=308%:%
+%:%767=308%:%
+%:%768=309%:%
+%:%769=309%:%
+%:%770=310%:%
+%:%771=310%:%
+%:%772=311%:%
+%:%773=311%:%
+%:%774=311%:%
+%:%775=312%:%
+%:%776=312%:%
+%:%777=313%:%
+%:%778=313%:%
+%:%779=314%:%
+%:%780=314%:%
+%:%781=314%:%
+%:%782=315%:%
+%:%783=316%:%
+%:%784=316%:%
+%:%785=317%:%
+%:%786=317%:%
+%:%787=318%:%
+%:%788=318%:%
+%:%789=319%:%
+%:%790=319%:%
+%:%791=319%:%
+%:%792=320%:%
+%:%793=320%:%
+%:%794=320%:%
+%:%795=320%:%
+%:%796=321%:%
+%:%797=321%:%
+%:%798=321%:%
+%:%799=322%:%
+%:%800=322%:%
+%:%801=323%:%
+%:%802=323%:%
+%:%803=324%:%
+%:%804=324%:%
+%:%805=324%:%
+%:%806=325%:%
+%:%807=325%:%
+%:%808=325%:%
+%:%809=326%:%
+%:%810=326%:%
+%:%811=326%:%
+%:%812=327%:%
+%:%813=327%:%
+%:%814=327%:%
+%:%815=328%:%
+%:%816=328%:%
+%:%817=328%:%
+%:%818=329%:%
+%:%819=329%:%
+%:%820=329%:%
+%:%821=330%:%
+%:%822=330%:%
+%:%823=331%:%
+%:%824=331%:%
+%:%825=332%:%
+%:%826=332%:%
+%:%827=332%:%
+%:%828=333%:%
+%:%829=333%:%
+%:%830=334%:%
+%:%831=334%:%
+%:%832=334%:%
+%:%833=335%:%
+%:%834=335%:%
+%:%835=336%:%
+%:%836=336%:%
+%:%837=337%:%
+%:%838=337%:%
+%:%839=337%:%
+%:%840=338%:%
+%:%841=339%:%
+%:%842=339%:%
+%:%843=339%:%
+%:%844=340%:%
+%:%845=340%:%
+%:%846=341%:%
+%:%847=341%:%
+%:%848=342%:%
+%:%849=342%:%
+%:%850=343%:%
+%:%851=344%:%
+%:%852=344%:%
+%:%853=345%:%
+%:%854=346%:%
+%:%855=346%:%
+%:%856=346%:%
+%:%857=346%:%
+%:%858=347%:%
+%:%859=347%:%
+%:%860=347%:%
+%:%861=348%:%
+%:%862=348%:%
+%:%863=348%:%
+%:%864=349%:%
+%:%865=349%:%
+%:%866=349%:%
+%:%867=350%:%
+%:%868=350%:%
+%:%869=350%:%
+%:%870=350%:%
+%:%871=351%:%
+%:%872=351%:%
+%:%873=351%:%
+%:%874=352%:%
+%:%875=353%:%
+%:%876=353%:%
+%:%877=353%:%
+%:%878=354%:%
+%:%879=354%:%
+%:%880=355%:%
+%:%881=355%:%
+%:%882=356%:%
+%:%883=356%:%
+%:%884=357%:%
+%:%885=357%:%
+%:%886=358%:%
+%:%887=358%:%
+%:%888=358%:%
+%:%889=359%:%
+%:%890=359%:%
+%:%891=360%:%
+%:%892=360%:%
+%:%893=360%:%
+%:%894=361%:%
+%:%895=361%:%
+%:%896=362%:%
+%:%897=362%:%
+%:%898=363%:%
+%:%899=363%:%
+%:%900=364%:%
+%:%901=364%:%
+%:%902=365%:%
+%:%903=365%:%
+%:%904=366%:%
+%:%905=366%:%
+%:%906=366%:%
+%:%907=367%:%
+%:%908=367%:%
+%:%909=368%:%
+%:%910=368%:%
+%:%911=368%:%
+%:%912=369%:%
+%:%913=369%:%
+%:%914=369%:%
+%:%915=370%:%
+%:%916=370%:%
+%:%917=371%:%
+%:%918=371%:%
+%:%919=372%:%
+%:%920=372%:%
+%:%921=373%:%
+%:%922=373%:%
+%:%923=374%:%
+%:%924=375%:%
+%:%925=375%:%
+%:%926=375%:%
+%:%927=375%:%
+%:%928=376%:%
+%:%929=376%:%
+%:%930=376%:%
+%:%931=377%:%
+%:%932=377%:%
+%:%933=377%:%
+%:%934=378%:%
+%:%935=378%:%
+%:%936=378%:%
+%:%937=379%:%
+%:%938=379%:%
+%:%939=379%:%
+%:%940=379%:%
+%:%941=380%:%
+%:%942=380%:%
+%:%943=380%:%
+%:%944=381%:%
+%:%945=381%:%
+%:%946=381%:%
+%:%947=382%:%
+%:%948=382%:%
+%:%949=383%:%
+%:%950=383%:%
+%:%951=384%:%
+%:%952=384%:%
+%:%953=385%:%
+%:%954=385%:%
+%:%955=385%:%
+%:%956=386%:%
+%:%957=386%:%
+%:%958=386%:%
+%:%959=386%:%
+%:%960=387%:%
+%:%961=387%:%
+%:%962=387%:%
+%:%963=388%:%
+%:%964=388%:%
+%:%965=389%:%
+%:%966=389%:%
+%:%967=390%:%
+%:%968=390%:%
+%:%969=390%:%
+%:%970=391%:%
+%:%971=391%:%
+%:%972=391%:%
+%:%973=392%:%
+%:%974=392%:%
+%:%975=392%:%
+%:%976=393%:%
+%:%977=393%:%
+%:%978=393%:%
+%:%979=394%:%
+%:%980=394%:%
+%:%981=394%:%
+%:%982=395%:%
+%:%983=395%:%
+%:%984=395%:%
+%:%985=396%:%
+%:%986=396%:%
+%:%987=397%:%
+%:%988=397%:%
+%:%989=398%:%
+%:%990=398%:%
+%:%991=398%:%
+%:%992=399%:%
+%:%993=399%:%
+%:%994=400%:%
+%:%995=400%:%
+%:%996=400%:%
+%:%997=401%:%
+%:%998=401%:%
+%:%999=402%:%
+%:%1000=402%:%
+%:%1001=403%:%
+%:%1002=403%:%
+%:%1003=403%:%
+%:%1004=404%:%
+%:%1005=404%:%
+%:%1006=404%:%
+%:%1007=405%:%
+%:%1008=405%:%
+%:%1009=406%:%
+%:%1010=406%:%
+%:%1011=407%:%
+%:%1020=409%:%
+%:%1021=410%:%
+%:%1022=410%:%
+%:%1023=411%:%
+%:%1024=412%:%
+%:%1027=413%:%
+%:%1031=413%:%
+%:%1032=413%:%
+%:%1033=414%:%
+%:%1034=414%:%
+%:%1035=415%:%
+%:%1036=415%:%
+%:%1037=416%:%
+%:%1038=416%:%
+%:%1039=417%:%
+%:%1040=417%:%
+%:%1041=417%:%
+%:%1042=418%:%
+%:%1043=418%:%
+%:%1044=419%:%
+%:%1045=419%:%
+%:%1046=420%:%
+%:%1047=420%:%
+%:%1048=421%:%
+%:%1049=421%:%
+%:%1050=421%:%
+%:%1051=422%:%
+%:%1052=422%:%
+%:%1053=423%:%
+%:%1054=424%:%
+%:%1055=424%:%
+%:%1056=425%:%
+%:%1057=425%:%
+%:%1058=425%:%
+%:%1059=426%:%
+%:%1060=426%:%
+%:%1061=426%:%
+%:%1062=427%:%
+%:%1063=427%:%
+%:%1064=428%:%
+%:%1065=428%:%
+%:%1066=428%:%
+%:%1067=429%:%
+%:%1076=430%:%
+%:%1078=432%:%
+%:%1079=433%:%
+%:%1080=433%:%
+%:%1081=434%:%
+%:%1082=435%:%
+%:%1085=436%:%
+%:%1089=436%:%
+%:%1090=436%:%
+%:%1091=437%:%
+%:%1092=437%:%
+%:%1093=438%:%
+%:%1094=438%:%
+%:%1095=439%:%
+%:%1096=439%:%
+%:%1097=440%:%
+%:%1098=440%:%
+%:%1099=440%:%
+%:%1100=441%:%
+%:%1101=441%:%
+%:%1102=442%:%
+%:%1103=442%:%
+%:%1104=443%:%
+%:%1105=443%:%
+%:%1106=444%:%
+%:%1107=444%:%
+%:%1108=444%:%
+%:%1109=445%:%
+%:%1110=445%:%
+%:%1111=446%:%
+%:%1112=446%:%
+%:%1113=446%:%
+%:%1114=447%:%
+%:%1115=448%:%
+%:%1116=448%:%
+%:%1117=448%:%
+%:%1118=449%:%
+%:%1119=449%:%
+%:%1120=450%:%
+%:%1121=450%:%
+%:%1122=451%:%
+%:%1123=451%:%
+%:%1124=452%:%
+%:%1125=452%:%
+%:%1126=453%:%
+%:%1127=453%:%
+%:%1128=453%:%
+%:%1129=454%:%
+%:%1130=454%:%
+%:%1131=454%:%
+%:%1132=455%:%
+%:%1133=455%:%
+%:%1134=456%:%
+%:%1135=456%:%
+%:%1136=456%:%
+%:%1137=457%:%
+%:%1138=457%:%
+%:%1139=457%:%
+%:%1140=458%:%
+%:%1141=458%:%
+%:%1142=459%:%
+%:%1143=459%:%
+%:%1144=460%:%
+%:%1145=460%:%
+%:%1146=461%:%
+%:%1147=461%:%
+%:%1148=462%:%
+%:%1149=462%:%
+%:%1150=463%:%
+%:%1151=463%:%
+%:%1152=464%:%
+%:%1153=464%:%
+%:%1154=464%:%
+%:%1155=465%:%
+%:%1156=465%:%
+%:%1157=466%:%
+%:%1158=466%:%
+%:%1159=466%:%
+%:%1160=467%:%
+%:%1161=467%:%
+%:%1162=468%:%
+%:%1171=469%:%
+%:%1172=471%:%
+%:%1173=471%:%
+%:%1174=472%:%
+%:%1175=473%:%
+%:%1178=474%:%
+%:%1182=474%:%
+%:%1183=474%:%
+%:%1184=474%:%
+%:%1185=475%:%
+%:%1186=475%:%
+%:%1187=476%:%
+%:%1188=476%:%
+%:%1189=477%:%
+%:%1190=477%:%
+%:%1191=477%:%
+%:%1192=478%:%
+%:%1193=478%:%
+%:%1194=479%:%
+%:%1195=479%:%
+%:%1196=480%:%
+%:%1202=480%:%
+%:%1205=481%:%
+%:%1206=482%:%
+%:%1207=482%:%
+%:%1208=483%:%
+%:%1211=484%:%
+%:%1215=484%:%
+%:%1216=484%:%
+%:%1217=484%:%
+%:%1222=484%:%
+%:%1225=485%:%
+%:%1226=486%:%
+%:%1227=486%:%
+%:%1228=487%:%
+%:%1231=488%:%
+%:%1235=488%:%
+%:%1236=488%:%
+%:%1237=488%:%
+%:%1242=488%:%
+%:%1245=489%:%
+%:%1246=490%:%
+%:%1247=490%:%
+%:%1248=491%:%
+%:%1251=492%:%
+%:%1255=492%:%
+%:%1256=492%:%
+%:%1257=492%:%
+%:%1262=492%:%
+%:%1265=493%:%
+%:%1266=494%:%
+%:%1267=494%:%
+%:%1268=495%:%
+%:%1271=496%:%
+%:%1275=496%:%
+%:%1276=496%:%
+%:%1277=496%:%
+%:%1282=496%:%
+%:%1287=497%:%
+%:%1292=498%:%
