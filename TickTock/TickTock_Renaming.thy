@@ -195,85 +195,85 @@ proof (auto)
     using assms by auto
 qed
 
-lemma TT3_Renaming: "TT3 P \<Longrightarrow> TT3 (RenamingTT P f)"
-  unfolding TT3_def RenamingTT_def
+lemma ttWFx_Renaming: "ttWFx P \<Longrightarrow> ttWFx (RenamingTT P f)"
+  unfolding ttWFx_def RenamingTT_def
 proof (simp, safe)
   fix x xa
-  have "\<And>P x. \<forall>x\<in>P. TT3_trace x \<Longrightarrow> xa \<in> P \<Longrightarrow> x \<in> rename_trace f xa \<Longrightarrow> TT3_trace x"
-  proof (induct xa rule:TT3_trace.induct)
+  have "\<And>P x. \<forall>x\<in>P. ttWFx_trace x \<Longrightarrow> xa \<in> P \<Longrightarrow> x \<in> rename_trace f xa \<Longrightarrow> ttWFx_trace x"
+  proof (induct xa rule:ttWFx_trace.induct)
     fix P x
-    show "Ball P TT3_trace \<Longrightarrow> [] \<in> P \<Longrightarrow> x \<in> rename_trace f [] \<Longrightarrow> TT3_trace x"
+    show "Ball P ttWFx_trace \<Longrightarrow> [] \<in> P \<Longrightarrow> x \<in> rename_trace f [] \<Longrightarrow> ttWFx_trace x"
       by simp
   next
     fix x P xa 
-    show "Ball P TT3_trace \<Longrightarrow> [x] \<in> P \<Longrightarrow> xa \<in> rename_trace f [x] \<Longrightarrow> TT3_trace xa"
+    show "Ball P ttWFx_trace \<Longrightarrow> [x] \<in> P \<Longrightarrow> xa \<in> rename_trace f [x] \<Longrightarrow> ttWFx_trace xa"
       by (cases x, auto)
   next
     fix X \<rho> P x
-    assume ind_hyp: "\<And>P x. Ball P TT3_trace \<Longrightarrow> \<rho> \<in> P \<Longrightarrow> x \<in> rename_trace f \<rho> \<Longrightarrow> TT3_trace x"
-    assume case_assms: "Ball P TT3_trace" "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P" "x \<in> rename_trace f ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>)"
+    assume ind_hyp: "\<And>P x. Ball P ttWFx_trace \<Longrightarrow> \<rho> \<in> P \<Longrightarrow> x \<in> rename_trace f \<rho> \<Longrightarrow> ttWFx_trace x"
+    assume case_assms: "Ball P ttWFx_trace" "[X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> P" "x \<in> rename_trace f ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>)"
     obtain x' Y where x_def: "x = [Y]\<^sub>R # [Tock]\<^sub>E # x' \<and> X = lift_renaming_func f -` Y"
       using case_assms(3) by (cases x rule:ttWF.cases, auto)
-    have 1: "Ball {x. [X]\<^sub>R # [Tock]\<^sub>E # x \<in> P} TT3_trace"
+    have 1: "Ball {x. [X]\<^sub>R # [Tock]\<^sub>E # x \<in> P} ttWFx_trace"
       using case_assms(1) by auto
     have 2: "\<rho> \<in> {x. [X]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"
       using case_assms(2) by auto
     have 3: "x' \<in> rename_trace f \<rho>"
       using x_def case_assms(3) by auto
-    have "TT3_trace x'"
+    have "ttWFx_trace x'"
       using 1 2 3 ind_hyp[where x=x', where P="{x. [X]\<^sub>R # [Tock]\<^sub>E # x \<in> P}"] by fastforce
-    then show "TT3_trace x"
-      by (metis TT3_trace.simps(3) case_assms(1) case_assms(2) lift_renaming_func.simps(2) vimageI x_def)
+    then show "ttWFx_trace x"
+      by (metis ttWFx_trace.simps(3) case_assms(1) case_assms(2) lift_renaming_func.simps(2) vimageI x_def)
   next
     fix va vb vc P x
-    assume ind_hyp: "\<And>P x. Ball P TT3_trace \<Longrightarrow> vb # vc \<in> P \<Longrightarrow> x \<in> rename_trace f (vb # vc) \<Longrightarrow> TT3_trace x"
-    assume case_assms: "Ball P TT3_trace" "[va]\<^sub>E # vb # vc \<in> P" "x \<in> rename_trace f ([va]\<^sub>E # vb # vc)"
+    assume ind_hyp: "\<And>P x. Ball P ttWFx_trace \<Longrightarrow> vb # vc \<in> P \<Longrightarrow> x \<in> rename_trace f (vb # vc) \<Longrightarrow> ttWFx_trace x"
+    assume case_assms: "Ball P ttWFx_trace" "[va]\<^sub>E # vb # vc \<in> P" "x \<in> rename_trace f ([va]\<^sub>E # vb # vc)"
     obtain va' vb' x' where x_def: "x = [va']\<^sub>E # vb' # x'"
-      using case_assms(3) by (cases x rule:TT3_trace.cases, auto, cases vb, auto)
-    have 1: "Ball {x. [va]\<^sub>E # x \<in> P} TT3_trace"
-      using case_assms(1) TT3_trace_cons_imp_cons by blast
-    have "TT3_trace (vb' # x')"
+      using case_assms(3) by (cases x rule:ttWFx_trace.cases, auto, cases vb, auto)
+    have 1: "Ball {x. [va]\<^sub>E # x \<in> P} ttWFx_trace"
+      using case_assms(1) ttWFx_trace_cons_imp_cons by blast
+    have "ttWFx_trace (vb' # x')"
       using 1 case_assms(2) case_assms(3) x_def ind_hyp[where x="vb' # x'", where P="{x. [va]\<^sub>E # x \<in> P}"] by fastforce
-    then show "TT3_trace x"
+    then show "ttWFx_trace x"
       using x_def case_assms(3) by simp
   next
     fix va vd vc P x
-    assume ind_hyp: "\<And>P x. Ball P TT3_trace \<Longrightarrow> [Event vd]\<^sub>E # vc \<in> P \<Longrightarrow> x \<in> rename_trace f ([Event vd]\<^sub>E # vc) \<Longrightarrow> TT3_trace x"
-    assume case_assms: "Ball P TT3_trace" "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> P" "x \<in> rename_trace f ([va]\<^sub>R # [Event vd]\<^sub>E # vc)"
+    assume ind_hyp: "\<And>P x. Ball P ttWFx_trace \<Longrightarrow> [Event vd]\<^sub>E # vc \<in> P \<Longrightarrow> x \<in> rename_trace f ([Event vd]\<^sub>E # vc) \<Longrightarrow> ttWFx_trace x"
+    assume case_assms: "Ball P ttWFx_trace" "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> P" "x \<in> rename_trace f ([va]\<^sub>R # [Event vd]\<^sub>E # vc)"
     obtain va' vd' x' where x_def: "x = [va']\<^sub>R # [Event vd']\<^sub>E # x'"
       using case_assms(3) by (cases x rule:ttWF.cases, auto)
-    have 1: "Ball {x. [va]\<^sub>R # x \<in> P} TT3_trace"
-      using case_assms(1) TT3_trace_cons_imp_cons by auto
-    have "TT3_trace ([Event vd']\<^sub>E # x')"
+    have 1: "Ball {x. [va]\<^sub>R # x \<in> P} ttWFx_trace"
+      using case_assms(1) ttWFx_trace_cons_imp_cons by auto
+    have "ttWFx_trace ([Event vd']\<^sub>E # x')"
       using 1 case_assms(2) case_assms(3) x_def ind_hyp[where x="[Event vd']\<^sub>E # x'", where P="{x. [va]\<^sub>R # x \<in> P}"] by fastforce
-    then show "TT3_trace x"
+    then show "ttWFx_trace x"
       using x_def case_assms(3) by simp
   next
     fix va vc P x
-    assume ind_hyp: "\<And>P x. Ball P TT3_trace \<Longrightarrow> [Tick]\<^sub>E # vc \<in> P \<Longrightarrow> x \<in> rename_trace f ([Tick]\<^sub>E # vc) \<Longrightarrow> TT3_trace x"
-    assume case_assms: "Ball P TT3_trace" "[va]\<^sub>R # [Tick]\<^sub>E # vc \<in> P" "x \<in> rename_trace f ([va]\<^sub>R # [Tick]\<^sub>E # vc)"
+    assume ind_hyp: "\<And>P x. Ball P ttWFx_trace \<Longrightarrow> [Tick]\<^sub>E # vc \<in> P \<Longrightarrow> x \<in> rename_trace f ([Tick]\<^sub>E # vc) \<Longrightarrow> ttWFx_trace x"
+    assume case_assms: "Ball P ttWFx_trace" "[va]\<^sub>R # [Tick]\<^sub>E # vc \<in> P" "x \<in> rename_trace f ([va]\<^sub>R # [Tick]\<^sub>E # vc)"
     obtain va' x' where x_def: "x = [va']\<^sub>R # [Tick]\<^sub>E # x'"
       using case_assms(3) by (cases x rule:ttWF.cases, auto)
-    have 1: "Ball {x. [va]\<^sub>R # x \<in> P} TT3_trace"
-      using case_assms(1) TT3_trace_cons_imp_cons by auto
-    have "TT3_trace ([Tick]\<^sub>E # x')"
+    have 1: "Ball {x. [va]\<^sub>R # x \<in> P} ttWFx_trace"
+      using case_assms(1) ttWFx_trace_cons_imp_cons by auto
+    have "ttWFx_trace ([Tick]\<^sub>E # x')"
       using 1 case_assms(2) case_assms(3) x_def ind_hyp[where x="[Tick]\<^sub>E # x'", where P="{x. [va]\<^sub>R # x \<in> P}"] by fastforce
-    then show "TT3_trace x"
+    then show "ttWFx_trace x"
       using x_def case_assms(3) by simp
   next
     fix vb va vc P x
-    assume ind_hyp: "\<And>P x. Ball P TT3_trace \<Longrightarrow> [va]\<^sub>R # vc \<in> P \<Longrightarrow> x \<in> rename_trace f ([va]\<^sub>R # vc) \<Longrightarrow> TT3_trace x"
-    assume case_assms: "Ball P TT3_trace" "[vb]\<^sub>R # [va]\<^sub>R # vc \<in> P" "x \<in> rename_trace f ([vb]\<^sub>R # [va]\<^sub>R # vc)"
+    assume ind_hyp: "\<And>P x. Ball P ttWFx_trace \<Longrightarrow> [va]\<^sub>R # vc \<in> P \<Longrightarrow> x \<in> rename_trace f ([va]\<^sub>R # vc) \<Longrightarrow> ttWFx_trace x"
+    assume case_assms: "Ball P ttWFx_trace" "[vb]\<^sub>R # [va]\<^sub>R # vc \<in> P" "x \<in> rename_trace f ([vb]\<^sub>R # [va]\<^sub>R # vc)"
     obtain va' vb' x' where x_def: "x = [vb']\<^sub>R # [va']\<^sub>R # x'"
       using case_assms(3) by (cases x rule:ttWF.cases, auto)
-    have 1: "Ball {x. [vb]\<^sub>R # x \<in> P} TT3_trace"
-      using case_assms(1) TT3_trace_cons_imp_cons by auto
-    have "TT3_trace ([va']\<^sub>R # x')"
+    have 1: "Ball {x. [vb]\<^sub>R # x \<in> P} ttWFx_trace"
+      using case_assms(1) ttWFx_trace_cons_imp_cons by auto
+    have "ttWFx_trace ([va']\<^sub>R # x')"
       using 1 case_assms(2) case_assms(3) x_def ind_hyp[where x="[va']\<^sub>R # x'", where P="{x. [vb]\<^sub>R # x \<in> P}"] by fastforce
-    then show "TT3_trace x"
+    then show "ttWFx_trace x"
       using x_def case_assms(3) by simp
   qed
-  then show "\<forall>x\<in>P. TT3_trace x \<Longrightarrow> xa \<in> P \<Longrightarrow> x \<in> rename_trace f xa \<Longrightarrow> TT3_trace x"
+  then show "\<forall>x\<in>P. ttWFx_trace x \<Longrightarrow> xa \<in> P \<Longrightarrow> x \<in> rename_trace f xa \<Longrightarrow> ttWFx_trace x"
     by blast
 qed
 
@@ -291,7 +291,7 @@ qed
 
 lemma TT_Renaming:
   shows "TT P \<Longrightarrow> TT2 P \<Longrightarrow> TT (RenamingTT P f)"
-  unfolding TT_def by (auto simp add: RenamingTT_wf TT0_Renaming TT1_Renaming TT2_Renaming TT2_imp_TT2w TT3_Renaming)
+  unfolding TT_def by (auto simp add: RenamingTT_wf TT0_Renaming TT1_Renaming TT2_Renaming TT2_imp_TT2w ttWFx_Renaming)
 
 lemma Renaming_Union_dist:
   "S \<noteq> {} \<Longrightarrow> (RenamingTT (\<Union>S) f) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = RenamingTT Q f}"

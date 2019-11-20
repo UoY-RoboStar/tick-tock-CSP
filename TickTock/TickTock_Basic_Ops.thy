@@ -81,7 +81,7 @@ next
   assume assm1: "Y \<inter> {e. e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock} \<or> e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> tocks {x. x \<noteq> Tock}} = {}"
   assume assm2: "[X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> tocks {x. x \<noteq> Tock}"
   have Tock_notin_X: "Tock \<notin> X"
-    by (metis (full_types) assm2 TT3_def TT3_tocks TT3_trace.simps(3) mem_Collect_eq)
+    by (metis (full_types) assm2 ttWFx_def ttWFx_tocks ttWFx_trace.simps(3) mem_Collect_eq)
   have Tock_notin_Y: "Tock \<notin> Y"
     by (smt Int_def Tock_notin_X assm1 emptyE mem_Collect_eq subset_eq tocks.empty_in_tocks tocks.tock_insert_in_tocks)
   have "\<sigma> \<in> tocks {x. x \<noteq> Tock}"
@@ -98,7 +98,7 @@ next
   obtain s' where s'_assm: "s = [X]\<^sub>R # [Tock]\<^sub>E # s'"
     by (metis assm2 butlast.simps(2) butlast_snoc ttobs.distinct(1) last.simps last_snoc list.distinct(1))
   have Tock_notin_X: "Tock \<notin> X"
-    using assm2 assm3 s'_assm by (auto, metis (full_types) TT3_def TT3_tocks TT3_trace.simps(3) mem_Collect_eq)
+    using assm2 assm3 s'_assm by (auto, metis (full_types) ttWFx_def ttWFx_tocks ttWFx_trace.simps(3) mem_Collect_eq)
   have Tock_notin_Y: "Tock \<notin> Y"
     by (smt Int_def Tock_notin_X assm1 emptyE mem_Collect_eq subset_eq tocks.empty_in_tocks tocks.tock_insert_in_tocks)
   have "s' \<in> tocks {x. x \<noteq> Tock}"
@@ -163,14 +163,14 @@ next
     using 3 by (safe, (rule_tac x="[Z]\<^sub>R # [Tock]\<^sub>E # sa" in bexI, simp_all, metis assm3 tt_subset.simps(1) tt_subset.simps(8) list.sel(1) tocks.simps)+)
 qed
 
-lemma TT3_Stop: "TT3 STOP\<^sub>C"
-  unfolding TT3_def
+lemma ttWFx_Stop: "ttWFx STOP\<^sub>C"
+  unfolding ttWFx_def
 proof (auto)
   fix x
-  have "\<forall>s \<in> tocks {x. x \<noteq> Tock}. TT3_trace s"
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq)
-  then show "x \<in> STOP\<^sub>C \<Longrightarrow> TT3_trace x"
-    unfolding StopTT_def using TT3_append TT3_trace.simps(2) ttWF.simps(2) by (auto, blast)
+  have "\<forall>s \<in> tocks {x. x \<noteq> Tock}. ttWFx_trace s"
+    by (metis (mono_tags, lifting) ttWFx_def ttWFx_tocks mem_Collect_eq)
+  then show "x \<in> STOP\<^sub>C \<Longrightarrow> ttWFx_trace x"
+    unfolding StopTT_def using ttWFx_append ttWFx_trace.simps(2) ttWF.simps(2) by (auto, blast)
 qed
 
 lemma TT4_Stop: "TT4 STOP\<^sub>C"
@@ -221,10 +221,10 @@ next
   qed
 next
   fix x
-  have "\<forall>s \<in> tocks {x. x \<noteq> Tock}. TT3_trace s"
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq)
-  then show "x \<in> STOP\<^sub>C \<Longrightarrow> TT3_trace x"
-    unfolding StopTT_def using TT3_append TT3_trace.simps(2) ttWF.simps(2) by (auto, blast)
+  have "\<forall>s \<in> tocks {x. x \<noteq> Tock}. ttWFx_trace s"
+    by (metis (mono_tags, lifting) ttWFx_def ttWFx_tocks mem_Collect_eq)
+  then show "x \<in> STOP\<^sub>C \<Longrightarrow> ttWFx_trace x"
+    unfolding StopTT_def using ttWFx_append ttWFx_trace.simps(2) ttWF.simps(2) by (auto, blast)
 qed
 
 subsection {* Untimed Stop *}
@@ -540,12 +540,12 @@ next
     using 1 2 3 unfolding WaitTT_def by auto
 next
   fix x
-  have "\<forall>x \<in> tocks {x. x \<noteq> Tock}. TT3_trace x"
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq)
-  then show "x \<in> wait\<^sub>C[n] \<Longrightarrow> TT3_trace x"
+  have "\<forall>x \<in> tocks {x. x \<noteq> Tock}. ttWFx_trace x"
+    by (metis (mono_tags, lifting) ttWFx_def ttWFx_tocks mem_Collect_eq)
+  then show "x \<in> wait\<^sub>C[n] \<Longrightarrow> ttWFx_trace x"
     unfolding WaitTT_def apply auto
-    using TT3_append TT3_trace.simps(2) ttWF.simps(2) apply blast
-    using TT3_append TT3_trace.simps(2) ttWF.simps(3) apply blast
+    using ttWFx_append ttWFx_trace.simps(2) ttWF.simps(2) apply blast
+    using ttWFx_append ttWFx_trace.simps(2) ttWF.simps(3) apply blast
     done
 qed
 
@@ -569,14 +569,14 @@ lemma TT2w_Guard: "TT2w P \<Longrightarrow> TT2w (g &\<^sub>C P)"
 lemma TT2_Guard: "TT2 P \<Longrightarrow> TT2 (g &\<^sub>C P)"
   using TT2_Stop unfolding TT2_def GuardTT_def by (auto, blast+)
 
-lemma TT3_Guard: "TT3 P \<Longrightarrow> TT3 (g &\<^sub>C P)"
-  using TT3_Stop unfolding TT3_def GuardTT_def by blast
+lemma ttWFx_Guard: "ttWFx P \<Longrightarrow> ttWFx (g &\<^sub>C P)"
+  using ttWFx_Stop unfolding ttWFx_def GuardTT_def by blast
 
 lemma TT4_Guard: "TT4 P \<Longrightarrow> TT4 (g &\<^sub>C P)"
   using TT4_Stop unfolding TT4_def GuardTT_def by blast
 
 lemma TT_Guard: "TT P \<Longrightarrow> TT (g &\<^sub>C P)"
-  using GuardTT_wf TT0_Guard TT1_Guard TT2w_Guard TT3_Guard  unfolding TT_def GuardTT_def by auto
+  using GuardTT_wf TT0_Guard TT1_Guard TT2w_Guard ttWFx_Guard  unfolding TT_def GuardTT_def by auto
 
 lemma Guard_Union_dist:
   "X \<noteq> {} \<Longrightarrow> g &\<^sub>C \<Union>X = \<Union>{P. \<exists>Q. Q \<in> X \<and> P = g &\<^sub>C Q}"

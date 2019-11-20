@@ -502,52 +502,52 @@ proof auto
   qed
 qed
  
-lemma TT3_Hiding:
-  "TT3 P \<Longrightarrow> TT3 (P \<setminus>\<^sub>C X)"
-  unfolding TT3_def HidingTT_def
+lemma ttWFx_Hiding:
+  "ttWFx P \<Longrightarrow> ttWFx (P \<setminus>\<^sub>C X)"
+  unfolding ttWFx_def HidingTT_def
 proof (safe, simp_all)
   fix p
-  show "\<And>P x. Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> TT3_trace x"
+  show "\<And>P x. Ball P ttWFx_trace \<Longrightarrow> x \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow> ttWFx_trace x"
   proof (induct p rule:ttWF.induct)
     fix P x
-    show "Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X [] \<Longrightarrow> [] \<in> P \<Longrightarrow> TT3_trace x"
+    show "Ball P ttWFx_trace \<Longrightarrow> x \<in> hide_trace X [] \<Longrightarrow> [] \<in> P \<Longrightarrow> ttWFx_trace x"
       by (cases x, simp_all)
   next
     fix Xa P x
-    show "Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X [[Xa]\<^sub>R] \<Longrightarrow> [[Xa]\<^sub>R] \<in> P \<Longrightarrow> TT3_trace x"
+    show "Ball P ttWFx_trace \<Longrightarrow> x \<in> hide_trace X [[Xa]\<^sub>R] \<Longrightarrow> [[Xa]\<^sub>R] \<in> P \<Longrightarrow> ttWFx_trace x"
       by (cases x, simp_all, case_tac a, simp_all)
   next
     fix P x
-    show "Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X [[Tick]\<^sub>E] \<Longrightarrow> [[Tick]\<^sub>E] \<in> P \<Longrightarrow> TT3_trace x"
+    show "Ball P ttWFx_trace \<Longrightarrow> x \<in> hide_trace X [[Tick]\<^sub>E] \<Longrightarrow> [[Tick]\<^sub>E] \<in> P \<Longrightarrow> ttWFx_trace x"
       by (cases x, simp_all)
   next
     fix e \<sigma> P x
-    assume ind_hyp: "\<And>P x. Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT3_trace x"
-    assume case_assms: "Ball P TT3_trace" "x \<in> hide_trace X ([Event e]\<^sub>E # \<sigma>)" "[Event e]\<^sub>E # \<sigma> \<in> P"
-    have 1: "Ball {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P} TT3_trace"
+    assume ind_hyp: "\<And>P x. Ball P ttWFx_trace \<Longrightarrow> x \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> ttWFx_trace x"
+    assume case_assms: "Ball P ttWFx_trace" "x \<in> hide_trace X ([Event e]\<^sub>E # \<sigma>)" "[Event e]\<^sub>E # \<sigma> \<in> P"
+    have 1: "Ball {\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P} ttWFx_trace"
       using case_assms(1)
-      using TT3_trace_cons_imp_cons by blast
-    show "TT3_trace x"
+      using ttWFx_trace_cons_imp_cons by blast
+    show "ttWFx_trace x"
     proof (cases "Event e \<in> X")
       assume case_assms2: "Event e \<in> X"
       then have "x \<in> hide_trace X \<sigma>"
         using case_assms(2) by auto
-      then show "TT3_trace x"
+      then show "ttWFx_trace x"
         using ind_hyp[where P="{\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}", where x=x] case_assms(3) case_assms2 1 by blast
     next
       assume case_assms2: "Event e \<notin> X"
       then obtain x' where x'_assms: "x = [Event e]\<^sub>E # x' \<and> x' \<in> hide_trace X \<sigma>"
         using case_assms(2) by (cases x, auto)
-      then have "TT3_trace x'"
+      then have "ttWFx_trace x'"
         using ind_hyp[where P="{\<sigma>. [Event e]\<^sub>E # \<sigma> \<in> P}", where x=x'] case_assms(3) case_assms2 1 by blast
-      then show "TT3_trace x"
+      then show "ttWFx_trace x"
         using x'_assms by (cases x', simp_all)
     qed
   next
     fix Xa \<sigma> P x
-    assume ind_hyp: "\<And>P x. Ball P TT3_trace \<Longrightarrow> x \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> TT3_trace x"
-    assume case_assms: "Ball P TT3_trace" "x \<in> hide_trace X ([Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma>)" "[Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
-    have 1: "Ball {\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P} TT3_trace"
+    assume ind_hyp: "\<And>P x. Ball P ttWFx_trace \<Longrightarrow> x \<in> hide_trace X \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> ttWFx_trace x"
+    assume case_assms: "Ball P ttWFx_trace" "x \<in> hide_trace X ([Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma>)" "[Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P"
+    have 1: "Ball {\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P} ttWFx_trace"
       using case_assms(1) by auto
     have 2: "\<sigma> \<in> {\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}"
       using case_assms(3) by auto
@@ -555,50 +555,50 @@ proof (safe, simp_all)
       using case_assms(1) case_assms(3) by auto
     have "(\<exists>X' x'. x = [X']\<^sub>R # [Tock]\<^sub>E # x' \<and> x' \<in> hide_trace X \<sigma> \<and> X' \<subseteq> Xa) \<or> (x \<in> hide_trace X \<sigma>)"
       using case_assms(2) by (cases "X \<subseteq> Xa", auto)
-    then show "TT3_trace x"
+    then show "ttWFx_trace x"
     proof safe
       fix X' x'
       assume case_assms2: "x = [X']\<^sub>R # [Tock]\<^sub>E # x'" "x' \<in> hide_trace X \<sigma>" "X' \<subseteq> Xa"
-      then have "TT3_trace x'"
+      then have "ttWFx_trace x'"
         using ind_hyp[where P="{\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}", where x=x'] 1 2 by blast
-      then show "TT3_trace ([X']\<^sub>R # [Tock]\<^sub>E # x')"
+      then show "ttWFx_trace ([X']\<^sub>R # [Tock]\<^sub>E # x')"
         using case_assms2 3 by auto
     next
       assume case_assms2: "x \<in> hide_trace X \<sigma>"
-      then show "TT3_trace x"
+      then show "ttWFx_trace x"
         using ind_hyp[where P="{\<sigma>. [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> P}", where x=x] 1 2 by blast
     qed
   next
     fix va P x
-    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> TT3_trace x"
+    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> ttWFx_trace x"
       by simp
   next
     fix va P x
-    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> TT3_trace x"
+    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> ttWFx_trace x"
       by simp
   next
     fix va P x
-    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> TT3_trace x"
+    show "x \<in> hide_trace X ([Tock]\<^sub>E # va) \<Longrightarrow> ttWFx_trace x"
       by simp
   next
     fix v vc P x
-    show "x \<in> hide_trace X ([Tick]\<^sub>E # v # vc) \<Longrightarrow> TT3_trace x"
+    show "x \<in> hide_trace X ([Tick]\<^sub>E # v # vc) \<Longrightarrow> ttWFx_trace x"
       by simp
   next
     fix v vc P x
-    show "x \<in> hide_trace X ([Tick]\<^sub>E # v # vc) \<Longrightarrow> TT3_trace x"
+    show "x \<in> hide_trace X ([Tick]\<^sub>E # v # vc) \<Longrightarrow> ttWFx_trace x"
       by simp
   next
     fix va vd vc P x
-    show "x \<in> hide_trace X ([va]\<^sub>R # [Event vd]\<^sub>E # vc) \<Longrightarrow> TT3_trace x"
+    show "x \<in> hide_trace X ([va]\<^sub>R # [Event vd]\<^sub>E # vc) \<Longrightarrow> ttWFx_trace x"
       by simp
   next
     fix va vc P x
-    show "x \<in> hide_trace X ([va]\<^sub>R # [Tick]\<^sub>E # vc) \<Longrightarrow> TT3_trace x"
+    show "x \<in> hide_trace X ([va]\<^sub>R # [Tick]\<^sub>E # vc) \<Longrightarrow> ttWFx_trace x"
       by simp
   next
     fix va v vc P x
-    show "x \<in> hide_trace X ([va]\<^sub>R # [v]\<^sub>R # vc) \<Longrightarrow> TT3_trace x"
+    show "x \<in> hide_trace X ([va]\<^sub>R # [v]\<^sub>R # vc) \<Longrightarrow> ttWFx_trace x"
       by simp
   qed
 qed

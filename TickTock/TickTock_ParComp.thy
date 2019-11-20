@@ -2959,12 +2959,12 @@ next
     by (meson ttWF.simps merge_traces_wf)
 qed
 
-lemma TT3_ParComp:
-  shows "\<And> P Q. TT P \<Longrightarrow> TT Q \<Longrightarrow> TT3 (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
-  unfolding ParCompTT_def TT3_def
+lemma ttWFx_ParComp:
+  shows "\<And> P Q. TT P \<Longrightarrow> TT Q \<Longrightarrow> ttWFx (P \<lbrakk>A\<rbrakk>\<^sub>C Q)"
+  unfolding ParCompTT_def ttWFx_def
 proof auto
   fix x
-  show "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> x \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> TT3_trace x"
+  show "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> x \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> ttWFx_trace x"
   proof (induct x rule:ttWF.induct, auto)
     fix e \<sigma> P Q p q
     assume "[Event e]\<^sub>E # \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q"
@@ -2972,10 +2972,10 @@ proof auto
       \<or> (\<exists> p'. p = [Event e]\<^sub>E # p' \<and> e \<notin> A \<and> \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q)
       \<or> (\<exists> q'. q = [Event e]\<^sub>E # q' \<and> e \<notin> A \<and> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q')"
       by (cases "(p,q)" rule:ttWF2.cases, auto)
-    assume induction_hypothesis: "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> TT3_trace \<sigma>"
+    assume induction_hypothesis: "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> ttWFx_trace \<sigma>"
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
     assume TT_P: "TT P" and TT_Q: "TT Q"
-    show "TT3_trace ([Event e]\<^sub>E # \<sigma>)"
+    show "ttWFx_trace ([Event e]\<^sub>E # \<sigma>)"
       using p_q_cases
     proof auto
       fix p' q' 
@@ -2990,9 +2990,9 @@ proof auto
         using p_def p_P by force
       have 4: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
         using q_def q_Q by force
-      have "TT3_trace \<sigma>"
+      have "ttWFx_trace \<sigma>"
         using induction_hypothesis 1 2 3 4 in_p'_parcomp_q' by auto
-      then show "TT3_trace ([Event e]\<^sub>E # \<sigma>)"
+      then show "ttWFx_trace ([Event e]\<^sub>E # \<sigma>)"
         by (cases \<sigma>, auto)
     next
       fix p' 
@@ -3002,9 +3002,9 @@ proof auto
         using TT_P TT_init_event p_P p_def by force
       have 2: "p' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
         using p_def p_P by force
-      have "TT3_trace \<sigma>"
+      have "ttWFx_trace \<sigma>"
         using induction_hypothesis 1 2 TT_Q q_Q in_p'_parcomp_q by auto
-      then show "TT3_trace ([Event e]\<^sub>E # \<sigma>)"
+      then show "ttWFx_trace ([Event e]\<^sub>E # \<sigma>)"
         by (cases \<sigma>, auto)
     next
       fix q' 
@@ -3014,9 +3014,9 @@ proof auto
         using TT_Q TT_init_event q_Q q_def by force
       have 2: "q' \<in> {t. [Event e]\<^sub>E # t \<in> Q}"
         using q_def q_Q by force
-      have "TT3_trace \<sigma>"
+      have "ttWFx_trace \<sigma>"
         using induction_hypothesis 1 2 TT_P p_P in_p_parcomp_q' by auto
-      then show "TT3_trace ([Event e]\<^sub>E # \<sigma>)"
+      then show "ttWFx_trace ([Event e]\<^sub>E # \<sigma>)"
         by (cases \<sigma>, auto)
     qed
   next
@@ -3034,10 +3034,10 @@ proof auto
       fix p' q' X1 X2
       assume "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
       then have Tock_notin_X1: "Tock \<notin> X1"
-        using TT3_def TT3_trace.simps(3) TT_TT3 TT_P p_P by blast
+        using ttWFx_def ttWFx_trace.simps(3) TT_ttWFx TT_P p_P by blast
       assume "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
       then have Tock_notin_X2: "Tock \<notin> X2"
-        using TT3_def TT3_trace.simps(3) TT_TT3 TT_Q q_Q by blast
+        using ttWFx_def ttWFx_trace.simps(3) TT_ttWFx TT_Q q_Q by blast
       assume "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]"
       then have "Tock \<notin> X"
         using Tock_notin_X1 Tock_notin_X2 by auto
@@ -3047,7 +3047,7 @@ proof auto
       fix p' X1
       assume "p = [X1]\<^sub>R # [Tock]\<^sub>E # p'"
       then have Tock_notin_X1: "Tock \<notin> X1"
-        using TT3_def TT3_trace.simps(3) TT_TT3 TT_P p_P by blast
+        using ttWFx_def ttWFx_trace.simps(3) TT_ttWFx TT_P p_P by blast
       assume "[[X]\<^sub>R] \<in> [[X1]\<^sub>R] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
       then have "Tock \<notin> X"
         using Tock_notin_X1 by auto
@@ -3057,7 +3057,7 @@ proof auto
       fix p' q' X1 X2
       assume "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'"
       then have Tock_notin_X2: "Tock \<notin> X2"
-        using TT3_def TT3_trace.simps(3) TT_TT3 TT_Q q_Q by blast
+        using ttWFx_def ttWFx_trace.simps(3) TT_ttWFx TT_Q q_Q by blast
       assume "[[X]\<^sub>R] \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[X2]\<^sub>R]"
       then have "Tock \<notin> X"
         using Tock_notin_X2 by auto
@@ -3073,8 +3073,8 @@ proof auto
       by (cases "(p,q)" rule:ttWF2.cases, auto)
     assume p_P: "p \<in> P" and q_Q: "q \<in> Q"
     assume TT_P: "TT P" and TT_Q: "TT Q"
-    assume induction_hypothesis: "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> TT3_trace \<sigma>"
-    show "TT3_trace \<sigma>"
+    assume induction_hypothesis: "\<And>P Q p q. TT P \<Longrightarrow> TT Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> \<sigma> \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q \<Longrightarrow> ttWFx_trace \<sigma>"
+    show "ttWFx_trace \<sigma>"
       using p_q_cases
     proof safe
       fix p' q' X1 X2
@@ -3089,7 +3089,7 @@ proof auto
       have 4: "q' \<in> {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
         using q_Q q_def by blast
       assume "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      then show "TT3_trace \<sigma>"
+      then show "ttWFx_trace \<sigma>"
         using induction_hypothesis 1 2 3 4 by auto
     next
       fix p' X1
@@ -3100,7 +3100,7 @@ proof auto
       have 2: "p' \<in> {t. [X1]\<^sub>R # [Tock]\<^sub>E # t \<in> P}"
         using p_P p_def by blast
       assume "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
-      then show "TT3_trace \<sigma>"
+      then show "ttWFx_trace \<sigma>"
         using induction_hypothesis 1 2 q_def q_Q TT_Q by auto
     next
       fix q' X2
@@ -3111,7 +3111,7 @@ proof auto
       have 2: "q' \<in> {t. [X2]\<^sub>R # [Tock]\<^sub>E # t \<in> Q}"
         using q_Q q_def by blast
       assume "\<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'"
-      then show "TT3_trace \<sigma>"
+      then show "ttWFx_trace \<sigma>"
         using induction_hypothesis 1 2 p_def p_P TT_P by auto
     qed
   next
@@ -3119,56 +3119,56 @@ proof auto
     assume "[Tock]\<^sub>E # va \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tock]\<^sub>E # va)"
       using TT_wf merge_traces_wf by blast
-    then show "TT3_trace ([Tock]\<^sub>E # va)"
+    then show "ttWFx_trace ([Tock]\<^sub>E # va)"
       by auto
   next
     fix v vc P Q p q
     assume "[Tock]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tock]\<^sub>E # v # vc)"
       using TT_wf merge_traces_wf by blast
-    then show "TT3_trace (v # vc)"
+    then show "ttWFx_trace (v # vc)"
       by auto
   next
     fix v vc P Q p q
     assume "[Tock]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tock]\<^sub>E # v # vc)"
       using TT_wf merge_traces_wf by blast
-    then show "TT3_trace (v # vc)"
+    then show "ttWFx_trace (v # vc)"
       by auto
   next
     fix v vc P Q p q
     assume "[Tick]\<^sub>E # v # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tick]\<^sub>E # v # vc)"
       using TT_wf merge_traces_wf by blast
-    then show "TT3_trace (v # vc)"
+    then show "ttWFx_trace (v # vc)"
       by auto
   next
     fix vb vc P Q p q
     assume "[Tick]\<^sub>E # vb # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([Tick]\<^sub>E # vb # vc)"
       using TT_wf merge_traces_wf by blast
-    then show "TT3_trace (vb # vc)"
+    then show "ttWFx_trace (vb # vc)"
       by auto
   next
     fix va vd vc P Q p q
     assume "[va]\<^sub>R # [Event vd]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([va]\<^sub>R # [Event vd]\<^sub>E # vc)"
       using TT_wf merge_traces_wf by blast
-    then show "TT3_trace ([Event vd]\<^sub>E # vc)"
+    then show "ttWFx_trace ([Event vd]\<^sub>E # vc)"
       by auto
   next
     fix va vc P Q p q
     assume "[va]\<^sub>R # [Tick]\<^sub>E # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([va]\<^sub>R # [Tick]\<^sub>E # vc)"
       using TT_wf merge_traces_wf by blast
-    then show "TT3_trace ([Tick]\<^sub>E # vc)"
+    then show "ttWFx_trace ([Tick]\<^sub>E # vc)"
       by auto
   next
     fix va v vc P Q p q
     assume "[va]\<^sub>R # [v]\<^sub>R # vc \<in> p \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q" "TT P" "TT Q" "p \<in> P" "q \<in> Q"
     then have "ttWF ([va]\<^sub>R # [v]\<^sub>R # vc)"
       using TT_wf merge_traces_wf by blast
-    then show "TT3_trace ([v]\<^sub>R # vc)"
+    then show "ttWFx_trace ([v]\<^sub>R # vc)"
       by auto
   qed
 qed
@@ -3452,7 +3452,7 @@ lemma TT_ParComp:
   using TT0_ParComp unfolding TT_def apply blast
   using TT1_ParComp unfolding TT_def apply blast
   using TT2w_ParComp unfolding TT_def apply blast
-  using TT3_ParComp unfolding TT_def apply blast
+  using ttWFx_ParComp unfolding TT_def apply blast
   done
 
 function merge_traces2 :: "'e ttobs list \<Rightarrow> 'e set \<Rightarrow> 'e ttobs list \<Rightarrow> 'e ttobs list set" (infixl "\<lbrakk>_\<rbrakk>\<^sup>T\<^sub>2" 55) where

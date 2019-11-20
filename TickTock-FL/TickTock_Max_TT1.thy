@@ -285,11 +285,11 @@ lemma TT2_unTT1:
   using assms unfolding TT2_def apply auto
   using TT2_unTT1_part by fastforce
 
-lemma TT3_unTT1:
-  assumes "TT1 P" "TT3 P" 
-  shows "TT3(unTT1(P))"
-  using assms unfolding TT3_def unTT1_def  apply auto
-  using TT1_mkTT1_simp TT3_def TT_TT3 by blast
+lemma ttWFx_unTT1:
+  assumes "TT1 P" "ttWFx P" 
+  shows "ttWFx(unTT1(P))"
+  using assms unfolding ttWFx_def unTT1_def  apply auto
+  using TT1_mkTT1_simp ttWFx_def TT_ttWFx by blast
 
 lemma TTM2_unTT1:
   "TTM2(unTT1(P))"
@@ -305,7 +305,7 @@ lemma unTT1_TT_closure:
        "TTwf (unTT1 P)"
        "TT1w (unTT1 P)" 
        "TT2 (unTT1 P)" 
-       "TT3 (unTT1 P)" 
+       "ttWFx (unTT1 P)" 
        "TT4 (unTT1 P)" 
        "TTM1 (unTT1 P)" 
        "TTM2 (unTT1 P)" 
@@ -315,7 +315,7 @@ lemma unTT1_TT_closure:
     using TT_TTwf assms(1) apply blast
     apply (simp add: TT1w_unTT1)
          apply (simp add: TT2_unTT1 assms(1))
-        apply (simp add: TT3_unTT1 TT_TT1 TT_TT3 assms(1))
+        apply (simp add: ttWFx_unTT1 TT_TT1 TT_ttWFx assms(1))
        apply (simp add: TT4_unTT1 TT_TT1 assms(1) assms(3))
       apply (simp add: TTM1_unTT1)
    apply (simp add: TTM2_unTT1)
@@ -326,16 +326,16 @@ lemma mkTT1_TT_closure:
           "TTwf P"
           "TT1w P" 
           "TT2 P" 
-          "TT3 P" 
+          "ttWFx P" 
           "TT4 P" 
           "TTM1 P" 
           "TTM2 P" 
           "TTM3 P"
-    shows "TTwf(mkTT1 P)" "TT0(mkTT1 P)" "TT1(mkTT1 P)" "TT2(mkTT1 P)" "TT3(mkTT1 P)" "TT4(mkTT1 P)"
+    shows "TTwf(mkTT1 P)" "TT0(mkTT1 P)" "TT1(mkTT1 P)" "TT2(mkTT1 P)" "ttWFx(mkTT1 P)" "TT4(mkTT1 P)"
   using assms TTwf_mkTT1 apply blast
   using assms TT0_mkTT1 apply blast
   using assms TT1_mkTT1 apply blast
   using assms TT2_mkTT1 apply blast
-  using assms TT3_mkTT1 apply blast
+  using assms ttWFx_mkTT1 apply blast
   using assms TT4_mkTT1 by blast
 end

@@ -691,10 +691,10 @@ proof auto
           using tt_prefix_subset_same_front by fastforce
         then have in_P: "\<rho> @ [[X]\<^sub>R] \<in> P"
           using TT1_P case_assm3 unfolding TT1_def by auto 
-        have TT3_P: "TT3 P"
-          by (simp add: TT_TT3 assms(1))
+        have ttWFx_P: "ttWFx P"
+          by (simp add: TT_ttWFx assms(1))
         then have "Tock \<notin> X"
-          using TT3_def TT3_end_tock \<rho>'_in_P_Q \<rho>_split case_assm case_assm3 by force
+          using ttWFx_def ttWFx_end_tock \<rho>'_in_P_Q \<rho>_split case_assm case_assm3 by force
         then have in_Q: "\<rho> @ [[X]\<^sub>R] \<in> Q"
           using assm1 unfolding ExtChoiceTT_def
         proof auto
@@ -740,10 +740,10 @@ proof auto
           using tt_prefix_subset_same_front by fastforce
         then have in_P: "\<rho> @ [[X]\<^sub>R] \<in> Q"
           using TT1_P case_assm3 unfolding TT1_def by auto 
-        have TT3_P: "TT3 Q"
-          by (simp add: TT_TT3 assms(2))
+        have ttWFx_P: "ttWFx Q"
+          by (simp add: TT_ttWFx assms(2))
         then have "Tock \<notin> X"
-          using TT3_def TT3_end_tock \<rho>'_in_P_Q \<rho>_split case_assm case_assm3 by force
+          using ttWFx_def ttWFx_end_tock \<rho>'_in_P_Q \<rho>_split case_assm case_assm3 by force
         then have in_P: "\<rho> @ [[X]\<^sub>R] \<in> P"
           using assm1 unfolding ExtChoiceTT_def
         proof auto
@@ -1287,10 +1287,10 @@ proof auto
                 using tt_prefix_subset_same_front by fastforce
               then have in_P: "\<rho> @ [[X]\<^sub>R] \<in> P"
                 using TT1_P case_assm3 unfolding TT1_def by auto 
-              have TT3_P: "TT3 P"
-                by (simp add: TT_TT3 assms(1))
+              have ttWFx_P: "ttWFx P"
+                by (simp add: TT_ttWFx assms(1))
               then have "Tock \<notin> X"
-                using TT3_any_cons_end_tock case_assm3 by blast
+                using ttWFx_any_cons_end_tock case_assm3 by blast
               then have in_Q: "\<rho> @ [[X]\<^sub>R] \<in> Q"
                 using assm1 case_assm2 unfolding ExtChoiceTT_def
               proof auto
@@ -1336,10 +1336,10 @@ proof auto
                 using tt_prefix_subset_same_front by fastforce
               then have in_Q: "\<rho> @ [[X]\<^sub>R] \<in> Q"
                 using TT1_Q TT1_def case_assm4 by blast
-              have TT3_Q: "TT3 Q"
-                by (simp add: TT_TT3 assms(2))
+              have ttWFx_Q: "ttWFx Q"
+                by (simp add: TT_ttWFx assms(2))
               then have "Tock \<notin> X"
-                using TT3_any_cons_end_tock case_assm4 by blast
+                using ttWFx_any_cons_end_tock case_assm4 by blast
               then have in_P: "\<rho> @ [[X]\<^sub>R] \<in> P"
                 using assm1 case_assm2 unfolding ExtChoiceTT_def
               proof auto
@@ -1627,10 +1627,10 @@ proof auto
   qed
 qed
 
-lemma TT3_ExtChoice: 
-  assumes "TT3 P" "TT3 Q"
-  shows "TT3 (P \<box>\<^sub>C Q)"
-  using assms unfolding TT3_def ExtChoiceTT_def by auto
+lemma ttWFx_ExtChoice: 
+  assumes "ttWFx P" "ttWFx Q"
+  shows "ttWFx (P \<box>\<^sub>C Q)"
+  using assms unfolding ttWFx_def ExtChoiceTT_def by auto
 
 lemma TT4_ExtChoice:
   assumes "TT4 P" "TT4 Q"
@@ -1800,7 +1800,7 @@ lemma TT_ExtChoice:
   apply (simp add: TT0_ExtChoice assms(1) assms(2))
   apply (simp add: TT1_ExtChoice assms(1) assms(2))
   apply (simp add: TT2w_ExtChoice assms(1) assms(2))
-  apply  (simp add: TT3_ExtChoice TT_TT3 assms(1) assms(2))
+  apply  (simp add: ttWFx_ExtChoice TT_ttWFx assms(1) assms(2))
   done
 
 lemma ExtChoiceTT_comm: "P \<box>\<^sub>C Q = Q \<box>\<^sub>C P"

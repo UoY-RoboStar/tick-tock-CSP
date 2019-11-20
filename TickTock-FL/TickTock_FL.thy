@@ -35,14 +35,14 @@ lemma TT_fl2tt_closed:
         "TT0(fl2tt(P))"
         "TT1(fl2tt(P))"
         "TT2(fl2tt(P))"
-        "TT3(fl2tt(P))"
+        "ttWFx(fl2tt(P))"
         "TT4(fl2tt(P))"
   using assms unfolding fl2tt_def 
   using TTwf_fl2ttm TTwf_mkTT1 apply blast
       apply (simp add: TT0_fl2ttm TT0_mkTT1 assms(1) assms(2) assms(3) assms(4))
      apply (simp add: TT1_mkTT1)
     apply (simp add: TT1w_fl2ttm TT2_fl2ttm TT2_mkTT1 TTM1_fl2ttm_for_FL2_FL1_FL0 TTM2_fl2ttm_for_FL2_FL1_FL0 assms(1) assms(2) assms(3) assms(4))
-   apply (simp add: TT3_fl2ttm TT3_mkTT1)
+   apply (simp add: ttWFx_fl2ttm ttWFx_mkTT1)
   by (simp add: TT4_fl2ttm TT4_mkTT1 assms(4))
 
 lemma FL_tt2fl_closed:
@@ -117,12 +117,12 @@ lemma
 
 lemma unTT1_alt:
   assumes "TT P" "TT4 P"
-  shows "unTT1 P = \<Union>{x. TT0 x \<and> TT2 x \<and> TT3 x \<and> TT4 x \<and> TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> TTwf x \<and> (mkTT1 x) \<subseteq> P}"
+  shows "unTT1 P = \<Union>{x. TT0 x \<and> TT2 x \<and> ttWFx x \<and> TT4 x \<and> TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> TTwf x \<and> (mkTT1 x) \<subseteq> P}"
   unfolding unTT1_def mkTT1_def apply auto
   using assms apply (rule_tac x="unTT1 P" in exI, auto)
   using TT0_unTT1 TT_TT0 TT_TT1 apply blast
   using TT4_TT1_imp_TT4w assms using TT2_unTT1 TT_TT1 apply blast
-  using TT3_unTT1 TT_TT1 TT_TT3 apply blast
+  using ttWFx_unTT1 TT_TT1 TT_ttWFx apply blast
   using TT4_unTT1 TT_TT1 apply blast
   using TTM1_unTT1 apply blast
   using TTM2_unTT1 apply blast
@@ -201,14 +201,14 @@ proof-
   have "PriTT p P = PriTT1 p P"
     by (simp add: PriTT_eq_priTT assms(1) assms(2) assms(3))
   also have "... = mkTT1(PriMax p (unTT1 P))"
-    by (simp add: TT4_TT1_imp_TT4w TT_TT1 TT_TT3 assms(1) assms(2) assms(3) mkTT1_PriMax_unTT1_priTT)
+    by (simp add: TT4_TT1_imp_TT4w TT_TT1 TT_ttWFx assms(1) assms(2) assms(3) mkTT1_PriMax_unTT1_priTT)
   also have "... = mkTT1(fl2ttm(Pri p (ttm2fl (unTT1 P))))"
   proof -
     have TTs:
          "TT0 (unTT1 P)"
          "TTwf (unTT1 P)"
          "TT1w (unTT1 P)" 
-         "TT3 (unTT1 P)" 
+         "ttWFx (unTT1 P)" 
          "TT4 (unTT1 P)" 
          "TTM3 (unTT1 P)"
       by (simp_all add: assms unTT1_TT_closure)

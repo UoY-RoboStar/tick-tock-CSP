@@ -406,26 +406,26 @@ proof auto
   qed
 qed
 
-text_raw \<open>\DefineSnippet{TT3_SeqComp}{\<close>
-lemma TT3_SeqComp: 
+text_raw \<open>\DefineSnippet{ttWFx_SeqComp}{\<close>
+lemma ttWFx_SeqComp: 
   assumes "TT P" "TT Q"
-  shows "TT3 (P ;\<^sub>C Q)"
-  unfolding TT3_def SeqCompTT_def
+  shows "ttWFx (P ;\<^sub>C Q)"
+  unfolding ttWFx_def SeqCompTT_def
 proof auto
   fix x
-  show "x \<in> P \<Longrightarrow> TT3_trace x"
-    using TT3_def TT_TT3 assms(1) by blast
+  show "x \<in> P \<Longrightarrow> ttWFx_trace x"
+    using ttWFx_def TT_ttWFx assms(1) by blast
 next
   fix s t
   assume "s @ [[Tick]\<^sub>E] \<in> P"
-  then have 1: "TT3_trace s"
-    by (meson TT1_def TT3_def TT_TT1 TT_TT3 assms(1) 
+  then have 1: "ttWFx_trace s"
+    by (meson TT1_def ttWFx_def TT_TT1 TT_ttWFx assms(1) 
               tt_prefix_concat tt_prefix_imp_prefix_subset)
   assume "t \<in> Q"
-  then have 2: "TT3_trace t \<and> ttWF t"
-    using TT3_def TT_TT3 TT_wf assms(2) by blast
-  show "TT3_trace (s @ t)"
-    using 1 2 TT3_append by auto
+  then have 2: "ttWFx_trace t \<and> ttWF t"
+    using ttWFx_def TT_ttWFx TT_wf assms(2) by blast
+  show "ttWFx_trace (s @ t)"
+    using 1 2 ttWFx_append by auto
 qed
 text_raw \<open>}%EndSnippet\<close>
 
@@ -476,7 +476,7 @@ lemma TT_SeqComp:
   apply (simp add: TT0_SeqComp TT_TT0 assms(1) assms(2))
   using TT1_SeqComp TT_def assms(1) assms(2) apply blast
   apply (simp add: TT2w_SeqComp assms(1) assms(2) assms(3))
-  apply (simp add: TT3_SeqComp assms(1) assms(2))
+  apply (simp add: ttWFx_SeqComp assms(1) assms(2))
   done
 
 lemma SeqComp_Union_dist1:

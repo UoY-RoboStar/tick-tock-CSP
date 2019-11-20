@@ -836,7 +836,7 @@ lemma TT2w_TimeSyncInterrupt:
   assumes P_wf: "\<forall>x\<in>P. ttWF x"
   assumes TT1_P: "TT1 P" and TT1_Q: "TT1 Q"
   assumes TT2w_P: "TT2w P" and TT2w_Q: "TT2w Q"
-  assumes TT3_P: "TT3 P" and TT3_Q: "TT3 Q"
+  assumes ttWFx_P: "ttWFx P" and ttWFx_Q: "ttWFx Q"
   shows "TT2w (P \<triangle>\<^sub>T Q)"
   unfolding TT2w_def
 proof auto
@@ -917,7 +917,7 @@ proof auto
     proof (safe, simp_all)  
       assume assm: "\<rho> @ [[Z]\<^sub>R, [Tock]\<^sub>E] \<in> P" "filter_tocks \<rho> @ [[W]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
       then have Tock_notin_Z: "Tock \<notin> Z \<and> Tock \<notin> W"
-        using TT3_P TT3_Q TT3_any_cons_end_tock by blast
+        using ttWFx_P ttWFx_Q ttWFx_any_cons_end_tock by blast
       then have "Z = W"
         using Collect_mono Collect_mono_iff case_assms(4) by auto
       then have "\<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P \<and> filter_tocks \<rho> @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
@@ -1031,7 +1031,7 @@ lemma TT2_TimeSyncInterrupt:
   assumes TT1_P: "TT1 P" and TT1_Q: "TT1 Q"
   assumes TT2w_P: "TT2w P" and TT2w_Q: "TT2w Q"
   assumes TT2_P: "TT2 P" and TT2_Q: "TT2 Q"
-  assumes TT3_P: "TT3 P" and TT3_Q: "TT3 Q"
+  assumes ttWFx_P: "ttWFx P" and ttWFx_Q: "ttWFx Q"
   shows "TT2 (P \<triangle>\<^sub>T Q)"
   unfolding TT2_def
 proof auto
@@ -1046,7 +1046,7 @@ proof auto
   proof auto
     assume "\<sigma> = []"
     then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P \<triangle>\<^sub>T Q"
-      using TT1_P TT1_Q TT2w_P TT2w_Q TT2w_TimeSyncInterrupt TT2w_def TT3_P TT3_Q P_wf assm1 assm2 by blast
+      using TT1_P TT1_Q TT2w_P TT2w_Q TT2w_TimeSyncInterrupt TT2w_def ttWFx_P ttWFx_Q P_wf assm1 assm2 by blast
   next
     fix \<sigma>'
     assume case_assm: "\<sigma> = [Tock]\<^sub>E # \<sigma>'"
@@ -1614,34 +1614,34 @@ proof auto
   qed
 qed
 
-lemma TT3_TimeSyncInterrupt:
-  assumes "TT3 P" "TT3 Q" "\<forall>x\<in>Q. ttWF x"
-  shows "TT3 (P \<triangle>\<^sub>T Q)"
-  unfolding TT3_def TimeSyncInterruptTT_def
+lemma ttWFx_TimeSyncInterrupt:
+  assumes "ttWFx P" "ttWFx Q" "\<forall>x\<in>Q. ttWF x"
+  shows "ttWFx (P \<triangle>\<^sub>T Q)"
+  unfolding ttWFx_def TimeSyncInterruptTT_def
 proof (safe, simp_all)
   fix p
   assume "p @ [[Tick]\<^sub>E] \<in> P"
-  then show "TT3_trace (p @ [[Tick]\<^sub>E])"
-    using assms(1) unfolding TT3_def by auto
+  then show "ttWFx_trace (p @ [[Tick]\<^sub>E])"
+    using assms(1) unfolding ttWFx_def by auto
 next
   fix p X Y Z
   assume "p @ [[X]\<^sub>R] \<in> P"
-  then have "TT3_trace (p @ [[X]\<^sub>R])"
-    using assms(1) unfolding TT3_def by auto
-  then show "TT3_trace (p @ [[Z]\<^sub>R])"
-    using TT3_trace_end_refusal_change by blast
+  then have "ttWFx_trace (p @ [[X]\<^sub>R])"
+    using assms(1) unfolding ttWFx_def by auto
+  then show "ttWFx_trace (p @ [[Z]\<^sub>R])"
+    using ttWFx_trace_end_refusal_change by blast
 next
   fix p q2
   assume "p \<in> P"
-  then have "TT3_trace p"
-    using assms(1) unfolding TT3_def by auto
+  then have "ttWFx_trace p"
+    using assms(1) unfolding ttWFx_def by auto
   also assume assm2: "filter_tocks p @ q2 \<in> Q"
-  then have "TT3_trace (filter_tocks p @ q2)"
-    using assms(2) unfolding TT3_def by auto
-  then have "TT3_trace q2"
-    using TT3_trace_cons_right by blast
-  then show "TT3_trace (p @ q2)"
-    using calculation TT3_append assm2 assms(3) filter_tocks_in_tocks tocks_append_wf2 by blast
+  then have "ttWFx_trace (filter_tocks p @ q2)"
+    using assms(2) unfolding ttWFx_def by auto
+  then have "ttWFx_trace q2"
+    using ttWFx_trace_cons_right by blast
+  then show "ttWFx_trace (p @ q2)"
+    using calculation ttWFx_append assm2 assms(3) filter_tocks_in_tocks tocks_append_wf2 by blast
 qed
 
 lemma add_Tick_refusal_trace_filter_tocks:
@@ -1700,7 +1700,7 @@ lemma TT_TimeSyncInterrupt:
   using TT0_TimeSyncInterrupt apply blast
   using TT1_TimeSyncInterrupt apply blast
   using TT2w_TimeSyncInterrupt apply blast
-  using TT3_TimeSyncInterrupt apply blast
+  using ttWFx_TimeSyncInterrupt apply blast
   done
 
 lemma TimeSyncInterrupt_Union_dist1:
@@ -1975,54 +1975,54 @@ proof auto
   qed
 qed
 
-lemma TT3_StrictTimedInterrupt:
-  assumes "TT3 P" "TT3 Q"
-  shows "TT3 (P \<triangle>\<^bsub>n\<^esub> Q)"
-  unfolding TT3_def StrictTimedInterruptTT_def
+lemma ttWFx_StrictTimedInterrupt:
+  assumes "ttWFx P" "ttWFx Q"
+  shows "ttWFx (P \<triangle>\<^bsub>n\<^esub> Q)"
+  unfolding ttWFx_def StrictTimedInterruptTT_def
 proof auto
   fix x
   assume "x \<in> P"
-  then show "TT3_trace x"
-    using TT3_def assms(1) by blast
+  then show "ttWFx_trace x"
+    using ttWFx_def assms(1) by blast
 next
   fix x
   assume "x \<in> Q"
-  then show "TT3_trace x"
-    using TT3_def assms(2) by blast
+  then show "ttWFx_trace x"
+    using ttWFx_def assms(2) by blast
 next
   fix p q
   assume case_assms: "p \<in> P" "q \<in> Q" "last p = [Tock]\<^sub>E" "n = length (filter (\<lambda>x. x = [Tock]\<^sub>E) p)" "filter (\<lambda>x. x = [Tock]\<^sub>E) p \<noteq> []"
-  have "\<And> P Q. TT3 P \<Longrightarrow> TT3 Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> last p = [Tock]\<^sub>E \<Longrightarrow> TT3_trace (p @ q)"
-    apply (induct p rule:TT3_trace.induct, auto)
-    using TT3_def apply (blast)
-    apply (induct q rule:TT3_trace.induct, auto)
-    using TT3_def TT3_trace.simps(3) apply blast
-    apply (meson TT3_def TT3_trace.simps(3))
-    apply (meson TT3_def TT3_trace_cons_imp_cons)
-    apply (meson TT3_def TT3_trace_cons_imp_cons)
-    apply (meson TT3_def TT3_trace_cons_imp_cons)
-    apply (meson TT3_def TT3_trace_cons_imp_cons)
-    apply (induct q rule:TT3_trace.induct, auto)
-    apply (meson TT3_def TT3_trace.simps(3))
-    apply (meson TT3_def TT3_trace.simps(3))
-    apply (meson TT3_def TT3_trace.simps(3))
-    apply (meson TT3_def TT3_trace.simps(3))
-    apply (meson TT3_def TT3_trace.simps(3))
-    apply (meson TT3_def TT3_trace.simps(3))
-    apply (meson TT3_def TT3_trace.simps(3))
-    apply (induct q rule:TT3_trace.induct, auto)
-    apply (meson TT3_def TT3_trace.simps(3))
-    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
-    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
-    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
-    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
-    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
-    apply (metis TT3_def TT3_trace.simps(3) append_Nil mem_Collect_eq)
-    apply (induct q rule:TT3_trace.induct, auto)
-    apply (meson TT3_def TT3_trace_cons_imp_cons)
-    apply (metis TT3_def TT3_trace_cons_imp_cons mem_Collect_eq)+
+  have "\<And> P Q. ttWFx P \<Longrightarrow> ttWFx Q \<Longrightarrow> p \<in> P \<Longrightarrow> q \<in> Q \<Longrightarrow> last p = [Tock]\<^sub>E \<Longrightarrow> ttWFx_trace (p @ q)"
+    apply (induct p rule:ttWFx_trace.induct, auto)
+    using ttWFx_def apply (blast)
+    apply (induct q rule:ttWFx_trace.induct, auto)
+    using ttWFx_def ttWFx_trace.simps(3) apply blast
+    apply (meson ttWFx_def ttWFx_trace.simps(3))
+    apply (meson ttWFx_def ttWFx_trace_cons_imp_cons)
+    apply (meson ttWFx_def ttWFx_trace_cons_imp_cons)
+    apply (meson ttWFx_def ttWFx_trace_cons_imp_cons)
+    apply (meson ttWFx_def ttWFx_trace_cons_imp_cons)
+    apply (induct q rule:ttWFx_trace.induct, auto)
+    apply (meson ttWFx_def ttWFx_trace.simps(3))
+    apply (meson ttWFx_def ttWFx_trace.simps(3))
+    apply (meson ttWFx_def ttWFx_trace.simps(3))
+    apply (meson ttWFx_def ttWFx_trace.simps(3))
+    apply (meson ttWFx_def ttWFx_trace.simps(3))
+    apply (meson ttWFx_def ttWFx_trace.simps(3))
+    apply (meson ttWFx_def ttWFx_trace.simps(3))
+    apply (induct q rule:ttWFx_trace.induct, auto)
+    apply (meson ttWFx_def ttWFx_trace.simps(3))
+    apply (metis ttWFx_def ttWFx_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis ttWFx_def ttWFx_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis ttWFx_def ttWFx_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis ttWFx_def ttWFx_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis ttWFx_def ttWFx_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (metis ttWFx_def ttWFx_trace.simps(3) append_Nil mem_Collect_eq)
+    apply (induct q rule:ttWFx_trace.induct, auto)
+    apply (meson ttWFx_def ttWFx_trace_cons_imp_cons)
+    apply (metis ttWFx_def ttWFx_trace_cons_imp_cons mem_Collect_eq)+
     done
-  then show "TT3_trace (p @ q)"
+  then show "ttWFx_trace (p @ q)"
     using assms case_assms by auto
 qed
 

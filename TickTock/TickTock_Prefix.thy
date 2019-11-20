@@ -345,14 +345,14 @@ next
   qed
 next
   fix x
-  have "\<forall>x\<in>P. TT3_trace x"
-    using TT3_def TT_TT3 assms by blast
-  also have "\<forall>x \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. TT3_trace x"
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq) 
-  then show "x \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> TT3_trace x"
+  have "\<forall>x\<in>P. ttWFx_trace x"
+    using ttWFx_def TT_ttWFx assms by blast
+  also have "\<forall>x \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. ttWFx_trace x"
+    by (metis (mono_tags, lifting) ttWFx_def ttWFx_tocks mem_Collect_eq) 
+  then show "x \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> ttWFx_trace x"
     unfolding PrefixTT_def using calculation apply auto
-    using TT3_append TT3_trace.simps(2) ttWF.simps(2) apply blast
-    by (metis (no_types, lifting) TT3_append TT3_trace.simps(2) TT3_trace.simps(4) TT_wf assms ttWF.elims(2) ttWF.simps(4)) 
+    using ttWFx_append ttWFx_trace.simps(2) ttWF.simps(2) apply blast
+    by (metis (no_types, lifting) ttWFx_append ttWFx_trace.simps(2) ttWFx_trace.simps(4) TT_wf assms ttWF.elims(2) ttWF.simps(4)) 
 qed
 
 lemma Prefix_Union_dist:
@@ -602,29 +602,29 @@ proof auto
   qed
 qed
 
-lemma TT3_TockPrefix: 
-  assumes "TT3 P"
-  shows "TT3 (tock \<rightarrow>\<^sub>C P)"
-  unfolding TockPrefixTT_def TT3_def
+lemma ttWFx_TockPrefix: 
+  assumes "ttWFx P"
+  shows "ttWFx (tock \<rightarrow>\<^sub>C P)"
+  unfolding TockPrefixTT_def ttWFx_def
 proof (safe, simp_all)
-  show "\<And>s. s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> TT3_trace s"
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq)
+  show "\<And>s. s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> ttWFx_trace s"
+    by (metis (mono_tags, lifting) ttWFx_def ttWFx_tocks mem_Collect_eq)
 next
-  show "\<And>s X. s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> Tock \<notin> X \<Longrightarrow> TT3_trace (s @ [[X]\<^sub>R])"
-    by (metis (mono_tags, lifting) TT3_append TT3_def TT3_tocks TT3_trace.simps(2) ttWF.simps(2) mem_Collect_eq)
+  show "\<And>s X. s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> Tock \<notin> X \<Longrightarrow> ttWFx_trace (s @ [[X]\<^sub>R])"
+    by (metis (mono_tags, lifting) ttWFx_append ttWFx_def ttWFx_tocks ttWFx_trace.simps(2) ttWF.simps(2) mem_Collect_eq)
 next
-  show "\<And>s. s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> TT3_trace s"
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks mem_Collect_eq)
+  show "\<And>s. s \<in> tocks {x. x \<noteq> Tock} \<Longrightarrow> ttWFx_trace s"
+    by (metis (mono_tags, lifting) ttWFx_def ttWFx_tocks mem_Collect_eq)
 next
   fix s \<sigma> :: "'a ttobs list"
   fix X :: "'a ttevent set"
   assume case_assms: "s \<in> tocks {x. x \<noteq> Tock}" "\<sigma> \<in> P" "Tock \<notin> X"  
-  have "TT3_trace \<sigma>"
-    using case_assms assms unfolding TT3_def by blast
-  then show "TT3_trace (s @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>)"
-    using case_assms(1) case_assms(3) apply - apply (induct s rule:TT3_trace.induct, simp_all add: notin_tocks)
+  have "ttWFx_trace \<sigma>"
+    using case_assms assms unfolding ttWFx_def by blast
+  then show "ttWFx_trace (s @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>)"
+    using case_assms(1) case_assms(3) apply - apply (induct s rule:ttWFx_trace.induct, simp_all add: notin_tocks)
     using list.distinct(1) tocks.cases apply blast
-    apply (smt TT3_trace.simps(3) append_Cons list.inject list.simps(3) mem_Collect_eq subset_eq tocks.simps)
+    apply (smt ttWFx_trace.simps(3) append_Cons list.inject list.simps(3) mem_Collect_eq subset_eq tocks.simps)
     apply (metis ttobs.simps(4) list.inject list.simps(3) tocks.simps)
     done
 qed
@@ -680,7 +680,7 @@ lemma TT_TockPrefix:
   assumes "TT P" "TT2 P" "TT4 P"
   shows "TT (tock \<rightarrow>\<^sub>C P)"
   using assms unfolding TT_def
-  using TT0_TockPrefixTT TT1_TockPrefixTT TT2_TockPrefix TT2_imp_TT2w TT3_TockPrefix TockPrefixTT_wf by blast
+  using TT0_TockPrefixTT TT1_TockPrefixTT TT2_TockPrefix TT2_imp_TT2w ttWFx_TockPrefix TockPrefixTT_wf by blast
 
 lemma TockPrefix_Union_dist:
   "S \<noteq> {} \<Longrightarrow> (tock \<rightarrow>\<^sub>C \<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = tock \<rightarrow>\<^sub>C Q}"

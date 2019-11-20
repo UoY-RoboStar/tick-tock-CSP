@@ -47,20 +47,20 @@ lemma maximal_Tock_then_not_prirefMaxTT [simp]:
   by (simp add: some_higher_not_maximal)
 
 lemma priMaxTT_extend_both_events_eq_size_maximal_ttWF:
-  assumes "priMaxTT p xs ys s P" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)" "size xs = size ys" "TT3_trace (ys @ [[e\<^sub>1]\<^sub>E])"
+  assumes "priMaxTT p xs ys s P" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)" "size xs = size ys" "ttWFx_trace (ys @ [[e\<^sub>1]\<^sub>E])"
   shows "priMaxTT p (xs @ [[e\<^sub>1]\<^sub>E]) (ys @ [[e\<^sub>1]\<^sub>E]) s P"
   using assms apply (induct p xs ys s P rule:priMaxTT.induct, auto)
     apply (cases e\<^sub>1, auto)
-  using TT3_trace_cons_imp_cons
+  using ttWFx_trace_cons_imp_cons
   apply (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF ttevent.exhaust list.exhaust)
-  using TT3_trace_cons_imp_cons by (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF ttevent.exhaust list.exhaust)
+  using ttWFx_trace_cons_imp_cons by (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF ttevent.exhaust list.exhaust)
   
 lemma priMaxTT_extend_both_events_maximal_ttWF:
-  assumes "priMaxTT p xs ys s P" "ttWF (xs @ [[e\<^sub>1]\<^sub>E])" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)" "TT3_trace (ys @ [[e\<^sub>1]\<^sub>E])"
+  assumes "priMaxTT p xs ys s P" "ttWF (xs @ [[e\<^sub>1]\<^sub>E])" "ttWF (ys @ [[e\<^sub>1]\<^sub>E])" "maximal(p,e\<^sub>1)" "ttWFx_trace (ys @ [[e\<^sub>1]\<^sub>E])"
   shows "priMaxTT p (xs @ [[e\<^sub>1]\<^sub>E]) (ys @ [[e\<^sub>1]\<^sub>E]) s P"
   using assms apply (induct p xs ys s P rule:priMaxTT.induct, auto)
     apply (cases e\<^sub>1, auto)
-  using TT3_trace_cons_imp_cons by (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF ttevent.exhaust list.exhaust)+
+  using ttWFx_trace_cons_imp_cons by (metis append_Nil ttWF.simps(10) ttWF.simps(4) ttWF.simps(6) ttWF_prefix_is_ttWF ttevent.exhaust list.exhaust)+
 
 lemma priMaxTT_same_length:
   assumes "priMaxTT p xs ys s P"

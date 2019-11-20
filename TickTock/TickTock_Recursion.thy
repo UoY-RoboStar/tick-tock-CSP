@@ -31,10 +31,10 @@ lemma iterateTT_TT2w:
   shows "TT2w (iterateTT F n)"
   by (induct n, simp_all add: assms, unfold TT2w_def, auto)
 
-lemma iterateTT_TT3:
-  assumes "\<And> X. TT3 X \<Longrightarrow>TT3 (F X)"
-  shows "TT3 (iterateTT F n)"
-  by (induct n, simp_all add: assms, unfold TT3_def, auto)
+lemma iterateTT_ttWFx:
+  assumes "\<And> X. ttWFx X \<Longrightarrow>ttWFx (F X)"
+  shows "ttWFx (iterateTT F n)"
+  by (induct n, simp_all add: assms, unfold ttWFx_def, auto)
 
 lemma iterateTT_TT4:
   assumes "\<And> X. TT4 X \<Longrightarrow>TT4 (F X)"
@@ -102,8 +102,8 @@ lemma TT2w_Union: "X \<noteq> {} \<Longrightarrow> \<forall> x\<in>X. TT2w x \<L
   unfolding TT2w_def apply (simp, safe, simp, erule_tac x=Xaa in ballE, erule_tac x=Xaa in ballE, auto)
   by (erule_tac x=\<rho> in allE, erule_tac x=Xa in allE, erule_tac x=Y in allE, auto)
 
-lemma TT3_Union: "\<forall> x\<in>X. TT3 x \<Longrightarrow> TT3 (\<Union>X)"
-  unfolding TT3_def by auto
+lemma ttWFx_Union: "\<forall> x\<in>X. ttWFx x \<Longrightarrow> ttWFx (\<Union>X)"
+  unfolding ttWFx_def by auto
 
 lemma TT4_Union: "\<forall> x\<in>X. TT4 x \<Longrightarrow> TT4 (\<Union>X)"
   unfolding TT4_def by auto
@@ -140,10 +140,10 @@ lemma RecursionTT_TT2w:
   shows "TT2w (RecursionTT F)"
   unfolding RecursionTT_def by (smt TT2w_Union assms empty_iff iterateTT_TT2w mem_Collect_eq) 
 
-lemma RecursionTT_TT3:
-  assumes "\<And> X. TT3 X \<Longrightarrow> TT3 (F X)"
-  shows "TT3 (RecursionTT F)"
-  unfolding RecursionTT_def by (smt TT3_Union assms iterateTT_TT3 mem_Collect_eq)
+lemma RecursionTT_ttWFx:
+  assumes "\<And> X. ttWFx X \<Longrightarrow> ttWFx (F X)"
+  shows "ttWFx (RecursionTT F)"
+  unfolding RecursionTT_def by (smt ttWFx_Union assms iterateTT_ttWFx mem_Collect_eq)
 
 lemma RecursionTT_TT4:
   assumes "\<And> X. TT4 X \<Longrightarrow> TT4 (F X)"
@@ -163,7 +163,7 @@ lemma RecursionTT_TT:
   apply (metis (mono_tags, lifting) CollectI Sup_bot_conv(1) TT0_def empty_not_insert iterateTT.simps(1))
   apply (smt TT1_Union TT_TT1 assms iterateTT_TT mem_Collect_eq)
   apply (smt TT2w_Union TT_TT2w assms empty_iff iterateTT_TT mem_Collect_eq)
-  apply (smt TT3_Union TT_TT3 assms iterateTT_TT mem_Collect_eq)
+  apply (smt ttWFx_Union TT_ttWFx assms iterateTT_TT mem_Collect_eq)
   done
 
 lemma RecursionTT_strengthen:

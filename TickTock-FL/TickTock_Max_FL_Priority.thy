@@ -756,7 +756,7 @@ lemma TTwf_1c_3_imp_fl2ttobs_FL1_mod:
   assumes "x \<in> P" 
       and TTwf_healthy: "TTwf P" 
       and TT1w_healthy: "TT1w P"
-      and TT3_healthy:  "TT3 P"
+      and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy: "TTick P"
       and TT4w_healthy: "TT4w P"
       and pri:"priMaxTT p ar x [] P \<and> x \<in> P"
@@ -902,7 +902,7 @@ next
         next
           case Tock
           then have tock_not_in_r1: "Tock \<notin> r1"
-            using TT3_any_cons_end_tock TT3_healthy ObsEvent r1 yys.prems(2) by auto
+            using ttWFx_any_cons_end_tock ttWFx_healthy ObsEvent r1 yys.prems(2) by auto
           then have r1_good_pri:"\<not>(\<exists>b. b \<notin> r1 \<and> Tock <\<^sup>*p b)"
             using r1 ObsEvent Tock priMaxTTyys priMaxTT_rhs_refTock_imp_no_gt_Tock_pri
             by (metis TTwf_def TTwf_healthy append.assoc append_Cons append_Nil)
@@ -1070,7 +1070,7 @@ next
                     \<and> (\<exists>x. FLTick0 Tick (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)}) 
                         \<and> FL1 (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)}) 
                         \<and> {fl2ttobs fl\<^sub>0 |fl\<^sub>0. fl\<^sub>0 \<in> (x \<union> {fl\<^sub>0. fl\<^sub>0 \<le>\<^sub>\<F>\<^sub>\<L> (fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)})} \<subseteq> P \<and> fl \<in> x)"  
-             using fl2ttobs_strongFL_subset TT3_trace_cons_imp_cons
+             using fl2ttobs_strongFL_subset ttWFx_trace_cons_imp_cons
              by (smt Un_iff mem_Collect_eq subset_iff)
            then have "
                     ys @ [[e1]\<^sub>E] @ [[Event e3]\<^sub>E] = fl2ttobs(fl @\<^sub>\<F>\<^sub>\<L> \<langle>(last fl,Event e3)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)
@@ -1524,17 +1524,17 @@ lemma prirel_cons_lasts_bullet_cons_bullet_iff:
   using assms apply(induct p xs ys rule:pri.induct, auto)
   by (cases y, auto)
   
-lemma fl2ttobs_is_TT3_trace [simp]:
-  "TT3_trace (fl2ttobs xs)"
+lemma fl2ttobs_is_ttWFx_trace [simp]:
+  "ttWFx_trace (fl2ttobs xs)"
   apply (induct xs)
    apply (case_tac x, simp)
    apply auto[1]
   apply (case_tac x1a, case_tac y, case_tac a)
    apply auto[1]
-   apply (metis TT3_trace.simps(2) TT3_trace.simps(4) neq_Nil_conv)
+   apply (metis ttWFx_trace.simps(2) ttWFx_trace.simps(4) neq_Nil_conv)
   apply (case_tac b, auto)
-  apply (metis TT3_trace.simps(2) TT3_trace.simps(4) neq_Nil_conv)
-  by (metis TT3_trace.simps(2) TT3_trace.simps(4) neq_Nil_conv)
+  apply (metis ttWFx_trace.simps(2) ttWFx_trace.simps(4) neq_Nil_conv)
+  by (metis ttWFx_trace.simps(2) ttWFx_trace.simps(4) neq_Nil_conv)
 
 text \<open> Key result below for establishing the connection with priMaxTT. \<close>
 
@@ -1685,7 +1685,7 @@ next
       then have "priMaxTT p (fl2ttobs (xs) @ [[xR]\<^sub>R,[Tock]\<^sub>E]) (fl2ttobs (ys) @ [[yR]\<^sub>R,[Tock]\<^sub>E]) [] P"
         using priMaxTT priMaxTT_extend_both_tock_refusal_ttWF
         using yR
-        by (metis TT3_trace.simps(3) fl2ttobs_is_TT3_trace xR)
+        by (metis ttWFx_trace.simps(3) fl2ttobs_is_ttWFx_trace xR)
       then have "priMaxTT p (fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) (fl2ttobs (ys &\<^sub>\<F>\<^sub>\<L> \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>)) [] P"
         using flt2_xs_x flt2_ys_y xR yR by auto
       then show ?thesis by auto
@@ -1711,7 +1711,7 @@ next
       proof (cases "maximal(p,yEvent)")
         case True
         then show ?thesis
-          by (metis \<open>fl2ttobs \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> \<open>fl2ttobs \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> ttWF_xs_x ttWF_ys_y flt2_xs_x flt2_ys_y fl2ttobs_is_TT3_trace priMaxTT priMaxTT_extend_both_events_maximal_ttWF)
+          by (metis \<open>fl2ttobs \<langle>x,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> \<open>fl2ttobs \<langle>y,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = [[yEvent]\<^sub>E]\<close> ttWF_xs_x ttWF_ys_y flt2_xs_x flt2_ys_y fl2ttobs_is_ttWFx_trace priMaxTT priMaxTT_extend_both_events_maximal_ttWF)
       next
         case False
         then show ?thesis
@@ -1956,11 +1956,11 @@ lemma prirel_extend_both_prefix_imp:
   shows "pri p (fla &\<^sub>\<F>\<^sub>\<L> fl) (zra &\<^sub>\<F>\<^sub>\<L> zr)"
   using assms prirel_consFL_both_imp' by blast
 
-lemma priMaxTT_is_TT3_trace_closed:
-  assumes "priMaxTT p xs ys s P" "TT3_trace ys"
-  shows "TT3_trace xs"
+lemma priMaxTT_is_ttWFx_trace_closed:
+  assumes "priMaxTT p xs ys s P" "ttWFx_trace ys"
+  shows "ttWFx_trace xs"
   using assms apply(induct p xs ys s P rule:priMaxTT.induct, auto)
-  using TT3_trace_cons_imp_cons by (metis TT3_trace.simps(2) TT3_trace.simps(4) neq_Nil_conv)+
+  using ttWFx_trace_cons_imp_cons by (metis ttWFx_trace.simps(2) ttWFx_trace.simps(4) neq_Nil_conv)+
 
 lemma
   assumes "\<exists>z. Tick <\<^sup>*p z"
@@ -2000,14 +2000,14 @@ lemma flt2goodTock_of_consFL_also_flt2goodTock:
   by (induct ys, auto)
 
 lemma priMaxTT_to_pri:
-  assumes "priMaxTT p xs ys s P" "TT3_trace ys" "ttWF ys" "(fl2ttobs zr) = ys" 
+  assumes "priMaxTT p xs ys s P" "ttWFx_trace ys" "ttWF ys" "(fl2ttobs zr) = ys" 
           "flt2goodTock zr"
           "flt2goodAcceptance zr p"
           "TTM3 P"
         (*  "maximal(p,Tick)"*) (* FIXME: probably not needed *)
   shows "\<exists>fl. pri p fl zr \<and> (fl2ttobs fl) = xs \<and> flt2goodTock fl"
   using assms 
-proof (induct p xs ys s P arbitrary:zr rule:priMaxTT.induct, auto simp add:TT3_trace_cons_imp_cons)
+proof (induct p xs ys s P arbitrary:zr rule:priMaxTT.induct, auto simp add:ttWFx_trace_cons_imp_cons)
   fix pa::"'a ttevent partialorder"
   fix zra::"'a ttevent fltrace"
   assume assm1:"fl2ttobs zra = []"
@@ -2041,7 +2041,7 @@ next
   assume assm3:"flt2goodTock zra"
   assume assm4:"Tock \<notin> S"
   assume assm5:"Tock \<notin> prirefMaxTT pa S"
-  assume assm6:"TT3_trace zz"
+  assume assm6:"ttWFx_trace zz"
   assume assm7:"fl2ttobs zra = [S]\<^sub>R # [Tock]\<^sub>E # zz"
   then have tocks:"Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> prirefMaxTT pa S}]\<^sub>\<F>\<^sub>\<L>"
                   "Tock \<in>\<^sub>\<F>\<^sub>\<L> [{x. x \<notin> S}]\<^sub>\<F>\<^sub>\<L>"
@@ -2087,7 +2087,7 @@ next
   fix aa e\<^sub>2 zz sa Q zra
   assume hyp:"(\<And>zr. ttWF zz \<Longrightarrow>
               fl2ttobs zr = zz \<Longrightarrow> flt2goodTock zr \<Longrightarrow> flt2goodAcceptance zr pa \<Longrightarrow> \<exists>fl. pri pa fl zr \<and> fl2ttobs fl = aa \<and> flt2goodTock fl)"
-  assume assm1:"TT3_trace ([e\<^sub>2]\<^sub>E # zz)"
+  assume assm1:"ttWFx_trace ([e\<^sub>2]\<^sub>E # zz)"
   assume assm2:"ttWF ([e\<^sub>2]\<^sub>E # zz)"
   then have no_Tock:"e\<^sub>2 \<noteq> Tock"
     using ttWF.simps(6) by blast
@@ -2142,7 +2142,7 @@ next
   fix pa::"'a ttevent partialorder"
   fix aa e\<^sub>2 zz sa Q zra Z
   assume hyp:"(\<And>zr. ttWF zz \<Longrightarrow> fl2ttobs zr = zz \<Longrightarrow> flt2goodTock zr \<Longrightarrow> flt2goodAcceptance zr pa \<Longrightarrow> \<exists>fl. pri pa fl zr \<and> fl2ttobs fl = aa \<and> flt2goodTock fl)"
-  assume assm1:"TT3_trace ([e\<^sub>2]\<^sub>E # zz)"
+  assume assm1:"ttWFx_trace ([e\<^sub>2]\<^sub>E # zz)"
   assume assm2:"ttWF ([e\<^sub>2]\<^sub>E # zz)"
   then have no_Tock:"e\<^sub>2 \<noteq> Tock"
     using ttWF.simps(6) by blast
@@ -2307,7 +2307,7 @@ next
 
 lemma priMaxTT_to_pri':
   assumes "priMaxTT p xs ys [] P" "ys \<in> P" 
-          "TT0 P" "TTwf P" "TT1w P" "TT3 P" "TTick P" "TTM3 P" "TT4w P"
+          "TT0 P" "TTwf P" "TT1w P" "ttWFx P" "TTick P" "TTM3 P" "TT4w P"
     shows "\<exists>fl. fl2ttobs fl = xs \<and> (\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0)) \<and> flt2goodTock fl"
 proof -
   have "ttWF ys"
@@ -2318,11 +2318,11 @@ proof -
     unfolding fl2ttm_def using assms TTwf_1c_3_imp_fl2ttobs_FL1_mod by blast
   then have "\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs Z \<in> P \<and> fl2ttobs Z = ys \<and> flt2goodAcceptance Z p 
         \<and> flt2goodTock Z 
-        \<and> TT3_trace ys \<and> ttWF ys \<and> priMaxTT p xs ys [] P"
+        \<and> ttWFx_trace ys \<and> ttWF ys \<and> priMaxTT p xs ys [] P"
     by auto
   then have "\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> Z \<in> fl\<^sub>0 \<and> fl2ttobs Z \<in> P \<and> fl2ttobs Z = ys \<and> flt2goodAcceptance Z p 
         \<and> flt2goodTock Z 
-        \<and> TT3_trace ys \<and> ttWF ys \<and> priMaxTT p xs ys [] P
+        \<and> ttWFx_trace ys \<and> ttWF ys \<and> priMaxTT p xs ys [] P
         \<and> (\<exists>fl. pri p fl Z \<and> fl2ttobs fl = xs \<and> flt2goodTock fl)"
     using priMaxTT_to_pri assms
     by metis
@@ -2338,7 +2338,7 @@ lemma fl2ttm_pri_ttm2fl_PriMax:
   assumes TT0_healthy:  "TT0 P" 
       and TTwf_healthy: "TTwf P" 
       and TT1w_healthy: "TT1w P"
-      and TT3_healthy:  "TT3 P"
+      and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy:"TTick P"
       and TTM3:         "TTM3 P"
       and TT4w_healthy: "TT4w P"
@@ -2384,8 +2384,8 @@ lemma prirel_both_and_both_acceptances_imp_cons_both:
   using assms apply (induct p xs ys rule:pri.induct, auto)
   by (case_tac Z, auto)+
 
-lemma fl2ttobs_exists_flt2goodTock_for_ttWF_TT3_trace:
-  assumes "ttWF fl" "TT3_trace fl"
+lemma fl2ttobs_exists_flt2goodTock_for_ttWF_ttWFx_trace:
+  assumes "ttWF fl" "ttWFx_trace fl"
   shows "\<exists>zr. (fl2ttobs zr) = fl \<and> flt2goodTock zr"
   using assms
 proof (induct fl rule:ttWF.induct, auto)
@@ -2400,13 +2400,13 @@ next
     by (intro exI[where x="\<langle>(\<bullet>,Tick)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
 next
   fix e \<sigma>
-  assume hyp:"(TT3_trace \<sigma> \<Longrightarrow> \<exists>zr. fl2ttobs zr = \<sigma> \<and> flt2goodTock zr)"
+  assume hyp:"(ttWFx_trace \<sigma> \<Longrightarrow> \<exists>zr. fl2ttobs zr = \<sigma> \<and> flt2goodTock zr)"
   assume assm1:"ttWF \<sigma>"
-  assume assm2:"TT3_trace ([Event e]\<^sub>E # \<sigma>)"
+  assume assm2:"ttWFx_trace ([Event e]\<^sub>E # \<sigma>)"
   show "\<exists>zr. fl2ttobs zr = [Event e]\<^sub>E # \<sigma> \<and> flt2goodTock zr"
   proof -
-    from assm2 have "TT3_trace \<sigma>"
-      using TT3_trace_cons_imp_cons by blast
+    from assm2 have "ttWFx_trace \<sigma>"
+      using ttWFx_trace_cons_imp_cons by blast
     then have "\<exists>zr. fl2ttobs zr = \<sigma> \<and> flt2goodTock zr"
       using hyp by auto
     then have "\<exists>zr. fl2ttobs(\<langle>(\<bullet>,Event e)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L>) @ fl2ttobs zr = [Event e]\<^sub>E # \<sigma> \<and> flt2goodTock zr"
@@ -2460,7 +2460,7 @@ apply (case_tac aa, auto)
   by (case_tac Z, auto, case_tac a, auto, case_tac b, auto, case_tac b, auto)
 
 lemma FL_Pri_ttm2fl:
-  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "TT3 P" "TT4 P" "TTM1 P" "TTM2 P"
+  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "ttWFx P" "TT4 P" "TTM1 P" "TTM2 P"
   shows "FL0 (Pri p (ttm2fl P))"
         "FL1 (Pri p (ttm2fl P))"
         "FL2 (Pri p (ttm2fl P))"
@@ -2472,12 +2472,12 @@ lemma FL_Pri_ttm2fl:
   by (simp add: FLTick0_Pri FLTick0_Tick_ttm2fl assms(2))
 
 lemma TTMax_PriMax_closure:
-  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "TT3 P" "TT4 P" "TTM1 P" "TTM2 P" "TTM3 P"
+  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "ttWFx P" "TT4 P" "TTM1 P" "TTM2 P" "TTM3 P"
   shows "TTwf(PriMax p P)"
         "TT0(PriMax p P)"
         "TT1w(PriMax p P)"
         "TT2(PriMax p P)"
-        "TT3(PriMax p P)"
+        "ttWFx(PriMax p P)"
         "TT4(PriMax p P)"
         "TTM1(PriMax p P)"
         "TTM2(PriMax p P)"
@@ -2510,9 +2510,9 @@ proof -
     using PriMax_eq 
     using FL_Pri(1) FL_Pri(2) FL_Pri(3) FL_Pri(4) TT2_fl2ttm by auto
 
-  show "TT3(PriMax p P)"
+  show "ttWFx(PriMax p P)"
     using PriMax_eq
-    using TT3_fl2ttm by auto
+    using ttWFx_fl2ttm by auto
 
   show "TT4(PriMax p P)"
     using PriMax_eq

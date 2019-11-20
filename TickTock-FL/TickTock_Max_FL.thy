@@ -175,7 +175,7 @@ lemma fl2ttm_univ_disj:
   unfolding fl2ttm_def by auto
 
 lemma concat_ref_tock_imp_tock_in_last_of_fl2ttobs:
-  assumes "ys @ [[x1]\<^sub>R] @ [[Tock]\<^sub>E] \<in> P" "TTwf P" "TT3 P"
+  assumes "ys @ [[x1]\<^sub>R] @ [[Tock]\<^sub>E] \<in> P" "TTwf P" "ttWFx P"
           "ys @ [[x1]\<^sub>R] @ [[Tock]\<^sub>E] = fl2ttobs fl @ [[Tock]\<^sub>E]"
     shows "Tock \<in>\<^sub>\<F>\<^sub>\<L> last fl"
 proof -
@@ -196,7 +196,7 @@ proof -
       case (2 x xs)
       then have tock_not_in_x1:"Tock \<notin> x1"
         using assms
-        by (metis TT3_def TT3_trace.simps(3) TT3_trace_cons_right append_Cons append_Nil)
+        by (metis ttWFx_def ttWFx_trace.simps(3) ttWFx_trace_cons_right append_Cons append_Nil)
       then obtain r where r:"List.last(fl2ttobs (xs &\<^sub>\<F>\<^sub>\<L> x)) = [r]\<^sub>R"
         using 2
         by (metis last_snoc)
@@ -566,7 +566,7 @@ lemma TTwf_1c_3_imp_fl2ttobs_FL1:
   assumes "x \<in> P" 
       and TTwf_healthy: "TTwf P" 
       and TT1w_healthy: "TT1w P"
-      and TT3_healthy:  "TT3 P"
+      and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy: "TTick P"
       and TT4w_healthy: "TT4w P"
   shows "\<exists>fl. x = fl2ttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {fl2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
@@ -686,7 +686,7 @@ next
         next
           case Tock
           then have tock_not_in_r1: "Tock \<notin> r1"
-            using TT3_any_cons_end_tock TT3_healthy ObsEvent r1 yys.prems(2) by auto
+            using ttWFx_any_cons_end_tock ttWFx_healthy ObsEvent r1 yys.prems(2) by auto
 
           text \<open>Then from the hypothesis we have the case:\<close>
 
@@ -1062,7 +1062,7 @@ lemma subset_fl2ttm_ttm2fl:
   assumes 
           TTwf_healthy: "TTwf P" 
       and TT1w_healthy: "TT1w P"
-      and TT3_healthy:  "TT3 P"
+      and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy: "TTick P"
       and TT4w_healthy: "TT4w P"
   shows "P \<subseteq> fl2ttm(ttm2fl(P))"
@@ -1073,7 +1073,7 @@ lemma fl2ttm_ttm2fl_bij:
   assumes 
           TTwf_healthy: "TTwf P" 
       and TT1w_healthy: "TT1w P"
-      and TT3_healthy:  "TT3 P"
+      and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy: "TTick P"
       and TT4w_healthy: "TT4w P"
     shows "P = fl2ttm(ttm2fl(P))"
@@ -1776,17 +1776,17 @@ lemma TT4_fl2ttm:
   using assms unfolding TT4_def fl2ttm_def apply auto
   using TT4_fl2ttm_part by blast
 
-lemma TT3_trace_fl2ttobs:
-  "TT3_trace (fl2ttobs fl)"
+lemma ttWFx_trace_fl2ttobs:
+  "ttWFx_trace (fl2ttobs fl)"
   apply (induct fl rule:fl2ttobs.induct) apply auto[1]
   apply (case_tac A, safe) 
    apply (case_tac a, safe) apply auto[1]
   apply (case_tac b, safe) apply auto[4]
-  by (metis TT3_trace.simps(2) TT3_trace.simps(4) neq_Nil_conv)+
+  by (metis ttWFx_trace.simps(2) ttWFx_trace.simps(4) neq_Nil_conv)+
 
-lemma TT3_fl2ttm:
-  shows "TT3 (fl2ttm P)"
-  unfolding TT3_def fl2ttm_def using TT3_trace_fl2ttobs by auto
+lemma ttWFx_fl2ttm:
+  shows "ttWFx (fl2ttm P)"
+  unfolding ttWFx_def fl2ttm_def using ttWFx_trace_fl2ttobs by auto
 
 abbreviation "TT2wp \<rho> X P \<equiv> 
     {e. e \<noteq> Tock \<and> (\<exists>fl. \<rho> @ [[e]\<^sub>E] = fl2ttobs fl \<and> fl \<in> P \<and> flt2goodTock fl) \<or>
@@ -2342,7 +2342,7 @@ lemma maximal_TT_fl2ttm_closed:
         "TT0(fl2ttm(P))"
         "TT1w(fl2ttm(P))"
         "TT2(fl2ttm(P))"
-        "TT3(fl2ttm(P))"
+        "ttWFx(fl2ttm(P))"
         "TT4(fl2ttm(P))"
         "TTM1(fl2ttm(P))"
         "TTM2(fl2ttm(P))"
@@ -2351,7 +2351,7 @@ lemma maximal_TT_fl2ttm_closed:
   using assms TT0_fl2ttm apply auto
         apply (simp add: TT1w_fl2ttm assms(2))
        apply (simp add: TT2_fl2ttm assms(1) assms(2) assms(3) assms(4))
-      apply (simp add: TT3_fl2ttm)
+      apply (simp add: ttWFx_fl2ttm)
      apply (simp add: TT4_fl2ttm assms(4))
     apply (simp add: TTM1_fl2ttm_for_FL2_FL1_FL0 assms(1) assms(2) assms(3))
    apply (simp add: TTM2_fl2ttm_for_FL2_FL1_FL0 assms(1) assms(2) assms(3))

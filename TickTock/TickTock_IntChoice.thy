@@ -56,8 +56,8 @@ next
     using "1" "5" "6" IntChoiceTT_def by blast
 next
   fix x
-  show "x \<in> P \<sqinter>\<^sub>C Q \<Longrightarrow> TT3_trace x"
-    by (metis TT3_def TT_TT3 IntChoiceTT_def UnE assms(1) assms(2))
+  show "x \<in> P \<sqinter>\<^sub>C Q \<Longrightarrow> ttWFx_trace x"
+    by (metis ttWFx_def TT_ttWFx IntChoiceTT_def UnE assms(1) assms(2))
 qed 
 
 lemma IntChoice_Union_dist1:
