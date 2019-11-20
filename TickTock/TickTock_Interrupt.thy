@@ -1648,26 +1648,26 @@ lemma add_Tick_refusal_trace_filter_tocks:
   "add_Tick_refusal_trace (filter_tocks t) = filter_tocks (add_Tick_refusal_trace t)"
   by (induct t rule:filter_tocks.induct, auto, (case_tac x, auto)+)
 
-lemma TT4_TimeSyncInterrupt:
-  assumes TT4_P: "TT4 P" and TT4_Q: "TT4 Q"
-  shows "TT4 (P \<triangle>\<^sub>T Q)"
-  unfolding TT4_def TimeSyncInterruptTT_def
+lemma TT3_TimeSyncInterrupt:
+  assumes TT3_P: "TT3 P" and TT3_Q: "TT3 Q"
+  shows "TT3 (P \<triangle>\<^sub>T Q)"
+  unfolding TT3_def TimeSyncInterruptTT_def
 proof (safe, simp_all)
   fix p
   assume case_assms: "p @ [[Tick]\<^sub>E] \<in> P" "filter_tocks p \<in> Q"
   have 1: "add_Tick_refusal_trace p @ [[Tick]\<^sub>E] \<in> P"
-    by (metis TT4_P TT4_def add_Tick_refusal_trace_end_event case_assms(1))
+    by (metis TT3_P TT3_def add_Tick_refusal_trace_end_event case_assms(1))
   have 2: "filter_tocks (add_Tick_refusal_trace p) \<in> Q"
-    by (metis TT4_Q TT4_def add_Tick_refusal_trace_filter_tocks case_assms(2))
+    by (metis TT3_Q TT3_def add_Tick_refusal_trace_filter_tocks case_assms(2))
   show "\<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks pa \<in> Q \<and> add_Tick_refusal_trace (p @ [[Tick]\<^sub>E]) = pa @ [[Tick]\<^sub>E]"
     using 1 2 by (rule_tac x="add_Tick_refusal_trace p" in exI, auto simp add: add_Tick_refusal_trace_end_event)
 next
   fix p X Y Z
   assume case_assms: "p @ [[X]\<^sub>R] \<in> P" "filter_tocks p @ [[Y]\<^sub>R] \<in> Q" "Z \<subseteq> X \<union> Y" "{e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock}"
   have 1: "add_Tick_refusal_trace p @ [[X \<union> {Tick}]\<^sub>R] \<in> P"
-    by (metis TT4_P TT4_def add_Tick_refusal_trace_end_refusal case_assms(1))
+    by (metis TT3_P TT3_def add_Tick_refusal_trace_end_refusal case_assms(1))
   have 2: "filter_tocks (add_Tick_refusal_trace p) @ [[Y \<union> {Tick}]\<^sub>R] \<in> Q"
-    by (metis TT4_Q TT4_def add_Tick_refusal_trace_end_refusal add_Tick_refusal_trace_filter_tocks case_assms(2))
+    by (metis TT3_Q TT3_def add_Tick_refusal_trace_end_refusal add_Tick_refusal_trace_filter_tocks case_assms(2))
   show "\<forall>pa X. pa @ [[X]\<^sub>R] \<in> P \<longrightarrow> (\<forall>Y. {e \<in> X. e \<noteq> Tock} = {e \<in> Y. e \<noteq> Tock} \<longrightarrow>
       filter_tocks pa @ [[Y]\<^sub>R] \<in> Q \<longrightarrow> (\<forall>Za\<subseteq>X \<union> Y. add_Tick_refusal_trace (p @ [[Z]\<^sub>R]) \<noteq> pa @ [[Za]\<^sub>R])) \<Longrightarrow>
     \<exists>pa. pa @ [[Tick]\<^sub>E] \<in> P \<and> filter_tocks pa \<in> Q \<and> add_Tick_refusal_trace (p @ [[Z]\<^sub>R]) = pa @ [[Tick]\<^sub>E]"
@@ -1678,11 +1678,11 @@ next
   fix p q2
   assume case_assms: "p \<in> P" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]" "filter_tocks p @ q2 \<in> Q" "\<forall>q' Y. q2 \<noteq> [Y]\<^sub>R # q'"
   have 1: "add_Tick_refusal_trace p \<in> P"
-    using TT4_P TT4_def case_assms(1) by blast
+    using TT3_P TT3_def case_assms(1) by blast
   have 2: "(\<forall>p'. add_Tick_refusal_trace p \<noteq> p' @ [[Tick]\<^sub>E]) \<and> (\<forall>p' Y. add_Tick_refusal_trace p \<noteq> p' @ [[Y]\<^sub>R])"
     using add_Tick_refusal_trace_not_end_refusal add_Tick_refusal_trace_not_end_tick case_assms by blast
   have 3: "filter_tocks (add_Tick_refusal_trace p) @ add_Tick_refusal_trace q2 \<in> Q"
-    by (metis TT4_Q TT4_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_tocks case_assms(4))
+    by (metis TT3_Q TT3_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_tocks case_assms(4))
   have 4: "\<forall>q' Y. add_Tick_refusal_trace q2 \<noteq> [Y]\<^sub>R # q'"
     by (metis add_Tick_refusal_trace.simps(2) case_assms(5) contains_refusal.elims(2) contains_refusal.elims(3) contains_refusal_add_Tick_refusal_trace ttobs.distinct(1) list.inject)
   show "\<forall>pa. pa \<in> P \<longrightarrow> (\<exists>p'. pa = p' @ [[Tick]\<^sub>E]) \<or> (\<exists>p' Y. pa = p' @ [[Y]\<^sub>R]) \<or>
@@ -2026,15 +2026,15 @@ next
     using assms case_assms by auto
 qed
 
-lemma TT4_StrictTimedInterrupt:
-  assumes "TT4 P" "TT4 Q"
-  shows "TT4 (P \<triangle>\<^bsub>n\<^esub> Q)"
-  unfolding TT4_def StrictTimedInterruptTT_def apply auto
-  using TT4_def assms(1) apply blast
+lemma TT3_StrictTimedInterrupt:
+  assumes "TT3 P" "TT3 Q"
+  shows "TT3 (P \<triangle>\<^bsub>n\<^esub> Q)"
+  unfolding TT3_def StrictTimedInterruptTT_def apply auto
+  using TT3_def assms(1) apply blast
   apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
-  using TT4_def assms(2) apply blast
-  apply (metis TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_Tock_same_length append_butlast_last_id assms(1) assms(2) last_appendR list.distinct(1))
-  by (metis TT4_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_end_event add_Tick_refusal_trace_filter_Tock_same_length append_butlast_last_id assms(1) assms(2) filter.simps(1) last_snoc)
+  using TT3_def assms(2) apply blast
+  apply (metis TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace_concat add_Tick_refusal_trace_filter_Tock_same_length append_butlast_last_id assms(1) assms(2) last_appendR list.distinct(1))
+  by (metis TT3_def add_Tick_refusal_trace_concat add_Tick_refusal_trace_end_event add_Tick_refusal_trace_filter_Tock_same_length append_butlast_last_id assms(1) assms(2) filter.simps(1) last_snoc)
 
 lemma Stop_StrictTimedInterrupt:
   assumes "TT0 Q" "TT1 Q"

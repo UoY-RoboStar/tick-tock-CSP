@@ -36,14 +36,14 @@ lemma TT_fl2tt_closed:
         "TT1(fl2tt(P))"
         "TT2(fl2tt(P))"
         "ttWFx(fl2tt(P))"
-        "TT4(fl2tt(P))"
+        "TT3(fl2tt(P))"
   using assms unfolding fl2tt_def 
   using TTwf_fl2ttm TTwf_mkTT1 apply blast
       apply (simp add: TT0_fl2ttm TT0_mkTT1 assms(1) assms(2) assms(3) assms(4))
      apply (simp add: TT1_mkTT1)
     apply (simp add: TT1w_fl2ttm TT2_fl2ttm TT2_mkTT1 TTM1_fl2ttm_for_FL2_FL1_FL0 TTM2_fl2ttm_for_FL2_FL1_FL0 assms(1) assms(2) assms(3) assms(4))
    apply (simp add: ttWFx_fl2ttm ttWFx_mkTT1)
-  by (simp add: TT4_fl2ttm TT4_mkTT1 assms(4))
+  by (simp add: TT3_fl2ttm TT3_mkTT1 assms(4))
 
 lemma FL_tt2fl_closed:
   assumes "TT(P)"
@@ -112,18 +112,18 @@ lemma FL2_disj_imp:
   using assms unfolding FL2_def by auto
 
 lemma
-  "\<rho> \<in> x \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> mkTT4 x"
-  unfolding mkTT4_def by auto
+  "\<rho> \<in> x \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> mkTT3 x"
+  unfolding mkTT3_def by auto
 
 lemma unTT1_alt:
-  assumes "TT P" "TT4 P"
-  shows "unTT1 P = \<Union>{x. TT0 x \<and> TT2 x \<and> ttWFx x \<and> TT4 x \<and> TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> TTwf x \<and> (mkTT1 x) \<subseteq> P}"
+  assumes "TT P" "TT3 P"
+  shows "unTT1 P = \<Union>{x. TT0 x \<and> TT2 x \<and> ttWFx x \<and> TT3 x \<and> TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> TTwf x \<and> (mkTT1 x) \<subseteq> P}"
   unfolding unTT1_def mkTT1_def apply auto
   using assms apply (rule_tac x="unTT1 P" in exI, auto)
   using TT0_unTT1 TT_TT0 TT_TT1 apply blast
-  using TT4_TT1_imp_TT4w assms using TT2_unTT1 TT_TT1 apply blast
+  using TT3_TT1_imp_TT3w assms using TT2_unTT1 TT_TT1 apply blast
   using ttWFx_unTT1 TT_TT1 TT_ttWFx apply blast
-  using TT4_unTT1 TT_TT1 apply blast
+  using TT3_unTT1 TT_TT1 apply blast
   using TTM1_unTT1 apply blast
   using TTM2_unTT1 apply blast
   using TTM3_unTT1 apply blast
@@ -188,20 +188,20 @@ lemma FL3_mkFL2:
   using assms unfolding mkFL2_def  apply auto
   by (smt FLTick0_def Un_iff mem_Collect_eq tickWF_acceptance_imp_tickWF_consFL)
 
-lemma TTM3_TT4w:
+lemma TTM3_TT3w:
   assumes "TTM3 P"
-  shows "TT4w P"
-  using assms unfolding TTM3_def TT4w_def apply auto
+  shows "TT3w P"
+  using assms unfolding TTM3_def TT3w_def apply auto
   using TTM3_TTick_part assms insert_absorb by force
 
 lemma PriTT_eq_fl2tt_Pri_tt2fl:
-  assumes "TT P" "TT2 P" "TT4 P"
+  assumes "TT P" "TT2 P" "TT3 P"
   shows "PriTT p P = fl2tt(Pri p (tt2fl P))"
 proof-
   have "PriTT p P = PriTT1 p P"
     by (simp add: PriTT_eq_priTT assms(1) assms(2) assms(3))
   also have "... = mkTT1(PriMax p (unTT1 P))"
-    by (simp add: TT4_TT1_imp_TT4w TT_TT1 TT_ttWFx assms(1) assms(2) assms(3) mkTT1_PriMax_unTT1_priTT)
+    by (simp add: TT3_TT1_imp_TT3w TT_TT1 TT_ttWFx assms(1) assms(2) assms(3) mkTT1_PriMax_unTT1_priTT)
   also have "... = mkTT1(fl2ttm(Pri p (ttm2fl (unTT1 P))))"
   proof -
     have TTs:
@@ -209,17 +209,17 @@ proof-
          "TTwf (unTT1 P)"
          "TT1w (unTT1 P)" 
          "ttWFx (unTT1 P)" 
-         "TT4 (unTT1 P)" 
+         "TT3 (unTT1 P)" 
          "TTM3 (unTT1 P)"
       by (simp_all add: assms unTT1_TT_closure)
-    then have TT4w:"TT4w (unTT1 P)"
-      using TTM3_TT4w by auto
+    then have TT3w:"TT3w (unTT1 P)"
+      using TTM3_TT3w by auto
 
     have TTick:"TTick (unTT1 P)"
       using assms TTM3_TTick TTM3_unTT1 by blast
 
     have "PriMax p (unTT1 P) = fl2ttm(Pri p (ttm2fl (unTT1 P)))"
-      using TTs TTick TT4w fl2ttm_pri_ttm2fl_PriMax by auto
+      using TTs TTick TT3w fl2ttm_pri_ttm2fl_PriMax by auto
     then show ?thesis by auto
   qed
   also have "... = fl2tt(Pri p (ttm2fl (unTT1 P)))"

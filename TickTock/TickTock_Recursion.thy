@@ -36,15 +36,15 @@ lemma iterateTT_ttWFx:
   shows "ttWFx (iterateTT F n)"
   by (induct n, simp_all add: assms, unfold ttWFx_def, auto)
 
-lemma iterateTT_TT4:
-  assumes "\<And> X. TT4 X \<Longrightarrow>TT4 (F X)"
-  shows "TT4 (iterateTT F n)"
-  by (induct n, simp_all add: assms, unfold TT4_def, auto)
+lemma iterateTT_TT3:
+  assumes "\<And> X. TT3 X \<Longrightarrow>TT3 (F X)"
+  shows "TT3 (iterateTT F n)"
+  by (induct n, simp_all add: assms, unfold TT3_def, auto)
 
-lemma iterateTT_TT4w:
-  assumes "\<And> X. TT4w X \<Longrightarrow>TT4w (F X)"
-  shows "TT4w (iterateTT F n)"
-  by (induct n, simp_all add: assms, unfold TT4w_def, auto)
+lemma iterateTT_TT3w:
+  assumes "\<And> X. TT3w X \<Longrightarrow>TT3w (F X)"
+  shows "TT3w (iterateTT F n)"
+  by (induct n, simp_all add: assms, unfold TT3w_def, auto)
 
 lemma iterateTT_TT:
   assumes "\<And> X. TT X \<Longrightarrow>TT (F X)"
@@ -105,11 +105,11 @@ lemma TT2w_Union: "X \<noteq> {} \<Longrightarrow> \<forall> x\<in>X. TT2w x \<L
 lemma ttWFx_Union: "\<forall> x\<in>X. ttWFx x \<Longrightarrow> ttWFx (\<Union>X)"
   unfolding ttWFx_def by auto
 
-lemma TT4_Union: "\<forall> x\<in>X. TT4 x \<Longrightarrow> TT4 (\<Union>X)"
-  unfolding TT4_def by auto
+lemma TT3_Union: "\<forall> x\<in>X. TT3 x \<Longrightarrow> TT3 (\<Union>X)"
+  unfolding TT3_def by auto
 
-lemma TT4w_Union: "\<forall> x\<in>X. TT4w x \<Longrightarrow> TT4w (\<Union>X)"
-  unfolding TT4w_def by auto
+lemma TT3w_Union: "\<forall> x\<in>X. TT3w x \<Longrightarrow> TT3w (\<Union>X)"
+  unfolding TT3w_def by auto
 
 definition RecursionTT :: "('a ttobs list set \<Rightarrow> 'a ttobs list set) \<Rightarrow> 'a ttobs list set" ("\<mu>\<^sub>C(_)") where
   "RecursionTT F = \<Union> {P. \<exists> n. P = iterateTT F n}"
@@ -145,15 +145,15 @@ lemma RecursionTT_ttWFx:
   shows "ttWFx (RecursionTT F)"
   unfolding RecursionTT_def by (smt ttWFx_Union assms iterateTT_ttWFx mem_Collect_eq)
 
-lemma RecursionTT_TT4:
-  assumes "\<And> X. TT4 X \<Longrightarrow> TT4 (F X)"
-  shows "TT4 (RecursionTT F)"
-  unfolding RecursionTT_def by (smt TT4_Union assms iterateTT_TT4 mem_Collect_eq) 
+lemma RecursionTT_TT3:
+  assumes "\<And> X. TT3 X \<Longrightarrow> TT3 (F X)"
+  shows "TT3 (RecursionTT F)"
+  unfolding RecursionTT_def by (smt TT3_Union assms iterateTT_TT3 mem_Collect_eq) 
 
-lemma RecursionTT_TT4w:
-  assumes "\<And> X. TT4w X \<Longrightarrow> TT4w (F X)"
-  shows "TT4w (RecursionTT F)"
-  unfolding RecursionTT_def by (smt TT4w_Union assms iterateTT_TT4w mem_Collect_eq)
+lemma RecursionTT_TT3w:
+  assumes "\<And> X. TT3w X \<Longrightarrow> TT3w (F X)"
+  shows "TT3w (RecursionTT F)"
+  unfolding RecursionTT_def by (smt TT3w_Union assms iterateTT_TT3w mem_Collect_eq)
 
 lemma RecursionTT_TT:
   assumes "\<And> X. TT X \<Longrightarrow> TT (F X)"

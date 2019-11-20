@@ -122,7 +122,7 @@ next
 qed
 
 
-lemma TT2w_SeqComp: "TT4w P \<Longrightarrow> TT P \<Longrightarrow> TT Q \<Longrightarrow> TT2w (P ;\<^sub>C Q)"
+lemma TT2w_SeqComp: "TT3w P \<Longrightarrow> TT P \<Longrightarrow> TT Q \<Longrightarrow> TT2w (P ;\<^sub>C Q)"
   unfolding SeqCompTT_def TT2w_def
 proof auto
   fix \<rho> X Y
@@ -130,7 +130,7 @@ proof auto
            e = Tock \<and> (\<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> e \<noteq> Tick \<or> (\<exists>s. s @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>t. t \<in> Q \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] = s @ t)))} = {}"
   assume assm2: "TT P"
   assume assm3: "\<rho> @ [[X]\<^sub>R] \<in> P"
-  assume assm4: "TT4w P"
+  assume assm4: "TT3w P"
   have "Y \<inter> {e. e \<noteq> Tock \<and> (\<rho> @ [[e]\<^sub>E] \<in> P \<and> e \<noteq> Tick \<or> (\<exists>s. s @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>t. t \<in> Q \<and> \<rho> @ [[e]\<^sub>E] = s @ t))) \<or>
       e = Tock \<and> (\<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> e \<noteq> Tick \<or> (\<exists>s. s @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>t. t \<in> Q \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] = s @ t)))}
     = Y \<inter> ({e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<and> e \<noteq> Tick \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> e \<noteq> Tick}
@@ -155,7 +155,7 @@ proof auto
   proof (cases "Tick \<in> Y")
     assume case_assm: "Tick \<in> Y"
     have "\<rho> @ [[X \<union> {e\<in>Y. e \<noteq> Tick} \<union> {Tick}]\<^sub>R] \<in> P"
-      using 2 assm4 unfolding TT4w_def by auto
+      using 2 assm4 unfolding TT3w_def by auto
     also have "X \<union> {e\<in>Y. e \<noteq> Tick} \<union> {Tick} = X \<union> Y"
       using case_assm by blast
     then show "\<rho> @ [[X \<union> Y]\<^sub>R] \<in> P"
@@ -232,7 +232,7 @@ next
 qed
 
 lemma TT2_SeqComp:
-  assumes TT1_P: "TT1 P" and TT4_P: "TT4 P"
+  assumes TT1_P: "TT1 P" and TT3_P: "TT3 P"
   assumes TT2_P: "TT2 P" and TT2_Q: "TT2 Q"
   shows "TT2 (P ;\<^sub>C Q)"
   unfolding TT2_def
@@ -256,7 +256,7 @@ proof auto
     then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
     proof (cases "Tick \<in> Y")
       have "\<rho> @ [X \<union> {e \<in> Y. e \<noteq> Tick}]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [X \<union> {e \<in> Y. e \<noteq> Tick} \<union> {Tick}]\<^sub>R # \<sigma> \<in> P"
-        using TT1_P TT4_TT1_add_Tick TT4_P by blast
+        using TT1_P TT3_TT1_add_Tick TT3_P by blast
       also have "Tick \<in> Y \<Longrightarrow> X \<union> {e \<in> Y. e \<noteq> Tick} \<union> {Tick} = X \<union> Y"
         by blast
       then show "\<rho> @ [X \<union> {e \<in> Y. e \<noteq> Tick}]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> Tick \<in> Y \<Longrightarrow> \<rho> @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
@@ -322,7 +322,7 @@ proof auto
       proof (cases "Tick \<in> Y")
         assume case_assms3: "Tick \<in> Y" "\<rho> @ [X \<union> {e\<in>Y. e \<noteq> Tick}]\<^sub>R # \<sigma>' @ [[Tick]\<^sub>E] \<in> P"
         then have "\<rho> @ [X \<union> {e\<in>Y. e \<noteq> Tick} \<union> {Tick}]\<^sub>R # \<sigma>' @ [[Tick]\<^sub>E] \<in> P"
-          using TT1_P TT4_TT1_add_Tick TT4_P by blast
+          using TT1_P TT3_TT1_add_Tick TT3_P by blast
         also have "X \<union> {e\<in>Y. e \<noteq> Tick} \<union> {Tick} = X \<union> Y"
           using case_assms3(1) by auto
         then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>' @ [[Tick]\<^sub>E] \<in> P"
@@ -388,7 +388,7 @@ proof auto
       proof (cases "Tick \<in> Y")
         assume case_assms3: "Tick \<in> Y" "\<rho> @ [X \<union> {e\<in>Y. e \<noteq> Tick}]\<^sub>R # \<sigma>1 @ [[Tick]\<^sub>E] \<in> P"
         then have "\<rho> @ [X \<union> {e\<in>Y. e \<noteq> Tick} \<union> {Tick}]\<^sub>R # \<sigma>1 @ [[Tick]\<^sub>E] \<in> P"
-          using TT1_P TT4_TT1_add_Tick TT4_P by blast
+          using TT1_P TT3_TT1_add_Tick TT3_P by blast
         also have "X \<union> {e\<in>Y. e \<noteq> Tick} \<union> {Tick} = X \<union> Y"
           using case_assms3(1) by auto
         then show "\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>1 @ [[Tick]\<^sub>E] \<in> P"
@@ -429,20 +429,20 @@ next
 qed
 text_raw \<open>}%EndSnippet\<close>
 
-text_raw \<open>\DefineSnippet{TT4_SeqComp}{\<close>
-lemma TT4_SeqComp:
-  assumes "TT4 P" "TT4 Q"
-  shows "TT4 (P ;\<^sub>C Q)"
-  unfolding SeqCompTT_def TT4_def
+text_raw \<open>\DefineSnippet{TT3_SeqComp}{\<close>
+lemma TT3_SeqComp:
+  assumes "TT3 P" "TT3 Q"
+  shows "TT3 (P ;\<^sub>C Q)"
+  unfolding SeqCompTT_def TT3_def
 proof auto
   fix \<rho>
   show "\<rho> \<in> P \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> P"
-    using TT4_def assms(1) by blast
+    using TT3_def assms(1) by blast
 next
   fix s t
   assume "s @ [[Tick]\<^sub>E] \<in> P" "t \<in> Q"
   then have "add_Tick_refusal_trace s @ [[Tick]\<^sub>E] \<in> P \<and> add_Tick_refusal_trace t \<in> Q"
-    by (metis TT4_def add_Tick_refusal_trace_end_event assms(1) assms(2))
+    by (metis TT3_def add_Tick_refusal_trace_end_event assms(1) assms(2))
   then show "\<forall>sa. sa @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>ta. ta \<in> Q \<longrightarrow> add_Tick_refusal_trace (s @ t) \<noteq> sa @ ta) \<Longrightarrow>
     add_Tick_refusal_trace (s @ t) \<in> P"
     using add_Tick_refusal_trace_concat by blast
@@ -459,9 +459,9 @@ next
   fix s t sa
   assume case_assms: "s @ [[Tick]\<^sub>E] \<in> P" "t \<in> Q" "add_Tick_refusal_trace (s @ t) = sa @ [[Tick]\<^sub>E]"
   have 1: "add_Tick_refusal_trace s @ [[Tick]\<^sub>E] \<in> P"
-    by (metis TT4_def add_Tick_refusal_trace_end_event assms(1) case_assms(1))
+    by (metis TT3_def add_Tick_refusal_trace_end_event assms(1) case_assms(1))
   have 2: "add_Tick_refusal_trace t \<in> Q"
-    using TT4_def assms(2) case_assms(2) by blast
+    using TT3_def assms(2) case_assms(2) by blast
   show "\<forall>s. s @ [[Tick]\<^sub>E] \<in> P \<longrightarrow> (\<forall>t. t \<in> Q \<longrightarrow> sa @ [[Tick]\<^sub>E] \<noteq> s @ t) \<Longrightarrow> False"
     using 1 2 case_assms apply (erule_tac x="add_Tick_refusal_trace s" in allE, auto)
     by (erule_tac x="add_Tick_refusal_trace t" in allE, auto simp add: add_Tick_refusal_trace_concat)
@@ -469,7 +469,7 @@ qed
 text_raw \<open>}%EndSnippet\<close>
 
 lemma TT_SeqComp: 
-  assumes "TT P" "TT Q" "TT4w P"
+  assumes "TT P" "TT Q" "TT3w P"
   shows "TT (P ;\<^sub>C Q)"
   unfolding TT_def apply auto
   apply (metis TT_def SeqComp_wf assms(1) assms(2))

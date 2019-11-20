@@ -603,9 +603,9 @@ proof (safe, simp_all)
   qed
 qed
 
-lemma TT4_Hiding:
-  "TT1 P \<Longrightarrow> TT4 P \<Longrightarrow> TT4 (P \<setminus>\<^sub>C X)"
-  unfolding TT4_def HidingTT_def
+lemma TT3_Hiding:
+  "TT1 P \<Longrightarrow> TT3 P \<Longrightarrow> TT3 (P \<setminus>\<^sub>C X)"
+  unfolding TT3_def HidingTT_def
 proof (safe, simp_all)
   fix p
   show "\<And> \<rho> P. TT1 P \<Longrightarrow> \<forall>\<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P \<Longrightarrow> \<rho> \<in> hide_trace X p \<Longrightarrow> p \<in> P \<Longrightarrow>
@@ -648,7 +648,7 @@ proof (safe, simp_all)
     have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
       using case_assms(2) by force
     have 2: "s \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
-      using TT4_TT1_add_Tick_ref_Tock TT4_def case_assms(1) case_assms(2) case_assms(3) by blast
+      using TT3_TT1_add_Tick_ref_Tock TT3_def case_assms(1) case_assms(2) case_assms(3) by blast
     have 3: "TT1 {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
       using case_assms(1) unfolding TT1_def apply auto by (erule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
     have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace \<rho> \<in> x"
@@ -663,7 +663,7 @@ proof (safe, simp_all)
     have 1: "\<forall>\<rho>. \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P} \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
       using case_assms(2) by force
     have 2: "s \<in> {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
-      using TT4_TT1_add_Tick_ref_Tock TT4_def case_assms(1) case_assms(2) case_assms(3) by blast
+      using TT3_TT1_add_Tick_ref_Tock TT3_def case_assms(1) case_assms(2) case_assms(3) by blast
     have 3: "TT1 {s. [Y\<union>{Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}"
       using case_assms(1) unfolding TT1_def apply auto by (erule_tac x="[insert Tick Y]\<^sub>R # [Tock]\<^sub>E # \<rho>" in allE, auto)
     have "\<exists>x. (\<exists>p. x = hide_trace X p \<and> p \<in> {s. [Y \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # s \<in> P}) \<and> add_Tick_refusal_trace s' \<in> x"

@@ -1632,10 +1632,10 @@ lemma ttWFx_ExtChoice:
   shows "ttWFx (P \<box>\<^sub>C Q)"
   using assms unfolding ttWFx_def ExtChoiceTT_def by auto
 
-lemma TT4_ExtChoice:
-  assumes "TT4 P" "TT4 Q"
-  shows "TT4 (P \<box>\<^sub>C Q)"
-  unfolding TT4_def ExtChoiceTT_def
+lemma TT3_ExtChoice:
+  assumes "TT3 P" "TT3 Q"
+  shows "TT3 (P \<box>\<^sub>C Q)"
+  unfolding TT3_def ExtChoiceTT_def
 proof auto
   fix \<rho>' \<sigma> \<tau> :: "'a ttobs list"
   assume assm1: "\<rho>' \<in> tocks UNIV"
@@ -1646,11 +1646,11 @@ proof auto
   assume assm6: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
   assume assm7: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
   have 1: "add_Tick_refusal_trace \<rho>' \<in> tocks UNIV"
-    using TT4_def TT4_tocks assm1 by blast
+    using TT3_def TT3_tocks assm1 by blast
   have 2: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<in> P"
-    using assms(1) assm2 unfolding TT4_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+    using assms(1) assm2 unfolding TT3_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
   have 3: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau> \<in> Q"
-    using assms(2) assm3 unfolding TT4_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+    using assms(2) assm3 unfolding TT3_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
   have 4: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
   proof auto
     fix \<rho>''
@@ -1723,11 +1723,11 @@ next
   assume assm6: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
   assume assm7: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
   have 1: "add_Tick_refusal_trace \<rho>' \<in> tocks UNIV"
-    using TT4_def TT4_tocks assm1 by blast
+    using TT3_def TT3_tocks assm1 by blast
   have 2: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<in> P"
-    using assms(1) assm2 unfolding TT4_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+    using assms(1) assm2 unfolding TT3_def by (erule_tac x="\<rho>' @ \<sigma>" in allE, auto simp add: add_Tick_refusal_trace_concat)
   have 3: "add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<tau> \<in> Q"
-    using assms(2) assm3 unfolding TT4_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
+    using assms(2) assm3 unfolding TT3_def by (erule_tac x="\<rho>' @ \<tau>" in allE, auto simp add: add_Tick_refusal_trace_concat)
   have 4: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>' @ add_Tick_refusal_trace \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C add_Tick_refusal_trace \<rho>'"
   proof auto
     fix \<rho>''

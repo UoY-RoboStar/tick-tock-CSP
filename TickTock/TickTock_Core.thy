@@ -795,23 +795,23 @@ lemma TT2_aux3:
   shows "[[X \<union> Y]\<^sub>R] \<in> P"
   using TT2_aux2 assms(1) assms(2) assms(3) by auto
 
-definition TT4w :: "'e ttprocess \<Rightarrow> bool" where
-"TT4w P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
+definition TT3w :: "'e ttprocess \<Rightarrow> bool" where
+"TT3w P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
 
-definition mkTT4w :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
-"mkTT4w P = P \<union> {\<rho> @ [[R \<union> {Tick}]\<^sub>R]|\<rho> R. \<rho> @ [[R]\<^sub>R] \<in> P}"
+definition mkTT3w :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
+"mkTT3w P = P \<union> {\<rho> @ [[R \<union> {Tick}]\<^sub>R]|\<rho> R. \<rho> @ [[R]\<^sub>R] \<in> P}"
 
-lemma TT4w_fixpoint_mkTT4w:
-  "(mkTT4w P = P) = TT4w P"
-  unfolding mkTT4w_def TT4w_def by auto
+lemma TT3w_fixpoint_mkTT3w:
+  "(mkTT3w P = P) = TT3w P"
+  unfolding mkTT3w_def TT3w_def by auto
 
-lemma mkTT1_mkTT4w_iff_TT14:
-  "(mkTT1(mkTT4w P) = P) = (TT1 P \<and> TT4w P)"
+lemma mkTT1_mkTT3w_iff_TT14:
+  "(mkTT1(mkTT3w P) = P) = (TT1 P \<and> TT3w P)"
   apply auto
-  using TT1_def mkTT1_simp mkTT4w_def apply fastforce
-  apply (metis (mono_tags, lifting) TT1_def TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w CollectI UnI1 mkTT1_simp mkTT4w_def)  
-    apply (metis TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w)
-    by (metis TT1_fixpoint_mkTT1 TT4w_fixpoint_mkTT4w)
+  using TT1_def mkTT1_simp mkTT3w_def apply fastforce
+  apply (metis (mono_tags, lifting) TT1_def TT1_fixpoint_mkTT1 TT3w_fixpoint_mkTT3w CollectI UnI1 mkTT1_simp mkTT3w_def)  
+    apply (metis TT1_fixpoint_mkTT1 TT3w_fixpoint_mkTT3w)
+    by (metis TT1_fixpoint_mkTT1 TT3w_fixpoint_mkTT3w)
 
 fun add_Tick_refusal_trace :: "'e tttrace \<Rightarrow> 'e ttobs list" where
   "add_Tick_refusal_trace [] = []" |
@@ -855,20 +855,20 @@ lemma add_Tick_refusal_trace_tt_prefix_subset_mono:
   shows   "add_Tick_refusal_trace \<rho> \<lesssim>\<^sub>C add_Tick_refusal_trace \<sigma>"
   using assms by(induct \<rho> \<sigma> rule:tt_prefix_subset.induct, auto)
 
-text_raw \<open>\DefineSnippet{TT4}{\<close>
-definition TT4 :: "'e ttprocess \<Rightarrow> bool" where
-  "TT4 P = (\<forall> \<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P)"
+text_raw \<open>\DefineSnippet{TT3}{\<close>
+definition TT3 :: "'e ttprocess \<Rightarrow> bool" where
+  "TT3 P = (\<forall> \<rho>. \<rho> \<in> P \<longrightarrow> add_Tick_refusal_trace \<rho> \<in> P)"
 text_raw \<open>}%EndSnippet\<close>
 
-lemma TT4_union_empty_trace:
+lemma TT3_union_empty_trace:
   assumes "TT0 P" "TT1w P"
-  shows "TT4(P \<union> {[]}) = TT4(P)"
-  using assms unfolding TT4_def
+  shows "TT3(P \<union> {[]}) = TT3(P)"
+  using assms unfolding TT3_def
   by fastforce
 
-lemma TT4_TT1_imp_TT4w:
-  "TT4 P \<Longrightarrow> TT1 P \<Longrightarrow> TT4w P"
-  unfolding TT4w_def TT4_def TT1_def
+lemma TT3_TT1_imp_TT3w:
+  "TT3 P \<Longrightarrow> TT1 P \<Longrightarrow> TT3w P"
+  unfolding TT3w_def TT3_def TT1_def
 proof (safe, simp)
   fix \<rho> X
   assume TT1_P: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P"
@@ -883,29 +883,29 @@ proof (safe, simp)
     using TT1_P calculation tt_subset_imp_prefix_subset by auto
 qed
 
-lemma TT4_TT1_add_Tick_ref_Tock:
-  "TT4 P \<Longrightarrow> TT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P \<Longrightarrow> [X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
-  by (metis TT1_def TT4_def add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_tt_subset add_Tick_refusal_trace_idempotent tt_subset_imp_prefix_subset)
+lemma TT3_TT1_add_Tick_ref_Tock:
+  "TT3 P \<Longrightarrow> TT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P \<Longrightarrow> [X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
+  by (metis TT1_def TT3_def add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_tt_subset add_Tick_refusal_trace_idempotent tt_subset_imp_prefix_subset)
 
 lemma "add_Tick_refusal_trace (\<rho> @ [X]\<^sub>R # \<sigma>) = add_Tick_refusal_trace \<rho> @ [X \<union> {Tick}]\<^sub>R # add_Tick_refusal_trace \<sigma>"
   oops
 
-lemma TT4_TT1_add_Tick:
-  assumes TT1_P: "TT1 P" and TT4_P: "TT4 P"
+lemma TT3_TT1_add_Tick:
+  assumes TT1_P: "TT1 P" and TT3_P: "TT3 P"
   shows "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [X \<union> {Tick}]\<^sub>R # \<sigma> \<in> P"
 proof auto
   assume "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P"
   then have "add_Tick_refusal_trace (\<rho> @ [X]\<^sub>R # \<sigma>) \<in> P"
-    using TT4_P unfolding TT4_def by auto
+    using TT3_P unfolding TT3_def by auto
   then show "\<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P"
     using TT1_P unfolding TT1_def apply auto
     by (metis Un_insert_left Un_insert_right add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset insert_absorb2)
 qed
 
-lemma TT4_TT1_imp_Ref_Tock:
-  assumes "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "TT1 P" "TT4 P"
+lemma TT3_TT1_imp_Ref_Tock:
+  assumes "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "TT1 P" "TT3 P"
   shows "s @ [[X \<union> {Tick}]\<^sub>R,[Tock]\<^sub>E] \<in> P"
-  using assms unfolding TT1_def TT4_def
+  using assms unfolding TT1_def TT3_def
 proof (auto)
   fix \<rho> X s
   assume TT1_P: "\<forall>\<rho>. (\<exists>\<sigma>. \<rho> \<lesssim>\<^sub>C \<sigma> \<and> \<sigma> \<in> P) \<longrightarrow> \<rho> \<in> P"
@@ -923,7 +923,7 @@ proof (auto)
 qed
 
 lemma TT2_Ref_Tock_augment:
-  assumes "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "TT2 P" "TT1 P" "TT4 P"
+  assumes "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P" "TT2 P" "TT1 P" "TT3 P"
   shows "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E] \<in> P"
 proof -
   have "{e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P} \<inter> {e. (e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> s @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
@@ -931,17 +931,17 @@ proof -
   then have "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P}]\<^sub>R] @ [[Tock]\<^sub>E] \<in> P"
     using assms by (simp add: TT2_def) 
   then have "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R] @ [[Tock]\<^sub>E] \<in> P"
-    using TT4_TT1_imp_Ref_Tock assms
+    using TT3_TT1_imp_Ref_Tock assms
     by auto
   then show ?thesis by auto
 qed
 
-lemma TT4_middle_Ref_with_Tick:
-  assumes "s @ [[X]\<^sub>R] @ xs \<in> P" "TT1 P" "TT4 P"
+lemma TT3_middle_Ref_with_Tick:
+  assumes "s @ [[X]\<^sub>R] @ xs \<in> P" "TT1 P" "TT3 P"
   shows "s @ [[X \<union> {Tick}]\<^sub>R] @ xs \<in> P"
 proof -
   have add_Tick_in_P:"add_Tick_refusal_trace (s @ [[X]\<^sub>R] @ xs) \<in> P"
-    using assms unfolding TT4_def by blast
+    using assms unfolding TT3_def by blast
 
   have add_Tick_dist:"add_Tick_refusal_trace (s @ [[X]\<^sub>R] @ xs) =
      add_Tick_refusal_trace s @ [[X \<union> {Tick}]\<^sub>R] @ add_Tick_refusal_trace(xs)"
@@ -966,8 +966,8 @@ proof -
   then show ?thesis by auto
 qed
 
-lemma TT2_TT4_extends_Ref:
-  assumes "TT2 P" "TT4 P" "TT1 P" "s @ [[X]\<^sub>R] @ xs \<in> P"
+lemma TT2_TT3_extends_Ref:
+  assumes "TT2 P" "TT3 P" "TT1 P" "s @ [[X]\<^sub>R] @ xs \<in> P"
   shows "s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R] @ xs \<in> P"
 proof -
   obtain Y where Y:"Y = {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}"
@@ -977,12 +977,12 @@ proof -
   then have "s @ [[X \<union> Y]\<^sub>R] @ xs \<in> P"
     using assms unfolding TT2_def by auto
   then have "s @ [[X \<union> Y \<union> {Tick}]\<^sub>R] @ xs \<in> P"
-    using assms TT4_middle_Ref_with_Tick by blast
+    using assms TT3_middle_Ref_with_Tick by blast
   then show ?thesis using Y by auto
 qed
 
-definition mkTT4 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
-"mkTT4 P = P \<union> {add_Tick_refusal_trace \<rho>|\<rho>. \<rho> \<in> P}"
+definition mkTT3 :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
+"mkTT3 P = P \<union> {add_Tick_refusal_trace \<rho>|\<rho>. \<rho> \<in> P}"
 
 definition TTwf :: "'e ttobs list set \<Rightarrow> bool" where
   "TTwf P = (\<forall>x\<in>P. ttWF x)"
@@ -1050,10 +1050,10 @@ lemma ttWFx_mkTT1:
   using assms unfolding mkTT1_def ttWFx_def apply auto
   using tt_prefix_of_ttWFx_trace by blast
 
-lemma TT4_mkTT1:
-  assumes "TT4 P"
-  shows "TT4(mkTT1(P))"
-  using assms unfolding mkTT1_def TT4_def apply auto
+lemma TT3_mkTT1:
+  assumes "TT3 P"
+  shows "TT3(mkTT1(P))"
+  using assms unfolding mkTT1_def TT3_def apply auto
   using add_Tick_refusal_trace_tt_prefix_subset_mono by blast
 
 lemma TTwf_concat_two_events_not_Tick_butlast:
@@ -2322,8 +2322,8 @@ proof auto
     using tocks.cases by (induct rule:ttWFx_trace.induct, auto)
 qed
 
-lemma TT4_tocks: "Tick \<in> X \<Longrightarrow> TT4 (tocks X)"
-  unfolding TT4_def
+lemma TT3_tocks: "Tick \<in> X \<Longrightarrow> TT3 (tocks X)"
+  unfolding TT3_def
 proof auto
   fix \<rho>
   assume assm: "Tick \<in> X"
@@ -2394,9 +2394,9 @@ next
   qed
 qed
 
-lemma ttWF_traces_TT4:
-  "TT4 {t. ttWF t \<and> ttWFx_trace t}"
-  unfolding TT4_def
+lemma ttWF_traces_TT3:
+  "TT3 {t. ttWF t \<and> ttWFx_trace t}"
+  unfolding TT3_def
 proof auto
   fix \<rho> :: "'a ttobs list"
   show "ttWF \<rho> \<Longrightarrow> ttWF (add_Tick_refusal_trace \<rho>)"
@@ -2408,7 +2408,7 @@ next
 qed
 
 lemma bottom_healthy_process:
-  assumes "\<forall> t\<in>P. ttWF t" "TT0 P" "TT1 P" "TT2 P" "ttWFx P" "TT4 P"
+  assumes "\<forall> t\<in>P. ttWF t" "TT0 P" "TT1 P" "TT2 P" "ttWFx P" "TT3 P"
   shows "{t. ttWF t \<and> ttWFx_trace t} \<sqsubseteq>\<^sub>C P"
   using assms unfolding ttWFx_def RefinesTT_def by auto
 
@@ -2613,10 +2613,10 @@ lemma ttWFx_Supremum:
   shows "ttWFx (SupremumTT P Q)"
   using assms unfolding SupremumTT_def ttWFx_def by auto
 
-lemma TT4_Supremum:
-  assumes TT4_P: "TT4 P" and TT4_Q: "TT4 Q"
-  shows "TT4 (SupremumTT P Q)"
-  using assms unfolding SupremumTT_def TT4_def
+lemma TT3_Supremum:
+  assumes TT3_P: "TT3 P" and TT3_Q: "TT3 Q"
+  shows "TT3 (SupremumTT P Q)"
+  using assms unfolding SupremumTT_def TT3_def
 proof auto
   fix \<rho> \<rho>' \<sigma> :: "'a ttobs list"
   fix X Y
@@ -2635,25 +2635,25 @@ proof auto
   then have "{e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q}
     \<subseteq> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
     using assm2 apply (safe)
-    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
-    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (metis (mono_tags, lifting) TT3_P TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_Q TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_P TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_Q TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_P TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_Q TT3_def add_Tick_refusal_trace_end_event)
+    apply (smt TT3_P TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_Q TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_P TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_P TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_Q TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_Q TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
     done
   then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
     using assm2 subsetCE by auto
   then have "\<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>' \<in> P \<and> \<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>' \<in> Q"
     using \<rho>_assms ind_hyp by blast
   then show "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> P"
-    by (smt TT4_P TT4_def Un_commute \<rho>_assms add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat append_eq_append_conv assm1 list.inject sup_assoc ttobs.inject(2))
+    by (smt TT3_P TT3_def Un_commute \<rho>_assms add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat append_eq_append_conv assm1 list.inject sup_assoc ttobs.inject(2))
 next
   fix \<rho> \<rho>' \<sigma> :: "'a ttobs list"
   fix X Y
@@ -2672,25 +2672,25 @@ next
   then have "{e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q}
     \<subseteq> {e. e \<noteq> Tock \<and> \<rho>' @ [[e]\<^sub>E] \<in> P \<and> \<rho>' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>' @ [[X]\<^sub>R, [e]\<^sub>E] \<in> Q}"
     using assm2 apply (safe)
-    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_P TT4_def add_Tick_refusal_trace_end_event)
-    apply (metis (mono_tags, lifting) TT4_Q TT4_def add_Tick_refusal_trace_end_event)
-    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_P TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
-    apply (smt TT4_Q TT4_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (metis (mono_tags, lifting) TT3_P TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_Q TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_P TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_Q TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_P TT3_def add_Tick_refusal_trace_end_event)
+    apply (metis (mono_tags, lifting) TT3_Q TT3_def add_Tick_refusal_trace_end_event)
+    apply (smt TT3_P TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_Q TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_P TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_P TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_Q TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
+    apply (smt TT3_Q TT3_def add_Tick_refusal_trace.simps(1) add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat assm1 list.sel(1) same_append_eq)
     done
   then have "Y \<inter> {e. e \<noteq> Tock \<and> \<rho>'' @ [[e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[e]\<^sub>E] \<in> Q \<or> e = Tock \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> P \<and> \<rho>'' @ [[X']\<^sub>R, [e]\<^sub>E] \<in> Q} = {}"
     using assm2 subsetCE by auto
   then have "\<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>' \<in> P \<and> \<rho>'' @ [X' \<union> Y]\<^sub>R # \<sigma>' \<in> Q"
     using \<rho>_assms ind_hyp by blast
   then show "\<rho>' @ [X \<union> Y]\<^sub>R # \<sigma> \<in> Q"
-    by (smt TT4_Q TT4_def Un_commute \<rho>_assms add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat append_eq_append_conv assm1 list.inject sup_assoc ttobs.inject(2))
+    by (smt TT3_Q TT3_def Un_commute \<rho>_assms add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat append_eq_append_conv assm1 list.inject sup_assoc ttobs.inject(2))
 qed
 
 lemma Supremum_upper_bound1:

@@ -26,7 +26,7 @@ text \<open> Given a trace fl, starting at trace 's', TTMPick ascertains whether
        is a maximal trace in process P. \<close>
 
 lemma TTick_mkTT1_simp:
-  assumes "TT1 P" "TT4w P"
+  assumes "TT1 P" "TT3w P"
   shows "(\<exists>x. s \<in> x \<and> TTM3 x \<and> (mkTT1 x) \<subseteq> P) = (s \<in> P \<and> TTM3 {s})"
   using assms apply safe
   using mkTT1_def apply fastforce
@@ -113,7 +113,7 @@ text \<open> The following key lemma enables the expansion of the quantification
        to a predicate involving TTMPick, which is easier for doing proofs by induction. \<close>
 
 lemma TTM3_mkTT1_simp:
-  assumes "TT1 P" "TT4w P"
+  assumes "TT1 P" "TT3w P"
   shows "(\<exists>x. s \<in> x \<and> TTM1 x \<and> TTM2 x \<and> TTM3 x \<and> TT1w x \<and> (mkTT1 x) \<subseteq> P) 
          = 
          (s \<in> P \<and> TTM3 {s} \<and> TTMPick s [] P)" (* FIXME: Ugly proof *)
@@ -181,7 +181,7 @@ next
 qed
 
 lemma TT14_TTick_mkTT1_exists:
-  assumes "TT1 P" "TT4w P"
+  assumes "TT1 P" "TT3w P"
   shows "(s @ [[Z]\<^sub>R] \<in> unTT1 P \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))
          =
          (s @ [[Z]\<^sub>R] \<in> P \<and> TTM3 {s @ [[Z]\<^sub>R]} \<and> TTMPick (s @ [[Z]\<^sub>R]) [] P \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))"
@@ -206,7 +206,7 @@ proof -
     apply auto 
     apply (rule_tac x="Z \<union> {Tick}" in exI, auto)
     using assms 
-    using TT4w_fixpoint_mkTT4w mkTT4w_def apply fastforce*)
+    using TT3w_fixpoint_mkTT3w mkTT3w_def apply fastforce*)
   finally show ?thesis .
 qed
 
@@ -243,7 +243,7 @@ lemma TTMPick_imp_prefix'':
   using assms by (induct xs zs P rule:TTMPick.induct, auto)
 
 lemma TTMPick_extend_Ref:
-  assumes "TTMPick zs (s @ [[X]\<^sub>R]) P" "TT4 P" "TT2 P" "TT1 P"
+  assumes "TTMPick zs (s @ [[X]\<^sub>R]) P" "TT3 P" "TT2 P" "TT1 P"
   shows "TTMPick zs (s @ [[insert Tick (X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P})]\<^sub>R]) P"
   using assms 
 proof (induct zs arbitrary:s X rule:rev_induct)
@@ -279,14 +279,14 @@ next
     then have "\<forall>e. e \<noteq> Tock \<and> e \<notin> x2 \<longrightarrow> s @ [[X]\<^sub>R] @ xs @ [[e]\<^sub>E] \<in> P"
       using TTMPick_x Ref by auto
     then have "\<forall>e. e \<noteq> Tock \<and> e \<notin> x2 \<longrightarrow> s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R] @ xs @ [[e]\<^sub>E] \<in> P"
-      using assms TT2_TT4_extends_Ref by blast
+      using assms TT2_TT3_extends_Ref by blast
     then have a:"\<forall>e. e \<noteq> Tock \<and> e \<notin> x2 \<longrightarrow> z @ xs @ [[e]\<^sub>E] \<in> P"
       using z by auto
 
     from z have "Tock \<notin> x2 \<longrightarrow> s @ [[X]\<^sub>R] @ xs @ [[x2]\<^sub>R, [Tock]\<^sub>E] \<in> P"
       using TTMPick_x Ref by auto
     then have "Tock \<notin> x2 \<longrightarrow> s @ [[X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P} \<union> {Tick}]\<^sub>R] @ xs @ [[x2]\<^sub>R, [Tock]\<^sub>E] \<in> P"
-      using assms TT2_TT4_extends_Ref by blast
+      using assms TT2_TT3_extends_Ref by blast
     then have b:"Tock \<notin> x2 \<longrightarrow> z @ xs @ [[x2]\<^sub>R, [Tock]\<^sub>E] \<in> P"
       using z by auto
 
@@ -299,7 +299,7 @@ next
 qed
  
 lemma TT2_imp_TTMPick_mkTTMP:
-  assumes "TT2 P" "TT4 P" "TT1 P"
+  assumes "TT2 P" "TT3 P" "TT1 P"
   shows "TTMPick (mkTTMP xs z P) z P"
   using assms
 proof (induct xs z P rule:mkTTMP.induct)
@@ -309,11 +309,11 @@ next
   case (2 X xs s P)
   then show ?case
   proof (auto)
-    assume "TT1 P" "TT4 P" "TT2 P" "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
+    assume "TT1 P" "TT3 P" "TT2 P" "s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<in> P"
     then show "s @ [[insert Tick (X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P})]\<^sub>R, [Tock]\<^sub>E] \<in> P"
       using TT2_Ref_Tock_augment assms by auto
   next
-    assume healths:"TT1 P" "TT4 P" "TT2 P" "TTMPick (mkTTMP xs (s @ [[X]\<^sub>R]) P) (s @ [[X]\<^sub>R]) P"
+    assume healths:"TT1 P" "TT3 P" "TT2 P" "TTMPick (mkTTMP xs (s @ [[X]\<^sub>R]) P) (s @ [[X]\<^sub>R]) P"
     obtain z where z:"z = (mkTTMP xs (s @ [[X]\<^sub>R]) P)" by auto
     then have "TTMPick z (s @ [[insert Tick (X \<union> {e. e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P 
                                                       \<or> e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P})]\<^sub>R]) P"
@@ -466,7 +466,7 @@ qed
 
 (*
 lemma priMaxTT_start_Ref_extends:
-  assumes "TT1 P" "TT2 P" "TT4 P" "priMaxTT pa t s (sa @ zs) (unTT1 Q)"
+  assumes "TT1 P" "TT2 P" "TT3 P" "priMaxTT pa t s (sa @ zs) (unTT1 Q)"
   shows "priMaxTT pa t s (sa @ (mkTTMP zs sa Q)) (unTT1 Q)"
   using assms apply (induct pa t s zs Q arbitrary: sa rule:priMaxTT.induct, auto)
 *)
@@ -491,7 +491,7 @@ lemma TTMPick_extends_concat:
    key result could only be proved when considering the full definition of
    PriMax in this model, whereby we take specific 's' and not arbitrary ones. *)
 lemma priMaxTT_unTT1_case:
-  assumes "TT1 P" "TT4w P"
+  assumes "TT1 P" "TT3w P"
   shows 
   "(s @ [[Z]\<^sub>R] \<in> unTT1 P \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b))
    =
@@ -529,13 +529,13 @@ lemma
     available after prioritisation. So it is non-trivial to construct the 
     appropriate sets, in general. This has to come from priTT1 itself.
 lemma
-  assumes "priTT1 pa aa zz i P" "TT4 P" "ttWFx P" "TT2 P" "TT1 P" 
+  assumes "priTT1 pa aa zz i P" "TT3 P" "ttWFx P" "TT2 P" "TT1 P" 
   shows "priMaxTT pa (mkTTMP aa i P) (mkTTMP zz i P) i (unTT1 P)"
   using assms proof(induct pa aa zz i P rule:priTT1.induct, simp_all)
   fix p 
   fix R::"'a ttevent set"
   fix S s Q
-  assume TT4_healthy: "TT4 Q"
+  assume TT3_healthy: "TT3 Q"
      and ttWFx_healthy:  "ttWFx Q"
      and TT2_healthy: "TT2 Q"
      and TT1_healthy:  "TT1 Q"
@@ -629,7 +629,7 @@ proof -
 qed
 
 lemma mkTTMP_in_P:
-  assumes "s @ z \<in> P" "TT4 P" "ttWFx P" "TT2 P" "TT1 P"
+  assumes "s @ z \<in> P" "TT3 P" "ttWFx P" "TT2 P" "TT1 P"
   shows "(mkTTMP s [] P) @ z \<in> P"
   using assms
 proof (induct s arbitrary:z P rule:rev_induct)
@@ -661,7 +661,7 @@ next
     then have "y @ [[x2 \<union> {e. (e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> P) \<or> (e = Tock \<and> xs @ [[x2]\<^sub>R,[Tock]\<^sub>E] \<notin> P)}]\<^sub>R] @ z \<in> P"
       using y_cons TT2_def snoc.prems(4) sup_set_def by blast
     then have "y @ [[x2 \<union> {e. (e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> P) \<or> (e = Tock \<and> xs @ [[x2]\<^sub>R,[Tock]\<^sub>E] \<notin> P)} \<union> {Tick}]\<^sub>R] @ z \<in> P"
-      using TT4_def by (meson TT4_middle_Ref_with_Tick snoc.prems(2) snoc.prems(5))
+      using TT3_def by (meson TT3_middle_Ref_with_Tick snoc.prems(2) snoc.prems(5))
     then have "mkTTMP (xs @ [[x2]\<^sub>R]) [] P @ z \<in> P"
       using y mkTTMP_absorb_ref
       by (smt Collect_cong append_self_conv2)
@@ -670,13 +670,13 @@ next
 qed
 
 lemma TTs_mkTTMP_in_P:
-  assumes "s \<in> P" "TT4 P" "ttWFx P" "TT2 P" "TT1 P"
+  assumes "s \<in> P" "TT3 P" "ttWFx P" "TT2 P" "TT1 P"
   shows "(mkTTMP s [] P) \<in> P"
   using assms mkTTMP_in_P
   by (metis append_Nil2)
 
 lemma priMaxTT_unTT1_case_specific:
-  assumes "TT4 P" "ttWFx P" "TT2 P" "TT1 P"
+  assumes "TT3 P" "ttWFx P" "TT2 P" "TT1 P"
           "(\<forall>e. e \<notin> Z \<and> e \<noteq> Tock \<longrightarrow> s @ [[e]\<^sub>E] \<in> P)"
           "(Tock \<notin> Z \<longrightarrow> s @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> P)"
           "Tick \<in> Z"
@@ -693,7 +693,7 @@ proof -
     by auto
   also have "... =
        ((mkTTMP s [] P) @ [[Z]\<^sub>R] \<in> P \<and> TTM3 {(mkTTMP s [] P) @ [[Z]\<^sub>R]} \<and> TTMPick ((mkTTMP s [] P) @ [[Z]\<^sub>R]) [] P)"
-    using assms TTM3_mkTT1_simp TT4_TT1_imp_TT4w by auto
+    using assms TTM3_mkTT1_simp TT3_TT1_imp_TT3w by auto
   also have "... =
        ((mkTTMP s [] P) @ [[Z]\<^sub>R] \<in> P \<and> TTMPick ((mkTTMP s [] P) @ [[Z]\<^sub>R]) [] P)"
     using TTM3_TTMPick by blast
@@ -727,7 +727,7 @@ lemma TTMPick_Refusal_extend:
   by (smt Un_absorb2 le_supE mem_Collect_eq subset_eq)
 
 lemma concat_unTT1_extend_TT2_Refusal:
-  assumes "xs @ [[Sa]\<^sub>R] @ ys \<in> unTT1 Q" "TT2 Q" "TT1 Q" "TT4w Q"
+  assumes "xs @ [[Sa]\<^sub>R] @ ys \<in> unTT1 Q" "TT2 Q" "TT1 Q" "TT3w Q"
   shows "xs @ [[Sa \<union> {e. e \<noteq> Tock \<and> xs @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> xs @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R] @ ys \<in> unTT1 Q"
 proof -
   have "xs @ [[Sa]\<^sub>R] @ ys \<in> unTT1 Q 
@@ -775,7 +775,7 @@ proof -
 qed
 
 lemma priMaxTT_start_Ref_extends:
-  assumes "TT1 Q" "TT2 Q" "TT4w Q" "priMaxTT pa t s (sa @ [[S]\<^sub>R, [Tock]\<^sub>E] @ z) (unTT1 Q)" 
+  assumes "TT1 Q" "TT2 Q" "TT3w Q" "priMaxTT pa t s (sa @ [[S]\<^sub>R, [Tock]\<^sub>E] @ z) (unTT1 Q)" 
   shows "priMaxTT pa t s (sa @ [[S \<union> {e. e \<noteq> Tock \<and> sa @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E] @ z) (unTT1 Q)"
   using assms proof(induct pa t s z Q arbitrary:S sa rule:priMaxTT.induct, auto)
   fix p 
@@ -789,7 +789,7 @@ lemma priMaxTT_start_Ref_extends:
             (unTT1 Qa))"
     and TT1_healthy:    "TT1 Qa" 
     and TT2_healthy:   "TT2 Qa"
-    and TT4w_healthy:   "TT4w Qa"
+    and TT3w_healthy:   "TT3w Qa"
     and priMaxTT:      "priMaxTT p aa zz (saa @ [Sa]\<^sub>R # [Tock]\<^sub>E # sb @ [[e\<^sub>2]\<^sub>E]) (unTT1 Qa)"
     and assm1:          "saa @ [Sa]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unTT1 Qa"
     and assm2:          "e\<^sub>2 \<notin> Z"
@@ -802,7 +802,7 @@ lemma priMaxTT_start_Ref_extends:
     have "saa @ [[Sa]\<^sub>R] @ [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unTT1 Qa"
       using assm1 by auto
     then have "saa @ [[Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R] @ [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unTT1 Qa"
-      using TT1_healthy TT2_healthy TT4w_healthy concat_unTT1_extend_TT2_Refusal by blast
+      using TT1_healthy TT2_healthy TT3w_healthy concat_unTT1_extend_TT2_Refusal by blast
     then have "saa @ [Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unTT1 Qa"
       by auto
     then have "\<exists>Z. saa @ [Sa \<union> {e. e \<noteq> Tock \<and> saa @ [[e]\<^sub>E] \<notin> Qa \<or> e = Tock \<and> saa @ [[Sa]\<^sub>R, [Tock]\<^sub>E] \<notin> Qa} \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # sb @ [[Z]\<^sub>R] \<in> unTT1 Qa \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*p b)"
@@ -845,7 +845,7 @@ lemma
   by (smt Collect_cong append.left_neutral)
 
 lemma priTT1_TTMPick_imp_priMaxTT:
-  assumes "priTT1 p x s i P" "TT4 P" "ttWFx P" "TT2 P" "TT1 P"
+  assumes "priTT1 p x s i P" "TT3 P" "ttWFx P" "TT2 P" "TT1 P"
   shows "\<exists>t. x \<lesssim>\<^sub>C t \<and> TTMPick (mkTTMP s i P) i P \<and> priMaxTT p t (mkTTMP s i P) (mkTTMP i [] P) (unTT1 P)"
 proof -
   have "(\<exists>t. x \<lesssim>\<^sub>C t \<and> TTMPick (mkTTMP s i P) i P \<and> priMaxTT p t (mkTTMP s i P) (mkTTMP i [] P) (unTT1 P))
@@ -856,7 +856,7 @@ proof -
     using assms proof (induct p x s i P rule:priTT1.induct, auto)
     fix pa sa 
     fix Q::"'a ttobs list set"
-    assume TT4_healthy: "TT4 Q"
+    assume TT3_healthy: "TT3 Q"
      and    ttWFx_healthy: "ttWFx Q"
      and   TT2_healthy: "TT2 Q"
      and    TT1_healthy: "TT1 Q"
@@ -867,7 +867,7 @@ proof -
     fix R::"'a ttevent set"
     fix S sa Q
     assume R_subset:"R \<subseteq> prirefTT1 pa S sa Q"
-     and  TT4_healthy: "TT4 Q"
+     and  TT3_healthy: "TT3 Q"
      and   ttWFx_healthy: "ttWFx Q"
      and  TT2_healthy: "TT2 Q"
      and   TT1_healthy: "TT1 Q"
@@ -892,7 +892,7 @@ proof -
     fix aa zz sa t::"'a ttobs list"
     fix Q::"'a ttobs list set"
     assume R_subset:"R \<subseteq> prirefTT1 pa S sa Q"
-     and  TT4_healthy: "TT4 Q"
+     and  TT3_healthy: "TT3 Q"
      and   ttWFx_healthy: "ttWFx Q"
      and  TT2_healthy: "TT2 Q"
      and   TT1_healthy: "TT1 Q"
@@ -900,8 +900,8 @@ proof -
      and priMaxTT_assm:"priMaxTT pa t (mkTTMP zz (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q) (mkTTMP (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) [] Q) (unTT1 Q)"
      and Tock_not_in:"Tock \<notin> prirefTT1 pa S sa Q"
      and "priTT1 pa aa zz (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
-    then have TT4w_healthy: "TT4w Q" 
-      using TT4_healthy TT1_healthy TT4_TT1_imp_TT4w by blast
+    then have TT3w_healthy: "TT3w Q" 
+      using TT3_healthy TT1_healthy TT3_TT1_imp_TT3w by blast
     then obtain Y where Y:"Y = (mkTTMP zz (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q)" by auto
     then show "\<exists>t. [R]\<^sub>R # [Tock]\<^sub>E # aa \<lesssim>\<^sub>C t \<and>
            priMaxTT pa t
@@ -929,7 +929,7 @@ proof -
         have "priMaxTT pa t Y (mkTTMP (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) [] Q) (unTT1 Q)"
              using \<open>[R]\<^sub>R # [Tock]\<^sub>E # aa \<lesssim>\<^sub>C [prirefMaxTT pa Z]\<^sub>R # [Tock]\<^sub>E # t \<and> Tock \<notin> prirefMaxTT pa Z \<and> priMaxTT pa t Y (mkTTMP (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) [] Q) (unTT1 Q)\<close> by blast
         then have "priMaxTT pa t Y ((mkTTMP sa [] Q) @ [[S \<union> {e. e \<noteq> Tock \<and> sa @ [[e]\<^sub>E] \<notin> Q \<or> e = Tock \<and> sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<notin> Q} \<union> {Tick}]\<^sub>R, [Tock]\<^sub>E]) (unTT1 Q)"
-          (*using TT1_healthy TT2_healthy TT4w_healthy Y Z priMaxTT_start_Ref_extends sledgehammer by fastforce*)
+          (*using TT1_healthy TT2_healthy TT3w_healthy Y Z priMaxTT_start_Ref_extends sledgehammer by fastforce*)
           using mkTTMP_absorb_Ref_Tock'
           by (smt Collect_cong append_Nil)
         then have "priMaxTT pa t Y ((mkTTMP sa [] Q) @ [[Z]\<^sub>R, [Tock]\<^sub>E]) (unTT1 Q)"
@@ -956,7 +956,7 @@ proof -
     fix e\<^sub>2 sa t 
     fix Q::"'a ttobs list set"
     assume 
-        TT4_healthy: "TT4 Q"
+        TT3_healthy: "TT3 Q"
     and ttWFx_healthy:  "ttWFx Q"
     and TT2_healthy: "TT2 Q"
     and TT1_healthy:  "TT1 Q"
@@ -986,7 +986,7 @@ proof -
     fix e\<^sub>2 sa Z t
     fix Q::"'a ttobs list set"
     assume 
-        TT4_healthy: "TT4 Q"
+        TT3_healthy: "TT3 Q"
     and ttWFx_healthy:  "ttWFx Q"
     and TT2_healthy: "TT2 Q"
     and TT1_healthy:  "TT1 Q"
@@ -1006,9 +1006,9 @@ proof -
       from subsettt have e2_aa_t:"[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t"
         by auto
 
-      have TT4w_healthy:"TT4w Q"
-        using TT1_healthy TT4_healthy 
-        by (simp add: TT4_TT1_imp_TT4w)
+      have TT3w_healthy:"TT3w Q"
+        using TT1_healthy TT3_healthy 
+        by (simp add: TT3_TT1_imp_TT3w)
 
       have a:"(sa @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*pa b)
           \<and> (\<forall>e. e \<notin> Z \<and> e \<noteq> Tock \<longrightarrow> sa @ [[e]\<^sub>E] \<in> Q)
@@ -1016,10 +1016,10 @@ proof -
         using  Tick_in_Z e2_not_in_Z events_in_Z no_pri_Z sa_Z Tock_in_Z by blast
       
       then have "(mkTTMP sa [] Q) \<in> Q"
-        by (meson TT1_def TT1_healthy TT2_healthy ttWFx_healthy TT4_healthy TTs_mkTTMP_in_P tt_prefix_subset_front tt_prefix_subset_refl)
+        by (meson TT1_def TT1_healthy TT2_healthy ttWFx_healthy TT3_healthy TTs_mkTTMP_in_P tt_prefix_subset_front tt_prefix_subset_refl)
       then have b:"(mkTTMP sa [] Q) @ [[Z]\<^sub>R] \<in> unTT1 Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*pa b)"
-        using a TT1_healthy TT4w_healthy  
-        by (simp add: priMaxTT_unTT1_case_specific TT2_healthy ttWFx_healthy TT4_healthy mkTTMP_in_P)
+        using a TT1_healthy TT3w_healthy  
+        by (simp add: priMaxTT_unTT1_case_specific TT2_healthy ttWFx_healthy TT3_healthy mkTTMP_in_P)
         (* FIXME: Key result to prove *)
       have "priMaxTT pa t (mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP (sa @ [[e\<^sub>2]\<^sub>E]) [] Q) (unTT1 Q)"
         using priMaxTT by auto
@@ -1040,7 +1040,7 @@ proof -
     fix e\<^sub>2 sa t Z
     fix Q::"'a ttobs list set"
     assume 
-        TT4_healthy: "TT4 Q"
+        TT3_healthy: "TT3 Q"
     and ttWFx_healthy:  "ttWFx Q"
     and TT2_healthy: "TT2 Q"
     and TT1_healthy:  "TT1 Q"
@@ -1059,19 +1059,19 @@ proof -
       from subsettt have e2_aa_t:"[e\<^sub>2]\<^sub>E # aa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # t"
         by auto
 
-      have TT4w_healthy:"TT4w Q"
-        using TT1_healthy TT4_healthy 
-        by (simp add: TT4_TT1_imp_TT4w)
+      have TT3w_healthy:"TT3w Q"
+        using TT1_healthy TT3_healthy 
+        by (simp add: TT3_TT1_imp_TT3w)
 
       have a:"(sa @ [[Z]\<^sub>R] \<in> Q  \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*pa b)
           \<and> (\<forall>e. e \<notin> Z \<and> e \<noteq> Tock \<longrightarrow> sa @ [[e]\<^sub>E] \<in> Q)
           \<and> (Tock \<notin> Z \<longrightarrow> sa @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> Q) \<and> Tick \<in> Z)"
         by (simp add:  Tick_in_Z Tock_Z_in_Q e2_not_in_Z events_in_Z nohigherpri sa_Z)
       then have "(mkTTMP sa [] Q) \<in> Q"
-        by (meson TT1_def TT1_healthy TT2_healthy ttWFx_healthy TT4_healthy TTs_mkTTMP_in_P tt_prefix_subset_front tt_prefix_subset_refl)
+        by (meson TT1_def TT1_healthy TT2_healthy ttWFx_healthy TT3_healthy TTs_mkTTMP_in_P tt_prefix_subset_front tt_prefix_subset_refl)
       then have b:"(mkTTMP sa [] Q) @ [[Z]\<^sub>R] \<in> unTT1 Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*pa b)"
-        using a TT1_healthy TT4w_healthy  
-        by (simp add: priMaxTT_unTT1_case_specific TT2_healthy ttWFx_healthy TT4_healthy mkTTMP_in_P)
+        using a TT1_healthy TT3w_healthy  
+        by (simp add: priMaxTT_unTT1_case_specific TT2_healthy ttWFx_healthy TT3_healthy mkTTMP_in_P)
       have "priMaxTT pa t (mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) (mkTTMP (sa @ [[e\<^sub>2]\<^sub>E]) [] Q) (unTT1 Q)"
         using priMaxTT by auto
       then have "priMaxTT pa t (mkTTMP zz (sa @ [[e\<^sub>2]\<^sub>E]) Q) ((mkTTMP sa [] Q) @ [[e\<^sub>2]\<^sub>E]) (unTT1 Q)"
@@ -1121,7 +1121,7 @@ proof -
 qed
 
 lemma priMaxTT_imp_priTT1:
-  assumes "x \<lesssim>\<^sub>C t" "TTMPick s i P" "priMaxTT p t s i (unTT1 P)" "TT4 P" "ttWFx P" "TT2 P" "TT1 P"
+  assumes "x \<lesssim>\<^sub>C t" "TTMPick s i P" "priMaxTT p t s i (unTT1 P)" "TT3 P" "ttWFx P" "TT2 P" "TT1 P"
   shows "\<exists>z. priTT1 p x z i P \<and> z \<lesssim>\<^sub>C s"
   using assms 
 proof (induct p t s i P arbitrary:x rule:priMaxTT.induct, auto)
@@ -1140,7 +1140,7 @@ next
   and Tick_in_S:    "Tick \<in> S"
   and priTT1:   "\<forall>z. priTT1 pa xa z sa Q \<longrightarrow> \<not> z \<lesssim>\<^sub>C [[S]\<^sub>R]"
   and Tock_in_S:    "Tock \<in> S"
-  and  TT4_healthy: "TT4 Q"
+  and  TT3_healthy: "TT3 Q"
   and   ttWFx_healthy: "ttWFx Q"
   and  TT2_healthy: "TT2 Q"
   and   TT1_healthy: "TT1 Q"
@@ -1174,7 +1174,7 @@ next
   and events_in_Q:   "\<forall>e. e \<notin> S \<and> e \<noteq> Tock \<longrightarrow> sa @ [[e]\<^sub>E] \<in> Q"
   and Tick_in_S:     "Tick \<in> S"
   and Tock_in_Q:     "sa @ [[S]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
-  and  TT4_healthy: "TT4 Q"
+  and  TT3_healthy: "TT3 Q"
   and   ttWFx_healthy: "ttWFx Q"
   and  TT2_healthy: "TT2 Q"
   and   TT1_healthy: "TT1 Q"
@@ -1206,7 +1206,7 @@ next
   assume
       hyp:          "(\<And>x. x \<lesssim>\<^sub>C aa \<Longrightarrow> \<exists>z. priTT1 pa x z (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz)"
   and xa_aa:        "xa \<lesssim>\<^sub>C [prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # aa"
-  and TT4_healthy: "TT4 Q"
+  and TT3_healthy: "TT3 Q"
   and ttWFx_healthy:  "ttWFx Q"
   and TT2_healthy: "TT2 Q"
   and TT1_healthy:  "TT1 Q"
@@ -1273,7 +1273,7 @@ next
   assume
       hyp:          "(\<And>x. x \<lesssim>\<^sub>C aa \<Longrightarrow> \<exists>z. priTT1 pa x z (sa @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz)"
   and xa_aa:        "xa \<lesssim>\<^sub>C [prirefMaxTT pa S]\<^sub>R # [Tock]\<^sub>E # aa"
-  and TT4_healthy: "TT4 Q"
+  and TT3_healthy: "TT3 Q"
   and ttWFx_healthy:  "ttWFx Q"
   and TT2_healthy: "TT2 Q"
   and TT1_healthy:  "TT1 Q"
@@ -1339,7 +1339,7 @@ next
       hyp:          "(\<And>x. x \<lesssim>\<^sub>C aa \<Longrightarrow> \<exists>z. priTT1 pa x z (sa @ [[e\<^sub>2]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz)"
   and xa_aa:        "xa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # aa"
   and TTMPick:      "TTMPick zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
-  and TT4_healthy: "TT4 Q"
+  and TT3_healthy: "TT3 Q"
   and ttWFx_healthy:  "ttWFx Q"
   and TT2_healthy: "TT2 Q"
   and TT1_healthy:  "TT1 Q"
@@ -1381,7 +1381,7 @@ next
       hyp:          "(\<And>x. x \<lesssim>\<^sub>C aa \<Longrightarrow> \<exists>z. priTT1 pa x z (sa @ [[e\<^sub>2]\<^sub>E]) Q \<and> z \<lesssim>\<^sub>C zz)"
   and xa_aa:        "xa \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # aa"
   and TTMPick:      "TTMPick zz (sa @ [[e\<^sub>2]\<^sub>E]) Q"
-  and TT4_healthy: "TT4 Q"
+  and TT3_healthy: "TT3 Q"
   and ttWFx_healthy:  "ttWFx Q"
   and TT2_healthy: "TT2 Q"
   and TT1_healthy:  "TT1 Q"
@@ -1410,15 +1410,15 @@ next
           using hyp x1_list_subsettt by auto
         then have "\<exists>z. priTT1 pa ([e\<^sub>2]\<^sub>E # list) ([e\<^sub>2]\<^sub>E # z) sa Q \<and> [e\<^sub>2]\<^sub>E # z \<lesssim>\<^sub>C [e\<^sub>2]\<^sub>E # zz"
         proof -
-          have TT4w_healthy:"TT4w Q"
-            using TT1_healthy TT4_healthy 
-            by (simp add: TT4_TT1_imp_TT4w)
+          have TT3w_healthy:"TT3w Q"
+            using TT1_healthy TT3_healthy 
+            by (simp add: TT3_TT1_imp_TT3w)
           have "(sa @ [[Z]\<^sub>R] \<in> unTT1 Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*pa b))"
             using Z_in_Q e2_not_in_Z no_higher_pri by blast
           then have "(sa @ [[Z]\<^sub>R] \<in> Q \<and> TTMPick sa [] Q \<and> e\<^sub>2 \<notin> Z \<and> \<not>(\<exists>b. b \<notin> Z \<and> e\<^sub>2 <\<^sup>*pa b)
                       \<and> (\<forall>e. e \<notin> Z \<and> e \<noteq> Tock \<longrightarrow> sa @ [[e]\<^sub>E] \<in> Q)
                       \<and> (Tock \<notin> Z \<longrightarrow> sa @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> Q) \<and> Tick \<in> Z)"
-            using TT1_healthy TT4w_healthy priMaxTT_unTT1_case by blast
+            using TT1_healthy TT3w_healthy priMaxTT_unTT1_case by blast
           then show ?thesis using exists_priTT1
             by auto
         qed
@@ -1435,7 +1435,7 @@ definition PriTT1 :: "('e ttevent) partialorder \<Rightarrow> ('e ttobs) list se
 "PriTT1 p P = {\<rho>|\<rho> s. priTT1 p \<rho> s [] P \<and> s \<in> P}"
 
 lemma mkTT1_PriMax_unTT1_priTT:
-  assumes "TT1 P" "TT4w P" "TT4 P" "ttWFx P" "TT2 P"
+  assumes "TT1 P" "TT3w P" "TT3 P" "ttWFx P" "TT2 P"
   shows "mkTT1 (PriMax p (unTT1 P)) = PriTT1 p P"
 proof -
   have "mkTT1 (PriMax p (unTT1 P)) = mkTT1 ({t|s t. s \<in> (unTT1 P) \<and> priMaxTT p t s [] (unTT1 P)})"
