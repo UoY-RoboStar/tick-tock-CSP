@@ -10,7 +10,11 @@ definition PrefixTT :: "'e \<Rightarrow> 'e ttobs list set \<Rightarrow> 'e ttob
      \<union> {t. \<exists> s\<in>tocks({x. x \<noteq> Tock \<and> x \<noteq> Event e}). t = s \<or> (\<exists> \<sigma>\<in>P. t = s @ [[Event e]\<^sub>E] @ \<sigma>)}"
 
 lemma PrefixTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>PrefixTT e P. ttWF t"
-  unfolding PrefixTT_def by (auto simp add: tocks_wf tocks_append_wf)
+  unfolding PrefixTT_def apply (auto simp add: tocks_wf tocks_append_wf)
+  apply (metis (mono_tags, lifting) mem_Collect_eq tocks_wf)
+  apply (metis (mono_tags, lifting) mem_Collect_eq tocks_append_wf ttWF.simps(2))
+  apply (metis (mono_tags, lifting) mem_Collect_eq tocks_wf)
+  by (metis (mono_tags, lifting) mem_Collect_eq tocks_append_wf ttWF.simps(4))
 
 lemma TT2_Prefix:
   assumes TT0_P: "TT0 P" and TT1_P: "TT1 P"
@@ -365,7 +369,10 @@ definition TockPrefixTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" (
 
 lemma TockPrefixTT_wf: "(\<forall> t\<in>P. ttWF t) \<Longrightarrow> \<forall> t\<in>(tock \<rightarrow>\<^sub>C P). ttWF t"
   unfolding TockPrefixTT_def using tocks_wf apply auto
-  using ttWF.simps(2) ttWF.simps(5) tocks_append_wf by blast+
+  apply (smt mem_Collect_eq tocks_wf)
+  apply (smt mem_Collect_eq tocks_append_wf ttWF.simps(2))
+  apply (smt mem_Collect_eq tocks_wf)
+  by (smt mem_Collect_eq tocks_append_wf ttWF.simps(5))
 
 lemma TT0_TockPrefixTT: "TT0 P \<Longrightarrow> TT0 (tock \<rightarrow>\<^sub>C P)"
   unfolding TockPrefixTT_def TT0_def apply auto
@@ -579,8 +586,15 @@ proof auto
         obtain s2''' where s2'''_def: "s2'' = [Tock]\<^sub>E # s2'''"
           apply (cases s2'' rule:ttWF.cases, auto)
           using case_assms(1) case_assms2(2) case_assms3 end_refusal_notin_tocks apply force
-          using "2" case_assms(1) case_assms2(2) case_assms3 ttWF.simps(2) tocks_append_wf tocks_append_wf2 apply fastforce
-          using "2" case_assms(1) case_assms2(2) case_assms3 tocks_append_nontocks tocks_wf by fastforce+
+          using "2" case_assms(1) case_assms2(2) case_assms3 tocks_append_wfw tocks_append_wfw2 ttWFw.simps(2) apply fastforce
+          using "2" case_assms(1) case_assms2(2) case_assms3 second_tick_notin_tocks tocks_append_nontocks apply fastforce
+          using "2" case_assms(1) case_assms2(2) case_assms3 second_event_notin_tocks tocks_append_nontocks apply fastforce
+          using "2" case_assms(1) case_assms2(2) case_assms3 double_refusal_start_notin_tocks tocks_append_nontocks apply fastforce
+          using "2" case_assms(1) case_assms2(2) case_assms3 second_tick_notin_tocks tocks_append_nontocks apply fastforce
+          using "2" case_assms(1) case_assms2(2) case_assms3 second_tick_notin_tocks tocks_append_nontocks apply fastforce
+          using "2" case_assms(1) case_assms2(2) case_assms3 double_refusal_start_notin_tocks tocks_append_nontocks apply fastforce
+          using "2" case_assms(1) case_assms2(2) case_assms3 double_refusal_start_notin_tocks tocks_append_nontocks apply fastforce
+          using "2" case_assms(1) case_assms2(2) case_assms3 double_refusal_start_notin_tocks tocks_append_nontocks by fastforce
         then have "s2''' \<in> tocks {x. x \<noteq> Tock}"
           by (metis (no_types, lifting) "2" Nil_is_append_conv butlast.simps(2) butlast_append butlast_snoc case_assms(1) case_assms2(2) case_assms3 list.distinct(1) list.sel(3) tocks.cases tocks_append_nontocks)
         then show "\<forall>s\<in>tocks {x. x \<noteq> Tock}.

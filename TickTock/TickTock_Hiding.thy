@@ -35,7 +35,7 @@ proof auto
     apply (induct p rule:hide_trace.induct, simp_all)
     apply (metis ttWF.simps(4) mem_Collect_eq)
     using ttWF.simps(1) apply blast
-    apply (metis ttWF.simps(5) mem_Collect_eq)
+    apply (metis (mono_tags, hide_lams) contra_subsetD mem_Collect_eq ttWF.simps(5))
     using ttWF.simps(2) by blast
 qed
 

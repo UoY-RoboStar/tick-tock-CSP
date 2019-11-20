@@ -104,8 +104,9 @@ lemma fl2ttobs_is_ttWF:
   shows "ttWF (fl2ttobs fltrace)"
   using assms
   apply (induct fltrace rule:fl2ttobs.induct, auto)
-  apply (case_tac A, auto, case_tac a, auto, case_tac b, auto)
-  by (metis ttWF.simps(4) ttWF2.simps(1) ttWF2.simps(23) ttWF2_ttWF ttevent.exhaust fl2ttobs.simps(1))
+  apply (case_tac A, auto)
+  apply (metis event_in_acceptance ttWF.simps(4) ttevent.exhaust)
+  by (metis fl2ttobs.simps(1) ttWF.simps(3) ttWF.simps(4) ttevent.exhaust)
 
 lemma fl2ttobs_flt2goodTock_less_eq_exists:
   assumes "fl2ttobs fl \<noteq> []"

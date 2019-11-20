@@ -1435,8 +1435,8 @@ proof auto
     obtain \<sigma>'' where \<sigma>'_Tock_start: "\<sigma>' = [Tock]\<^sub>E # \<sigma>''"
       using case_assms apply (cases \<sigma>' rule:ttWF.cases, auto)
       using TT_TTwf TTwf_cons_end_not_refusal_refusal \<rho>'_in_P_Q assms(1) apply blast
-      using \<rho>_\<sigma>_split ttWF.simps(12) ttWF_dist_cons_refusal tocks_wf apply blast
-      apply (metis \<rho>_\<sigma>_split ttWF.simps(11) tocks_append_wf2 tocks_mid_refusal_front_in_tocks tocks_wf)
+      using TT_TTwf TTwf_no_ill_Tock \<rho>'_in_P_Q assms(1) apply blast
+      using \<rho>'_\<rho>''_wf \<rho>_Tock_in_tocks tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply fastforce
       using \<rho>'_\<rho>''_wf \<rho>_\<sigma>_split ttWF.simps(13) ttWF_prefix_is_ttWF tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply blast
       using \<rho>'_\<rho>''_wf \<rho>_\<sigma>_split ttWF.simps(12) ttWF_prefix_is_ttWF tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply (blast, blast)
       using \<rho>'_\<rho>''_wf \<rho>_\<sigma>_split ttWF.simps(13) ttWF_prefix_is_ttWF tocks_append_wf2 tocks_mid_refusal_front_in_tocks apply blast+

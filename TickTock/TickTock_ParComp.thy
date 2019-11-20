@@ -61,8 +61,8 @@ proof (auto, induct x A y rule:merge_traces.induct, simp+, (safe, simp+), (safe,
   have \<sigma>_wf: "ttWF \<sigma>"
     using assm2 by auto
   assume "z \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>"
-  then obtain W s where s_assms: "s \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>" "z = [W]\<^sub>R # [Tock]\<^sub>E # s"
-    by auto
+  then obtain W s where s_assms: "s \<in> [[Tick]\<^sub>E] \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>" "z = [W]\<^sub>R # [Tock]\<^sub>E # s" "Tock \<notin> W"
+    using assm2 by auto
   then have "ttWF s"
     using assm1 \<sigma>_wf assm3 by auto
   then show "ttWF z"
@@ -148,8 +148,8 @@ next
     by auto
   assume assm2: "\<And>x xa xb z. ttWF \<sigma> \<Longrightarrow> ttWF [[Tick]\<^sub>E] \<Longrightarrow> z \<in> \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E] \<Longrightarrow> ttWF z"
   assume "z \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
-  then obtain s W where "s \<in> \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" "z = [W]\<^sub>R # [Tock]\<^sub>E # s"
-    by auto
+  then obtain s W where "s \<in> \<sigma> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" "z = [W]\<^sub>R # [Tock]\<^sub>E # s" "Tock \<notin> W"
+    using assm1 by auto
   then show "ttWF z"
     using \<sigma>_wf assm2 by auto
 next
@@ -176,8 +176,8 @@ next
     by auto
   assume assm3: "\<And>x xa xb z. ttWF \<rho> \<Longrightarrow> ttWF \<sigma> \<Longrightarrow> z \<in> \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma> \<Longrightarrow> ttWF z"
   assume "z \<in> [X]\<^sub>R # [Tock]\<^sub>E # \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>"
-  then obtain s W where "s \<in> \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>" "z = [W]\<^sub>R # [Tock]\<^sub>E # s"
-    by auto
+  then obtain s W where "s \<in> \<rho> \<lbrakk>Z\<rbrakk>\<^sup>T\<^sub>C \<sigma>" "z = [W]\<^sub>R # [Tock]\<^sub>E # s" "Tock \<notin> W"
+    using assm1 assm2 by auto 
   then show "ttWF z"
     using \<rho>_wf \<sigma>_wf assm3 by auto
 next
@@ -2768,6 +2768,16 @@ next
     assume "q = [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'"
     then show "ttWF \<sigma>'"
       using q_wf by auto
+  next
+    fix \<rho> Y \<sigma>'
+    assume "q = [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'" "Tock \<in> Y"
+    then show "False"
+      using q_wf by auto
+  next
+    fix \<rho> Y \<sigma>'
+    assume "p = [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>'" "Tock \<in> Y"
+    then show "False"
+      using p_wf by auto
   qed
   then obtain p' q' where p'_q'_assms: "\<sigma> @ [[Event e]\<^sub>E] \<in> (p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q') \<and> ttWF p' \<and> ttWF q' \<and>
     (ea \<in> A \<and> p = [Event ea]\<^sub>E # p' \<and> q = [Event ea]\<^sub>E # q' \<or>
@@ -2870,12 +2880,12 @@ next
     fix p''
     assume "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'" " p = [X1]\<^sub>R # [Tock]\<^sub>E # p'" "\<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "p'' \<lesssim>\<^sub>C p'" "ttWF (p'' @ [[Event e]\<^sub>E])"
     then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [X1]\<^sub>R # [Tock]\<^sub>E # p' \<and> ttWF (p'a @ [[Event e]\<^sub>E]) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [X2]\<^sub>R # [Tock]\<^sub>E # q'"
-      using assm2 by (rule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p''" in exI, simp_all)
+      using assm2 p_wf by (rule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p''" in exI, simp_all)
   next
     fix p''
     assume "q = [[Tick]\<^sub>E]" " p = [X1]\<^sub>R # [Tock]\<^sub>E # p'" "\<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]" "p'' \<lesssim>\<^sub>C p'" "ttWF (p'' @ [[Event e]\<^sub>E])"
     then show "\<exists>p'a. p'a \<lesssim>\<^sub>C [X1]\<^sub>R # [Tock]\<^sub>E # p' \<and> ttWF (p'a @ [[Event e]\<^sub>E]) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [[Tick]\<^sub>E]"
-      using assm2 by (rule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p''" in exI, simp_all)
+      using assm2 p_wf by (rule_tac x="[X1]\<^sub>R # [Tock]\<^sub>E # p''" in exI, simp_all)
   next
     fix p''
     assume case_assms: "p = [[Tick]\<^sub>E]" " q = [X2]\<^sub>R # [Tock]\<^sub>E # q'" "\<sigma> \<in> p'' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'" "p'' \<lesssim>\<^sub>C [[Tick]\<^sub>E]" "ttWF (p'' @ [[Event e]\<^sub>E])"
@@ -2894,7 +2904,7 @@ next
     assume "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'" " p = [X1]\<^sub>R # [Tock]\<^sub>E # p'" "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''" "q'' \<lesssim>\<^sub>C q'" "ttWF (q'' @ [[Event e]\<^sub>E])"
     then show "\<forall>q'a. ttWF (q'a @ [[Event e]\<^sub>E]) \<longrightarrow> q'a \<lesssim>\<^sub>C [X2]\<^sub>R # [Tock]\<^sub>E # q' \<longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<notin> [X1]\<^sub>R # [Tock]\<^sub>E # p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a \<Longrightarrow>
       \<exists>p'a. p'a \<lesssim>\<^sub>C [X1]\<^sub>R # [Tock]\<^sub>E # p' \<and> ttWF (p'a @ [[Event e]\<^sub>E]) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p'a \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [X2]\<^sub>R # [Tock]\<^sub>E # q'"
-      using assm2 by (erule_tac x="[X2]\<^sub>R # [Tock]\<^sub>E # q''" in allE, simp_all)
+      using assm2 q_wf by (erule_tac x="[X2]\<^sub>R # [Tock]\<^sub>E # q''" in allE, simp_all)
   next
     fix q''
     assume case_assms: "q = [[Tick]\<^sub>E]" " p = [X1]\<^sub>R # [Tock]\<^sub>E # p'" "\<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''" "q'' \<lesssim>\<^sub>C [[Tick]\<^sub>E]" "ttWF (q'' @ [[Event e]\<^sub>E])"
@@ -2915,7 +2925,7 @@ next
     assume "p = [[Tick]\<^sub>E]" "q = [X2]\<^sub>R # [Tock]\<^sub>E # q'" "\<sigma> \<in> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q''" "q'' \<lesssim>\<^sub>C q'" "ttWF (q'' @ [[Event e]\<^sub>E])"
     then show "\<forall>q'a. ttWF (q'a @ [[Event e]\<^sub>E]) \<longrightarrow> q'a \<lesssim>\<^sub>C [X2]\<^sub>R # [Tock]\<^sub>E # q' \<longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<notin> [[Tick]\<^sub>E] \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C q'a \<Longrightarrow>
       \<exists>p'. p' \<lesssim>\<^sub>C [[Tick]\<^sub>E] \<and> ttWF (p' @ [[Event e]\<^sub>E]) \<and> [X]\<^sub>R # [Tock]\<^sub>E # \<sigma> \<in> p' \<lbrakk>A\<rbrakk>\<^sup>T\<^sub>C [X2]\<^sub>R # [Tock]\<^sub>E # q'"
-      using assm2 by (erule_tac x="[X2]\<^sub>R # [Tock]\<^sub>E # q''" in allE, simp_all)  
+      using assm2 q_wf by (erule_tac x="[X2]\<^sub>R # [Tock]\<^sub>E # q''" in allE, simp_all)  
   qed
 next
   fix va p q

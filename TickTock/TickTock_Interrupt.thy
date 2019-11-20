@@ -236,6 +236,11 @@ next
       using assm3 case_assm1 by auto
     then show "ttWF (p'' @ [Event ea]\<^sub>E # q)"
       using assm1 assm2 case_assm1 by simp
+  next
+    fix p''
+    assume "p' = [X]\<^sub>R # [Tock]\<^sub>E # p''" "Tock \<in> X"
+    then show "False"
+      using assm3(1) by auto
   qed
 next
   fix va q p' e
@@ -324,6 +329,9 @@ proof (auto, induct p rule:ttWF.induct, auto)
       using assm3 case_assm1 by auto
     then show "ttWF (p'' @ [X]\<^sub>R # [Tock]\<^sub>E # q)"
       using assm1 assm2 case_assm1 by simp
+  next
+    show "Tock \<in> X \<Longrightarrow> False"
+      using assm3(1) by (induct p' rule:ttWF.induct, auto)
   qed
 next
   fix q p' \<sigma> :: "'a ttobs list"
@@ -343,6 +351,12 @@ next
       using assm3 case_assm1 by auto
     then show "ttWF (p'' @ [Xa]\<^sub>R # [Tock]\<^sub>E # q)"
       using assm1 assm2 case_assm1 by simp
+  next
+    show "Tock \<in> X \<Longrightarrow> False"
+      using assm3 by (induct p' rule:ttWF.induct, auto)
+  next
+    show "Tock \<in> Xa \<Longrightarrow> False"
+      using assm3(1) by (induct p' rule:ttWF.induct, auto)
   qed
 next
   fix va q p' X
@@ -423,9 +437,9 @@ proof auto
     using refusal_tock_append_wf by fastforce
 qed
 
-lemma end_refusal_start_refusal_append_wf:
-  "ttWF (p @ [[X]\<^sub>R]) \<Longrightarrow> ttWF ([Y]\<^sub>R # q) \<Longrightarrow> ttWF ((p @ [[Z]\<^sub>R]) @ q)"
-  by (induct p rule:ttWF.induct, auto, induct q rule:ttWF.induct, auto)
+lemma end_refusal_start_refusal_append_wfw:
+  "ttWFw (p @ [[X]\<^sub>R]) \<Longrightarrow> ttWFw ([Y]\<^sub>R # q) \<Longrightarrow> ttWFw ((p @ [[Z]\<^sub>R]) @ q)"
+  by (induct p rule:ttWFw.induct, auto, induct q rule:ttWFw.induct, auto)
 
 lemma nontick_event_end_append_wf:
   assumes "ttWF p" "ttWF q"
@@ -437,7 +451,9 @@ proof -
   then have "p = [] \<or> (\<exists> p' e. p = p' @ [[Event e]\<^sub>E]) \<or> (\<exists> p' X. p = p' @ [[Tock]\<^sub>E])"
     using assms(3) assms(4) by (auto, (case_tac x, auto, case_tac x1, auto)+)
   then show ?thesis
-    using assms(1) assms(2) event_append_wf tock_append_wf by (auto, fastforce+)
+    using assms apply auto
+    using event_append_wf apply fastforce
+    using tock_append_wf by fastforce
 qed
 
 lemma add_Tick_refusal_trace_intersect_refusal_trace:
@@ -513,14 +529,14 @@ proof (safe, simp_all)
 next
   fix p X Y Z
   show "p @ [[X]\<^sub>R] \<in> P \<Longrightarrow> ttWF (p @ [[Z]\<^sub>R])"
-    using assms(1) end_refusal_start_refusal_append_wf by fastforce
+    using assms(1) end_refusal_start_refusal_append_wfw ttWF_is_ttWFw_ttWFx ttWFx_trace_end_refusal_change by fastforce
 next
   fix p q2
   assume "filter_tocks p @ q2 \<in> Q"
   then have "ttWF q2"
     using assms(2) filter_tocks_in_tocks tocks_append_wf2 by blast
   then show "p \<in> P \<Longrightarrow> \<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E] \<Longrightarrow> \<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R] \<Longrightarrow> ttWF (p @ q2)"
-    using assms(1) nontick_event_end_append_wf by blast
+    by (metis Collect_mono_iff assms(1) nontick_event_end_append_wf order_refl ttWF_is_ttWFw_ttWFx ttWFx_append)
 qed
 
 lemma TT0_TimeSyncInterrupt:
@@ -1734,7 +1750,15 @@ lemma StrictTimedInterrupt_zero_deadline: "(P \<triangle>\<^bsub>0\<^esub> Q) = 
 lemma StrictTimedInterruptTT_wf:
   assumes "\<forall>t\<in>P. ttWF t" "\<forall>t\<in>Q. ttWF t"
   shows "\<forall>t\<in>(P \<triangle>\<^bsub>n\<^esub> Q). ttWF t"
-  using assms nontick_event_end_append_wf unfolding StrictTimedInterruptTT_def by (auto, fastforce)
+  using assms unfolding StrictTimedInterruptTT_def
+proof (auto)
+  fix p q
+  assume "p \<in> P" "q \<in> Q" "last p = [Tock]\<^sub>E"
+  then have "ttWF p" "ttWF q" "\<forall>p'. p \<noteq> p' @ [[Tick]\<^sub>E]" "\<forall>p' Y. p \<noteq> p' @ [[Y]\<^sub>R]"
+    using assms by auto
+  then show "ttWF (p @ q)"
+    by (simp add: nontick_event_end_append_wf)
+qed
 
 lemma TT0_StrictTimedInterrupt:
   assumes "TT0 P" "TT0 Q" "TT1 P" "TT1 Q"

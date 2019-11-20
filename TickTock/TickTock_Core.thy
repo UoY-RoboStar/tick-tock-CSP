@@ -25,9 +25,21 @@ fun ttWF :: "'e tttrace \<Rightarrow> bool" where
   "ttWF [[X]\<^sub>R] = True" | (* a refusal at the end of a trace is okay *)
   "ttWF [[Tick]\<^sub>E] = True" | (* a tick at the end of a trace is okay *)
   "ttWF ([Event e]\<^sub>E # \<sigma>) = ttWF \<sigma>" | (* a (non-tick, non-tock) event is okay *)
-  "ttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = ttWF \<sigma>" | (* a tock event on its own is okay *)
+  "ttWF ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWF \<sigma> \<and> Tock \<notin> X)" | (* a tock event on its own is okay, provided its refusal does not contain Tock *)
   "ttWF \<sigma> = False" (* everything else is not allowed *)  
 text_raw \<open>}%EndSnippet\<close>
+
+(* weaker version of ttWF for some proofs *)
+fun ttWFw :: "'e tttrace \<Rightarrow> bool" where
+  "ttWFw [] = True" | (* an empty trace is okay*)
+  "ttWFw [[X]\<^sub>R] = True" | (* a refusal at the end of a trace is okay *)
+  "ttWFw [[Tick]\<^sub>E] = True" | (* a tick at the end of a trace is okay *)
+  "ttWFw ([Event e]\<^sub>E # \<sigma>) = ttWFw \<sigma>" | (* a (non-tick, non-tock) event is okay *)
+  "ttWFw ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = ttWFw \<sigma>" | (* a tock event on its own is okay*)
+  "ttWFw \<sigma> = False" (* everything else is not allowed *)  
+
+lemma ttWF_imp_ttWFw: "ttWF x \<Longrightarrow> ttWFw x"
+  by (induct x rule:ttWFw.induct, auto)
 
 (* not necessary as a function but very useful for its induction rule *)
 function ttWF2 :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> bool" where
@@ -35,27 +47,27 @@ function ttWF2 :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> bool"
   "ttWF2 [] [[Y]\<^sub>R] = True" | 
   "ttWF2 [] [[Tick]\<^sub>E] = True" | 
   "ttWF2 [] ([Event f]\<^sub>E # \<sigma>) = ttWF2 [] \<sigma>" | 
-  "ttWF2 [] ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = ttWF2 [] \<sigma>" | 
+  "ttWF2 [] ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWF2 [] \<sigma> \<and> Tock \<notin> Y)" | 
   "ttWF2 [[X]\<^sub>R] [] = True" | 
   "ttWF2 [[X]\<^sub>R] [[Y]\<^sub>R] = True" | 
   "ttWF2 [[X]\<^sub>R] [[Tick]\<^sub>E] = True" | 
   "ttWF2 [[X]\<^sub>R] ([Event f]\<^sub>E # \<sigma>) = ttWF2 [] \<sigma>" | 
-  "ttWF2 [[X]\<^sub>R] ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = ttWF2 [] \<sigma>" | 
+  "ttWF2 [[X]\<^sub>R] ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWF2 [] \<sigma> \<and> Tock \<notin> Y)" | 
   "ttWF2 [[Tick]\<^sub>E] [] = True" | 
   "ttWF2 [[Tick]\<^sub>E] [[Y]\<^sub>R] = True" | 
   "ttWF2 [[Tick]\<^sub>E] [[Tick]\<^sub>E] = True" | 
   "ttWF2 [[Tick]\<^sub>E] ([Event f]\<^sub>E # \<sigma>) = ttWF2 [] \<sigma>" | 
-  "ttWF2 [[Tick]\<^sub>E] ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = ttWF2 [] \<sigma>" | 
+  "ttWF2 [[Tick]\<^sub>E] ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWF2 [] \<sigma> \<and> Tock \<notin> Y)" | 
   "ttWF2 ([Event e]\<^sub>E # \<sigma>) [] = ttWF2 \<sigma> []" | 
   "ttWF2 ([Event e]\<^sub>E # \<sigma>) [[Y]\<^sub>R] = ttWF2 \<sigma> []" | 
   "ttWF2 ([Event e]\<^sub>E # \<sigma>) [[Tick]\<^sub>E] = ttWF2 \<sigma> []" | 
   "ttWF2 ([Event e]\<^sub>E # \<rho>) ([Event f]\<^sub>E # \<sigma>) = ttWF2 \<rho> \<sigma>" | 
-  "ttWF2 ([Event e]\<^sub>E # \<rho>) ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = ttWF2 \<rho> \<sigma>" | 
-  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) [] = ttWF2 \<sigma> []" | 
-  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) [[Y]\<^sub>R] = ttWF2 \<sigma> []" | 
-  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) [[Tick]\<^sub>E] = ttWF2 \<sigma> []" | 
-  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Event f]\<^sub>E # \<sigma>) = ttWF2 \<rho> \<sigma>" | 
-  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = ttWF2 \<rho> \<sigma>" |
+  "ttWF2 ([Event e]\<^sub>E # \<rho>) ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWF2 \<rho> \<sigma> \<and> Tock \<notin> Y)" | 
+  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) [] = (ttWF2 \<sigma> [] \<and> Tock \<notin> X)" | 
+  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) [[Y]\<^sub>R] = (ttWF2 \<sigma> [] \<and> Tock \<notin> X)" | 
+  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) [[Tick]\<^sub>E] = (ttWF2 \<sigma> [] \<and> Tock \<notin> X)" | 
+  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Event f]\<^sub>E # \<sigma>) = (ttWF2 \<rho> \<sigma>  \<and> Tock \<notin> X)" | 
+  "ttWF2 ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWF2 \<rho> \<sigma> \<and> Tock \<notin> X \<and> Tock \<notin> Y)" |
   "ttWF2 ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) \<sigma> = False" |
   "ttWF2 ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) \<sigma> = False" |
   "ttWF2 ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) \<sigma> = False" |
@@ -69,10 +81,47 @@ function ttWF2 :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> bool"
   by (pat_completeness, simp_all)
 termination by lexicographic_order
 
-print_theorems
-
 lemma ttWF2_ttWF: "ttWF2 x y = (ttWF x \<and> ttWF y)"
   by (induct rule:ttWF2.induct, auto)
+
+function ttWFw2 :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> bool" where
+  "ttWFw2 [] [] = True" | 
+  "ttWFw2 [] [[Y]\<^sub>R] = True" | 
+  "ttWFw2 [] [[Tick]\<^sub>E] = True" | 
+  "ttWFw2 [] ([Event f]\<^sub>E # \<sigma>) = ttWFw2 [] \<sigma>" | 
+  "ttWFw2 [] ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWFw2 [] \<sigma>)" | 
+  "ttWFw2 [[X]\<^sub>R] [] = True" | 
+  "ttWFw2 [[X]\<^sub>R] [[Y]\<^sub>R] = True" | 
+  "ttWFw2 [[X]\<^sub>R] [[Tick]\<^sub>E] = True" | 
+  "ttWFw2 [[X]\<^sub>R] ([Event f]\<^sub>E # \<sigma>) = ttWFw2 [] \<sigma>" | 
+  "ttWFw2 [[X]\<^sub>R] ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWFw2 [] \<sigma>)" | 
+  "ttWFw2 [[Tick]\<^sub>E] [] = True" | 
+  "ttWFw2 [[Tick]\<^sub>E] [[Y]\<^sub>R] = True" | 
+  "ttWFw2 [[Tick]\<^sub>E] [[Tick]\<^sub>E] = True" | 
+  "ttWFw2 [[Tick]\<^sub>E] ([Event f]\<^sub>E # \<sigma>) = ttWFw2 [] \<sigma>" | 
+  "ttWFw2 [[Tick]\<^sub>E] ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWFw2 [] \<sigma>)" | 
+  "ttWFw2 ([Event e]\<^sub>E # \<sigma>) [] = ttWFw2 \<sigma> []" | 
+  "ttWFw2 ([Event e]\<^sub>E # \<sigma>) [[Y]\<^sub>R] = ttWFw2 \<sigma> []" | 
+  "ttWFw2 ([Event e]\<^sub>E # \<sigma>) [[Tick]\<^sub>E] = ttWFw2 \<sigma> []" | 
+  "ttWFw2 ([Event e]\<^sub>E # \<rho>) ([Event f]\<^sub>E # \<sigma>) = ttWFw2 \<rho> \<sigma>" | 
+  "ttWFw2 ([Event e]\<^sub>E # \<rho>) ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWFw2 \<rho> \<sigma>)" | 
+  "ttWFw2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) [] = (ttWFw2 \<sigma> [])" | 
+  "ttWFw2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) [[Y]\<^sub>R] = (ttWFw2 \<sigma> [])" | 
+  "ttWFw2 ([X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) [[Tick]\<^sub>E] = (ttWFw2 \<sigma> [])" | 
+  "ttWFw2 ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Event f]\<^sub>E # \<sigma>) = (ttWFw2 \<rho> \<sigma>)" | 
+  "ttWFw2 ([X]\<^sub>R # [Tock]\<^sub>E # \<rho>) ([Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = (ttWFw2 \<rho> \<sigma>)" |
+  "ttWFw2 ([X]\<^sub>R # [Tick]\<^sub>E # \<rho>) \<sigma> = False" |
+  "ttWFw2 ([X]\<^sub>R # [Event e]\<^sub>E # \<rho>) \<sigma> = False" |
+  "ttWFw2 ([X]\<^sub>R # [Y]\<^sub>R # \<rho>) \<sigma> = False" |
+  "ttWFw2 \<rho> ([X]\<^sub>R # [Tick]\<^sub>E # \<sigma>) = False" |
+  "ttWFw2 \<rho> ([X]\<^sub>R # [Event e]\<^sub>E # \<sigma>) = False" |
+  "ttWFw2 \<rho> ([X]\<^sub>R # [Y]\<^sub>R # \<sigma>) = False" |
+  "ttWFw2 ([Tick]\<^sub>E # x # \<rho>) \<sigma> = False" |
+  "ttWFw2 \<rho> ([Tick]\<^sub>E # y # \<sigma>) = False" |
+  "ttWFw2 ([Tock]\<^sub>E # \<rho>) \<sigma> = False" |
+  "ttWFw2 \<rho> ([Tock]\<^sub>E # \<sigma>) = False"
+  by (pat_completeness, simp_all)
+termination by lexicographic_order
 
 text_raw \<open>\DefineSnippet{ttWFx_trace}{\<close>
 fun ttWFx_trace :: "'e tttrace \<Rightarrow> bool" where
@@ -84,6 +133,17 @@ fun ttWFx_trace :: "'e tttrace \<Rightarrow> bool" where
   "ttWFx_trace (v # [Tick]\<^sub>E # vc) = ttWFx_trace ([Tick]\<^sub>E # vc)" |
   "ttWFx_trace ([vb]\<^sub>R # [va]\<^sub>R # vc) = ttWFx_trace ([va]\<^sub>R # vc)"
 text_raw \<open>}%EndSnippet\<close>
+
+lemma ttWF_is_ttWFw_ttWFx: "ttWF x = (ttWFw x \<and> ttWFx_trace x)"
+  by (induct x rule:ttWF.induct, auto, (case_tac \<sigma>, auto)+)
+
+lemma ttWF2_is_ttWFw2_ttWFx: "ttWF2 x y = (ttWFw2 x y \<and> ttWFx_trace x \<and> ttWFx_trace y)"
+  apply (induct x y rule:ttWF2.induct, auto)
+  apply (case_tac \<sigma>, auto, case_tac \<sigma>, auto, case_tac \<sigma>, auto, case_tac \<sigma>, auto, case_tac \<sigma>, auto)
+  apply (case_tac \<sigma>, auto, case_tac \<sigma>, auto, case_tac \<sigma>, auto, case_tac \<sigma>, auto, case_tac \<sigma>, auto)
+  apply (case_tac \<sigma>, auto, case_tac \<sigma>, auto, case_tac \<rho>, auto, case_tac \<sigma>, auto, case_tac \<sigma>, auto)
+  apply (case_tac \<rho>, auto, case_tac \<rho>, auto, case_tac \<rho>, auto, case_tac \<rho>, auto, case_tac \<rho>, auto)
+  by (case_tac \<sigma>, auto, case_tac \<sigma>, auto, case_tac \<rho>, auto, case_tac \<rho>, auto, case_tac \<sigma>, auto, case_tac \<sigma>, auto)
 
 text_raw \<open>\DefineSnippet{ttWFx}{\<close>
 definition ttWFx :: "'e ttprocess \<Rightarrow> bool" where
@@ -365,6 +425,9 @@ lemma tt_prefix_decompose: "x \<le>\<^sub>C y \<Longrightarrow> \<exists> z. y =
 
 lemma tt_prefix_subset_ttWF: "ttWF s \<Longrightarrow> t \<lesssim>\<^sub>C s \<Longrightarrow> ttWF t"
   by (induct rule:ttWF2.induct, auto, (case_tac \<rho> rule:ttWF.cases, auto)+)
+
+lemma tt_prefix_subset_ttWFw: "ttWFw s \<Longrightarrow> t \<lesssim>\<^sub>C s \<Longrightarrow> ttWFw t"
+  by (induct rule:ttWFw2.induct, auto, (case_tac \<rho> rule:ttWFw.cases, auto)+)
 
 lemma tt_prefix_subset_length: "t \<lesssim>\<^sub>C s \<Longrightarrow> length t \<le> length s"
   by (induct rule:tt_prefix_subset.induct, auto)
@@ -1246,14 +1309,23 @@ inductive_set tocks :: "'e ttevent set \<Rightarrow> 'e ttobs list set" for X ::
   empty_in_tocks: "[] \<in> tocks X" |
   tock_insert_in_tocks: "Y \<subseteq> X \<Longrightarrow> \<rho> \<in> tocks X \<Longrightarrow> [Y]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> tocks X"
 
-lemma tocks_wf: "t\<in>tocks X \<Longrightarrow> ttWF t"
+lemma tocks_wf: "Tock \<notin> X \<Longrightarrow> t\<in>tocks X \<Longrightarrow> ttWF t"
   by (induct t rule:ttWF.induct, auto, (cases rule:tocks.cases, auto)+)
 
-lemma tocks_append_wf: "ttWF s \<Longrightarrow> t\<in>tocks X \<Longrightarrow> ttWF (t @ s)"
+lemma tocks_append_wf: "Tock \<notin> X \<Longrightarrow> ttWF s \<Longrightarrow> t\<in>tocks X \<Longrightarrow> ttWF (t @ s)"
   by (induct t rule:ttWF.induct, auto, (cases rule:tocks.cases, auto)+)
 
 lemma tocks_append_wf2: "ttWF (t @ s) \<Longrightarrow> t\<in>tocks X \<Longrightarrow> ttWF s"
   by (induct t rule:ttWF.induct, auto, (cases rule:tocks.cases, auto)+)
+
+lemma tocks_wfw: "t\<in>tocks X \<Longrightarrow> ttWFw t"
+  by (induct t rule:ttWFw.induct, auto, (cases rule:tocks.cases, auto)+)
+
+lemma tocks_append_wfw: "ttWFw s \<Longrightarrow> t\<in>tocks X \<Longrightarrow> ttWFw (t @ s)"
+  by (induct t rule:ttWFw.induct, auto, (cases rule:tocks.cases, auto)+)
+
+lemma tocks_append_wfw2: "ttWFw (t @ s) \<Longrightarrow> t\<in>tocks X \<Longrightarrow> ttWFw s"
+  by (induct t rule:ttWFw.induct, auto, (cases rule:tocks.cases, auto)+)
 
 lemma tocks_append_tocks: "t\<in>tocks X \<Longrightarrow> s\<in>tocks X \<Longrightarrow> t @ s \<in>tocks X"
   using tocks.cases by (induct t rule:ttWF.induct, auto, metis (no_types, lifting) list.inject list.simps(3) tocks.simps)
@@ -1307,14 +1379,14 @@ qed
 
 lemma tt_prefix_subset_tocks: "s \<in> tocks X \<Longrightarrow> t \<lesssim>\<^sub>C s \<Longrightarrow> t \<in> {t. \<exists>s\<in>tocks X. t = s \<or> (\<exists>Y. t = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> X)}"
 proof -
-  assume "s \<in> tocks X" 
-  then have "ttWF s"
-    using tocks_wf by blast
-  also have "ttWF s \<longrightarrow> s \<in> tocks X \<longrightarrow> t \<lesssim>\<^sub>C s \<longrightarrow> t \<in> {t. \<exists>s\<in>tocks X. t = s \<or> (\<exists>Y. t = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> X)}"
-    apply (induct t s rule:ttWF2.induct)
+  assume "s \<in> tocks X"
+  then have "ttWFw s"
+    using tocks_wfw by blast
+  also have "ttWFw s \<longrightarrow> s \<in> tocks X \<longrightarrow> t \<lesssim>\<^sub>C s \<longrightarrow> t \<in> {t. \<exists>s\<in>tocks X. t = s \<or> (\<exists>Y. t = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> X)}"
+    apply (induct t s rule:ttWFw2.induct)
     apply (simp_all add: empty_in_tocks)
     using tocks.simps apply auto[1]
-    apply (case_tac \<sigma> rule:ttWF.cases, auto)
+    apply (case_tac \<sigma> rule:ttWFw.cases, auto)
     apply (rule_tac x="[]" in bexI, simp, insert tocks.cases, force, simp add: empty_in_tocks)
     apply (rule_tac x="[]" in bexI, simp, insert tocks.cases, force, simp add: empty_in_tocks)
     apply (metis list.inject list.simps(3) tocks.simps)
@@ -1325,7 +1397,7 @@ proof -
     apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
     apply (rule_tac x="[Xa]\<^sub>R # [Tock]\<^sub>E # s" in bexI, simp)
     apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
-    apply (case_tac \<sigma> rule:ttWF.cases, auto)+
+    apply (case_tac \<sigma> rule:ttWFw.cases, auto)+
     done
   then show "s \<in> tocks X \<Longrightarrow> t \<lesssim>\<^sub>C s \<Longrightarrow> t \<in> {t. \<exists>s\<in>tocks X. t = s \<or> (\<exists>Y. t = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> X)}" using calculation by auto
 qed
@@ -1335,14 +1407,14 @@ lemma tt_prefix_tocks: "s \<in> tocks X \<Longrightarrow> t \<le>\<^sub>C s \<Lo
 
 lemma tt_prefix_subset_tocks2: "s \<in> tocks X \<Longrightarrow> t \<lesssim>\<^sub>C s \<Longrightarrow> t \<in> {t. \<exists>s'\<in>tocks X. s'\<lesssim>\<^sub>C s \<and> (t = s' \<or> (\<exists>Y. t = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> X))}"
 proof -
-  assume "s \<in> tocks X" 
-  then have "ttWF s"
-    using tocks_wf by blast
-  also have "ttWF s \<longrightarrow> s \<in> tocks X \<longrightarrow> t \<lesssim>\<^sub>C s \<longrightarrow> t \<in> {t. \<exists>s'\<in>tocks X. s'\<lesssim>\<^sub>C s \<and> (t = s' \<or> (\<exists>Y. t = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> X))}"
-    apply (induct t s rule:ttWF2.induct)
+  assume "s \<in> tocks X"
+  then have "ttWFw s"
+    using tocks_wfw by blast
+  also have "ttWFw s \<longrightarrow> s \<in> tocks X \<longrightarrow> t \<lesssim>\<^sub>C s \<longrightarrow> t \<in> {t. \<exists>s'\<in>tocks X. s'\<lesssim>\<^sub>C s \<and> (t = s' \<or> (\<exists>Y. t = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> X))}"
+    apply (induct t s rule:ttWFw2.induct)
     apply (simp_all add: empty_in_tocks)
     using tocks.simps apply auto[1]
-    apply (case_tac \<sigma> rule:ttWF.cases, auto)
+    apply (case_tac \<sigma> rule:ttWFw.cases, auto)
     apply (rule_tac x="[]" in bexI, simp, insert tocks.cases, force, simp add: empty_in_tocks)
     apply (rule_tac x="[]" in bexI, simp, insert tocks.cases, force, simp add: empty_in_tocks)
     apply (metis list.inject list.simps(3) tocks.simps)
@@ -1353,7 +1425,7 @@ proof -
     apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
     apply (rule_tac x="[Xa]\<^sub>R # [Tock]\<^sub>E # s'" in bexI, simp)
     apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
-    apply (case_tac \<sigma> rule:ttWF.cases, auto)+
+    apply (case_tac \<sigma> rule:ttWFw.cases, auto)+
     done
   then show "s \<in> tocks X \<Longrightarrow> t \<lesssim>\<^sub>C s \<Longrightarrow> t \<in> {t. \<exists>s'\<in>tocks X. s' \<lesssim>\<^sub>C s \<and> (t = s' \<or> (\<exists>Y. t = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> X))}"
     using calculation by blast
@@ -1362,10 +1434,10 @@ qed
 lemma tt_prefix_subset_tocks_refusal: "s \<in> tocks X \<Longrightarrow> \<rho> \<lesssim>\<^sub>C s @ [[Y]\<^sub>R] \<Longrightarrow> (\<exists> t \<in> tocks X. \<rho> = t \<or> (\<exists> Z. \<rho> = t @ [[Z]\<^sub>R] \<and> (Z \<subseteq> X \<or> Z \<subseteq> Y)))"
 proof -
   assume "s \<in> tocks X"
-  then have "ttWF (s @ [[Y]\<^sub>R])"
-    using ttWF.simps(2) tocks_append_wf by blast
-  also have "s \<in> tocks X \<longrightarrow> ttWF (s @ [[Y]\<^sub>R]) \<longrightarrow> \<rho> \<lesssim>\<^sub>C s @ [[Y]\<^sub>R] \<longrightarrow> (\<exists> t \<in> tocks X. \<rho> = t \<or> (\<exists> Z. \<rho> = t @ [[Z]\<^sub>R] \<and> (Z \<subseteq> X \<or> Z \<subseteq> Y)))"
-    apply (induct \<rho> s rule:ttWF2.induct, auto simp add: empty_in_tocks)
+  then have "ttWFw (s @ [[Y]\<^sub>R])"
+    using ttWFw.simps(2) tocks_append_wfw by blast
+  also have "s \<in> tocks X \<longrightarrow> ttWFw (s @ [[Y]\<^sub>R]) \<longrightarrow> \<rho> \<lesssim>\<^sub>C s @ [[Y]\<^sub>R] \<longrightarrow> (\<exists> t \<in> tocks X. \<rho> = t \<or> (\<exists> Z. \<rho> = t @ [[Z]\<^sub>R] \<and> (Z \<subseteq> X \<or> Z \<subseteq> Y)))"
+    apply (induct \<rho> s rule:ttWFw2.induct, auto simp add: empty_in_tocks)
     apply (rule_tac x="[]" in bexI, auto simp add: empty_in_tocks)
     apply (metis contra_subsetD ttobs.inject(2) list.inject list.simps(3) tocks.simps)
     using tocks.cases apply auto
@@ -1378,11 +1450,11 @@ proof -
     apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
     apply (rule_tac x="[Xa]\<^sub>R # [Tock]\<^sub>E # t" in bexI, auto simp add: empty_in_tocks)
     apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
-    apply (meson ttWF.simps(12) tt_prefix_subset_ttWF)
-    apply (meson ttWF.simps(11) tt_prefix_subset_ttWF)
-    apply (meson ttWF.simps(13) tt_prefix_subset_ttWF)
-    apply (meson ttWF.simps(8) tt_prefix_subset_ttWF)
-    by (meson ttWF.simps(6) tt_prefix_subset_ttWF)
+    apply (meson ttWFw.simps(12) tt_prefix_subset_ttWFw)
+    apply (meson ttWFw.simps(11) tt_prefix_subset_ttWFw)
+    apply (meson ttWFw.simps(13) tt_prefix_subset_ttWFw)
+    apply (meson ttWFw.simps(10) tt_prefix_subset_ttWFw)
+    by (meson ttWFw.simps(6) tt_prefix_subset_ttWFw)
   then show "s \<in> tocks X \<Longrightarrow> \<rho> \<lesssim>\<^sub>C s @ [[Y]\<^sub>R] \<Longrightarrow> \<exists>t\<in>tocks X. \<rho> = t \<or> (\<exists>Z. \<rho> = t @ [[Z]\<^sub>R] \<and> (Z \<subseteq> X \<or> Z \<subseteq> Y))"
     using calculation by auto
 qed
@@ -1391,16 +1463,16 @@ lemma tt_prefix_subset_tocks_refusal2: "s \<in> tocks X \<Longrightarrow> \<rho>
   (\<exists> t \<in> tocks X. t \<lesssim>\<^sub>C s \<and> (\<rho> = t \<or> (\<exists> Z. \<rho> = t @ [[Z]\<^sub>R] \<and> ((Z \<subseteq> X \<and> length (filter (\<lambda> x. x = [Tock]\<^sub>E) t) < length (filter (\<lambda> x. x = [Tock]\<^sub>E) s)) \<or> (Z \<subseteq> Y \<and> length (filter (\<lambda> x. x = [Tock]\<^sub>E) t) = length (filter (\<lambda> x. x = [Tock]\<^sub>E) s))))))"
 proof -
   assume "s \<in> tocks X"
-  then have "ttWF (s @ [[Y]\<^sub>R])"
-    using ttWF.simps(2) tocks_append_wf by blast
-  also have "s \<in> tocks X \<longrightarrow> ttWF (s @ [[Y]\<^sub>R]) \<longrightarrow> \<rho> \<lesssim>\<^sub>C s @ [[Y]\<^sub>R] \<longrightarrow> 
+  then have "ttWFw (s @ [[Y]\<^sub>R])"
+    using ttWFw.simps(2) tocks_append_wfw by blast
+  also have "s \<in> tocks X \<longrightarrow> ttWFw (s @ [[Y]\<^sub>R]) \<longrightarrow> \<rho> \<lesssim>\<^sub>C s @ [[Y]\<^sub>R] \<longrightarrow> 
     (\<exists>t\<in>tocks X.
        t \<lesssim>\<^sub>C s \<and>
        (\<rho> = t \<or>
         (\<exists>Z. \<rho> = t @ [[Z]\<^sub>R] \<and>
              (Z \<subseteq> X \<and> length [x\<leftarrow>t . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E] \<or>
               Z \<subseteq> Y \<and> length [x\<leftarrow>t . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E]))))"
-    apply (induct \<rho> s rule:ttWF2.induct, auto simp add: empty_in_tocks)
+    apply (induct \<rho> s rule:ttWFw2.induct, auto simp add: empty_in_tocks)
     apply (rule_tac x="[]" in bexI, auto simp add: empty_in_tocks)
     apply (metis tt_prefix_subset.simps(1) ttobs.inject(2) dual_order.trans filter.simps(1) list.distinct(1) list.inject list.size(3) tocks.cases tocks.empty_in_tocks zero_less_Suc)
     using tocks.cases apply auto
@@ -1408,16 +1480,16 @@ proof -
     apply blast
     apply blast
     apply (rule_tac x="[Xa]\<^sub>R # [Tock]\<^sub>E # t" in bexI, auto simp add: empty_in_tocks)
-           apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
-    apply (rule_tac x="[Xa]\<^sub>R # [Tock]\<^sub>E # t" in bexI, auto simp add: empty_in_tocks)
     apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
     apply (rule_tac x="[Xa]\<^sub>R # [Tock]\<^sub>E # t" in bexI, auto simp add: empty_in_tocks)
     apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
-    apply (meson ttWF.simps(12) tt_prefix_subset_ttWF)
-    apply (meson ttWF.simps(11) tt_prefix_subset_ttWF)
-    apply (meson ttWF.simps(13) tt_prefix_subset_ttWF)
-    apply (meson ttWF.simps(8) tt_prefix_subset_ttWF)
-    by (meson ttWF.simps(6) tt_prefix_subset_ttWF)
+    apply (rule_tac x="[Xa]\<^sub>R # [Tock]\<^sub>E # t" in bexI, auto simp add: empty_in_tocks)
+    apply (metis ttobs.inject(2) list.inject list.simps(3) rev_subsetD subsetI tocks.simps)
+    apply (meson ttWFw.simps(12) tt_prefix_subset_ttWFw)
+    apply (meson ttWFw.simps(11) tt_prefix_subset_ttWFw)
+    apply (meson ttWFw.simps(13) tt_prefix_subset_ttWFw)
+    apply (meson ttWFw.simps(8) tt_prefix_subset_ttWFw)
+    by (meson ttWFw.simps(6) tt_prefix_subset_ttWFw)
   then show "s \<in> tocks X \<Longrightarrow> \<rho> \<lesssim>\<^sub>C s @ [[Y]\<^sub>R] \<Longrightarrow>
     \<exists>t\<in>tocks X.
        t \<lesssim>\<^sub>C s \<and>
@@ -1435,15 +1507,15 @@ lemma tt_prefix_subset_tocks_event: "e \<noteq> Tock \<Longrightarrow> s \<in> t
       (t = s' @ [[e]\<^sub>E] \<and> length (filter (\<lambda> x. x = [Tock]\<^sub>E) s') = length (filter (\<lambda> x. x = [Tock]\<^sub>E) s)))}"
 proof -
   assume "e \<noteq> Tock" "s \<in> tocks X"
-  then have "ttWF (s @ [[e]\<^sub>E])"
-    by (cases e, auto simp add: tocks_append_wf)
-  also have "ttWF (s @ [[e]\<^sub>E]) \<longrightarrow> s \<in> tocks X \<longrightarrow> t \<lesssim>\<^sub>C s @ [[e]\<^sub>E] \<longrightarrow>
+  then have "ttWFw (s @ [[e]\<^sub>E])"
+    by (cases e, auto simp add: tocks_append_wfw)
+  also have "ttWFw (s @ [[e]\<^sub>E]) \<longrightarrow> s \<in> tocks X \<longrightarrow> t \<lesssim>\<^sub>C s @ [[e]\<^sub>E] \<longrightarrow>
     t \<in> {t. \<exists>s'\<in>tocks X. s'\<lesssim>\<^sub>C s \<and> 
       (t = s' \<or> 
         (\<exists>Y. t = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> X \<and> length (filter (\<lambda> x. x = [Tock]\<^sub>E) s') < length (filter (\<lambda> x. x = [Tock]\<^sub>E) s)) \<or>
         (t = s' @ [[e]\<^sub>E] \<and> length (filter (\<lambda> x. x = [Tock]\<^sub>E) s') = length (filter (\<lambda> x. x = [Tock]\<^sub>E) s)))}"
     apply auto
-    apply (induct t s rule:ttWF2.induct, auto simp add: empty_in_tocks)
+    apply (induct t s rule:ttWFw2.induct, auto simp add: empty_in_tocks)
     using tocks.simps apply auto
     apply (metis tt_prefix_subset.simps(1) ttobs.inject(2) filter.simps(1) list.distinct(1) list.inject list.size(3) order_trans tocks.cases tocks.empty_in_tocks zero_less_Suc)
     using tt_prefix_subset_refl filter.simps(1) apply blast
@@ -1454,11 +1526,11 @@ proof -
     apply (rule_tac x="[Xa]\<^sub>R # [Tock]\<^sub>E # s'" in bexI, auto, metis ttobs.inject(2) list.distinct(1) list.inject subset_iff tocks.simps)
     apply (rule_tac x="[Xa]\<^sub>R # [Tock]\<^sub>E # s'" in bexI, auto, metis ttobs.inject(2) list.distinct(1) list.inject subset_iff tocks.simps)
     apply blast
-    apply (meson ttWF.simps(12) tt_prefix_subset_ttWF)
-    apply (meson ttWF.simps(11) tt_prefix_subset_ttWF)
-    apply (meson ttWF.simps(13) tt_prefix_subset_ttWF)
-    apply (meson ttWF.simps(8) tt_prefix_subset_ttWF)
-    using ttWF.simps(6) tt_prefix_subset_ttWF by blast
+    apply (meson ttWFw.simps(12) tt_prefix_subset_ttWFw)
+    apply (meson ttWFw.simps(11) tt_prefix_subset_ttWFw)
+    apply (meson ttWFw.simps(13) tt_prefix_subset_ttWFw)
+    apply (meson ttWFw.simps(8) tt_prefix_subset_ttWFw)
+    using ttWFw.simps(6) tt_prefix_subset_ttWFw by blast
   then show "e \<noteq> Tock \<Longrightarrow>
     s \<in> tocks X \<Longrightarrow>
     t \<lesssim>\<^sub>C s @ [[e]\<^sub>E] \<Longrightarrow>
@@ -1478,11 +1550,11 @@ lemma equal_Tocks_tocks_imp:
   apply (induct \<rho> \<sigma> rule:ttWF2.induct, auto)
   using tocks.cases apply auto
   apply (metis (no_types, lifting) ttobs.inject(2) list.inject list.simps(3) order.trans tocks.simps)
-  apply (meson ttWF.simps(12) tt_prefix_subset_ttWF tocks_wf)
-  apply (meson ttWF.simps(11) tt_prefix_subset_ttWF tocks_wf)
-  apply (meson ttWF.simps(13) tt_prefix_subset_ttWF tocks_wf)
-  apply (meson ttWF.simps(10) tt_prefix_subset_ttWF tocks_wf)
-  by (meson ttWF.simps(6) tt_prefix_subset_ttWF tocks_wf)
+  apply (metis tocks.cases tt_prefix_subset.simps(2) tt_prefix_subset.simps(3) tt_prefix_subset.simps(6) ttevent.simps(7))
+  apply (metis init_refusal_tt_prefix_subset tocks.cases tt_prefix_subset.simps(3) tt_prefix_subset.simps(6) ttevent.distinct(1))
+  apply (metis (full_types) mem_Collect_eq tocks_wf ttWF.simps(13) tt_prefix_subset_ttWF)
+  apply (metis tocks.simps tt_prefix_subset.simps(4) tt_prefix_subset.simps(6))
+  by (metis tocks.simps tt_prefix_subset.simps(4) tt_prefix_subset.simps(6))
 
 lemma end_refusal_notin_tocks: "\<rho> @ [[X]\<^sub>R] \<notin> tocks Y"
   using tocks.cases by (induct \<rho> rule:ttWF.induct, auto)
@@ -1554,14 +1626,15 @@ lemma equal_traces_imp_equal_tocks: "s \<in> tocks X \<Longrightarrow> s' \<in> 
 lemma tt_subset_remove_start: "\<rho>' @ \<sigma>' \<subseteq>\<^sub>C \<rho> @ \<sigma> \<Longrightarrow> \<rho>' \<subseteq>\<^sub>C \<rho> \<Longrightarrow> \<sigma>' \<subseteq>\<^sub>C \<sigma>"
   by (induct \<rho>' \<rho> rule:tt_subset.induct, simp_all)
 
+thm ttWFw2.induct
+
 lemma tt_prefix_subset_lift_tocks:
   "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<rho> \<in> tocks UNIV \<Longrightarrow> \<exists> \<rho>' \<in> tocks UNIV. \<rho> \<lesssim>\<^sub>C \<rho>' \<and> \<rho>' \<le>\<^sub>C \<sigma>"
-  apply (induct \<rho> \<sigma> rule:ttWF2.induct, auto)
-  using tocks.simps apply auto
+  apply (induct \<rho> \<sigma> rule:ttWFw2.induct, auto simp add: notin_tocks)
   using tt_prefix.simps apply (blast, blast, blast, blast, blast)
 proof -
   fix Xa \<rho> Y \<sigma>
-  assume "[Xa]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> tocks UNIV"
+  assume assm1: "[Xa]\<^sub>R # [Tock]\<^sub>E # \<rho> \<in> tocks UNIV"
   then have "\<rho> \<in> tocks UNIV"
     using tocks.cases by auto
   also assume "\<rho> \<in> tocks UNIV \<Longrightarrow> \<exists>\<rho>'\<in>tocks UNIV. \<rho> \<lesssim>\<^sub>C \<rho>' \<and> \<rho>' \<le>\<^sub>C \<sigma>"
@@ -1570,27 +1643,6 @@ proof -
   assume "Xa \<subseteq> Y"
   then show "\<exists>\<rho>'\<in>tocks UNIV. [Xa]\<^sub>R # [Tock]\<^sub>E # \<rho> \<lesssim>\<^sub>C \<rho>' \<and> \<rho>' \<le>\<^sub>C [Y]\<^sub>R # [Tock]\<^sub>E # \<sigma>"
     by (rule_tac x="[Y]\<^sub>R # [Tock]\<^sub>E # \<rho>'" in bexI, simp_all add: \<rho>'_assms tocks.tock_insert_in_tocks)
-next
-  fix X \<rho> \<sigma>
-  assume "[X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<in> tocks UNIV"
-  then have "False"
-    using ttWF.simps(12) tocks_wf by blast
-  then show "\<exists>\<rho>'\<in>tocks UNIV. [X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<lesssim>\<^sub>C \<rho>' \<and> \<rho>' \<le>\<^sub>C \<sigma>"
-    by auto
-next
-  fix X e \<rho> \<sigma>
-  assume "[X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<in> tocks UNIV"
-  then have "False"
-    by (meson ttWF.simps(11) tocks_wf)
-  then show "\<exists>\<rho>'\<in>tocks UNIV. [X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<lesssim>\<^sub>C \<rho>' \<and> \<rho>' \<le>\<^sub>C \<sigma>"
-    by auto
-next
-  fix X Y \<rho> \<sigma>
-  assume "[X]\<^sub>R # [Y]\<^sub>R # \<rho> \<in> tocks UNIV"
-  then have "False"
-    using ttWF.simps(13) tocks_wf by blast
-  then show "\<exists>\<rho>'\<in>tocks UNIV. [X]\<^sub>R # [Y]\<^sub>R # \<rho> \<lesssim>\<^sub>C \<rho>' \<and> \<rho>' \<le>\<^sub>C \<sigma>"
-    by auto
 next
   fix X \<rho> \<sigma>
   assume "\<rho> \<lesssim>\<^sub>C [X]\<^sub>R # [Tick]\<^sub>E # \<sigma>" "\<rho> \<in> tocks UNIV"
@@ -1702,70 +1754,70 @@ next
   fix X \<rho> \<sigma>''
   assume "[X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<in> tocks UNIV"
   then have "False"
-    using ttWF.simps(12) tocks_wf by blast
+    using ttWFw.simps(12) tocks_wfw by blast
   then show "[X]\<^sub>R # [Tick]\<^sub>E # \<rho> \<lesssim>\<^sub>C \<sigma>''"
     by auto
 next
   fix X e \<rho> \<sigma>''
   assume "[X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<in> tocks UNIV"
   then have "False"
-    by (meson ttWF.simps(11) tocks_wf)
+    by (meson ttWFw.simps(11) tocks_wfw)
   then show "[X]\<^sub>R # [Event e]\<^sub>E # \<rho> \<lesssim>\<^sub>C \<sigma>''"
     by auto
 next
   fix X Y \<rho> \<sigma>''
   assume "[X]\<^sub>R # [Y]\<^sub>R # \<rho> \<in> tocks UNIV"
   then have "False"
-    using ttWF.simps(13) tocks_wf by blast
+    using ttWFw.simps(13) tocks_wfw by blast
   then show "[X]\<^sub>R # [Y]\<^sub>R # \<rho> \<lesssim>\<^sub>C \<sigma>''"
     by auto
 next
   fix X \<rho> \<sigma>''
   assume "[X]\<^sub>R # [Tick]\<^sub>E # \<sigma>'' \<in> tocks UNIV"
   then have "False"
-    using ttWF.simps(12) tocks_wf by blast
+    using ttWFw.simps(12) tocks_wfw by blast
   then show "\<rho> \<lesssim>\<^sub>C [X]\<^sub>R # [Tick]\<^sub>E # \<sigma>''"
     by auto
 next
   fix X e \<rho> \<sigma>''
   assume "[X]\<^sub>R # [Event e]\<^sub>E # \<sigma>'' \<in> tocks UNIV"
   then have "False"
-    by (meson ttWF.simps(11) tocks_wf)
+    by (meson ttWFw.simps(11) tocks_wfw)
   then show "\<rho> \<lesssim>\<^sub>C [X]\<^sub>R # [Event e]\<^sub>E # \<sigma>''"
     by auto
 next
   fix X Y \<rho> \<sigma>''
   assume "[X]\<^sub>R # [Y]\<^sub>R # \<sigma>'' \<in> tocks UNIV"
   then have "False"
-    using ttWF.simps(13) tocks_wf by blast
+    using ttWFw.simps(13) tocks_wfw by blast
   then show "\<rho> \<lesssim>\<^sub>C [X]\<^sub>R # [Y]\<^sub>R # \<sigma>''"
     by auto
 next
   fix x \<rho> \<sigma>''
   assume "[Tick]\<^sub>E # x # \<rho> \<in> tocks UNIV"
   then have "False"
-    using ttWF.simps(10) tocks_wf by blast
+    using ttWFw.simps(10) tocks_wfw by blast
   then show "[Tick]\<^sub>E # x # \<rho> \<lesssim>\<^sub>C \<sigma>''"
     by auto
 next
   fix y \<rho> \<sigma>''
   assume "[Tick]\<^sub>E # y # \<sigma>'' \<in> tocks UNIV"
   then have "False"
-    using ttWF.simps(10) tocks_wf by blast
+    using ttWFw.simps(10) tocks_wfw by blast
   then show "\<rho> \<lesssim>\<^sub>C [Tick]\<^sub>E # y # \<sigma>''"
     by auto
 next
   fix \<rho> \<sigma>''
   assume "[Tock]\<^sub>E # \<rho> \<in> tocks UNIV"
   then have "False"
-    using ttWF.simps(6) tocks_wf by blast
+    using ttWFw.simps(6) tocks_wfw by blast
   then show "[Tock]\<^sub>E # \<rho> \<lesssim>\<^sub>C \<sigma>''"
     by auto
 next
   fix \<rho> \<sigma>''
   assume "[Tock]\<^sub>E # \<sigma>'' \<in> tocks UNIV"
   then have "False"
-    using ttWF.simps(6) tocks_wf by blast
+    using ttWFw.simps(6) tocks_wfw by blast
   then show "\<rho> \<lesssim>\<^sub>C [Tock]\<^sub>E # \<sigma>''"
     by auto
 qed
@@ -1922,28 +1974,28 @@ next
   fix Xa \<rho> \<sigma>
   assume assms: "\<sigma> \<in> tocks X" "[Xa]\<^sub>R # [Tick]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma>"
   then obtain \<sigma>' Y where "\<sigma> = [Y]\<^sub>R # [Tick]\<^sub>E # \<sigma>'"
-    using ttWF.simps(12) tt_prefix_subset_ttWF tt_subset_imp_prefix_subset tocks_wf by blast
+    using ttWFw.simps(12) tt_prefix_subset_ttWFw tt_subset_imp_prefix_subset tocks_wfw by blast
   then show False
     using assms(1) second_tick_notin_tocks by blast
 next
   fix Xa e \<rho> \<sigma>
   assume assms: "\<sigma> \<in> tocks X" "[Xa]\<^sub>R # [Event e]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma>"
   then obtain \<sigma>' Y where "\<sigma> = [Y]\<^sub>R # [Event e]\<^sub>E # \<sigma>'"
-    by (meson ttWF.simps(11) tt_prefix_subset_ttWF tt_subset_imp_prefix_subset tocks_wf)
+    by (meson ttWFw.simps(11) tt_prefix_subset_ttWFw tt_subset_imp_prefix_subset tocks_wfw)
   then show False
     using assms(1) second_event_notin_tocks by force
 next
   fix Xa Y \<rho> \<sigma>
   assume assms: "\<sigma> \<in> tocks X" "[Xa]\<^sub>R # [Y]\<^sub>R # \<rho> \<subseteq>\<^sub>C \<sigma>"
   then obtain \<sigma>' Z W where "\<sigma> = [Z]\<^sub>R # [W]\<^sub>R # \<sigma>'"
-    using ttWF.simps(13) tt_prefix_subset_ttWF tt_subset_imp_prefix_subset tocks_wf by blast
+    using ttWFw.simps(13) tt_prefix_subset_ttWFw tt_subset_imp_prefix_subset tocks_wfw by blast
   then show False
     using assms(1) double_refusal_start_notin_tocks by blast
 next
   fix x \<rho> \<sigma>
   assume assms: "\<sigma> \<in> tocks X" "[Tick]\<^sub>E # x # \<rho> \<subseteq>\<^sub>C \<sigma>"
   then obtain \<sigma>' where "\<sigma> = [Tick]\<^sub>E # x # \<sigma>'"
-    using ttWF.simps(8) tt_prefix_subset_ttWF tt_subset_imp_prefix_subset tocks_wf by blast
+    using ttWFw.simps(8) tt_prefix_subset_ttWFw tt_subset_imp_prefix_subset tocks_wfw by blast
   then show False
     using assms(1) start_tick_notin_tocks by blast
 next
@@ -2116,7 +2168,7 @@ next
   then have "t = [] \<or> (\<exists> ta. t = [Tock]\<^sub>E # ta)"
     using assms(3) by (cases t rule:ttWF.cases, auto)
   then show "t \<le>\<^sub>C s1'"
-    using assms(2) ttWF.simps(6) tocks_wf by (auto, blast)
+    using assms(2) ttWFw.simps(6) tocks_wfw by (auto, blast)
 next
   fix va s1' t
   assume assms: "[Tock]\<^sub>E # va \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
@@ -2125,7 +2177,7 @@ next
   then have "t = [] \<or> (\<exists> ta. t = [Tock]\<^sub>E # ta)"
     using assms(3) by (cases t rule:ttWF.cases, auto)
   then show "t \<le>\<^sub>C s1'"
-    using assms(2) ttWF.simps(6) tocks_wf by (auto, blast)
+    using assms(2) ttWFw.simps(6) tocks_wfw by (auto, blast)
 next
   fix va s1' t
   assume assms: "[Tock]\<^sub>E # va \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
@@ -2134,7 +2186,7 @@ next
   then have "t = [] \<or> (\<exists> ta. t = [Tock]\<^sub>E # ta)"
     using assms(3) by (cases t rule:ttWF.cases, auto)
   then show "t \<le>\<^sub>C s1'"
-    using assms(2) ttWF.simps(6) tocks_wf by (auto, blast)
+    using assms(2) ttWFw.simps(6) tocks_wfw by (auto, blast)
 next
   fix va s1' t
   assume assms: "[Tick]\<^sub>E # va \<subseteq>\<^sub>C s1'" "t \<in> tocks UNIV" "t \<le>\<^sub>C s1' @ s2"
@@ -2194,23 +2246,23 @@ proof (induct \<rho> \<sigma> rule:ttWF2.induct, auto simp add: notin_tocks)
 next
   fix Xa \<rho> \<sigma>
   show "\<sigma> \<in> tocks X \<Longrightarrow> [Xa]\<^sub>R # [Tick]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
-    using ttWF.simps(12) tt_prefix_subset_ttWF tt_subset_imp_prefix_subset tocks_wf by blast
+    using ttWFw.simps(12) tt_prefix_subset_ttWFw tt_subset_imp_prefix_subset tocks_wfw by blast
 next
   fix Xa e \<rho> \<sigma>
   show "\<sigma> \<in> tocks X \<Longrightarrow> [Xa]\<^sub>R # [Event e]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
-    by (meson ttWF.simps(11) tt_prefix_subset_ttWF tt_subset_imp_prefix_subset tocks_wf)
+    by (meson ttWFw.simps(11) tt_prefix_subset_ttWFw tt_subset_imp_prefix_subset tocks_wfw)
 next
   fix Xa Y \<rho> \<sigma>
   show "\<sigma> \<in> tocks X \<Longrightarrow> [Xa]\<^sub>R # [Y]\<^sub>R # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
-    using ttWF.simps(13) tt_prefix_subset_ttWF tt_subset_imp_prefix_subset tocks_wf by blast
+    using ttWFw.simps(13) tt_prefix_subset_ttWFw tt_subset_imp_prefix_subset tocks_wfw by blast
 next
   fix x \<rho> \<sigma>
   show "\<sigma> \<in> tocks X \<Longrightarrow> [Tick]\<^sub>E # x # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
-    using ttWF.simps(8) tt_prefix_subset_ttWF tt_subset_imp_prefix_subset tocks_wf by blast
+    using ttWFw.simps(8) tt_prefix_subset_ttWFw tt_subset_imp_prefix_subset tocks_wfw by blast
 next
   fix \<rho> \<sigma>
   show "\<sigma> \<in> tocks X \<Longrightarrow> [Tock]\<^sub>E # \<rho> \<subseteq>\<^sub>C \<sigma> \<Longrightarrow> False"
-    using ttWF.simps(6) tt_prefix_subset_ttWF tt_subset_imp_prefix_subset tocks_wf by blast
+    using ttWFw.simps(6) tt_prefix_subset_ttWFw tt_subset_imp_prefix_subset tocks_wfw by blast
 qed
 
 lemma tocks_tt_subset2:
@@ -2228,7 +2280,7 @@ next
 next
   fix Xa \<rho> \<sigma>
   show "\<rho> \<in> tocks X \<Longrightarrow> \<rho> \<subseteq>\<^sub>C [Xa]\<^sub>R # [Tick]\<^sub>E # \<sigma> \<Longrightarrow> False"
-    by (metis ttWF.simps(12) tt_subset.simps(2) tt_subset.simps(3) tt_subset.simps(8) tocks.simps tocks_wf)
+    by (metis ttWFw.simps(12) tt_subset.simps(2) tt_subset.simps(3) tt_subset.simps(8) tocks.simps tocks_wfw)
 next
   fix Xa e \<rho> \<sigma>
   show "\<rho> \<in> tocks X \<Longrightarrow> \<rho> \<subseteq>\<^sub>C [Xa]\<^sub>R # [Event e]\<^sub>E # \<sigma> \<Longrightarrow> False"
@@ -2344,75 +2396,68 @@ definition RefinesTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rig
 section {* Refinement lattice supplementary definitions and proofs *}
 
 lemma ttWF_traces_TT0:
-  "TT0 {t. ttWF t \<and> ttWFx_trace t}"
+  "TT0 {t. ttWF t}"
   unfolding TT0_def by (auto, rule_tac x="[]" in exI, auto)
 
 lemma ttWF_traces_TT1:
-  "TT1 {t. ttWF t \<and> ttWFx_trace t}"
+  "TT1 {t. ttWF t}"
   unfolding TT1_def using tt_prefix_subset_ttWF tt_prefix_of_ttWFx_trace by blast
 
 lemma ttWF_traces_TT2:
-  "TT2 {t. ttWF t \<and> ttWFx_trace t}"
+  "TT2 {t. ttWF t}"
   unfolding TT2_def
 proof auto
   fix \<rho> \<sigma> :: "'a ttobs list"
   fix X Y
-  show "ttWF (\<rho> @ [X]\<^sub>R # \<sigma>) \<Longrightarrow> ttWF (\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>)"
-    by (induct \<rho> rule:ttWF.induct, auto, induct \<sigma> rule:ttWF.induct, auto)
-next
-  fix \<rho> \<sigma> :: "'a ttobs list"
-  fix X Y
-  show "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<rho> @ [[e]\<^sub>E]) \<and> ttWFx_trace (\<rho> @ [[e]\<^sub>E]) \<or> e = Tock \<and> ttWF (\<rho> @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> ttWFx_trace (\<rho> @ [[X]\<^sub>R, [e]\<^sub>E])} = {} \<Longrightarrow>
-    ttWF (\<rho> @ [X]\<^sub>R # \<sigma>) \<Longrightarrow> ttWFx_trace (\<rho> @ [X]\<^sub>R # \<sigma>) \<Longrightarrow> ttWFx_trace (\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>)"
-  proof (induct \<rho> rule:ttWF.induct, auto, induct "[X]\<^sub>R # \<sigma>" rule:ttWF.induct, auto)
-    fix e \<sigma>'
-    assume assm1: "Y \<inter> {ea. ea \<noteq> Tock \<and> ttWF (\<sigma>' @ [[ea]\<^sub>E]) \<and> ttWFx_trace ([Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E])
-        \<or> ea = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E]) \<and> ttWFx_trace ([Event e]\<^sub>E # \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E])} = {}"
-    assume assm2: "ttWF (\<sigma>' @ [X]\<^sub>R # \<sigma>)"
-    assume assm3: "ttWFx_trace ([Event e]\<^sub>E # \<sigma>' @ [X]\<^sub>R # \<sigma>)"
-    assume ind_hyp: "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<sigma>' @ [[e]\<^sub>E]) \<and> ttWFx_trace (\<sigma>' @ [[e]\<^sub>E]) \<or> e = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> ttWFx_trace (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E])} = {} \<Longrightarrow>
-        ttWFx_trace (\<sigma>' @ [X]\<^sub>R # \<sigma>) \<Longrightarrow> ttWFx_trace (\<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma>)"
-    have "{e. e \<noteq> Tock \<and> ttWF (\<sigma>' @ [[e]\<^sub>E]) \<and> ttWFx_trace (\<sigma>' @ [[e]\<^sub>E])
-        \<or> e = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> ttWFx_trace (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E])}
-      \<subseteq> {ea. ea \<noteq> Tock \<and> ttWF (\<sigma>' @ [[ea]\<^sub>E]) \<and> ttWFx_trace ([Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E])
-        \<or> ea = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E]) \<and> ttWFx_trace ([Event e]\<^sub>E # \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E])}"
-      by (auto, (metis ttWFx_trace.simps(2) ttWFx_trace.simps(4) list.exhaust)+)
-    then have "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<sigma>' @ [[e]\<^sub>E]) \<and> ttWFx_trace (\<sigma>' @ [[e]\<^sub>E])
-        \<or> e = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> ttWFx_trace (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E])}
-      \<subseteq> Y \<inter> {ea. ea \<noteq> Tock \<and> ttWF (\<sigma>' @ [[ea]\<^sub>E]) \<and> ttWFx_trace ([Event e]\<^sub>E # \<sigma>' @ [[ea]\<^sub>E])
-        \<or> ea = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E]) \<and> ttWFx_trace ([Event e]\<^sub>E # \<sigma>' @ [[X]\<^sub>R, [ea]\<^sub>E])}"
-      by blast
-    then have 1: "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<sigma>' @ [[e]\<^sub>E]) \<and> ttWFx_trace (\<sigma>' @ [[e]\<^sub>E])
-        \<or> e = Tock \<and> ttWF (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E]) \<and> ttWFx_trace (\<sigma>' @ [[X]\<^sub>R, [e]\<^sub>E])} = {}"
+  assume assm1: "ttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
+  assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<rho> @ [[e]\<^sub>E]) \<or> e = Tock \<and> ttWF (\<rho> @ [[X]\<^sub>R, [e]\<^sub>E])} = {}"
+  have \<rho>_wf: "ttWF \<rho>"
+    using assm1 ttWF_prefix_is_ttWF by blast
+  show "ttWF (\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>)"
+  proof (cases "Tock \<in> X")
+    assume case_assm: "Tock \<in> X"
+    then have "Y \<inter> {e. e \<noteq> Tock \<and> ttWF (\<rho> @ [[e]\<^sub>E])} = {}"
+      using assm2 by (induct \<rho> rule:ttWF.induct, auto)
+    also have "{e. e \<noteq> Tock} \<subseteq> {e. e \<noteq> Tock \<and> ttWF (\<rho> @ [[e]\<^sub>E])}"
+      using assm1 by (auto, case_tac x, auto, (induct \<rho> rule:ttWF.induct, auto)+)
+    then have "Y \<inter> {e. e \<noteq> Tock} = {}"
+      using calculation by auto
+    then have "Y = {} \<or> Y = {Tock}"
+      by auto
+    then show "ttWF (\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>)"
+    proof auto
+      show "ttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
+        using assm1 by auto
+    next
+      have "insert Tock X = X"
+        using case_assm by auto
+      then show "ttWF (\<rho> @ [insert Tock X]\<^sub>R # \<sigma>)"
+        using assm1 by auto
+    qed
+  next
+    assume "Tock \<notin> X"
+    then have "{e. e \<noteq> Tock \<and> ttWF (\<rho> @ [[e]\<^sub>E]) \<or> e = Tock \<and> ttWF (\<rho> @ [[X]\<^sub>R, [e]\<^sub>E])} = UNIV"
+      using assm1 by (induct \<rho> rule:ttWF.induct, auto, (case_tac x, auto)+)
+    then have "Y = {}"
+      using assm2 by auto
+    then show "ttWF (\<rho> @ [X \<union> Y]\<^sub>R # \<sigma>)"
       using assm1 by auto
-    have 2: "ttWFx_trace (\<sigma>' @ [X]\<^sub>R # \<sigma>)"
-      using ttWFx_trace_cons_imp_cons assm3 by blast
-    have "ttWFx_trace (\<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma>)"
-      using ind_hyp 1 2 by auto
-    then show "ttWFx_trace ([Event e]\<^sub>E # \<sigma>' @ [X \<union> Y]\<^sub>R # \<sigma>)"
-      by (metis ttWFx_trace.simps(2) ttWFx_trace.simps(4) list.exhaust)
   qed
 qed
 
 lemma ttWF_traces_TT3:
-  "TT3 {t. ttWF t \<and> ttWFx_trace t}"
+  "TT3 {t. ttWF t}"
   unfolding TT3_def
 proof auto
   fix \<rho> :: "'a ttobs list"
   show "ttWF \<rho> \<Longrightarrow> ttWF (add_Tick_refusal_trace \<rho>)"
     by (induct \<rho> rule:ttWF.induct, auto)
-next
-  fix \<rho> :: "'a ttobs list"
-  show "ttWFx_trace \<rho> \<Longrightarrow> ttWFx_trace (add_Tick_refusal_trace \<rho>)"
-    by (induct \<rho> rule:ttWFx_trace.induct, auto, case_tac x, auto,case_tac vb, auto)
 qed
 
 lemma bottom_healthy_process:
-  assumes "\<forall> t\<in>P. ttWF t" "TT0 P" "TT1 P" "TT2 P" "ttWFx P" "TT3 P"
-  shows "{t. ttWF t \<and> ttWFx_trace t} \<sqsubseteq>\<^sub>C P"
-  using assms unfolding ttWFx_def RefinesTT_def by auto
-
-thm TT2_def
+  assumes "\<forall> t\<in>P. ttWF t" "TT0 P" "TT1 P" "TT2 P" "TT3 P"
+  shows "{t. ttWF t} \<sqsubseteq>\<^sub>C P"
+  using assms unfolding RefinesTT_def by auto
 
 definition SupremumTT :: "'a ttobs list set \<Rightarrow> 'a ttobs list set \<Rightarrow> 'a ttobs list set" where
   "SupremumTT P Q = {t\<in>P\<inter>Q. \<forall> \<rho> \<sigma> X Y. t = \<rho> @ [[X]\<^sub>R] @ \<sigma>
