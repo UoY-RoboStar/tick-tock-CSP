@@ -876,10 +876,12 @@ lemma mkTT1_mkTT3w_iff_TT14:
     apply (metis TT1_fixpoint_mkTT1 TT3w_fixpoint_mkTT3w)
     by (metis TT1_fixpoint_mkTT1 TT3w_fixpoint_mkTT3w)
 
+text_raw \<open>\DefineSnippet{add_Tick_refusal_trace}{\<close>
 fun add_Tick_refusal_trace :: "'e tttrace \<Rightarrow> 'e ttobs list" where
   "add_Tick_refusal_trace [] = []" |
   "add_Tick_refusal_trace ([e]\<^sub>E # t) = [e]\<^sub>E # add_Tick_refusal_trace t" |
   "add_Tick_refusal_trace ([X]\<^sub>R # t) = [X \<union> {Tick}]\<^sub>R # add_Tick_refusal_trace t"
+text_raw \<open>}%EndSnippet\<close>
 
 lemma add_Tick_refusal_trace_idempotent:
   "add_Tick_refusal_trace (add_Tick_refusal_trace \<rho>) = add_Tick_refusal_trace \<rho>"
