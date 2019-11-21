@@ -877,7 +877,7 @@ lemma mkTT1_mkTT3w_iff_TT14:
     by (metis TT1_fixpoint_mkTT1 TT3w_fixpoint_mkTT3w)
 
 text_raw \<open>\DefineSnippet{add_Tick_refusal_trace}{\<close>
-fun add_Tick_refusal_trace :: "'e tttrace \<Rightarrow> 'e ttobs list" where
+fun add_Tick_refusal_trace :: "'e tttrace \<Rightarrow> 'e tttrace" where
   "add_Tick_refusal_trace [] = []" |
   "add_Tick_refusal_trace ([e]\<^sub>E # t) = [e]\<^sub>E # add_Tick_refusal_trace t" |
   "add_Tick_refusal_trace ([X]\<^sub>R # t) = [X \<union> {Tick}]\<^sub>R # add_Tick_refusal_trace t"
@@ -952,9 +952,6 @@ lemma TT3_TT1_add_Tick_ref_Tock:
   "TT3 P \<Longrightarrow> TT1 P \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # t \<in> P \<Longrightarrow> [X \<union> {Tick}]\<^sub>R # [Tock]\<^sub>E # t \<in> P"
   by (metis TT1_def TT3_def add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_tt_subset add_Tick_refusal_trace_idempotent tt_subset_imp_prefix_subset)
 
-lemma "add_Tick_refusal_trace (\<rho> @ [X]\<^sub>R # \<sigma>) = add_Tick_refusal_trace \<rho> @ [X \<union> {Tick}]\<^sub>R # add_Tick_refusal_trace \<sigma>"
-  oops
-
 lemma TT3_TT1_add_Tick:
   assumes TT1_P: "TT1 P" and TT3_P: "TT3 P"
   shows "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [X \<union> {Tick}]\<^sub>R # \<sigma> \<in> P"
@@ -965,6 +962,45 @@ proof auto
   then show "\<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P"
     using TT1_P unfolding TT1_def apply auto
     by (metis Un_insert_left Un_insert_right add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat add_Tick_refusal_trace_tt_subset tt_subset_imp_prefix_subset insert_absorb2)
+qed
+
+lemma add_Tick_TT3:
+  assumes "\<And> \<rho> \<sigma> X. \<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [X \<union> {Tick}]\<^sub>R # \<sigma> \<in> P"
+  shows "TT3 P"
+  using assms unfolding TT3_def
+proof auto
+  fix \<rho> :: "'a tttrace"
+  show "\<And>P. (\<And>\<rho> X \<sigma>. \<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P) \<Longrightarrow> \<rho> \<in> P
+    \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> P"
+  proof (induct \<rho> rule:add_Tick_refusal_trace.induct, simp_all)
+    fix e t
+    fix P :: "'a ttprocess"
+    assume assm: "(\<And>\<rho> X \<sigma>. \<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P)"
+    assume in_P: "[e]\<^sub>E # t \<in> P"
+    assume ind_hyp: "(\<And>P. (\<And>\<rho> X \<sigma>. \<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P) \<Longrightarrow> t \<in> P
+      \<Longrightarrow> add_Tick_refusal_trace t \<in> P)"
+    have 1: "t \<in> {s. [e]\<^sub>E # s \<in> P}"
+      using in_P by auto
+    have 2: "(\<And>\<rho> X \<sigma>. \<rho> @ [X]\<^sub>R # \<sigma> \<in> {s. [e]\<^sub>E # s \<in> P} \<Longrightarrow> \<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> {s. [e]\<^sub>E # s \<in> P})"
+      by (auto, metis Cons_eq_appendI assm)
+    show "[e]\<^sub>E # add_Tick_refusal_trace t \<in> P"
+      using ind_hyp 1 2 by blast
+  next
+    fix X t
+    fix P :: "'a ttprocess"
+    assume assm: "(\<And>\<rho> X \<sigma>. \<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P)"
+    assume in_P: "[X]\<^sub>R # t \<in> P"
+    assume ind_hyp: "(\<And>P. (\<And>\<rho> X \<sigma>. \<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<Longrightarrow> \<rho> @ [insert Tick X]\<^sub>R # \<sigma> \<in> P) \<Longrightarrow> t \<in> P
+      \<Longrightarrow> add_Tick_refusal_trace t \<in> P)"
+    have 1: "t \<in> {s. [X]\<^sub>R # s \<in> P}"
+      using in_P by auto
+    have 2: "(\<And>\<rho> Y \<sigma>. \<rho> @ [Y]\<^sub>R # \<sigma> \<in> {s. [X]\<^sub>R # s \<in> P} \<Longrightarrow> \<rho> @ [insert Tick Y]\<^sub>R # \<sigma> \<in> {s. [X]\<^sub>R # s \<in> P})"
+      by (auto, metis Cons_eq_appendI assm)
+    have "[X]\<^sub>R # add_Tick_refusal_trace t \<in> P"
+      using ind_hyp 1 2 by blast
+    then show "[insert Tick X]\<^sub>R # add_Tick_refusal_trace t \<in> P"
+      using assm[where \<rho>="[]"] by force
+  qed
 qed
 
 lemma TT3_TT1_imp_Ref_Tock:
