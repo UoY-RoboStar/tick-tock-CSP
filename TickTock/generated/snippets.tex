@@ -88,7 +88,9 @@
 }%EndSnippet
 \DefineSnippet{SeqComp_wf}{
 \isacommand{lemma}\isamarkupfalse%
-\ SeqComp{\isacharunderscore}wf{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}\ t{\isasymin}P{\isachardot}\ ttWF\ t\ {\isasymLongrightarrow}\ {\isasymforall}\ t{\isasymin}Q{\isachardot}\ ttWF\ t\ {\isasymLongrightarrow}\ {\isasymforall}\ t\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isachardot}\ ttWF\ t{\isachardoublequoteclose}\isanewline
+\ SeqComp{\isacharunderscore}wf{\isacharcolon}\ \isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isasymforall}t{\isasymin}P{\isachardot}\ ttWF\ t{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymforall}t{\isasymin}Q{\isachardot}\ ttWF\ t{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymforall}\ t\ {\isasymin}\ P\ {\isacharsemicolon}\isactrlsub C\ Q{\isachardot}\ ttWF\ t{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -100,20 +102,34 @@
 \isacommand{proof}\isamarkupfalse%
 \ auto\isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
+\ t\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}t\ {\isasymin}\ P{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isasymforall}s{\isachardot}\ t\ {\isasymnoteq}\ s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}ttWF\ t{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
 \ s\ ta\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymforall}x{\isasymin}P{\isachardot}\ ttWF\ x{\isachardoublequoteclose}\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}\ {\isasymin}\ P{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
 \ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}ttWF\ {\isacharparenleft}s\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackleft}Tick{\isacharbrackright}\isactrlsub E{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assms{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymforall}x{\isasymin}Q{\isachardot}\ ttWF\ x{\isachardoublequoteclose}\ {\isachardoublequoteopen}ta\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}ta\ {\isasymin}\ Q{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
 \ {\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}ttWF\ ta{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
 \ {\isadigit{1}}\ {\isadigit{2}}\ \isacommand{show}\isamarkupfalse%

@@ -11,16 +11,23 @@ definition SeqCompTT :: "'e ttprocess \<Rightarrow> 'e ttprocess \<Rightarrow> '
 text_raw \<open>}%EndSnippet\<close>
 
 text_raw \<open>\DefineSnippet{SeqComp_wf}{\<close>
-lemma SeqComp_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t \<in> P ;\<^sub>C Q. ttWF t"
+lemma SeqComp_wf: 
+  assumes "\<forall>t\<in>P. ttWF t" "\<forall>t\<in>Q. ttWF t"
+  shows "\<forall> t \<in> P ;\<^sub>C Q. ttWF t"
   unfolding SeqCompTT_def
 proof auto
+  fix t
+  assume "t \<in> P" "\<forall>s. t \<noteq> s @ [[Tick]\<^sub>E]"
+  then show "ttWF t"
+    using assms(1) by auto
+next
   fix s ta
-  assume "\<forall>x\<in>P. ttWF x" "s @ [[Tick]\<^sub>E] \<in> P"
+  assume "s @ [[Tick]\<^sub>E] \<in> P"
   then have 1: "ttWF (s @ [[Tick]\<^sub>E])"
-    by auto
-  assume "\<forall>x\<in>Q. ttWF x" "ta \<in> Q"
+    using assms(1) by auto
+  assume "ta \<in> Q"
   then have 2: "ttWF ta"
-    by auto
+    using assms(2) by auto
   from 1 2 show "ttWF (s @ ta)"
     by (induct s rule:ttWF.induct, auto)
 qed
