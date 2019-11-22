@@ -15,6 +15,11 @@ lemma TT2_IntChoice:
   shows "TT2 (P \<sqinter>\<^sub>C Q)"
     using assms unfolding IntChoiceTT_def TT2_def by (auto, (smt disjoint_iff_not_equal mem_Collect_eq)+)
 
+lemma TT3w_IntChoice:
+  assumes "TT3w P" "TT3w Q"
+  shows "TT3w (P \<sqinter>\<^sub>C Q)"
+  using assms unfolding IntChoiceTT_def TT3w_def by auto
+
 lemma TT3_IntChoice:
   assumes "TT3 P" "TT3 Q"
   shows "TT3 (P \<sqinter>\<^sub>C Q)"

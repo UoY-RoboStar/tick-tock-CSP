@@ -197,41 +197,41 @@ lemma TT1w_unTT1:
   "TT1w(unTT1(P))"
   unfolding unTT1_def TT1w_def by auto
 
-lemma TTM1_mkTT3:
+lemma TTM1_mkTT3w:
   assumes "TTM1 P" "TTM3 P"
-  shows "TTM1 (mkTT3 P)"
-  using assms unfolding TTM1_def TTM3_def mkTT3_def apply auto
+  shows "TTM1 (mkTT3w P)"
+  using assms unfolding TTM1_def TTM3_def mkTT3w_def apply auto
   by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
 
-lemma TTM2_mkTT3:
+lemma TTM2_mkTT3w:
   assumes "TTM2 P" "TTM3 P"
-  shows "TTM2 (mkTT3 P)"
-  using assms unfolding TTM2_def TTM3_def mkTT3_def apply auto
+  shows "TTM2 (mkTT3w P)"
+  using assms unfolding TTM2_def TTM3_def mkTT3w_def apply auto
   by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
 
-lemma TTM3_mkTT3:
+lemma TTM3_mkTT3w:
   assumes "TTM3 P"
-  shows "TTM3 (mkTT3 P)"
-  using assms unfolding TTM3_def mkTT3_def apply auto
+  shows "TTM3 (mkTT3w P)"
+  using assms unfolding TTM3_def mkTT3w_def apply auto
   by (metis TTickTrace_eq_add_Tick_refusal_trace_fixpoint)
 
-lemma TT1w_mkTT3:
+lemma TT1w_mkTT3w:
   assumes "TT1w P"
-  shows "TT1w (mkTT3 P)"
-  using assms unfolding TT1w_def TTM3_def mkTT3_def apply auto
+  shows "TT1w (mkTT3w P)"
+  using assms unfolding TT1w_def TTM3_def mkTT3w_def apply auto
   by (smt add_Tick_refusal_trace_concat add_Tick_refusal_trace_tt_subset append_eq_append_conv tt_prefix_decompose tt_prefix_tt_subset tt_subset_same_length)
 
-lemma TT3_unTT1:
-  assumes "TT1 P" "TT3 P" 
-  shows "TT3(unTT1(P))"
-  using assms unfolding TT3_def unTT1_def  apply auto
-  apply (rule_tac x="mkTT3(x)" in exI, auto)
-  using TTM1_mkTT3 apply blast
-  using TTM2_mkTT3 apply blast
-  using TTM3_mkTT3 apply blast
-  using TT1w_mkTT3 apply blast
-   apply (smt TT1_fixpoint_mkTT1 TT1_mkTT1_simp UnE mem_Collect_eq mkTT1_mono mkTT3_def subsetI)
-  unfolding mkTT3_def by auto
+lemma TT3w_unTT1:
+  assumes "TT1 P" "TT3w P" 
+  shows "TT3w(unTT1(P))"
+  using assms unfolding TT3w_def unTT1_def  apply auto
+  apply (rule_tac x="mkTT3w(x)" in exI, auto)
+  using TTM1_mkTT3w apply blast
+  using TTM2_mkTT3w apply blast
+  using TTM3_mkTT3w apply blast
+  using TT1w_mkTT3w apply blast
+   apply (smt TT1_fixpoint_mkTT1 TT1_mkTT1_simp UnE mem_Collect_eq mkTT1_mono mkTT3w_def subsetI)
+  unfolding mkTT3w_def by auto
 
 lemma TT2_unTT1_part:
   assumes "TT P"
@@ -300,13 +300,13 @@ lemma TTM3_unTT1:
   unfolding unTT1_def TTM3_def by auto
 
 lemma unTT1_TT_closure:
-  assumes "TT P" "TT2 P" "TT3 P"
+  assumes "TT P" "TT2 P" "TT3w P"
   shows "TT0 (unTT1 P)"
        "TTwf (unTT1 P)"
        "TT1w (unTT1 P)" 
        "TT2 (unTT1 P)" 
        "ttWFx (unTT1 P)" 
-       "TT3 (unTT1 P)" 
+       "TT3w (unTT1 P)" 
        "TTM1 (unTT1 P)" 
        "TTM2 (unTT1 P)" 
        "TTM3 (unTT1 P)"
@@ -316,7 +316,7 @@ lemma unTT1_TT_closure:
     apply (simp add: TT1w_unTT1)
          apply (simp add: TT2_unTT1 assms(1))
         apply (simp add: ttWFx_unTT1 TT_TT1 TT_ttWFx assms(1))
-       apply (simp add: TT3_unTT1 TT_TT1 assms(1) assms(3))
+       apply (simp add: TT3w_unTT1 TT_TT1 assms(1) assms(3))
       apply (simp add: TTM1_unTT1)
    apply (simp add: TTM2_unTT1)
     by (simp add: TTM3_unTT1)
@@ -327,15 +327,15 @@ lemma mkTT1_TT_closure:
           "TT1w P" 
           "TT2 P" 
           "ttWFx P" 
-          "TT3 P" 
+          "TT3w P" 
           "TTM1 P" 
           "TTM2 P" 
           "TTM3 P"
-    shows "TTwf(mkTT1 P)" "TT0(mkTT1 P)" "TT1(mkTT1 P)" "TT2(mkTT1 P)" "ttWFx(mkTT1 P)" "TT3(mkTT1 P)"
+    shows "TTwf(mkTT1 P)" "TT0(mkTT1 P)" "TT1(mkTT1 P)" "TT2(mkTT1 P)" "ttWFx(mkTT1 P)" "TT3w(mkTT1 P)"
   using assms TTwf_mkTT1 apply blast
   using assms TT0_mkTT1 apply blast
   using assms TT1_mkTT1 apply blast
   using assms TT2_mkTT1 apply blast
   using assms ttWFx_mkTT1 apply blast
-  using assms TT3_mkTT1 by blast
+  using assms TT3w_mkTT1 by blast
 end

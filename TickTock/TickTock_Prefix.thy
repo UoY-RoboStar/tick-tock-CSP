@@ -16,6 +16,73 @@ lemma PrefixTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>
   apply (metis (mono_tags, lifting) mem_Collect_eq tocks_wf)
   by (metis (mono_tags, lifting) mem_Collect_eq tocks_append_wf ttWF.simps(4))
 
+lemma TT1_Prefix: 
+  assumes "TT1 P"
+  shows "TT1 (e \<rightarrow>\<^sub>C P)"
+  unfolding TT1_def
+proof auto
+  fix \<rho> \<sigma> :: "'a ttobs list"
+  show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> \<rho> \<in> e \<rightarrow>\<^sub>C P"
+    unfolding PrefixTT_def
+  proof auto
+    assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
+    assume assm2: "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<rho> \<noteq> s @ [Event e]\<^sub>E # \<sigma>)"
+    assume assm3: "\<sigma> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+    obtain s where "s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<rho> = s \<or> (\<exists>Y. \<rho> = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e})"
+      using assm1 assm3 tt_prefix_subset_tocks by blast
+    then show "\<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]"
+      using assm2 by auto
+  next
+    fix s X
+    assume assm1: "\<rho> \<lesssim>\<^sub>C s @ [[X]\<^sub>R]"
+    assume assm2: "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<rho> \<noteq> s @ [Event e]\<^sub>E # \<sigma>)"
+    assume assm3: "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+    assume assm4: "Tock \<notin> X"
+    assume assm5: "Event e \<notin> X"
+    obtain t Z where "t\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<rho> = t \<or> \<rho> = t @ [[Z]\<^sub>R]" "Z \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e} \<or> Z \<subseteq> X"
+      using assm1 assm3 tt_prefix_subset_tocks_refusal by blast
+    then show "\<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]"
+      using assm2 assm4 assm5 by auto
+  next
+    assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
+    assume assm2: "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<rho> \<noteq> s @ [Event e]\<^sub>E # \<sigma>)"
+    assume assm3: "\<sigma> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+    obtain s where "s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<rho> = s \<or> (\<exists>Y. \<rho> = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e})"
+      using assm1 assm3 tt_prefix_subset_tocks by blast
+    then show "\<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]"
+      using assm2 by auto
+  next
+    fix s \<sigma>'
+    assume assm1: "\<rho> \<lesssim>\<^sub>C s @ [Event e]\<^sub>E # \<sigma>'"
+    assume assm2: "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<rho> \<noteq> s @ [Event e]\<^sub>E # \<sigma>)"
+    assume assm3: "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+    assume assm4: "\<sigma>' \<in> P"
+    thm tt_prefix_subset_append_split
+    from assm1 have "\<rho> \<lesssim>\<^sub>C (s @ [[Event e]\<^sub>E]) @ \<sigma>'"
+      by simp
+    then obtain a b where a_b_assms: "\<rho> = a @ b" "a \<lesssim>\<^sub>C s @ [[Event e]\<^sub>E]" "b \<lesssim>\<^sub>C \<sigma>'"
+      "length a = length (s @ [[Event e]\<^sub>E]) \<and> length [x\<leftarrow>a . x = [Tock]\<^sub>E] = length [x\<leftarrow>(s @ [[Event e]\<^sub>E]) . x = [Tock]\<^sub>E] \<or> b = []"
+      using tt_prefix_subset_append_split by blast
+    then obtain s' where s'_assms: "s'\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
+            "s' \<lesssim>\<^sub>C s"
+             "a = s' \<or>
+              (\<exists>Y. a = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e} \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E]) \<or>
+              a = s' @ [[Event e]\<^sub>E] \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
+      using tt_prefix_subset_tocks_event assm3 by blast
+    have b_in_P: "b \<in> P"
+      using TT1_def a_b_assms(3) assm4 assms by blast
+    from s'_assms have "b \<noteq> [] \<longrightarrow> a = s' @ [[Event e]\<^sub>E] \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
+      using a_b_assms(4) tt_prefix_subset_length by (auto, fastforce+)
+    then have b_empty: "b = []"
+      using b_in_P a_b_assms(1) assm2 s'_assms(1) by fastforce
+    then have "\<exists>Y. a = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e} \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
+      using a_b_assms(1) assm2 b_in_P s'_assms(1) s'_assms(3) by blast
+    then show "\<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]"
+      apply (auto, rule_tac x="s'" in bexI, rule_tac x="Y" in exI)
+      using b_empty a_b_assms(1) s'_assms(1) by blast+
+  qed
+qed
+
 lemma TT2_Prefix:
   assumes TT0_P: "TT0 P" and TT1_P: "TT1 P"
   assumes TT2_P: "TT2 P"
@@ -186,9 +253,9 @@ proof auto
   qed
 qed
 
-lemma TT3_Prefix:
-  "TT3 P \<Longrightarrow> TT3 (e \<rightarrow>\<^sub>C P)"
-  unfolding PrefixTT_def TT3_def
+lemma TT3w_Prefix:
+  "TT3w P \<Longrightarrow> TT3w (e \<rightarrow>\<^sub>C P)"
+  unfolding PrefixTT_def TT3w_def
 proof auto
   fix s
   assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
@@ -196,14 +263,14 @@ proof auto
       (\<forall>\<sigma>\<in>P. add_Tick_refusal_trace s \<noteq> sa @ [Event e]\<^sub>E # \<sigma>) \<Longrightarrow>
     \<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]"
     apply (erule_tac x="add_Tick_refusal_trace s" in ballE, auto)
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
+    by (metis (mono_tags, lifting) TT3w_def TT3w_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
 next
   fix s X
   assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "Tock \<notin> X" "Event e \<notin> X"
   then show "\<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}.
     \<exists>Xa. Tock \<notin> Xa \<and> Event e \<notin> Xa \<and> add_Tick_refusal_trace (s @ [[X]\<^sub>R]) = sa @ [[Xa]\<^sub>R]"
     apply (rule_tac x="add_Tick_refusal_trace s" in bexI, rule_tac x="X \<union> {Tick}" in exI, auto simp add: add_Tick_refusal_trace_end_refusal)
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
+    by (metis (mono_tags, lifting) TT3w_def TT3w_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
 next
   fix s
   assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
@@ -211,7 +278,7 @@ next
       (\<forall>\<sigma>\<in>P. add_Tick_refusal_trace s \<noteq> sa @ [Event e]\<^sub>E # \<sigma>) \<Longrightarrow>
     \<exists>sa\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]"
     apply (erule_tac x="add_Tick_refusal_trace s" in ballE, auto)
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
+    by (metis (mono_tags, lifting) TT3w_def TT3w_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
 next
   fix s \<sigma>
   assume "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<sigma> \<in> P"
@@ -224,8 +291,11 @@ next
       \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> add_Tick_refusal_trace (s @ [Event e]\<^sub>E # \<sigma>) = sa @ [[X]\<^sub>R]"
     using calculation apply (erule_tac x="add_Tick_refusal_trace s" in ballE, auto)
     apply (erule_tac x="add_Tick_refusal_trace \<sigma>" in ballE, auto simp add: add_Tick_refusal_trace_end_event_trace)
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
+    by (metis (mono_tags, lifting) TT3w_def TT3w_tocks ttevent.distinct(3) ttevent.simps(7) mem_Collect_eq)
 qed
+
+lemma TT3_Prefix: "TT1 P \<Longrightarrow> TT3 P \<Longrightarrow> TT3 (e \<rightarrow>\<^sub>C P)"
+  by (simp add: TT1_Prefix TT1_TT3w_equiv_TT3 TT3w_Prefix)
 
 lemma TT_Prefix:
   assumes "TT P"
@@ -239,66 +309,9 @@ next
   show "e \<rightarrow>\<^sub>C P = {} \<Longrightarrow> False"
     unfolding PrefixTT_def using tocks.empty_in_tocks by (blast)
 next
-  fix \<rho> \<sigma> :: "'a ttobs list"
+  fix \<rho> \<sigma>
   show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> e \<rightarrow>\<^sub>C P \<Longrightarrow> \<rho> \<in> e \<rightarrow>\<^sub>C P"
-    unfolding PrefixTT_def
-  proof auto
-    assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
-    assume assm2: "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<rho> \<noteq> s @ [Event e]\<^sub>E # \<sigma>)"
-    assume assm3: "\<sigma> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
-    obtain s where "s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<rho> = s \<or> (\<exists>Y. \<rho> = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e})"
-      using assm1 assm3 tt_prefix_subset_tocks by blast
-    then show "\<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]"
-      using assm2 by auto
-  next
-    fix s X
-    assume assm1: "\<rho> \<lesssim>\<^sub>C s @ [[X]\<^sub>R]"
-    assume assm2: "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<rho> \<noteq> s @ [Event e]\<^sub>E # \<sigma>)"
-    assume assm3: "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
-    assume assm4: "Tock \<notin> X"
-    assume assm5: "Event e \<notin> X"
-    obtain t Z where "t\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<rho> = t \<or> \<rho> = t @ [[Z]\<^sub>R]" "Z \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e} \<or> Z \<subseteq> X"
-      using assm1 assm3 tt_prefix_subset_tocks_refusal by blast
-    then show "\<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]"
-      using assm2 assm4 assm5 by auto
-  next
-    assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
-    assume assm2: "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<rho> \<noteq> s @ [Event e]\<^sub>E # \<sigma>)"
-    assume assm3: "\<sigma> \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
-    obtain s where "s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}" "\<rho> = s \<or> (\<exists>Y. \<rho> = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e})"
-      using assm1 assm3 tt_prefix_subset_tocks by blast
-    then show "\<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]"
-      using assm2 by auto
-  next
-    fix s \<sigma>'
-    assume assm1: "\<rho> \<lesssim>\<^sub>C s @ [Event e]\<^sub>E # \<sigma>'"
-    assume assm2: "\<forall>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<rho> \<noteq> s \<and> (\<forall>\<sigma>\<in>P. \<rho> \<noteq> s @ [Event e]\<^sub>E # \<sigma>)"
-    assume assm3: "s \<in> tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
-    assume assm4: "\<sigma>' \<in> P"
-    thm tt_prefix_subset_append_split
-    from assm1 have "\<rho> \<lesssim>\<^sub>C (s @ [[Event e]\<^sub>E]) @ \<sigma>'"
-      by simp
-    then obtain a b where a_b_assms: "\<rho> = a @ b" "a \<lesssim>\<^sub>C s @ [[Event e]\<^sub>E]" "b \<lesssim>\<^sub>C \<sigma>'"
-      "length a = length (s @ [[Event e]\<^sub>E]) \<and> length [x\<leftarrow>a . x = [Tock]\<^sub>E] = length [x\<leftarrow>(s @ [[Event e]\<^sub>E]) . x = [Tock]\<^sub>E] \<or> b = []"
-      using tt_prefix_subset_append_split by blast
-    then obtain s' where s'_assms: "s'\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}"
-            "s' \<lesssim>\<^sub>C s"
-             "a = s' \<or>
-              (\<exists>Y. a = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e} \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E]) \<or>
-              a = s' @ [[Event e]\<^sub>E] \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
-      using tt_prefix_subset_tocks_event assm3 by blast
-    have b_in_P: "b \<in> P"
-      using TT1_def TT_TT1 a_b_assms(3) assm4 assms by blast
-    from s'_assms have "b \<noteq> [] \<longrightarrow> a = s' @ [[Event e]\<^sub>E] \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
-      using a_b_assms(4) tt_prefix_subset_length by (auto, fastforce+)
-    then have b_empty: "b = []"
-      using b_in_P a_b_assms(1) assm2 s'_assms(1) by fastforce
-    then have "\<exists>Y. a = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock \<and> x \<noteq> Event e} \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
-      using a_b_assms(1) assm2 b_in_P s'_assms(1) s'_assms(3) by blast
-    then show "\<exists>s\<in>tocks {x. x \<noteq> Tock \<and> x \<noteq> Event e}. \<exists>X. Tock \<notin> X \<and> Event e \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]"
-      apply (auto, rule_tac x="s'" in bexI, rule_tac x="Y" in exI)
-      using b_empty a_b_assms(1) s'_assms(1) by blast+
-  qed
+    by (meson TT1_Prefix TT1_def TT_TT1 assms)
 next
   fix \<rho> X Y
   assume assm1: "Y \<inter> {ea. ea \<noteq> Tock \<and> \<rho> @ [[ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P \<or> ea = Tock \<and> \<rho> @ [[X]\<^sub>R, [ea]\<^sub>E] \<in> e \<rightarrow>\<^sub>C P} = {}"
@@ -643,10 +656,10 @@ next
     done
 qed
 
-lemma TT3_TockPrefix:
-  assumes "TT3 P"
-  shows "TT3 (tock \<rightarrow>\<^sub>C P)"
-  unfolding TockPrefixTT_def TT3_def
+lemma TT3w_TockPrefix:
+  assumes "TT3w P"
+  shows "TT3w (tock \<rightarrow>\<^sub>C P)"
+  unfolding TockPrefixTT_def TT3w_def
 proof auto
   fix s :: "'a ttobs list"
   assume "s \<in> tocks {x. x \<noteq> Tock}"   
@@ -681,7 +694,7 @@ next
   then have 1: "add_Tick_refusal_trace s \<in> tocks {x. x \<noteq> Tock}"
     by (induct s rule:tocks.induct, auto simp add: tocks.intros)
   have 2: "add_Tick_refusal_trace \<sigma> \<in> P"
-    using assms case_assms unfolding TT3_def by auto
+    using assms case_assms unfolding TT3w_def by auto
   show "\<forall>sa\<in>tocks {x. x \<noteq> Tock}. add_Tick_refusal_trace (s @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) \<noteq> sa \<and>
       (\<forall>\<sigma>'\<in>P. \<forall>Xa. Tock \<in> Xa \<or> add_Tick_refusal_trace (s @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) \<noteq> sa @ [Xa]\<^sub>R # [Tock]\<^sub>E # \<sigma>') \<Longrightarrow>
     \<exists>sa\<in>tocks {x. x \<noteq> Tock}. \<exists>Xa. Tock \<notin> Xa \<and> add_Tick_refusal_trace (s @ [X]\<^sub>R # [Tock]\<^sub>E # \<sigma>) = sa @ [[Xa]\<^sub>R]"
@@ -690,8 +703,11 @@ next
     by (metis Un_commute add_Tick_refusal_trace.simps(2) add_Tick_refusal_trace.simps(3) add_Tick_refusal_trace_concat insert_is_Un)
 qed
 
+lemma TT3_TockPrefix: "TT1 P \<Longrightarrow> TT3 P \<Longrightarrow> TT3 (tock \<rightarrow>\<^sub>C P)"
+  by (simp add: TT1_TT3w_equiv_TT3 TT1_TockPrefixTT TT3w_TockPrefix)
+
 lemma TT_TockPrefix:
-  assumes "TT P" "TT2 P" "TT3 P"
+  assumes "TT P" "TT2 P" "TT3w P"
   shows "TT (tock \<rightarrow>\<^sub>C P)"
   using assms unfolding TT_def
   using TT0_TockPrefixTT TT1_TockPrefixTT TT2_TockPrefix TT2_imp_TT2w ttWFx_TockPrefix TockPrefixTT_wf by blast

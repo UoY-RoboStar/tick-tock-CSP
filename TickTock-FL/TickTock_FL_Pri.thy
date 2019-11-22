@@ -356,10 +356,10 @@ fun addRefTickTock :: "'e ttobs list \<Rightarrow> 'e ttobs list \<Rightarrow> '
 
 text \<open> Crucially, we can then show that prirefTT1 is a subset of prirefTT when Tick
        is added to the refusal set, and furthermore such refusal set is also in Q because
-       of TT3. \<close>
+       of TT3w. \<close>
 
 lemma prirefTT1_imp_prirefTT:
-  assumes "TT(Q)" "TT3(Q)" "s @ [[S]\<^sub>R] \<in> Q" "TT2(Q)"
+  assumes "TT(Q)" "TT3w(Q)" "s @ [[S]\<^sub>R] \<in> Q" "TT2(Q)"
   shows "prirefTT1 pa S s Q \<subseteq> prirefTT pa s Q (refTickTock S s Q) \<and> s @ [[refTickTock S s Q]\<^sub>R] \<in> Q"
 proof -
   obtain J where J:"J = S\<union>{Tick}
@@ -378,7 +378,7 @@ proof -
 
   have b:"{Tick} \<subseteq> prirefTT pa s Q (S\<union>{Tick})" "s @ [[S\<union>{Tick}]\<^sub>R] \<in> Q"
     unfolding prirefTT_def apply auto
-    using assms TT3_middle_Ref_with_Tick TT_TT1 by fastforce
+    using assms TT3w_middle_Ref_with_Tick TT_TT1 by fastforce
 
   have c:  "{z. (s @ [[z]\<^sub>E] \<notin> Q \<and> z \<noteq> Tock)} \<subseteq> prirefTT pa s Q  (S\<union>{z. (s @ [[z]\<^sub>E] \<notin> Q \<and> z \<noteq> Tock)})"
        and "s @ [[S\<union>{z. (s @ [[z]\<^sub>E] \<notin> Q \<and> z \<noteq> Tock)}]\<^sub>R] \<in> Q"
@@ -415,7 +415,7 @@ proof -
     then have "s @ [[S\<union>{z. (s @ [[z]\<^sub>E] \<notin> Q \<and> z \<noteq> Tock)}]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
       using TT2_union_Ref_Tock_imp assms(4) by blast
     then have "s @ [[S\<union>{Tick}\<union>{z. (s @ [[z]\<^sub>E] \<notin> Q \<and> z \<noteq> Tock)}]\<^sub>R, [Tock]\<^sub>E] \<in> Q"
-      using TT3_TT1_add_Tick TT_TT1 assms(1) assms(2) by fastforce
+      using TT3w_TT1_add_Tick TT_TT1 assms(1) assms(2) by fastforce
     then show ?thesis
       by blast
   next
@@ -460,12 +460,12 @@ proof -
 qed
 
 lemma prirefTT1_imp_prirefTT':
-  assumes "TT(Q)" "TT3(Q)" "s @ [[S]\<^sub>R] \<in> Q" "TT2(Q)"
+  assumes "TT(Q)" "TT3w(Q)" "s @ [[S]\<^sub>R] \<in> Q" "TT2(Q)"
   shows "prirefTT1 pa S s Q \<subseteq> prirefTT pa s Q (refTickTock S s Q)"
   using assms prirefTT1_imp_prirefTT by blast
 
 lemma prirefTT1_imp_prirefTT'' [intro]:
-  assumes "TT(Q)" "TT3(Q)" "s @ [[S]\<^sub>R] \<in> Q" "TT2(Q)"
+  assumes "TT(Q)" "TT3w(Q)" "s @ [[S]\<^sub>R] \<in> Q" "TT2(Q)"
   shows "s @ [[refTickTock S s Q]\<^sub>R] \<in> Q"
   using assms prirefTT1_imp_prirefTT by blast
 
@@ -476,7 +476,7 @@ lemma TT1_Ref_Tock_imp_Ref [intro]:
   by (meson TT1_def order_refl tt_prefix_subset.simps(1) tt_prefix_subset.simps(2) tt_prefix_subset_same_front)
 
 lemma prirefTT1_imp_prirefTT_noassm:
-  assumes "TT(Q)" "TT3(Q)" "TT2(Q)"
+  assumes "TT(Q)" "TT3w(Q)" "TT2(Q)"
   shows "prirefTT1 pa S s Q \<subseteq> prirefTT pa s Q (refTickTock S s Q)"
 proof (cases "s @ [[S]\<^sub>R] \<in> Q")
   case True
@@ -544,14 +544,14 @@ lemma addRefTickTock_concat_event:
   by (induct xs i P rule:addRefTickTock.induct, auto)
 
 lemma Tock_notin_prirefTT1_imp_notin_prirefTT:
-  assumes "Tock \<notin> prirefTT1 pa S s Q" "TT(Q)" "TT2(Q)" "TT3(Q)"
+  assumes "Tock \<notin> prirefTT1 pa S s Q" "TT(Q)" "TT2(Q)" "TT3w(Q)"
   shows "Tock \<notin> prirefTT pa s Q (refTickTock S s Q)"
   using assms unfolding prirefTT1_def prirefTT_def refTickTock_def apply auto
-  using TT2_union_Ref_Tock_imp TT3_TT1_add_Tick TT_TT1 apply fastforce
+  using TT2_union_Ref_Tock_imp TT3w_TT1_add_Tick TT_TT1 apply fastforce
   using ttWFx_any_cons_end_tock TT_ttWFx by blast
 
 lemma TT2w_union_Ref_ext_imp:
-  assumes "TT(P)" "TT2(P)" "TT3(P)" "s @ [[X]\<^sub>R] @ t \<in> P"
+  assumes "TT(P)" "TT2(P)" "TT3w(P)" "s @ [[X]\<^sub>R] @ t \<in> P"
   shows "s @ [[X\<union>{z. (s @ [[z]\<^sub>E] \<notin> P \<and> z \<noteq> Tock)}]\<^sub>R] @ t \<in> P"
 proof -
   obtain Y where Y:"Y = {e. (e \<noteq> Tock \<and> s @ [[e]\<^sub>E] \<notin> P)}"
@@ -565,7 +565,7 @@ proof -
 qed
 
 lemma TT2w_union_RefTock_ext_imp:
-  assumes "TT(P)" "TT2(P)" "TT3(P)" "s @ [[X]\<^sub>R] @ t \<in> P"
+  assumes "TT(P)" "TT2(P)" "TT3w(P)" "s @ [[X]\<^sub>R] @ t \<in> P"
   shows "s @ [[X\<union>{e. e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}]\<^sub>R] @ t \<in> P"
 proof -
   obtain Y where Y:"Y = {e::'a ttevent. e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}"
@@ -579,7 +579,7 @@ proof -
 qed
 
 lemma TT2w_union_Ref_ext_imp':
-  assumes "TT(P)" "TT2(P)" "TT3(P)" "s @ [[X]\<^sub>R,[Tock]\<^sub>E] @ t \<in> P"
+  assumes "TT(P)" "TT2(P)" "TT3w(P)" "s @ [[X]\<^sub>R,[Tock]\<^sub>E] @ t \<in> P"
   shows "s @ [[X\<union>{e. e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}]\<^sub>R,[Tock]\<^sub>E] @ t \<in> P"
 proof -
   obtain Y where Y:"Y = {e::'a ttevent. e = Tock \<and> s @ [[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P}"
@@ -593,23 +593,23 @@ proof -
 qed
 
 lemma TT2w_union_RefTock_ext_imp':
-  assumes "TT(P)" "TT2(P)" "TT3(P)" "s @ [[X]\<^sub>R] @ t \<in> P"
+  assumes "TT(P)" "TT2(P)" "TT3w(P)" "s @ [[X]\<^sub>R] @ t \<in> P"
   shows "s @ [[X\<union>{Tick}\<union>{e. e = Tock \<and> s @ [[X\<union>{Tick}]\<^sub>R, [Tock]\<^sub>E] \<notin> P}]\<^sub>R] @ t \<in> P"
 proof -
   obtain J where J:"J = X\<union>{Tick}" by auto 
   then have "s @ [[J]\<^sub>R] @ t \<in> P"
-    using TT3_middle_Ref_with_Tick TT_TT1 assms(1) assms(3) assms(4) by blast
+    using TT3w_middle_Ref_with_Tick TT_TT1 assms(1) assms(3) assms(4) by blast
   then have "s @ [[J\<union>{e. e = Tock \<and> s @ [[J]\<^sub>R, [Tock]\<^sub>E] \<notin> P}]\<^sub>R] @ t \<in> P"
     using TT2w_union_RefTock_ext_imp assms by auto
   then show ?thesis using J by auto
 qed
 
 lemma TT2_addRefTickTock_ext_imp:
-  assumes "TT(P)" "TT2(P)" "TT3(P)" "s @ [[X]\<^sub>R] @ t \<in> P"
+  assumes "TT(P)" "TT2(P)" "TT3w(P)" "s @ [[X]\<^sub>R] @ t \<in> P"
   shows "s @ [[refTickTock X s P]\<^sub>R] @ t \<in> P"
 proof -
   have "s @ [[X\<union>{Tick}]\<^sub>R] @ t \<in> P"
-    using TT3_middle_Ref_with_Tick TT_TT1 assms(1) assms(3) assms(4) by blast
+    using TT3w_middle_Ref_with_Tick TT_TT1 assms(1) assms(3) assms(4) by blast
   then have "s @ [[X\<union>{Tick}\<union>{z. (s @ [[z]\<^sub>E] \<notin> P \<and> z \<noteq> Tock)}]\<^sub>R] @ t \<in> P"
     using TT2w_union_Ref_ext_imp assms by blast
   then have "s @ [[X\<union>{Tick}\<union>{z. (s @ [[z]\<^sub>E] \<notin> P \<and> z \<noteq> Tock)}\<union>{e. e = Tock \<and> s @ [[X\<union>{Tick}\<union>{z. (s @ [[z]\<^sub>E] \<notin> P \<and> z \<noteq> Tock)}]\<^sub>R, [Tock]\<^sub>E] \<notin> P}]\<^sub>R] @ t \<in> P"
@@ -630,7 +630,7 @@ proof -
 qed
 
 lemma addRefTickTock_in:
-  assumes "TT(P)" "TT2(P)" "TT3(P)" "i @ ys \<in> P"
+  assumes "TT(P)" "TT2(P)" "TT3w(P)" "i @ ys \<in> P"
   shows "i @ (addRefTickTock ys i P) \<in> P"
   using assms proof (induct ys i P rule:addRefTickTock.induct)
   case (1 s Q)
@@ -653,29 +653,29 @@ lemma addRefTickTock_in:
 
 
 lemma prirefTT_imp_prirefTT_refTickTock:
-  assumes "TT(Q)" "TT2(Q)" "TT3(Q)"
+  assumes "TT(Q)" "TT2(Q)" "TT3w(Q)"
   shows "prirefTT pa (s @ [[Saa]\<^sub>R] @ sa) Q Sa \<subseteq> prirefTT pa (s @ [[refTickTock Saa s Q]\<^sub>R] @ sa) Q Sa"
   using assms unfolding prirefTT_def apply auto
   using TT2_addRefTickTock_ext_imp by fastforce+
 
 lemma prirefTT_refTickTock_imp_prirefTT:
-  assumes "TT(Q)" "TT2(Q)" "TT3(Q)"
+  assumes "TT(Q)" "TT2(Q)" "TT3w(Q)"
   shows "prirefTT pa (s @ [[refTickTock Saa s Q]\<^sub>R] @ sa) Q Sa \<subseteq> prirefTT pa (s @ [[Saa]\<^sub>R] @ sa) Q Sa"
   using assms unfolding prirefTT_def apply auto
   using TT2_addRefTickTock_subset_imp TT_TT1 by fastforce+
 
 lemma prirefTT_eq_prirefTT_refTickTock:
-  assumes "TT(Q)" "TT2(Q)" "TT3(Q)"
+  assumes "TT(Q)" "TT2(Q)" "TT3w(Q)"
   shows "prirefTT pa (s @ [[Saa]\<^sub>R] @ sa) Q Sa = prirefTT pa (s @ [[refTickTock Saa s Q]\<^sub>R] @ sa) Q Sa"
   using assms prirefTT_imp_prirefTT_refTickTock prirefTT_refTickTock_imp_prirefTT by blast
 
 lemma Tock_notin_prirefTT1_imp_notin_prirefTT_refTickTock:
-  assumes "Tock \<notin> prirefTT pa (s @ [Saa]\<^sub>R # sa) Q  Sa" "TT(Q)" "TT2(Q)" "TT3(Q)"
+  assumes "Tock \<notin> prirefTT pa (s @ [Saa]\<^sub>R # sa) Q  Sa" "TT(Q)" "TT2(Q)" "TT3w(Q)"
   shows "Tock \<notin> prirefTT pa (s @ [refTickTock Saa s Q]\<^sub>R # sa) Q Sa"
   using assms prirefTT_eq_prirefTT_refTickTock by fastforce
 
 lemma priTT_trace_refTickTock:
-  assumes "priTT p xs ys (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q" "TT(Q)" "TT2(Q)" "TT3(Q)"
+  assumes "priTT p xs ys (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q" "TT(Q)" "TT2(Q)" "TT3w(Q)"
   shows "priTT p xs ys (s @ [[refTickTock S s Q]\<^sub>R, [Tock]\<^sub>E]) Q"
   using assms apply (induct p xs ys _ Q arbitrary:S rule:priTT.induct, auto)
   using prirefTT_eq_prirefTT_refTickTock apply fastforce
@@ -684,13 +684,13 @@ lemma priTT_trace_refTickTock:
   by (metis TT2_addRefTickTock_ext_imp append_Cons append_Nil prirefTT_eq_prirefTT_refTickTock)
 
 lemma priTT1_imp_priTT:
-  assumes "priTT1 p xs ys i P" "TT(P)" "TT2(P)" "TT3(P)"
+  assumes "priTT1 p xs ys i P" "TT(P)" "TT2(P)" "TT3w(P)"
   shows "priTT p xs (addRefTickTock ys i P) i P"
   using assms proof (induct p xs ys _ P rule:priTT.induct, auto)
   fix pa S s Q x
   fix R::"'a ttevent set" 
   assume assms: "R \<subseteq> prirefTT1 pa S s Q"
-         "TT Q" "TT2 Q" "TT3 Q"
+         "TT Q" "TT2 Q" "TT3w Q"
          "x \<in> R"
   show "x \<in> prirefTT pa s Q (refTickTock S s Q)"
     using assms prirefTT1_imp_prirefTT_noassm by blast
@@ -700,7 +700,7 @@ next
   assume assms: "priTT pa aa (addRefTickTock zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q) (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
           "R \<subseteq> prirefTT1 pa S s Q"
           "Tock \<notin> prirefTT1 pa S s Q"
-         "TT Q" "TT2 Q" "TT3 Q"
+         "TT Q" "TT2 Q" "TT3w Q"
          "x \<in> R"
   show "x \<in> prirefTT pa s Q (refTickTock S s Q)"
     using assms prirefTT1_imp_prirefTT_noassm by blast
@@ -710,7 +710,7 @@ next
   assume assms: "priTT pa aa (addRefTickTock zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q) (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
           "R \<subseteq> prirefTT1 pa S s Q"
           "Tock \<notin> prirefTT1 pa S s Q"
-         "TT Q" "TT2 Q" "TT3 Q"
+         "TT Q" "TT2 Q" "TT3w Q"
           "Tock \<in> prirefTT pa s Q (refTickTock S s Q)"
   have "Tock \<notin> prirefTT pa s Q (refTickTock S s Q)"
     using assms Tock_notin_prirefTT1_imp_notin_prirefTT by blast
@@ -722,7 +722,7 @@ next
   assume assms: "priTT pa aa (addRefTickTock zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q) (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
           "R \<subseteq> prirefTT1 pa S s Q"
           "Tock \<notin> prirefTT1 pa S s Q"
-         "TT Q" "TT2 Q" "TT3 Q"
+         "TT Q" "TT2 Q" "TT3w Q"
   then show "priTT pa aa (addRefTickTock zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q) (s @ [[refTickTock S s Q]\<^sub>R, [Tock]\<^sub>E]) Q"
     using priTT_trace_refTickTock
     by blast
@@ -733,7 +733,7 @@ next
       "priTT pa aa (addRefTickTock zz (s @ [[e\<^sub>2]\<^sub>E]) Q) (s @ [[e\<^sub>2]\<^sub>E]) Q"
       "TT Q"
       "TT2 Q"
-      "TT3 Q"
+      "TT3w Q"
       "priTT1 pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
       "s @ [[Z]\<^sub>R] \<in> Q"
       "\<forall>e. e \<notin> Z \<and> e \<noteq> Tock \<longrightarrow> s @ [[e]\<^sub>E] \<in> Q"
@@ -767,7 +767,7 @@ next
       "priTT pa aa (addRefTickTock zz (s @ [[e\<^sub>2]\<^sub>E]) Q) (s @ [[e\<^sub>2]\<^sub>E]) Q"
       "TT Q"
       "TT2 Q"
-      "TT3 Q"
+      "TT3w Q"
       "priTT1 pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
       "s @ [[Z]\<^sub>R] \<in> Q"
       "\<forall>e. e \<notin> Z \<and> e \<noteq> Tock \<longrightarrow> s @ [[e]\<^sub>E] \<in> Q"
@@ -794,7 +794,7 @@ lemma xx1:
   using ttWFx_any_cons_end_tock by blast+
 
 lemma priTT_imp_priTT1:
-  assumes "priTT p xs ys i P" "TT(P)" "TT2(P)" "TT3(P)" "i @ ys \<in> P"
+  assumes "priTT p xs ys i P" "TT(P)" "TT2(P)" "TT3w(P)" "i @ ys \<in> P"
   shows "priTT1 p xs ys i P"
   using assms proof (induct p xs ys i P rule:priTT1.induct, auto)
   fix pa S s Q x
@@ -802,7 +802,7 @@ lemma priTT_imp_priTT1:
   assume "R \<subseteq> prirefTT pa s Q S"
        "TT Q"
        "TT2 Q"
-       "TT3 Q" "s @ [[S]\<^sub>R] \<in> Q" "x \<in> R"
+       "TT3w Q" "s @ [[S]\<^sub>R] \<in> Q" "x \<in> R"
   then show "x \<in> prirefTT1 pa S s Q"
     using TT_ttWFx prirefTT_imp_prirefTT1 by blast
 next
@@ -811,7 +811,7 @@ next
   assume "priTT1 pa aa zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
        "TT Q"
        "TT2 Q"
-       "TT3 Q"
+       "TT3w Q"
        "s @ [S]\<^sub>R # [Tock]\<^sub>E # zz \<in> Q"
        "R \<subseteq> prirefTT pa s Q S" "x \<in> R"
   then show "x \<in> prirefTT1 pa S s Q"
@@ -822,7 +822,7 @@ next
   assume assm:"priTT1 pa aa zz (s @ [[S]\<^sub>R, [Tock]\<^sub>E]) Q"
        "TT Q"
        "TT2 Q"
-       "TT3 Q"
+       "TT3w Q"
        "s @ [S]\<^sub>R # [Tock]\<^sub>E # zz \<in> Q"
        "Tock \<notin> prirefTT pa s Q S"
        "Tock \<in> prirefTT1 pa S s Q"
@@ -842,7 +842,7 @@ next
     "priTT1 pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
     "TT Q"
     "TT2 Q"
-    "TT3 Q"
+    "TT3w Q"
     "s @ [e\<^sub>2]\<^sub>E # zz \<in> Q"
     "priTT pa aa zz (s @ [[e\<^sub>2]\<^sub>E]) Q"
     "s @ [[Z]\<^sub>R] \<in> Q"
@@ -884,26 +884,26 @@ next
 qed
 
 lemma PriTT_eq_priTT:
-  assumes "TT(P)" "TT2(P)" "TT3(P)"
+  assumes "TT(P)" "TT2(P)" "TT3w(P)"
   shows "PriTT p P = PriTT1 p P"
   using assms unfolding PriTT_def PriTT1_def apply auto
   using priTT_imp_priTT1 apply fastforce
   by (metis addRefTickTock_in append_Nil priTT1_imp_priTT)
 
 lemma TT1_PriTT:
-  assumes "TT(P)" "TT2(P)" "TT3(P)"
+  assumes "TT(P)" "TT2(P)" "TT3w(P)"
   shows "TT1(PriTT p P)"
   using assms
-  by (metis PriTT_eq_priTT TT1_mkTT1 TT3_TT1_imp_TT3w TT_TT1 TT_ttWFx mkTT1_PriMax_unTT1_priTT)
+  by (metis PriTT_eq_priTT TT1_mkTT1 TT3w_TT1_imp_TT3ww TT_TT1 TT_ttWFx mkTT1_PriMax_unTT1_priTT)
 
 lemma TT_priTT1_closure:
-  assumes "TT P" "TT2 P" "TT3 P"
+  assumes "TT P" "TT2 P" "TT3w P"
   shows "TTwf(PriTT1 p P)"
         "TT0(PriTT1 p P)"
         "TT1(PriTT1 p P)"
         "TT2(PriTT1 p P)"
         "ttWFx(PriTT1 p P)"
-        "TT3(PriTT1 p P)"
+        "TT3w(PriTT1 p P)"
 proof -
   have TTMax:
        "TT0 (unTT1 P)"
@@ -911,14 +911,14 @@ proof -
        "TT1w (unTT1 P)" 
        "TT2 (unTT1 P)" 
        "ttWFx (unTT1 P)" 
-       "TT3 (unTT1 P)" 
+       "TT3w (unTT1 P)" 
        "TTM1 (unTT1 P)" 
        "TTM2 (unTT1 P)" 
        "TTM3 (unTT1 P)"
     using assms unTT1_TT_closure by blast+
 
   have PriTT1_eq:"PriTT1 p P = mkTT1 (PriMax p (unTT1 P))"
-    by (simp add: TT3_TT1_imp_TT3w TT_TT1 TT_ttWFx assms mkTT1_PriMax_unTT1_priTT)
+    by (simp add: TT3w_TT1_imp_TT3ww TT_TT1 TT_ttWFx assms mkTT1_PriMax_unTT1_priTT)
 
   show "TTwf(PriTT1 p P)"
     using PriTT1_eq TTMax unTT1_TT_closure 
@@ -940,19 +940,19 @@ proof -
     using PriTT1_eq TTMax unTT1_TT_closure
     by (simp add: ttWFx_mkTT1 TTMax_PriMax_closure(5))
 
-  show "TT3(PriTT1 p P)"
+  show "TT3w(PriTT1 p P)"
     using PriTT1_eq TTMax unTT1_TT_closure
-    by (simp add: TT3_mkTT1 TTMax_PriMax_closure(6))
+    by (simp add: TT3w_mkTT1 TTMax_PriMax_closure(6))
 qed
 
 lemma TT_priTT_closure:
-  assumes "TT P" "TT2 P" "TT3 P"
+  assumes "TT P" "TT2 P" "TT3w P"
   shows "TTwf(PriTT p P)"
         "TT0(PriTT p P)"
         "TT1(PriTT p P)"
         "TT2(PriTT p P)"
         "ttWFx(PriTT p P)"
-        "TT3(PriTT p P)"
+        "TT3w(PriTT p P)"
 proof -
   have "PriTT p P = PriTT1 p P"
     using assms PriTT_eq_priTT by blast
@@ -962,26 +962,26 @@ proof -
         "TT1(PriTT p P)"
         "TT2(PriTT p P)"
         "ttWFx(PriTT p P)"
-        "TT3(PriTT p P)"
+        "TT3w(PriTT p P)"
   using assms TT_priTT1_closure 
   by (simp_all add: TT_priTT1_closure)
 qed
 
 lemma not_Tock_notin_refTickTock_imp_possible [elim]:
-  assumes "s @ [[Z]\<^sub>R] \<in> Q" "TT2(Q)" "TT3(Q)" "e \<noteq> Tock"
+  assumes "s @ [[Z]\<^sub>R] \<in> Q" "TT2(Q)" "TT3w(Q)" "e \<noteq> Tock"
           "e \<notin> refTickTock Z s Q"
     shows "s @ [[e]\<^sub>E] \<in> Q"
   using assms unfolding refTickTock_def by auto
 
 lemma Tock_notin_refTickTock_imp_possible [elim]:
-  assumes "s @ [[Z]\<^sub>R] \<in> Q" "TT(Q)" "TT2(Q)" "TT3(Q)"
+  assumes "s @ [[Z]\<^sub>R] \<in> Q" "TT(Q)" "TT2(Q)" "TT3w(Q)"
           "Tock \<notin> refTickTock Z s Q"
     shows "s @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> Q"
   using assms unfolding refTickTock_def apply auto
   using TT1_Ref_Tock_subset_imp' TT_TT1 by blast
 
 lemma
-  assumes "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<noteq> Tick \<and> e\<^sub>2 \<notin> prirefTT p s Q Z)" "TT(Q)" "ttWFx(Q)" "TT2(Q)" "TT3(Q)" "s @ [[e\<^sub>2]\<^sub>E] \<in> Q" 
+  assumes "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<noteq> Tick \<and> e\<^sub>2 \<notin> prirefTT p s Q Z)" "TT(Q)" "ttWFx(Q)" "TT2(Q)" "TT3w(Q)" "s @ [[e\<^sub>2]\<^sub>E] \<in> Q" 
   shows   "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q
       \<and> (\<forall>e. (e \<notin> Z \<and> e \<noteq> Tock) \<longrightarrow> s @ [[e]\<^sub>E] \<in> Q)
       \<and> (Tock \<notin> Z \<longrightarrow> s @ [[Z]\<^sub>R,[Tock]\<^sub>E] \<in> Q) \<and> Tick \<in> Z
@@ -996,11 +996,11 @@ lemma
   using TT1_Ref_Tock_subset_imp' TT_TT1 by blast+
 
 lemma
-  assumes "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<noteq> Tick \<and> e\<^sub>2 \<notin> prirefTT p s Q Z)" "TT(Q)" "ttWFx(Q)" "TT2(Q)" "TT3(Q)" "s @ [[e\<^sub>2]\<^sub>E] \<in> Q" 
+  assumes "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> e\<^sub>2 \<noteq> Tick \<and> e\<^sub>2 \<notin> prirefTT p s Q Z)" "TT(Q)" "ttWFx(Q)" "TT2(Q)" "TT3w(Q)" "s @ [[e\<^sub>2]\<^sub>E] \<in> Q" 
   shows "(\<exists>Z. s @ [[Z]\<^sub>R] \<in> Q \<and> Tick \<in> Z \<and> e\<^sub>2 \<notin> prirefTT p s Q Z)"
   using assms apply auto
   apply (rule_tac x="Z \<union> {Tick}" in exI, auto)
-  using TT3_TT1_add_Tick TT_TT1 apply fastforce
+  using TT3w_TT1_add_Tick TT_TT1 apply fastforce
   unfolding refTickTock_def prirefTT_def apply auto
   using TT1_Ref_Tock_subset_imp' TT_TT1 by blast
 

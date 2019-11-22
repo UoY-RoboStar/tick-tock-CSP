@@ -13,8 +13,11 @@ lemma DivTT_wf: "\<forall> t\<in>div\<^sub>C. ttWF t"
 lemma TT2_Div: "TT2 div\<^sub>C"
   using DivTT_wf unfolding DivTT_def by (rule_tac wf_TT2_induct, auto)
 
+lemma TT3w_Div: "TT3w div\<^sub>C"
+  unfolding DivTT_def TT3w_def by auto
+
 lemma TT3_Div: "TT3 div\<^sub>C"
-  unfolding DivTT_def TT3_def by auto
+  by (simp add: DivTT_def TT3_def)
 
 lemma TT_Div: "TT div\<^sub>C"
   unfolding TT_defs DivTT_def by (auto simp add: tt_prefix_subset_antisym)
@@ -178,12 +181,15 @@ proof (auto)
     unfolding StopTT_def using ttWFx_append ttWFx_trace.simps(2) ttWF.simps(2) by (auto, blast)
 qed
 
-lemma TT3_Stop: "TT3 STOP\<^sub>C"
-  unfolding TT3_def StopTT_def apply auto
-  apply (metis (mono_tags, lifting) TT3_def TT3_tocks ttevent.distinct(5) mem_Collect_eq)
+lemma TT3w_Stop: "TT3w STOP\<^sub>C"
+  unfolding TT3w_def StopTT_def apply auto
+  apply (metis (mono_tags, lifting) TT3w_def TT3w_tocks ttevent.distinct(5) mem_Collect_eq)
   apply (rule_tac x="add_Tick_refusal_trace s" in bexI, auto)
   apply (erule_tac x="X \<union> {Tick}" in allE, auto simp add: add_Tick_refusal_trace_end_refusal)
-  by (metis (mono_tags, lifting) TT3_def TT3_tocks ttevent.distinct(5) mem_Collect_eq)
+  by (metis (mono_tags, lifting) TT3w_def TT3w_tocks ttevent.distinct(5) mem_Collect_eq)
+
+lemma TT3_Stop: "TT3 STOP\<^sub>C"
+  using TT1_Stop TT1_TT3w_equiv_TT3 TT3w_Stop by blast
 
 lemma TT_Stop: "TT STOP\<^sub>C"
   unfolding TT_defs
@@ -243,8 +249,11 @@ lemma UntimedStopTT_wf: "\<forall> t\<in>STOP\<^sub>U. ttWF t"
 lemma TT2_UntimedStop: "TT2 STOP\<^sub>U"
   unfolding UntimedStopTT_def TT2_def by (auto simp add: append_eq_Cons_conv)
 
+lemma TT3w_UntimedStop: "TT3w STOP\<^sub>U"
+  unfolding UntimedStopTT_def TT3w_def by auto
+
 lemma TT3_UntimedStop: "TT3 STOP\<^sub>U"
-  unfolding UntimedStopTT_def TT3_def by auto
+  by (simp add: TT3_def UntimedStopTT_def append_eq_Cons_conv)
 
 lemma TT_UntimedStop: "TT STOP\<^sub>U"
   unfolding UntimedStopTT_def TT_defs apply (auto simp add: tt_prefix_subset_antisym)
@@ -262,8 +271,11 @@ lemma SkipTT_wf: "\<forall> t\<in>SKIP\<^sub>C. ttWF t"
 lemma TT2_Skip: "TT2 SKIP\<^sub>C"
   unfolding SkipTT_def TT2_def by (auto, metis Cons_eq_append_conv append_is_Nil_conv ttobs.distinct(1) list.inject list.simps(3))
 
+lemma TT3w_Skip: "TT3w SKIP\<^sub>C"
+  unfolding SkipTT_def TT3w_def by auto
+
 lemma TT3_Skip: "TT3 SKIP\<^sub>C"
-  unfolding SkipTT_def TT3_def by auto
+  unfolding SkipTT_def TT3_def by (auto, metis Cons_eq_append_conv append_is_Nil_conv list.inject list.simps(3) ttobs.distinct(1))
 
 lemma TT_Skip: "TT SKIP\<^sub>C"
   unfolding TT_defs SkipTT_def 
@@ -285,6 +297,73 @@ lemma WaitTT_wf: "\<forall> t\<in>wait\<^sub>C[n]. ttWF t"
   apply (metis (full_types) mem_Collect_eq tocks_append_wf ttWF.simps(2))
   apply (metis (full_types) mem_Collect_eq tocks_wf)
   by (metis (full_types) mem_Collect_eq tocks_append_wf ttWF.simps(3))
+
+lemma TT1_Wait: "TT1 wait\<^sub>C[n]"
+  unfolding WaitTT_def TT1_def
+proof auto
+  fix \<rho> \<sigma> :: "'a tttrace"
+  assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
+  assume assm2: "\<sigma> \<in> tocks {x. x \<noteq> Tock}"
+  assume assm3: "length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] < n"
+  from assm1 assm2 have 1: "\<rho> \<in> {t. \<exists>s\<in>tocks {x. x \<noteq> Tock}. t = s \<or> (\<exists>Y. t = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock})}"
+    using tt_prefix_subset_tocks by (smt mem_Collect_eq) 
+  from assm1 have "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] \<le> length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E]"
+    using tt_prefix_subset_Tock_filter_length by auto
+  from this assm3 have 2: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] < n"
+    by auto
+  from 1 2 show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n \<and> (\<rho> = s \<or> (\<exists>X. Tock \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]))"
+    by (auto, rule_tac x="s" in bexI, auto)
+next
+  fix \<rho> \<sigma> :: "'a tttrace"
+  fix s X
+  assume assm1: "\<rho> \<lesssim>\<^sub>C s @ [[X]\<^sub>R]"
+  assume assm2: "s \<in> tocks {x. x \<noteq> Tock}"
+  assume assm3: "length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n"
+  assume assm4: "Tock \<notin> X"
+  from assm1 assm2 have 1: "\<exists>t\<in>tocks {x. x \<noteq> Tock}. \<rho> = t \<or> (\<exists>Z. \<rho> = t @ [[Z]\<^sub>R] \<and> (Z \<subseteq> {x. x \<noteq> Tock} \<or> Z \<subseteq> X))"
+    using tt_prefix_subset_tocks_refusal by (metis (mono_tags, lifting) mem_Collect_eq) 
+  from assm1 have "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] \<le> length [x\<leftarrow>s @ [[X]\<^sub>R] . x = [Tock]\<^sub>E]"
+    using tt_prefix_subset_Tock_filter_length by blast
+  from this assm3 have 2: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] < n"
+    by auto
+  from 1 2 assm4 show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n \<and> (\<rho> = s \<or> (\<exists>X. Tock \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]))"
+    by (auto, rule_tac x="t" in bexI, auto)
+next
+  fix \<rho> \<sigma> :: "'a tttrace"
+  assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
+  assume assm2: "\<sigma> \<in> tocks {x. x \<noteq> Tock}"
+  assume assm3: "\<forall>s\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>s . x = [Tock]\<^sub>E] = length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] \<longrightarrow> \<rho> \<noteq> s \<and> \<rho> \<noteq> s @ [[Tick]\<^sub>E]"
+  thm tt_prefix_subset_tocks
+  from assm1 assm2 have 1: "\<rho> \<in> {t. \<exists>s\<in>tocks {x. x \<noteq> Tock}. t = s \<or> (\<exists>Y. t = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock})}"
+    using tt_prefix_subset_tocks by (smt mem_Collect_eq) 
+  from assm1 have 2: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] \<le> length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E]"
+    using tt_prefix_subset_Tock_filter_length by auto
+  from equal_Tocks_tocks_imp assm1 assm2 have "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] = length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] \<Longrightarrow> \<rho> \<in> tocks {x. x \<noteq> Tock}"
+    by auto
+  from this assm3 have "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] = length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] \<Longrightarrow> False"
+    by auto
+  from this 2 have 3: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] < length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E]"
+    by (cases "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] = length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E]", auto)
+  from 1 3 show "\<exists>s\<in>tocks {x. x \<noteq> Tock}.
+     length [x\<leftarrow>s . x = [Tock]\<^sub>E] < length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] \<and> (\<rho> = s \<or> (\<exists>X. Tock \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]))"
+    by (auto, rule_tac x="s" in bexI, auto)
+next
+  fix \<rho> \<sigma> :: "'a tttrace"
+  fix s
+  assume assm1: "\<rho> \<lesssim>\<^sub>C s @ [[Tick]\<^sub>E]"
+  assume assm2: "s \<in> tocks {x. x \<noteq> Tock}"
+  assume assm3: "\<forall>sa\<in>tocks {x. x \<noteq> Tock}.
+          length [x\<leftarrow>sa . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E] \<longrightarrow> \<rho> \<noteq> sa \<and> \<rho> \<noteq> sa @ [[Tick]\<^sub>E]"
+  obtain s' where s'_assms: "s'\<in>tocks {x. x \<noteq> Tock}" "s' \<lesssim>\<^sub>C s" "\<rho> = s' \<or>
+            (\<exists>Y. \<rho> = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock} \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E]) \<or>
+            \<rho> = s' @ [[Tick]\<^sub>E] \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
+    using assm1 assm2 tt_prefix_subset_tocks_event[where e="Tick", where X="{x. x \<noteq> Tock}", where s=s, where t=\<rho>] by auto
+  then have "length [x\<leftarrow>s' . x = [Tock]\<^sub>E] \<noteq> length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
+    using assm3 less_le by (metis assm2 equal_Tocks_tocks_imp) 
+  then show "\<exists>sa\<in>tocks {x. x \<noteq> Tock}.
+          length [x\<leftarrow>sa . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E] \<and> (\<rho> = sa \<or> (\<exists>X. Tock \<notin> X \<and> \<rho> = sa @ [[X]\<^sub>R]))"
+    using tt_prefix_subset_Tock_filter_length order.not_eq_order_implies_strict s'_assms by (rule_tac x="s'" in bexI, auto)
+qed
 
 lemma TT2_Wait: "TT2 wait\<^sub>C[n]"
   unfolding TT2_def
@@ -405,8 +484,8 @@ proof auto
     using 1 by auto
 qed
 
-lemma TT3_Wait: "TT3 (wait\<^sub>C[n])"
-  unfolding WaitTT_def TT3_def
+lemma TT3w_Wait: "TT3w (wait\<^sub>C[n])"
+  unfolding WaitTT_def TT3w_def
 proof auto
   fix s :: "'a ttobs list"
   assume "s \<in> tocks {x. x \<noteq> Tock}" "length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n"
@@ -414,7 +493,7 @@ proof auto
     (add_Tick_refusal_trace s = sa \<or> (\<exists>X. Tock \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]))"
   apply (rule_tac x="add_Tick_refusal_trace s" in bexI, auto)
   apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
-  by (meson TT3_def TT3_tocks ttevent.simps(7) mem_Collect_eq)
+  by (meson TT3w_def TT3w_tocks ttevent.simps(7) mem_Collect_eq)
 next
   fix s :: "'a ttobs list"
   fix X :: "'a ttevent set"
@@ -424,7 +503,7 @@ next
   apply (rule_tac x="add_Tick_refusal_trace s" in bexI, safe, simp_all)
   apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
   apply (erule_tac x="X \<union> {Tick}" in allE, simp add: add_Tick_refusal_trace_end_refusal)
-  by (metis (mono_tags, lifting) TT3_def TT3_tocks ttevent.simps(7) mem_Collect_eq)
+  by (metis (mono_tags, lifting) TT3w_def TT3w_tocks ttevent.simps(7) mem_Collect_eq)
 next
   fix s :: "'a ttobs list"
   assume "s \<in> tocks {x. x \<noteq> Tock}" "n = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
@@ -434,7 +513,7 @@ next
       (add_Tick_refusal_trace s = sa \<or> (\<exists>X. Tock \<notin> X \<and> add_Tick_refusal_trace s = sa @ [[X]\<^sub>R]))"
     apply (erule_tac x="add_Tick_refusal_trace s" in ballE, safe, simp_all)
     apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
-    by (meson TT3_def TT3_tocks ttevent.simps(7) mem_Collect_eq)
+    by (meson TT3w_def TT3w_tocks ttevent.simps(7) mem_Collect_eq)
 next
   fix s :: "'a ttobs list"
   assume "s \<in> tocks {x. x \<noteq> Tock}" "n = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
@@ -445,8 +524,11 @@ next
     apply (erule_tac x="add_Tick_refusal_trace s" in ballE, safe)
     apply (metis add_Tick_refusal_trace_filter_Tock_same_length)
     using add_Tick_refusal_trace_end_event apply blast
-    by (metis (mono_tags, lifting) TT3_def TT3_tocks \<open>s \<in> tocks {x. x \<noteq> Tock}\<close> ttevent.simps(7) mem_Collect_eq)
+    by (metis (mono_tags, lifting) TT3w_def TT3w_tocks \<open>s \<in> tocks {x. x \<noteq> Tock}\<close> ttevent.simps(7) mem_Collect_eq)
 qed
+
+lemma TT3_Wait: "TT3 wait\<^sub>C[n]"
+  by (simp add: TT1_TT3w_equiv_TT3 TT1_Wait TT3w_Wait)
 
 lemma TT_Wait: "TT wait\<^sub>C[n]"
   unfolding TT_defs
@@ -458,69 +540,9 @@ next
   show "wait\<^sub>C[n] = {} \<Longrightarrow> False"
     unfolding WaitTT_def using tocks.empty_in_tocks by fastforce
 next
-  fix \<rho> \<sigma>
+  fix \<rho> \<sigma> :: "'e ttobs list"
   show "\<rho> \<lesssim>\<^sub>C \<sigma> \<Longrightarrow> \<sigma> \<in> wait\<^sub>C[n] \<Longrightarrow> \<rho> \<in> wait\<^sub>C[n]"
-    unfolding WaitTT_def 
-  proof auto
-    assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
-    assume assm2: "\<sigma> \<in> tocks {x. x \<noteq> Tock}"
-    assume assm3: "length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] < n"
-    from assm1 assm2 have 1: "\<rho> \<in> {t. \<exists>s\<in>tocks {x. x \<noteq> Tock}. t = s \<or> (\<exists>Y. t = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock})}"
-      using tt_prefix_subset_tocks by (smt mem_Collect_eq) 
-    from assm1 have "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] \<le> length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E]"
-      using tt_prefix_subset_Tock_filter_length by auto
-    from this assm3 have 2: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] < n"
-      by auto
-    from 1 2 show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n \<and> (\<rho> = s \<or> (\<exists>X. Tock \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]))"
-      by (auto, rule_tac x="s" in bexI, auto)
-  next
-    fix s X
-    assume assm1: "\<rho> \<lesssim>\<^sub>C s @ [[X]\<^sub>R]"
-    assume assm2: "s \<in> tocks {x. x \<noteq> Tock}"
-    assume assm3: "length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n"
-    assume assm4: "Tock \<notin> X"
-    from assm1 assm2 have 1: "\<exists>t\<in>tocks {x. x \<noteq> Tock}. \<rho> = t \<or> (\<exists>Z. \<rho> = t @ [[Z]\<^sub>R] \<and> (Z \<subseteq> {x. x \<noteq> Tock} \<or> Z \<subseteq> X))"
-      using tt_prefix_subset_tocks_refusal by (metis (mono_tags, lifting) mem_Collect_eq) 
-    from assm1 have "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] \<le> length [x\<leftarrow>s @ [[X]\<^sub>R] . x = [Tock]\<^sub>E]"
-      using tt_prefix_subset_Tock_filter_length by blast
-    from this assm3 have 2: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] < n"
-      by auto
-    from 1 2 assm4 show "\<exists>s\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>s . x = [Tock]\<^sub>E] < n \<and> (\<rho> = s \<or> (\<exists>X. Tock \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]))"
-      by (auto, rule_tac x="t" in bexI, auto)
-  next
-    assume assm1: "\<rho> \<lesssim>\<^sub>C \<sigma>"
-    assume assm2: "\<sigma> \<in> tocks {x. x \<noteq> Tock}"
-    assume assm3: "\<forall>s\<in>tocks {x. x \<noteq> Tock}. length [x\<leftarrow>s . x = [Tock]\<^sub>E] = length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] \<longrightarrow> \<rho> \<noteq> s \<and> \<rho> \<noteq> s @ [[Tick]\<^sub>E]"
-    thm tt_prefix_subset_tocks
-    from assm1 assm2 have 1: "\<rho> \<in> {t. \<exists>s\<in>tocks {x. x \<noteq> Tock}. t = s \<or> (\<exists>Y. t = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock})}"
-      using tt_prefix_subset_tocks by (smt mem_Collect_eq) 
-    from assm1 have 2: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] \<le> length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E]"
-      using tt_prefix_subset_Tock_filter_length by auto
-    from equal_Tocks_tocks_imp assm1 assm2 have "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] = length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] \<Longrightarrow> \<rho> \<in> tocks {x. x \<noteq> Tock}"
-      by auto
-    from this assm3 have "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] = length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] \<Longrightarrow> False"
-      by auto
-    from this 2 have 3: "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] < length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E]"
-      by (cases "length [x\<leftarrow>\<rho> . x = [Tock]\<^sub>E] = length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E]", auto)
-    from 1 3 show "\<exists>s\<in>tocks {x. x \<noteq> Tock}.
-       length [x\<leftarrow>s . x = [Tock]\<^sub>E] < length [x\<leftarrow>\<sigma> . x = [Tock]\<^sub>E] \<and> (\<rho> = s \<or> (\<exists>X. Tock \<notin> X \<and> \<rho> = s @ [[X]\<^sub>R]))"
-      by (auto, rule_tac x="s" in bexI, auto)
-  next
-    fix s
-    assume assm1: "\<rho> \<lesssim>\<^sub>C s @ [[Tick]\<^sub>E]"
-    assume assm2: "s \<in> tocks {x. x \<noteq> Tock}"
-    assume assm3: "\<forall>sa\<in>tocks {x. x \<noteq> Tock}.
-            length [x\<leftarrow>sa . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E] \<longrightarrow> \<rho> \<noteq> sa \<and> \<rho> \<noteq> sa @ [[Tick]\<^sub>E]"
-    obtain s' where s'_assms: "s'\<in>tocks {x. x \<noteq> Tock}" "s' \<lesssim>\<^sub>C s" "\<rho> = s' \<or>
-              (\<exists>Y. \<rho> = s' @ [[Y]\<^sub>R] \<and> Y \<subseteq> {x. x \<noteq> Tock} \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E]) \<or>
-              \<rho> = s' @ [[Tick]\<^sub>E] \<and> length [x\<leftarrow>s' . x = [Tock]\<^sub>E] = length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
-      using assm1 assm2 tt_prefix_subset_tocks_event[where e="Tick", where X="{x. x \<noteq> Tock}", where s=s, where t=\<rho>] by auto
-    then have "length [x\<leftarrow>s' . x = [Tock]\<^sub>E] \<noteq> length [x\<leftarrow>s . x = [Tock]\<^sub>E]"
-      using assm3 less_le by (metis assm2 equal_Tocks_tocks_imp) 
-    then show "\<exists>sa\<in>tocks {x. x \<noteq> Tock}.
-            length [x\<leftarrow>sa . x = [Tock]\<^sub>E] < length [x\<leftarrow>s . x = [Tock]\<^sub>E] \<and> (\<rho> = sa \<or> (\<exists>X. Tock \<notin> X \<and> \<rho> = sa @ [[X]\<^sub>R]))"
-      using tt_prefix_subset_Tock_filter_length order.not_eq_order_implies_strict s'_assms by (rule_tac x="s'" in bexI, auto)
-  qed
+    using TT1_Wait TT1_def by blast
 next
   fix \<rho> :: "'e ttobs list" 
   fix X Y :: "'e ttevent set"
@@ -581,8 +603,11 @@ lemma TT2_Guard: "TT2 P \<Longrightarrow> TT2 (g &\<^sub>C P)"
 lemma ttWFx_Guard: "ttWFx P \<Longrightarrow> ttWFx (g &\<^sub>C P)"
   using ttWFx_Stop unfolding ttWFx_def GuardTT_def by blast
 
+lemma TT3w_Guard: "TT3w P \<Longrightarrow> TT3w (g &\<^sub>C P)"
+  using TT3w_Stop unfolding TT3w_def GuardTT_def by blast
+
 lemma TT3_Guard: "TT3 P \<Longrightarrow> TT3 (g &\<^sub>C P)"
-  using TT3_Stop unfolding TT3_def GuardTT_def by blast
+  by (metis (mono_tags, lifting) GuardTT_def TT3_Stop TT3_def UnE UnI1 UnI2 mem_Collect_eq)
 
 lemma TT_Guard: "TT P \<Longrightarrow> TT (g &\<^sub>C P)"
   using GuardTT_wf TT0_Guard TT1_Guard TT2w_Guard ttWFx_Guard  unfolding TT_def GuardTT_def by auto

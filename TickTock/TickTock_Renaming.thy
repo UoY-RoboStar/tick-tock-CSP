@@ -277,17 +277,22 @@ proof (simp, safe)
     by blast
 qed
 
-lemma TT3_Renaming: 
-  assumes "TT3 P"
-  shows "TT3 (RenamingTT P f)"
-  unfolding RenamingTT_def TT3_def
+lemma TT3w_Renaming: 
+  assumes "TT3w P"
+  shows "TT3w (RenamingTT P f)"
+  unfolding RenamingTT_def TT3w_def
 proof auto
   fix \<rho> x
   have "\<And>P \<rho>. x \<in> P \<Longrightarrow> \<rho> \<in> rename_trace f x \<Longrightarrow> add_Tick_refusal_trace \<rho> \<in> rename_trace f (add_Tick_refusal_trace x)"
     using UNIV_I lift_renaming_func.elims by (induct f x rule:rename_trace.induct, auto, blast+)
   then show "x \<in> P \<Longrightarrow> \<rho> \<in> rename_trace f x \<Longrightarrow> \<exists>x\<in>P. add_Tick_refusal_trace \<rho> \<in> rename_trace f x"
-    using assms unfolding TT3_def by (rule_tac x="add_Tick_refusal_trace x" in bexI, auto)
+    using assms unfolding TT3w_def by (rule_tac x="add_Tick_refusal_trace x" in bexI, auto)
 qed
+
+lemma TT3_Renaming: 
+  assumes "TT1 P" "TT3 P"
+  shows "TT3 (RenamingTT P f)"
+  by (meson TT1_Renaming TT1_TT3w_equiv_TT3 TT3w_Renaming assms)
 
 lemma TT_Renaming:
   shows "TT P \<Longrightarrow> TT2 P \<Longrightarrow> TT (RenamingTT P f)"

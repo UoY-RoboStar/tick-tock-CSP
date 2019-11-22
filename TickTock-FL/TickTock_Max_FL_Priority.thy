@@ -758,7 +758,7 @@ lemma TTwf_1c_3_imp_fl2ttobs_FL1_mod:
       and TT1w_healthy: "TT1w P"
       and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy: "TTick P"
-      and TT3w_healthy: "TT3w P"
+      and TT3ww_healthy: "TT3ww P"
       and pri:"priMaxTT p ar x [] P \<and> x \<in> P"
      (* and tick_Max:"maximal(p,Tick)"*)
   shows "\<exists>fl. x = fl2ttobs fl \<and> flt2goodAcceptance fl p \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {fl2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
@@ -2307,7 +2307,7 @@ next
 
 lemma priMaxTT_to_pri':
   assumes "priMaxTT p xs ys [] P" "ys \<in> P" 
-          "TT0 P" "TTwf P" "TT1w P" "ttWFx P" "TTick P" "TTM3 P" "TT3w P"
+          "TT0 P" "TTwf P" "TT1w P" "ttWFx P" "TTick P" "TTM3 P" "TT3ww P"
     shows "\<exists>fl. fl2ttobs fl = xs \<and> (\<exists>fl\<^sub>0. FLTick0 Tick fl\<^sub>0 \<and> FL1 fl\<^sub>0 \<and> fl2ttm fl\<^sub>0 \<subseteq> P \<and> (\<exists>Z. pri p fl Z \<and> Z \<in> fl\<^sub>0)) \<and> flt2goodTock fl"
 proof -
   have "ttWF ys"
@@ -2341,7 +2341,7 @@ lemma fl2ttm_pri_ttm2fl_PriMax:
       and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy:"TTick P"
       and TTM3:         "TTM3 P"
-      and TT3w_healthy: "TT3w P"
+      and TT3ww_healthy: "TT3ww P"
      (* and Tick_max:"maximal(p,Tick)"*)
   shows "fl2ttm(Pri p (ttm2fl P)) = PriMax p P"
 proof -
@@ -2460,7 +2460,7 @@ apply (case_tac aa, auto)
   by (case_tac Z, auto, case_tac a, auto, case_tac b, auto, case_tac b, auto)
 
 lemma FL_Pri_ttm2fl:
-  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "ttWFx P" "TT3 P" "TTM1 P" "TTM2 P"
+  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "ttWFx P" "TT3w P" "TTM1 P" "TTM2 P"
   shows "FL0 (Pri p (ttm2fl P))"
         "FL1 (Pri p (ttm2fl P))"
         "FL2 (Pri p (ttm2fl P))"
@@ -2472,13 +2472,13 @@ lemma FL_Pri_ttm2fl:
   by (simp add: FLTick0_Pri FLTick0_Tick_ttm2fl assms(2))
 
 lemma TTMax_PriMax_closure:
-  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "ttWFx P" "TT3 P" "TTM1 P" "TTM2 P" "TTM3 P"
+  assumes "TT0 P" "TTwf P" "TT1w P" "TT2 P" "ttWFx P" "TT3w P" "TTM1 P" "TTM2 P" "TTM3 P"
   shows "TTwf(PriMax p P)"
         "TT0(PriMax p P)"
         "TT1w(PriMax p P)"
         "TT2(PriMax p P)"
         "ttWFx(PriMax p P)"
-        "TT3(PriMax p P)"
+        "TT3w(PriMax p P)"
         "TTM1(PriMax p P)"
         "TTM2(PriMax p P)"
         "TTM3(PriMax p P)"
@@ -2492,7 +2492,7 @@ proof -
 
   have PriMax_eq:"PriMax p P = fl2ttm(Pri p (ttm2fl P))"
     using assms fl2ttm_pri_ttm2fl_PriMax
-    by (metis TT3w_def TTM3_TTick TTM3_TTick_part Un_insert_right in_mono insert_absorb set_eq_subset subsetD subset_refl sup_bot_right)
+    by (metis TT3ww_def TTM3_TTick TTM3_TTick_part Un_insert_right in_mono insert_absorb set_eq_subset subsetD subset_refl sup_bot_right)
 
   show "TTwf (PriMax p P)"
     using PriMax_eq
@@ -2514,9 +2514,9 @@ proof -
     using PriMax_eq
     using ttWFx_fl2ttm by auto
 
-  show "TT3(PriMax p P)"
+  show "TT3w(PriMax p P)"
     using PriMax_eq
-    by (simp add: FL_Pri(4) TT3_fl2ttm)
+    by (simp add: FL_Pri(4) TT3w_fl2ttm)
 
   show "TTM1(PriMax p P)"
     using PriMax_eq

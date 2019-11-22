@@ -569,7 +569,7 @@ lemma TTwf_1c_3_imp_fl2ttobs_FL1:
       and TT1w_healthy: "TT1w P"
       and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy: "TTick P"
-      and TT3w_healthy: "TT3w P"
+      and TT3ww_healthy: "TT3ww P"
   shows "\<exists>fl. x = fl2ttobs fl \<and> flt2goodTock fl \<and> (\<exists>x. FLTick0 Tick x \<and> FL1 x \<and> {fl2ttobs fl |fl. fl \<in> x} \<subseteq> P \<and> fl \<in> x)"
   using assms
 proof(induct x rule:rev_induct)
@@ -594,7 +594,7 @@ next
     proof (cases x)
       case (Ref x1)
       then have "Tick \<in> x1"
-        using TT3w_healthy TTick_healthy
+        using TT3ww_healthy TTick_healthy
         using TTick_def snoc.prems(1) by blast
       then show ?thesis
           apply (intro exI[where x="\<langle>[{x. x \<notin> x1} - {Tick}]\<^sub>\<F>\<^sub>\<L>\<rangle>\<^sub>\<F>\<^sub>\<L>"], auto)
@@ -955,7 +955,7 @@ next
       next
         case (Ref r2)
         have Tick_in_r2:"Tick \<in> r2"
-          using TT3w_healthy  TTick_healthy Ref
+          using TT3ww_healthy  TTick_healthy Ref
           using TTick_def snoc.prems(1) by blast
         then have "ys @ [[e1]\<^sub>E] @ [[r2]\<^sub>R] \<in> P"
           using e1 Ref yys.prems(2) by auto
@@ -1065,7 +1065,7 @@ lemma subset_fl2ttm_ttm2fl:
       and TT1w_healthy: "TT1w P"
       and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy: "TTick P"
-      and TT3w_healthy: "TT3w P"
+      and TT3ww_healthy: "TT3ww P"
   shows "P \<subseteq> fl2ttm(ttm2fl(P))"
   unfolding ttm2fl_def fl2ttm_def apply auto
   using assms TTwf_1c_3_imp_fl2ttobs_FL1 by blast
@@ -1076,7 +1076,7 @@ lemma fl2ttm_ttm2fl_bij:
       and TT1w_healthy: "TT1w P"
       and ttWFx_healthy:  "ttWFx P"
       and TTick_healthy: "TTick P"
-      and TT3w_healthy: "TT3w P"
+      and TT3ww_healthy: "TT3ww P"
     shows "P = fl2ttm(ttm2fl(P))"
   using assms
   by (simp add: fl2ttm_ttm2fl_refines subset_antisym subset_fl2ttm_ttm2fl)
@@ -1739,18 +1739,18 @@ lemma Tick_of_Refuals_in_fl2ttobs:
   apply (case_tac b, auto)
   by (meson append_eq_Cons_conv ttobs.simps(4) list.inject)
 
-lemma TT3w_fl2ttm_part:
+lemma TT3ww_fl2ttm_part:
   assumes "\<rho> @ [[X]\<^sub>R] = fl2ttobs fl" "FLTick0 Tick P"
           "fl \<in> P" 
     shows "\<exists>fl. \<rho> @ [[insert Tick X]\<^sub>R] = fl2ttobs fl \<and> fl \<in> P"
   using assms Tick_of_Refuals_in_fl2ttobs
   by (metis FLTick0_def insert_absorb)
 
-lemma TT3w_fl2ttm:
+lemma TT3ww_fl2ttm:
   assumes "FLTick0 Tick P"
-  shows "TT3w (fl2ttm P)" 
-  using assms unfolding TT3w_def fl2ttm_def apply auto
-  using TT3w_fl2ttm_part by blast
+  shows "TT3ww (fl2ttm P)" 
+  using assms unfolding TT3ww_def fl2ttm_def apply auto
+  using TT3ww_fl2ttm_part by blast
 
 lemma tickWF_add_Tick_refusal_trace_fl2ttobs_idem:
   assumes "tickWF Tick xs"
@@ -1759,7 +1759,7 @@ lemma tickWF_add_Tick_refusal_trace_fl2ttobs_idem:
    apply (case_tac A, auto, case_tac a, auto, case_tac b, auto)
   by (case_tac A, auto, case_tac b, auto)
 
-lemma TT3_fl2ttm_part:
+lemma TT3w_fl2ttm_part:
   assumes "FLTick0 Tick P" "fl \<in> P"
   shows "\<exists>fla. add_Tick_refusal_trace (fl2ttobs fl) = fl2ttobs fla \<and> fla \<in> P"
   using tickWF_add_Tick_refusal_trace_fl2ttobs_idem
@@ -1771,11 +1771,11 @@ lemma TT0_union_empty:
   "TT0(P \<union> {[]})"
   unfolding TT0_def by auto
 
-lemma TT3_fl2ttm:
+lemma TT3w_fl2ttm:
   assumes "FLTick0 Tick P"
-  shows "TT3 (fl2ttm P)" 
-  using assms unfolding TT3_def fl2ttm_def apply auto
-  using TT3_fl2ttm_part by blast
+  shows "TT3w (fl2ttm P)" 
+  using assms unfolding TT3w_def fl2ttm_def apply auto
+  using TT3w_fl2ttm_part by blast
 
 lemma ttWFx_trace_fl2ttobs:
   "ttWFx_trace (fl2ttobs fl)"
@@ -2344,7 +2344,7 @@ lemma maximal_TT_fl2ttm_closed:
         "TT1w(fl2ttm(P))"
         "TT2(fl2ttm(P))"
         "ttWFx(fl2ttm(P))"
-        "TT3(fl2ttm(P))"
+        "TT3w(fl2ttm(P))"
         "TTM1(fl2ttm(P))"
         "TTM2(fl2ttm(P))"
         "TTM3(fl2ttm(P))"
@@ -2353,7 +2353,7 @@ lemma maximal_TT_fl2ttm_closed:
         apply (simp add: TT1w_fl2ttm assms(2))
        apply (simp add: TT2_fl2ttm assms(1) assms(2) assms(3) assms(4))
       apply (simp add: ttWFx_fl2ttm)
-     apply (simp add: TT3_fl2ttm assms(4))
+     apply (simp add: TT3w_fl2ttm assms(4))
     apply (simp add: TTM1_fl2ttm_for_FL2_FL1_FL0 assms(1) assms(2) assms(3))
    apply (simp add: TTM2_fl2ttm_for_FL2_FL1_FL0 assms(1) assms(2) assms(3))
   by (simp add: TTM3_fl2ttm assms(1) assms(2) assms(4))
