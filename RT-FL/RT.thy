@@ -67,3 +67,27 @@ definition RT4 :: "'e rtevent rtprocess \<Rightarrow> bool" where
   "RT4 P = (\<forall> \<rho> x y.
     \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P
       \<longrightarrow> x = \<bullet>\<^sub>\<R>\<^sub>\<T> \<and> \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P)"
+
+section \<open>Maximal Healthiness Conditions\<close>
+
+subsection \<open>RTM1 (replaces RT1)\<close>
+
+fun leq_rttrace_max :: "'e rttrace \<Rightarrow> 'e rttrace \<Rightarrow> bool" (infix "\<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M>" 50) where
+  "\<langle> \<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>             \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> \<sigma>                   = True" |
+  "\<langle> [X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>           \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> \<langle> [Y]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>           = (X = Y)" |
+  "\<langle> [X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>           \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> \<langle> \<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>             = False" |
+  "\<langle> [X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>           \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> ( [Y]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) = (X = Y)" |
+  "\<langle> [X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>           \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> ( \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>)   = False" |
+  "( \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>)   \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> ( \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>)   = (a = b \<and> \<rho> \<le>\<^sub>\<R>\<^sub>\<T> \<sigma>)" |
+  "( \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>)   \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> ( [Y]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) = (a = b \<and> \<rho> \<le>\<^sub>\<R>\<^sub>\<T> \<sigma>)" |
+  "( [X]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>) \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> ( [Y]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) = (X = Y \<and> a = b \<and> \<rho> \<le>\<^sub>\<R>\<^sub>\<T> \<sigma>)" |
+  "( [X]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>) \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> ( \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>)   = False" |
+  "( x #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>)     \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>                = False"
+
+definition RTM1 :: "'e rtprocess \<Rightarrow> bool" where
+  "RTM1 P = (\<forall> \<rho> \<sigma>. \<sigma> \<in> P \<and> \<rho> \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> \<sigma> \<longrightarrow> \<rho> \<in> P)"
+
+subsection \<open>RTM2 (replaces RT2)\<close>
+
+definition RTM2 :: "'e rtprocess \<Rightarrow> bool" where
+  "RTM2 P = (\<forall> \<rho> X e. \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> RTEmptyTail \<in> P \<and> e \<notin> X \<longrightarrow> \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P)"
