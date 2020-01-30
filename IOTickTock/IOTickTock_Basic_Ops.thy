@@ -113,3 +113,5 @@ section \<open>Guard\<close>
 lemma IOTT0_GuardTT:
   "IOTT0 Outs P \<Longrightarrow> IOTT0 Outs (b &\<^sub>C P)"
   using IOTT0_StopTT unfolding GuardTT_def IOTT0_def by blast
+
+end

@@ -29,6 +29,10 @@ lemma IOTT0_trace_append_event:
   "IOTT0_trace Outs (t @ [[e]\<^sub>E]) = IOTT0_trace Outs t @ [[e]\<^sub>E]"
   by (induct t rule:IOTT0_trace.induct, auto)
 
+lemma IOTT0_trace_append:
+  "IOTT0_trace Outs (s @ t) = IOTT0_trace Outs s @ IOTT0_trace Outs t"
+  by (induct s rule:IOTT0_trace.induct, auto)
+
 lemma IOTT0_trace_same_length:
   "length t = length (IOTT0_trace Outs t)"
   by (induct t rule:IOTT0_trace.induct, auto)
