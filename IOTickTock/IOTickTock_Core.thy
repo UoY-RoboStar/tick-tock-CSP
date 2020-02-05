@@ -2,6 +2,8 @@ theory IOTickTock_Core
   imports TickTock.TickTock
 begin
 
+section \<open>IO-Tick-Tock Healthiness Condition\<close>
+
 fun IOTT0_trace :: "'e set \<Rightarrow> 'e tttrace \<Rightarrow> 'e tttrace" where
   "IOTT0_trace Outs [] = []" |
   "IOTT0_trace Outs ([e]\<^sub>E # t) = [e]\<^sub>E # IOTT0_trace Outs t" |
@@ -60,5 +62,33 @@ lemma IOTT0_trace_same_length:
 lemma IOTT0_trace_same_tock_length:
   "length (filter (\<lambda>x. x = [Tock]\<^sub>E) t) = length (filter (\<lambda>x. x = [Tock]\<^sub>E) (IOTT0_trace Outs t))"
   by (induct t rule:IOTT0_trace.induct, auto)
+
+section \<open>Refinement and Conformance\<close>
+
+(* Refinement from tick-tock can be reused *)
+
+subsection \<open>Traces Refinement\<close>
+
+fun tttrace_to_event_trace :: "'e tttrace \<Rightarrow> 'e ttevent list" where
+  "tttrace_to_event_trace [] = []" |
+  "tttrace_to_event_trace ([X]\<^sub>R # t) = tttrace_to_event_trace t" |
+  "tttrace_to_event_trace ([e]\<^sub>E # t) = e # tttrace_to_event_trace t"
+
+definition tracesTT :: "'e ttprocess \<Rightarrow> 'e ttevent list set" where
+  "tracesTT P = {t. \<exists> s\<in>P. t = tttrace_to_event_trace s}"
+
+definition TracesRefinementTT :: "'e ttprocess \<Rightarrow> 'e ttprocess \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>T" 50) where
+  "P \<sqsubseteq>\<^sub>T Q = (tracesTT Q \<subseteq> tracesTT P)"
+
+subsection \<open>Conformance\<close>
+
+definition ConfTT :: "'e ttprocess \<Rightarrow> 'e ttprocess \<Rightarrow> bool" (infix "conf\<^sub>C" 50) where
+  "P conf\<^sub>C Q = 
+    (\<forall> t \<in> (tracesTT P) \<inter> (tracesTT Q). 
+      {s\<in>Q. tttrace_to_event_trace s = t} \<subseteq> {s\<in>P. tttrace_to_event_trace s = t})"
+
+lemma refines_eq_traces_refines_and_conf:
+  "P \<sqsubseteq>\<^sub>C Q = (P \<sqsubseteq>\<^sub>T Q \<and> P conf\<^sub>C Q)"
+  unfolding RefinesTT_def TracesRefinementTT_def ConfTT_def tracesTT_def by auto
 
 end
