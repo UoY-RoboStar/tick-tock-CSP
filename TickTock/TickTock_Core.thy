@@ -697,10 +697,14 @@ qed
 
 section {* Healthiness Conditions *}
 
+subsection \<open>TT0\<close>
+
 text_raw \<open>\DefineSnippet{TT0}{\<close>
 definition TT0 :: "'e ttprocess \<Rightarrow> bool" where
   "TT0 P = (P \<noteq> {})"
 text_raw \<open>}%EndSnippet\<close>
+
+subsection \<open>TT1\<close>
 
 text_raw \<open>\DefineSnippet{TT1w}{\<close>
 definition TT1w :: "'e ttprocess \<Rightarrow> bool" where
@@ -774,6 +778,8 @@ lemma TT1_mkTT1_simp:
   using assms apply safe
   using mkTT1_def apply fastforce
   using TT1_fixpoint_mkTT1 by blast
+
+subsection \<open>TT2\<close>
 
 text_raw \<open>\DefineSnippet{TT2w}{\<close>
 definition TT2w :: "'e ttprocess \<Rightarrow> bool" where
@@ -857,6 +863,8 @@ lemma TT2_aux3:
   assumes "TT2 P" "[[X]\<^sub>R] \<in> P" "Y \<inter> {e. (e \<noteq> Tock \<and> [[e]\<^sub>E] \<in> P) \<or> (e = Tock \<and> [[X]\<^sub>R, [e]\<^sub>E] \<in> P) } = {}"
   shows "[[X \<union> Y]\<^sub>R] \<in> P"
   using TT2_aux2 assms(1) assms(2) assms(3) by auto
+
+subsection \<open>TT3\<close>
 
 definition TT3ww :: "'e ttprocess \<Rightarrow> bool" where
 "TT3ww P = (\<forall> \<rho> X. \<rho> @ [[X]\<^sub>R] \<in> P \<longrightarrow> \<rho> @ [[X \<union> {Tick}]\<^sub>R] \<in> P)"
@@ -1095,6 +1103,8 @@ qed
 definition mkTT3w :: "'e ttobs list set \<Rightarrow> 'e ttobs list set" where
 "mkTT3w P = P \<union> {add_Tick_refusal_trace \<rho>|\<rho>. \<rho> \<in> P}"
 
+subsection \<open>Process Well-formedness\<close>
+
 definition TTwf :: "'e ttobs list set \<Rightarrow> bool" where
   "TTwf P = (\<forall>x\<in>P. ttWF x)"
 
@@ -1196,6 +1206,8 @@ proof -
   then show ?thesis
     by (induct ys rule:ttWF.induct, auto)
 qed
+
+subsection \<open>Combined Healthiness Conditions\<close>
 
 definition TT :: "'e ttobs list set \<Rightarrow> bool" where
   "TT P = ((\<forall>x\<in>P. ttWF x) \<and> TT0 P \<and> TT1 P \<and> TT2w P \<and> ttWFx P)"
