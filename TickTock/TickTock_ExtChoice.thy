@@ -1813,10 +1813,10 @@ lemma TT_ExtChoice:
   apply  (simp add: ttWFx_ExtChoice TT_ttWFx assms(1) assms(2))
   done
 
-lemma ExtChoiceTT_comm: "P \<box>\<^sub>C Q = Q \<box>\<^sub>C P"
+lemma ExtChoice_comm: "P \<box>\<^sub>C Q = Q \<box>\<^sub>C P"
   unfolding ExtChoiceTT_def by auto
 
-lemma ExtChoiceTT_union_dist: "P \<box>\<^sub>C (Q \<union> R) = (P \<box>\<^sub>C Q) \<union> (P \<box>\<^sub>C R)"
+lemma ExtChoice_union_dist: "P \<box>\<^sub>C (Q \<union> R) = (P \<box>\<^sub>C Q) \<union> (P \<box>\<^sub>C R)"
   unfolding ExtChoiceTT_def by (safe, blast+)
 
 lemma ExtChoice_subset_union: "P \<box>\<^sub>C Q \<subseteq> P \<union> Q"
@@ -2178,7 +2178,63 @@ proof auto
                      (x = \<rho> @ \<sigma> \<or> x = \<rho> @ \<tau>))"
     by (rule_tac x=t in bexI, auto, rule_tac x=s in exI, auto, insert assm, blast, rule_tac x=s in exI, auto)
 qed
-                              
+
+lemma ExtChoice_left_unit:
+  assumes "TT1 P" "\<forall>x\<in>P. ttWF x"
+  shows "P \<box>\<^sub>C STOP\<^sub>C = P"
+  unfolding ExtChoiceTT_def StopTT_def
+proof auto
+  fix \<rho> \<sigma> \<tau> :: "'a tttrace"
+  assume case_assms: "\<rho> \<in> tocks UNIV" "\<rho> @ \<sigma> \<in> P" "\<rho> @ \<tau> \<in> tocks {x. x \<noteq> Tock}" "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  then have "\<tau> = []"
+    using self_extension_tt_prefix tocks_subset tt_prefix_refl by blast
+  then show "\<rho> @ \<tau> \<in> P"
+    using TT1_TT1w TT1w_prefix_concat_in assms case_assms(2) by auto
+next
+  fix \<rho> \<sigma> \<tau> s :: "'a tttrace"
+  fix X
+  assume case_assms: "\<rho> \<in> tocks UNIV" "\<rho> @ \<sigma> \<in> P" "s \<in> tocks {x. x \<noteq> Tock}" "\<rho> @ \<tau> = s @ [[X]\<^sub>R]" "Tock \<notin> X"
+    "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+    "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C s @ [[X]\<^sub>R] \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  then have \<rho>_\<tau>_def: "\<rho> = s \<and> \<tau> = [[X]\<^sub>R]"
+    by (metis end_refusal_notin_tocks same_append_eq tocks_subset top_greatest tt_prefix_antisym tt_prefix_concat tt_prefix_notfront_is_whole)
+  then obtain Y where Y_assms: "\<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock)"
+    using case_assms(6) by blast
+  then have "s @ [[Y]\<^sub>R] \<in> P"
+    using \<rho>_\<tau>_def case_assms(2) by blast
+  then have "s @ [[X]\<^sub>R] \<lesssim>\<^sub>C s @ [[Y]\<^sub>R] \<Longrightarrow> s @ [[X]\<^sub>R] \<in> P"
+    using TT1_def assms by blast
+  then show "s @ [[X]\<^sub>R] \<in> P"
+    by (metis Y_assms case_assms(5) subsetI tt_prefix_common_concat tt_prefix_subset.simps(2) tt_prefix_subset_refl)
+next
+  fix x
+  assume case_assm: "x \<in> P"
+  then obtain s t where "t\<in>tocks {x. x \<noteq> Tock} \<and> x = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C x \<longrightarrow> t' \<le>\<^sub>C t)"
+    by (metis assms(2) ttWF_split_tocks_longest)
+  then show "\<exists>\<rho>\<in>tocks UNIV.\<exists>\<sigma>. \<rho> @ \<sigma> \<in> P \<and>
+      (\<exists>\<tau>. (\<exists>s\<in>tocks {x. x \<noteq> Tock}. \<rho> @ \<tau> = s \<or> (\<exists>X. \<rho> @ \<tau> = s @ [[X]\<^sub>R] \<and> Tock \<notin> X)) \<and>
+            (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+            (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+            (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+            (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and> 
+            (x = \<rho> @ \<sigma> \<or> x = \<rho> @ \<tau>))"
+    apply (rule_tac x=t in bexI, auto)
+    apply (rule_tac x=s in exI, auto)
+    using case_assm apply blast
+    apply (rule_tac x="case s of [[X]\<^sub>R] \<Rightarrow> [[{x\<in>X. x \<noteq> Tock}]\<^sub>R] | _ \<Rightarrow> []" in exI, auto)
+    apply (rule_tac x="t" in bexI, auto)
+    apply (cases s rule:ttWF.cases, auto)
+    apply (cases s rule:ttWF.cases, auto)
+    using end_refusal_notin_tocks tt_prefix_notfront_is_whole apply blast
+    apply (cases s rule:ttWF.cases, auto)
+    using tocks_subset by blast
+qed
+
+lemma ExtChoice_right_unit:
+  assumes "TT1 P" "\<forall>x\<in>P. ttWF x"
+  shows "STOP\<^sub>C \<box>\<^sub>C P = P"
+  by (simp add: ExtChoice_comm ExtChoice_left_unit assms)
+
 lemma ExtChoice_Union_dist1:
   "X \<noteq> {} \<Longrightarrow> P \<box>\<^sub>C \<Union>X = \<Union>{R. \<exists>Q. Q \<in> X \<and> R = P \<box>\<^sub>C Q}"
   unfolding ExtChoiceTT_def by auto
@@ -2194,6 +2250,5 @@ lemma ExtChoice_mono1:
 lemma ExtChoice_mono2: 
   "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> R \<box>\<^sub>C P \<sqsubseteq>\<^sub>C R \<box>\<^sub>C Q"
   unfolding RefinesTT_def ExtChoiceTT_def by auto
-
 
 end

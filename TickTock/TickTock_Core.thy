@@ -2496,6 +2496,23 @@ lemma in_tocks_last:
   apply (induct t rule:ttWF.induct, auto simp add: notin_tocks)
   using tocks.simps by auto
 
+lemma ttWF_split_tocks_longest: 
+  "ttWF x \<Longrightarrow> \<exists>s. \<exists>t\<in>tocks {x. x \<noteq> Tock}. x = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C x \<longrightarrow> t' \<le>\<^sub>C t)"
+proof -
+  assume assm: "ttWF x"
+  obtain t s where t_s_assms: "t\<in>tocks UNIV \<and> x = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C x \<longrightarrow> t' \<le>\<^sub>C t)"
+    using split_tocks_longest by blast
+  then have t_wf: "ttWF t"
+    using assm ttWF_prefix_is_ttWF by blast
+  then have "t\<in>tocks UNIV \<Longrightarrow> t\<in>tocks {x. x \<noteq> Tock}"
+    apply - apply (induct t rule:ttWF.induct, auto simp add: notin_tocks)
+    using tocks.empty_in_tocks apply blast
+    by (smt list.inject mem_Collect_eq subsetI tocks.simps)
+  then show "\<exists>s. \<exists>t\<in>tocks {x. x \<noteq> Tock}. x = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C x \<longrightarrow> t' \<le>\<^sub>C t)"
+    using t_s_assms by blast
+qed
+    
+
 section {* Refinement *}
 
 definition RefinesTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>C" 50) where
