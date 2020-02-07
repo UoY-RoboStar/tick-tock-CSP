@@ -1,5 +1,5 @@
 theory TickTock_ExtChoice
-  imports TickTock_Core
+  imports TickTock_Core TickTock_Basic_Ops
 begin
 
 subsection {* External Choice *}
@@ -237,7 +237,7 @@ proof auto
       "\<rho> = \<rho>' @ \<rho>''"
       "\<rho>' \<in> tocks UNIV"
       "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C \<rho>' @ \<rho>'' \<longrightarrow> t \<le>\<^sub>C \<rho>'"
-      using split_tocks_longest by blast
+      by (metis split_tocks_longest)
     then have \<rho>'_\<rho>''_tt_subset: "\<rho>' \<subseteq>\<^sub>C \<rho>2' \<and> \<rho>'' \<subseteq>\<^sub>C t2"
       using TT_wf \<rho>_wf \<rho>2_assms(2) \<rho>2_split(1) \<rho>2_split(3) \<rho>2_split(5) assms(2) case_assm tt_subset_longest_tocks by blast
     then have \<rho>'_in_P_Q: "\<rho>' \<in> P \<and> \<rho>' \<in> Q"
@@ -291,7 +291,7 @@ proof auto
       "\<rho> = \<rho>' @ \<rho>''"
       "\<rho>' \<in> tocks UNIV"
       "\<forall>t\<in>tocks UNIV. t \<le>\<^sub>C \<rho>' @ \<rho>'' \<longrightarrow> t \<le>\<^sub>C \<rho>'"
-      using split_tocks_longest by blast
+      by (metis split_tocks_longest)
     then have \<rho>'_\<rho>''_tt_subset: "\<rho>' \<subseteq>\<^sub>C \<rho>2' \<and> \<rho>'' \<subseteq>\<^sub>C s2"
       using TT_wf \<rho>2_assms(2) \<rho>2_split(1) \<rho>2_split(2) \<rho>2_split(4) \<rho>_wf assms(1) case_assm tt_subset_longest_tocks by blast
     then have \<rho>'_in_P_Q: "\<rho>' \<in> P \<and> \<rho>' \<in> Q"
@@ -1816,397 +1816,369 @@ lemma TT_ExtChoice:
 lemma ExtChoiceTT_comm: "P \<box>\<^sub>C Q = Q \<box>\<^sub>C P"
   unfolding ExtChoiceTT_def by auto
 
-(*lemma ExtChoiceTT_aux_assoc: 
-  assumes "\<forall>t\<in>P. ttWF t" "\<forall>t\<in>Q. ttWF t" "\<forall>t\<in>R. ttWF t"
-  shows "P \<box>\<^sup>C (Q \<box>\<^sup>C R) = (P \<box>\<^sup>C Q) \<box>\<^sup>C R"
-  (is "?lhs = ?rhs")
-proof -
-  have "?lhs = {t. \<exists> \<rho>\<in>tocks(UNIV). \<exists> \<sigma> \<tau>. 
-    \<rho> @ \<sigma> \<in> P \<and> \<rho> @ \<tau> \<in> (Q \<box>\<^sup>C R) \<and>
-    (\<forall>\<rho>'\<in>tocks(UNIV). \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
-    (\<forall>\<rho>'\<in>tocks(UNIV). \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
-    (((\<exists> X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists> X. \<tau> = [[X]\<^sub>R])) \<longrightarrow> \<rho> @ \<sigma> = \<rho> @ \<tau>) \<and>
-    (t = \<rho> @ \<sigma> \<or> t = \<rho> @ \<tau>)}"
-    unfolding ExtChoiceTT_aux_def by simp
-  also have "... =  {t. \<exists> \<rho>\<in>tocks(UNIV). \<exists> \<sigma> \<tau>. 
-    \<rho> @ \<sigma> \<in> (P \<box>\<^sup>C Q) \<and> \<rho> @ \<tau> \<in> R \<and>
-    (\<forall>\<rho>'\<in>tocks(UNIV). \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
-    (\<forall>\<rho>'\<in>tocks(UNIV). \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
-    (((\<exists> X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists> X. \<tau> = [[X]\<^sub>R])) \<longrightarrow> \<rho> @ \<sigma> = \<rho> @ \<tau>) \<and>
-    (t = \<rho> @ \<sigma> \<or> t = \<rho> @ \<tau>)}"
-  proof (safe)
-    fix \<rho> \<sigma> \<tau> :: "'a ttobs list"
-    assume assm1: "\<rho> \<in> tocks UNIV"
-    assume assm2: "\<rho> @ \<sigma> \<in> P"
-    assume assm3: "\<rho> @ \<tau> \<in> Q \<box>\<^sup>C R"
-    assume assm4: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm5: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm6: "\<not> (\<exists>\<rho>'\<in>tocks UNIV.
-              \<exists>\<sigma>' \<tau>. \<rho>' @ \<sigma>' \<in> P \<box>\<^sup>C Q \<and>
-                     \<rho>' @ \<tau> \<in> R \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     ((\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau> = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>) \<and> (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>))"
-    assume assm7: "\<nexists>X. \<tau> = [[X]\<^sub>R]"
-    obtain \<rho>' \<sigma>' \<tau>' where additional_assms:
-                    "\<rho>' \<in> tocks UNIV" "\<rho>' @ \<sigma>' \<in> Q" "\<rho>' @ \<tau>' \<in> R"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
-                    "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm3 unfolding ExtChoiceTT_aux_def by (clarify, blast)
-    have "\<rho> = \<rho>'"
-      using additional_assms(6)
-    proof auto
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<sigma>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(4) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    next
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<tau>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(5) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    qed
-    then have "\<nexists>X. \<sigma> = [[X]\<^sub>R] \<Longrightarrow> \<exists>\<rho>'\<in>tocks UNIV.
-              \<exists>\<sigma>' \<tau>. \<rho>' @ \<sigma>' \<in> P \<box>\<^sup>C Q \<and>
-                     \<rho>' @ \<tau> \<in> R \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     ((\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau> = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>) \<and> (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>)"
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>" in exI, rule_tac x="\<tau>'" in exI, safe)
-      using assm1 assm2 assm4 assm5 assm7 additional_assms apply (simp_all)
-      unfolding ExtChoiceTT_aux_def apply (safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>" in exI, rule_tac x="\<sigma>'" in exI, safe, blast, blast)+
-      done
-    then show "\<exists>X. \<sigma> = [[X]\<^sub>R]"
-      using assm6 by blast
-  next
-    fix \<rho> \<sigma> \<tau> :: "'a ttobs list"
-    assume assm1: "\<rho> \<in> tocks UNIV"
-    assume assm2: "\<rho> @ \<tau> \<in> P"
-    assume assm3: "\<rho> @ \<tau> \<in> Q \<box>\<^sup>C R"
-    assume assm5: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    obtain \<rho>' \<sigma>' \<tau>' where additional_assms:
-                    "\<rho>' \<in> tocks UNIV" "\<rho>' @ \<sigma>' \<in> Q" "\<rho>' @ \<tau>' \<in> R"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
-                    "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm3 unfolding ExtChoiceTT_aux_def by (clarify, blast)
-    have "\<rho> = \<rho>'"
-      using additional_assms(6)
-    proof auto
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<sigma>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(4) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    next
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<tau>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(5) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    qed
-    then show "\<exists>\<rho>'\<in>tocks UNIV.
-          \<exists>\<sigma> \<tau>'. \<rho>' @ \<sigma> \<in> P \<box>\<^sup>C Q \<and>
-                 \<rho>' @ \<tau>' \<in> R \<and>
-                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                 ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>')"
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>" in exI, rule_tac x="\<tau>'" in exI, safe)
-      using assm1 assm2 assm5 additional_assms apply (simp_all)
-      apply safe
-      unfolding ExtChoiceTT_aux_def apply (safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<tau>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<tau>'" in exI, safe)
-      apply (blast)
-      done
-  next
-    fix \<rho> \<sigma> \<tau> :: "'a ttobs list"
-    assume assm1: "\<rho> \<in> tocks UNIV"
-    assume assm2: "\<rho> @ \<sigma> \<in> P"
-    assume assm3: "\<rho> @ \<tau> \<in> Q \<box>\<^sup>C R"
-    assume assm4: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm5: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm6: "\<not> (\<exists>\<rho>'\<in>tocks UNIV.
-              \<exists>\<sigma> \<tau>'. \<rho>' @ \<sigma> \<in> P \<box>\<^sup>C Q \<and>
-                     \<rho>' @ \<tau>' \<in> R \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'))"
-    assume assm7: "\<nexists>X. \<tau> = [[X]\<^sub>R]"
-    obtain \<rho>' \<sigma>' \<tau>' where additional_assms:
-                    "\<rho>' \<in> tocks UNIV" "\<rho>' @ \<sigma>' \<in> Q" "\<rho>' @ \<tau>' \<in> R"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
-                    "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm3 unfolding ExtChoiceTT_aux_def by (clarify, blast)
-    have "\<rho> = \<rho>'"
-      using additional_assms(6)
-    proof auto
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<sigma>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(4) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    next
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<tau>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(5) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    qed
-    then have "\<nexists>X. \<sigma> = [[X]\<^sub>R] \<Longrightarrow> \<exists>\<rho>'\<in>tocks UNIV.
-              \<exists>\<sigma> \<tau>'. \<rho>' @ \<sigma> \<in> P \<box>\<^sup>C Q \<and>
-                     \<rho>' @ \<tau>' \<in> R \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>')"
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>'" in exI, safe)
-      using assm1 assm2 assm4 assm5 assm7 additional_assms apply (simp_all)
-      unfolding ExtChoiceTT_aux_def apply (safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>" in exI, rule_tac x="\<sigma>'" in exI, safe, blast, blast)+
-      done
-    then show "\<exists>X. \<sigma> = [[X]\<^sub>R]"
-      using assm6 by blast
-  next
-    fix \<rho> \<sigma> \<tau> :: "'a ttobs list"
-    assume assm1: "\<rho> \<in> tocks UNIV"
-    assume assm2: "\<rho> @ \<tau> \<in> P"
-    assume assm3: "\<rho> @ \<tau> \<in> Q \<box>\<^sup>C R"
-    assume assm5: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    obtain \<rho>' \<sigma>' \<tau>' where additional_assms:
-                    "\<rho>' \<in> tocks UNIV" "\<rho>' @ \<sigma>' \<in> Q" "\<rho>' @ \<tau>' \<in> R"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
-                    "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm3 unfolding ExtChoiceTT_aux_def by (clarify, blast)
-    have "\<rho> = \<rho>'"
-      using additional_assms(6)
-    proof auto
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<sigma>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(4) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    next
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<tau>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(5) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    qed
-    then show "\<exists>\<rho>'\<in>tocks UNIV.
-          \<exists>\<sigma> \<tau>'. \<rho>' @ \<sigma> \<in> P \<box>\<^sup>C Q \<and>
-                 \<rho>' @ \<tau>' \<in> R \<and>
-                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                 ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>')"
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>" in exI, rule_tac x="\<tau>'" in exI, safe)
-      using assm1 assm2 assm5 additional_assms apply (simp_all)
-      apply safe
-      unfolding ExtChoiceTT_aux_def apply (safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<tau>'" in exI, safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<tau>'" in exI, safe)
-      apply (blast)
-      done
-  next
-    fix \<rho> \<sigma> \<tau> :: "'a ttobs list"
-    assume assm1: "\<rho> \<in> tocks UNIV"
-    assume assm2: "\<rho> @ \<sigma> \<in> P \<box>\<^sup>C Q"
-    assume assm3: "\<rho> @ \<tau> \<in> R"
-    assume assm4: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm5: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm6: "\<not> (\<exists>\<rho>'\<in>tocks UNIV.
-              \<exists>\<sigma>' \<tau>. \<rho>' @ \<sigma>' \<in> P \<and>
-                     \<rho>' @ \<tau> \<in> Q \<box>\<^sup>C R \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     ((\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau> = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>) \<and> (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>))"
-    assume assm7: "\<nexists>X. \<tau> = [[X]\<^sub>R]"
-    obtain \<rho>' \<sigma>' \<tau>' where additional_assms:
-                    "\<rho>' \<in> tocks UNIV" "\<rho>' @ \<sigma>' \<in> P" "\<rho>' @ \<tau>' \<in> Q"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>'"
-                    "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm2 unfolding ExtChoiceTT_aux_def by (clarify, blast)
-    have "\<rho> = \<rho>'"
-      using additional_assms(6)
-    proof auto
-      assume case1: "\<rho> @ \<sigma> = \<rho>' @ \<sigma>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(4) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm4 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    next
-      assume case1: "\<rho> @ \<sigma> = \<rho>' @ \<tau>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(5) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm4 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    qed
-    then have "\<nexists>X. \<sigma> = [[X]\<^sub>R] \<Longrightarrow> (\<exists>\<rho>'\<in>tocks UNIV.
-              \<exists>\<sigma>' \<tau>. \<rho>' @ \<sigma>' \<in> P \<and>
-                     \<rho>' @ \<tau> \<in> Q \<box>\<^sup>C R \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     ((\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau> = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>) \<and> (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>))"
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>'" in exI, safe)
-      using assm1 assm3 assm4 assm5 assm7 additional_assms apply (simp_all)
-      unfolding ExtChoiceTT_aux_def apply (safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<tau>" in exI, safe, blast, blast)+
-      done
-    then show "\<exists>X. \<sigma> = [[X]\<^sub>R]"
-      using assm6 by blast
-  next
-    fix \<rho> \<sigma> \<tau> :: "'a ttobs list"
-    assume assm1: "\<rho> \<in> tocks UNIV"
-    assume assm2: "\<rho> @ \<tau> \<in> P \<box>\<^sup>C Q"
-    assume assm3: "\<rho> @ \<tau> \<in> R"
-    assume assm4: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm5: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    obtain \<rho>' \<sigma>' \<tau>' where additional_assms:
-                    "\<rho>' \<in> tocks UNIV" "\<rho>' @ \<sigma>' \<in> P" "\<rho>' @ \<tau>' \<in> Q"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
-                    "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm2 unfolding ExtChoiceTT_aux_def by (clarify, blast)
-    have "\<rho> = \<rho>'"
-      using additional_assms(6)
-    proof auto
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<sigma>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(4) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    next
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<tau>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(5) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    qed
-    then show "\<exists>\<rho>'\<in>tocks UNIV.
-          \<exists>\<sigma> \<tau>'. \<rho>' @ \<sigma> \<in> P \<and>
-                 \<rho>' @ \<tau>' \<in> Q \<box>\<^sup>C R \<and>
-                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                 ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>')"
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>" in exI, safe)
-      using assm1 assm3 assm4 assm5 additional_assms apply (simp_all)
-      unfolding ExtChoiceTT_aux_def apply (safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe, blast, blast)+
-      done
-  next
-    fix \<rho> \<sigma> \<tau> :: "'a ttobs list"
-    assume assm1: "\<rho> \<in> tocks UNIV"
-    assume assm2: "\<rho> @ \<sigma> \<in> P \<box>\<^sup>C Q"
-    assume assm3: "\<rho> @ \<tau> \<in> R"
-    assume assm4: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm5: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm6: "\<not> (\<exists>\<rho>'\<in>tocks UNIV.
-              \<exists>\<sigma> \<tau>'. \<rho>' @ \<sigma> \<in> P \<and>
-                     \<rho>' @ \<tau>' \<in> Q \<box>\<^sup>C R \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'))"
-    assume assm7: "\<nexists>X. \<tau> = [[X]\<^sub>R]"
-    obtain \<rho>' \<sigma>' \<tau>' where additional_assms:
-                    "\<rho>' \<in> tocks UNIV" "\<rho>' @ \<sigma>' \<in> P" "\<rho>' @ \<tau>' \<in> Q"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>'"
-                    "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm2 unfolding ExtChoiceTT_aux_def by (clarify, blast)
-    have "\<rho> = \<rho>'"
-      using additional_assms(6)
-    proof auto
-      assume case1: "\<rho> @ \<sigma> = \<rho>' @ \<sigma>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(4) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm4 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    next
-      assume case1: "\<rho> @ \<sigma> = \<rho>' @ \<tau>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(5) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm4 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    qed
-    then have "\<nexists>X. \<sigma> = [[X]\<^sub>R] \<Longrightarrow> (\<exists>\<rho>'\<in>tocks UNIV.
-              \<exists>\<sigma> \<tau>'. \<rho>' @ \<sigma> \<in> P \<and>
-                     \<rho>' @ \<tau>' \<in> Q \<box>\<^sup>C R \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                     ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'))"
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>" in exI, safe)
-      using assm1 assm3 assm4 assm5 assm7 additional_assms apply (simp_all)
-      unfolding ExtChoiceTT_aux_def apply (safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<tau>" in exI, safe, blast+)
-      done
-    then show "\<exists>X. \<sigma> = [[X]\<^sub>R]"
-      using assm6 by blast
-  next
-    fix \<rho> \<sigma> \<tau> :: "'a ttobs list"
-    assume assm1: "\<rho> \<in> tocks UNIV"
-    assume assm2: "\<rho> @ \<tau> \<in> P \<box>\<^sup>C Q"
-    assume assm3: "\<rho> @ \<tau> \<in> R"
-    assume assm4: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    assume assm5: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
-    obtain \<rho>' \<sigma>' \<tau>' where additional_assms:
-                    "\<rho>' \<in> tocks UNIV" "\<rho>' @ \<sigma>' \<in> P" "\<rho>' @ \<tau>' \<in> Q"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
-                    "\<rho> @ \<tau> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'"
-                    "(\<exists>X. \<sigma>' = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma>' = \<rho>' @ \<tau>'"
-      using assm2 unfolding ExtChoiceTT_aux_def by (clarify, blast)
-    have "\<rho> = \<rho>'"
-      using additional_assms(6)
-    proof auto
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<sigma>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(4) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    next
-      assume case1: "\<rho> @ \<tau> = \<rho>' @ \<tau>'"
-      have "\<rho> \<le>\<^sub>C \<rho>'" by (metis additional_assms(5) assm1 case1 tt_prefix_concat)
-      also have "\<rho>' \<le>\<^sub>C \<rho>" by (simp add: additional_assms(1) assm5 case1 tt_prefix_concat)
-      then show "\<rho> = \<rho>'" by (simp add: calculation tt_prefix_antisym)
-    qed
-    then show "\<exists>\<rho>'\<in>tocks UNIV.
-          \<exists>\<sigma> \<tau>'. \<rho>' @ \<sigma> \<in> P \<and>
-                 \<rho>' @ \<tau>' \<in> Q \<box>\<^sup>C R \<and>
-                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
-                 ((\<exists>X. \<sigma> = [[X]\<^sub>R]) \<or> (\<exists>X. \<tau>' = [[X]\<^sub>R]) \<longrightarrow> \<rho>' @ \<sigma> = \<rho>' @ \<tau>') \<and> (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>')"
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<sigma>'" in exI, rule_tac x="\<tau>" in exI, safe)
-      using assm1 assm3 assm4 assm5 additional_assms apply (simp_all)
-      unfolding ExtChoiceTT_aux_def apply (safe)
-      apply (rule_tac x="\<rho>" in bexI, rule_tac x="\<tau>'" in exI, rule_tac x="\<sigma>'" in exI, safe, blast, blast)+
-      done
-  qed
-  also have "... = ?rhs"
-    unfolding ExtChoiceTT_aux_def by simp
-  then show ?thesis
-    using calculation by auto
-qed*)
-
 lemma ExtChoiceTT_union_dist: "P \<box>\<^sub>C (Q \<union> R) = (P \<box>\<^sub>C Q) \<union> (P \<box>\<^sub>C R)"
   unfolding ExtChoiceTT_def by (safe, blast+)
 
 lemma ExtChoice_subset_union: "P \<box>\<^sub>C Q \<subseteq> P \<union> Q"
   unfolding ExtChoiceTT_def by auto
 
-lemma ExtChoice_idempotent: "TT P \<Longrightarrow> P \<box>\<^sub>C P = P"
-  unfolding ExtChoiceTT_def apply auto
-  using TT_wf split_tocks_longest by fastforce
+lemma ExtChoice_assoc: "P \<box>\<^sub>C (Q \<box>\<^sub>C R) = (P \<box>\<^sub>C Q) \<box>\<^sub>C R"
+  unfolding ExtChoiceTT_def
+proof (safe, simp_all)
+  fix \<rho> \<sigma> \<tau> \<rho>' \<sigma>' \<tau>' :: "'a tttrace"
+  assume in_P: "\<rho> @ \<sigma> \<in> P" and in_Q: "\<rho>' @ \<sigma>' \<in> Q" and in_R: "\<rho>' @ \<tau>' \<in> R"
+  assume \<rho>_in_tocks: "\<rho> \<in> tocks UNIV" and \<rho>'_in_tocks: "\<rho>' \<in> tocks UNIV"
+  assume \<rho>_longest_\<sigma>: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume \<rho>_longest_\<tau>: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>"
+  assume \<rho>'_longest_\<sigma>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<rho>'_longest_\<tau>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<sigma>_refusal: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>_refusal: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<sigma>'_refusal: "\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>'_refusal: "\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<rho>_\<tau>_eq_\<rho>'_\<sigma>': "\<rho> @ \<tau> = \<rho>' @ \<sigma>'"
+  have \<rho>_eq_\<rho>': "\<rho> = \<rho>'"
+    by (metis \<rho>'_in_tocks \<rho>'_longest_\<sigma>' \<rho>_\<tau>_eq_\<rho>'_\<sigma>' \<rho>_in_tocks \<rho>_longest_\<tau> tt_prefix_antisym tt_prefix_concat)
+  show "\<exists>\<rho>'\<in>tocks UNIV.
+          \<exists>\<sigma>'. (\<exists>\<rho>\<in>tocks UNIV.
+                   \<exists>\<sigma>. \<rho> @ \<sigma> \<in> P \<and>
+                       (\<exists>\<tau>. \<rho> @ \<tau> \<in> Q \<and>
+                            (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                            (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                            (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                            (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                            (\<rho>' @ \<sigma>' = \<rho> @ \<sigma> \<or> \<rho>' @ \<sigma>' = \<rho> @ \<tau>))) \<and>
+               (\<exists>\<tau>. \<rho>' @ \<tau> \<in> R \<and>
+                    (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                    (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                    (\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                    (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                    (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>))"
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<sigma>" in exI, auto)
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<sigma>" in exI, auto simp add: in_P)
+    apply (rule_tac x="\<tau>" in exI, auto simp add: in_Q \<rho>_\<tau>_eq_\<rho>'_\<sigma>' \<rho>_longest_\<sigma> \<rho>_longest_\<tau> \<sigma>_refusal \<tau>_refusal)
+    apply (rule_tac x="\<tau>'" in exI, auto simp add: in_R \<rho>_eq_\<rho>' \<rho>'_longest_\<tau>')
+    using \<rho>_\<tau>_eq_\<rho>'_\<sigma>' \<rho>_eq_\<rho>' \<sigma>'_refusal \<sigma>_refusal apply fastforce
+    using \<rho>_\<tau>_eq_\<rho>'_\<sigma>' \<rho>_eq_\<rho>' \<tau>'_refusal \<tau>_refusal by fastforce
+next
+  fix \<rho> \<sigma> \<tau> \<rho>' \<sigma>' \<tau>' :: "'a tttrace"
+  assume in_P: "\<rho> @ \<sigma> \<in> P" and in_Q: "\<rho>' @ \<sigma>' \<in> Q" and in_R: "\<rho>' @ \<tau>' \<in> R"
+  assume \<rho>_in_tocks: "\<rho> \<in> tocks UNIV" and \<rho>'_in_tocks: "\<rho>' \<in> tocks UNIV"
+  assume \<rho>_longest_\<sigma>: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume \<rho>_longest_\<tau>: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>"
+  assume \<rho>'_longest_\<sigma>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<rho>'_longest_\<tau>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<sigma>_refusal: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>_refusal: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<sigma>'_refusal: "\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>'_refusal: "\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<rho>_\<tau>_eq_\<rho>'_\<tau>': "\<rho> @ \<tau> = \<rho>' @ \<tau>'"
+  have \<rho>_eq_\<rho>': "\<rho> = \<rho>'"
+    by (metis \<rho>'_in_tocks \<rho>'_longest_\<tau>' \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_in_tocks \<rho>_longest_\<tau> tt_prefix_antisym tt_prefix_concat)
+  show "\<exists>\<rho>'\<in>tocks UNIV.
+          \<exists>\<sigma>'. (\<exists>\<rho>\<in>tocks UNIV.
+                   \<exists>\<sigma>. \<rho> @ \<sigma> \<in> P \<and>
+                       (\<exists>\<tau>. \<rho> @ \<tau> \<in> Q \<and>
+                            (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                            (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                            (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                            (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                            (\<rho>' @ \<sigma>' = \<rho> @ \<sigma> \<or> \<rho>' @ \<sigma>' = \<rho> @ \<tau>))) \<and>
+               (\<exists>\<tau>. \<rho>' @ \<tau> \<in> R \<and>
+                    (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                    (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                    (\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                    (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                    (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>))"
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<sigma>" in exI, auto)
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<sigma>" in exI, auto simp add: in_P)
+    apply (rule_tac x="\<sigma>'" in exI, auto simp add: in_Q \<rho>_eq_\<rho>' \<rho>'_longest_\<sigma>')
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<sigma> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal \<tau>'_refusal apply fastforce
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>'_refusal \<tau>_refusal apply fastforce
+    apply (rule_tac x="\<tau>'" in exI, auto simp add: in_R \<rho>_eq_\<rho>' \<rho>'_longest_\<tau>')
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<sigma> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<tau>_refusal by blast
+next
+  fix \<rho> \<sigma> \<tau> \<rho>' \<sigma>' \<tau>' :: "'a tttrace"
+  assume in_P: "\<rho> @ \<sigma> \<in> P" and in_Q: "\<rho>' @ \<sigma>' \<in> Q" and in_R: "\<rho>' @ \<tau>' \<in> R"
+  assume \<rho>_in_tocks: "\<rho> \<in> tocks UNIV" and \<rho>'_in_tocks: "\<rho>' \<in> tocks UNIV"
+  assume \<rho>_longest_\<sigma>: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume \<rho>_longest_\<tau>: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>"
+  assume \<rho>'_longest_\<sigma>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<rho>'_longest_\<tau>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<sigma>_refusal: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>_refusal: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<sigma>'_refusal: "\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>'_refusal: "\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<rho>_\<tau>_eq_\<rho>'_\<tau>': "\<rho> @ \<tau> = \<rho>' @ \<sigma>'"
+  have \<rho>_eq_\<rho>': "\<rho> = \<rho>'"
+    by (metis \<rho>'_in_tocks \<rho>'_longest_\<sigma>' \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_in_tocks \<rho>_longest_\<tau> tt_prefix_antisym tt_prefix_concat)
+  show "\<exists>\<rho>\<in>tocks UNIV.
+          \<exists>\<sigma>. (\<exists>\<rho>'\<in>tocks UNIV.
+                  \<exists>\<sigma>'. \<rho>' @ \<sigma>' \<in> P \<and>
+                       (\<exists>\<tau>. \<rho>' @ \<tau> \<in> Q \<and>
+                            (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                            (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                            (\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                            (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                            (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>))) \<and>
+              (\<exists>\<tau>. \<rho> @ \<tau> \<in> R \<and>
+                   (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                   (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                   (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                   (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                   (\<rho>' @ \<sigma>' = \<rho> @ \<sigma> \<or> \<rho>' @ \<sigma>' = \<rho> @ \<tau>))"
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<sigma>'" in exI, auto)
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<sigma>" in exI, auto simp add: in_P)
+    apply (rule_tac x="\<sigma>'" in exI, auto simp add: in_Q \<rho>_eq_\<rho>' \<rho>'_longest_\<sigma>')
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<sigma> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<tau>_refusal apply blast
+    apply (rule_tac x="\<tau>'" in exI, auto simp add: in_R \<rho>_eq_\<rho>' \<rho>'_longest_\<tau>')
+    using \<sigma>'_refusal apply blast
+    using \<tau>'_refusal by blast
+next
+  fix \<rho> \<sigma> \<tau> \<rho>' \<sigma>' \<tau>' :: "'a tttrace"
+  assume in_P: "\<rho> @ \<sigma> \<in> P" and in_Q: "\<rho>' @ \<sigma>' \<in> Q" and in_R: "\<rho>' @ \<tau>' \<in> R"
+  assume \<rho>_in_tocks: "\<rho> \<in> tocks UNIV" and \<rho>'_in_tocks: "\<rho>' \<in> tocks UNIV"
+  assume \<rho>_longest_\<sigma>: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume \<rho>_longest_\<tau>: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>"
+  assume \<rho>'_longest_\<sigma>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<rho>'_longest_\<tau>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<sigma>_refusal: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>_refusal: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<sigma>'_refusal: "\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>'_refusal: "\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<rho>_\<tau>_eq_\<rho>'_\<tau>': "\<rho> @ \<tau> = \<rho>' @ \<tau>'"
+  have \<rho>_eq_\<rho>': "\<rho> = \<rho>'"
+    by (metis \<rho>'_in_tocks \<rho>'_longest_\<tau>' \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_in_tocks \<rho>_longest_\<tau> tt_prefix_antisym tt_prefix_concat)
+  show "\<exists>\<rho>\<in>tocks UNIV.
+          \<exists>\<sigma>. (\<exists>\<rho>'\<in>tocks UNIV.
+                  \<exists>\<sigma>'. \<rho>' @ \<sigma>' \<in> P \<and>
+                       (\<exists>\<tau>. \<rho>' @ \<tau> \<in> Q \<and>
+                            (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                            (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                            (\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                            (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                            (\<rho> @ \<sigma> = \<rho>' @ \<sigma>' \<or> \<rho> @ \<sigma> = \<rho>' @ \<tau>))) \<and>
+              (\<exists>\<tau>. \<rho> @ \<tau> \<in> R \<and>
+                   (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                   (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                   (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                   (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                   (\<rho>' @ \<tau>' = \<rho> @ \<sigma> \<or> \<rho>' @ \<tau>' = \<rho> @ \<tau>))"
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<sigma>" in exI, auto)
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<sigma>" in exI, auto simp add: in_P)
+    apply (rule_tac x="\<sigma>'" in exI, auto simp add: in_Q \<rho>_eq_\<rho>' \<rho>'_longest_\<sigma>')
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<sigma> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal \<tau>'_refusal apply fastforce
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>'_refusal \<tau>_refusal apply fastforce
+    apply (rule_tac x="\<tau>'" in exI, auto simp add: in_R \<rho>_eq_\<rho>' \<rho>'_longest_\<tau>')
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<sigma> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<tau>_refusal by blast
+next
+  fix \<rho> \<sigma> \<tau> \<rho>' \<sigma>' \<tau>' :: "'a tttrace"
+  assume in_P: "\<rho>' @ \<sigma>' \<in> P" and in_Q: "\<rho>' @ \<tau>' \<in> Q" and in_R: "\<rho> @ \<tau> \<in> R"
+  assume \<rho>_in_tocks: "\<rho> \<in> tocks UNIV" and \<rho>'_in_tocks: "\<rho>' \<in> tocks UNIV"
+  assume \<rho>_longest_\<sigma>: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>"
+  assume \<rho>_longest_\<tau>: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume \<rho>'_longest_\<sigma>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<rho>'_longest_\<tau>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<sigma>_refusal: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>_refusal: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<sigma>'_refusal: "\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>'_refusal: "\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<rho>_\<tau>_eq_\<rho>'_\<tau>': "\<rho> @ \<sigma> = \<rho>' @ \<sigma>'"
+  have \<rho>_eq_\<rho>': "\<rho> = \<rho>'"
+    by (metis \<rho>'_in_tocks \<rho>'_longest_\<sigma>' \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_in_tocks \<rho>_longest_\<sigma> tt_prefix_antisym tt_prefix_concat)
+  show "\<exists>\<rho>\<in>tocks UNIV.
+          \<exists>\<sigma>. \<rho> @ \<sigma> \<in> P \<and>
+              (\<exists>\<tau>. (\<exists>\<rho>'\<in>tocks UNIV.
+                       \<exists>\<sigma>. \<rho>' @ \<sigma> \<in> Q \<and>
+                           (\<exists>\<tau>'. \<rho>' @ \<tau>' \<in> R \<and>
+                                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                                 (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                                 (\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                                 (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'))) \<and>
+                   (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                   (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                   (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                   (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                   (\<rho>' @ \<sigma>' = \<rho> @ \<sigma> \<or> \<rho>' @ \<sigma>' = \<rho> @ \<tau>))"
+    apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_in_tocks)
+    apply (rule_tac x="\<sigma>'" in exI, auto simp add: in_P)
+    apply (rule_tac x="\<tau>'" in exI, auto)
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<tau>'" in exI, auto simp add: in_Q \<rho>_eq_\<rho>' \<rho>'_longest_\<sigma>')
+    apply (rule_tac x="\<tau>" in exI, auto simp add: \<rho>'_longest_\<tau>')
+    using \<rho>_eq_\<rho>' in_R apply blast
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<tau> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal \<tau>'_refusal apply fastforce
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>'_refusal \<tau>_refusal apply fastforce
+    using \<sigma>'_refusal apply blast
+    using \<tau>'_refusal by blast
+next
+  fix \<rho> \<sigma> \<tau> \<rho>' \<sigma>' \<tau>' :: "'a tttrace"
+  assume in_P: "\<rho>' @ \<sigma>' \<in> P" and in_Q: "\<rho>' @ \<tau>' \<in> Q" and in_R: "\<rho> @ \<tau> \<in> R"
+  assume \<rho>_in_tocks: "\<rho> \<in> tocks UNIV" and \<rho>'_in_tocks: "\<rho>' \<in> tocks UNIV"
+  assume \<rho>_longest_\<sigma>: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>"
+  assume \<rho>_longest_\<tau>: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume \<rho>'_longest_\<sigma>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<rho>'_longest_\<tau>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<sigma>_refusal: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>_refusal: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<sigma>'_refusal: "\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>'_refusal: "\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<rho>_\<tau>_eq_\<rho>'_\<tau>': "\<rho> @ \<sigma> = \<rho>' @ \<sigma>'"
+  have \<rho>_eq_\<rho>': "\<rho> = \<rho>'"
+    by (metis \<rho>'_in_tocks \<rho>'_longest_\<sigma>' \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_in_tocks \<rho>_longest_\<sigma> tt_prefix_antisym tt_prefix_concat)
+  show "\<exists>\<rho>'\<in>tocks UNIV.
+          \<exists>\<sigma>. \<rho>' @ \<sigma> \<in> P \<and>
+              (\<exists>\<tau>'. (\<exists>\<rho>\<in>tocks UNIV.
+                        \<exists>\<sigma>. \<rho> @ \<sigma> \<in> Q \<and>
+                            (\<exists>\<tau>. \<rho> @ \<tau> \<in> R \<and>
+                                 (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                                 (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                                 (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                                 (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                                 (\<rho>' @ \<tau>' = \<rho> @ \<sigma> \<or> \<rho>' @ \<tau>' = \<rho> @ \<tau>))) \<and>
+                    (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                    (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                    (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                    (\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                    (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'))"
+    apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_in_tocks)
+    apply (rule_tac x="\<sigma>'" in exI, auto simp add: in_P)
+    apply (rule_tac x="\<tau>" in exI, auto)
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<tau>'" in exI, auto simp add: in_Q \<rho>_eq_\<rho>' \<rho>'_longest_\<sigma>')
+    apply (rule_tac x="\<tau>" in exI, auto simp add: \<rho>'_longest_\<tau>')
+    using \<rho>_eq_\<rho>' in_R apply blast
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<tau> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal \<tau>'_refusal apply fastforce
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>'_refusal \<tau>_refusal apply fastforce
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<tau> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<tau>_refusal by blast
+next
+  fix \<rho> \<sigma> \<tau> \<rho>' \<sigma>' \<tau>' :: "'a tttrace"
+  assume in_P: "\<rho>' @ \<sigma>' \<in> P" and in_Q: "\<rho>' @ \<tau>' \<in> Q" and in_R: "\<rho> @ \<tau> \<in> R"
+  assume \<rho>_in_tocks: "\<rho> \<in> tocks UNIV" and \<rho>'_in_tocks: "\<rho>' \<in> tocks UNIV"
+  assume \<rho>_longest_\<sigma>: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>"
+  assume \<rho>_longest_\<tau>: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume \<rho>'_longest_\<sigma>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<rho>'_longest_\<tau>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<sigma>_refusal: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>_refusal: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<sigma>'_refusal: "\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>'_refusal: "\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<rho>_\<tau>_eq_\<rho>'_\<tau>': "\<rho> @ \<sigma> = \<rho>' @ \<tau>'"
+  have \<rho>_eq_\<rho>': "\<rho> = \<rho>'"
+    by (metis \<rho>'_in_tocks \<rho>'_longest_\<tau>' \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_in_tocks \<rho>_longest_\<sigma> tt_prefix_antisym tt_prefix_concat)
+  show "\<exists>\<rho>\<in>tocks UNIV.
+          \<exists>\<sigma>. \<rho> @ \<sigma> \<in> P \<and>
+              (\<exists>\<tau>. (\<exists>\<rho>'\<in>tocks UNIV.
+                       \<exists>\<sigma>. \<rho>' @ \<sigma> \<in> Q \<and>
+                           (\<exists>\<tau>'. \<rho>' @ \<tau>' \<in> R \<and>
+                                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                                 (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                                 (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                                 (\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                                 (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'))) \<and>
+                   (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                   (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                   (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                   (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                   (\<rho>' @ \<tau>' = \<rho> @ \<sigma> \<or> \<rho>' @ \<tau>' = \<rho> @ \<tau>))"
+    apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_in_tocks)
+    apply (rule_tac x="\<sigma>'" in exI, auto simp add: in_P)
+    apply (rule_tac x="\<tau>'" in exI, auto)
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<tau>'" in exI, auto simp add: in_Q \<rho>_eq_\<rho>' \<rho>'_longest_\<sigma>')
+    apply (rule_tac x="\<tau>" in exI, auto simp add: \<rho>'_longest_\<tau>')
+    using \<rho>_eq_\<rho>' in_R apply blast
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<tau> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal \<tau>'_refusal apply fastforce
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>'_refusal \<tau>_refusal apply fastforce
+    using \<sigma>'_refusal apply blast
+    using \<tau>'_refusal by blast
+next
+  fix \<rho> \<sigma> \<tau> \<rho>' \<sigma>' \<tau>' :: "'a tttrace"
+  assume in_P: "\<rho>' @ \<sigma>' \<in> P" and in_Q: "\<rho>' @ \<tau>' \<in> Q" and in_R: "\<rho> @ \<tau> \<in> R"
+  assume \<rho>_in_tocks: "\<rho> \<in> tocks UNIV" and \<rho>'_in_tocks: "\<rho>' \<in> tocks UNIV"
+  assume \<rho>_longest_\<sigma>: "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>"
+  assume \<rho>_longest_\<tau>: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume \<rho>'_longest_\<sigma>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<rho>'_longest_\<tau>': "\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>'"
+  assume \<sigma>_refusal: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>_refusal: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<sigma>'_refusal: "\<forall>X. \<sigma>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<tau>'_refusal: "\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume \<rho>_\<tau>_eq_\<rho>'_\<tau>': "\<rho> @ \<sigma> = \<rho>' @ \<tau>'"
+  have \<rho>_eq_\<rho>': "\<rho> = \<rho>'"
+    by (metis \<rho>'_in_tocks \<rho>'_longest_\<tau>' \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_in_tocks \<rho>_longest_\<sigma> tt_prefix_antisym tt_prefix_concat)
+  show "\<exists>\<rho>'\<in>tocks UNIV.
+          \<exists>\<sigma>. \<rho>' @ \<sigma> \<in> P \<and>
+              (\<exists>\<tau>'. (\<exists>\<rho>\<in>tocks UNIV.
+                        \<exists>\<sigma>. \<rho> @ \<sigma> \<in> Q \<and>
+                            (\<exists>\<tau>. \<rho> @ \<tau> \<in> R \<and>
+                                 (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                                 (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                                 (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                                 (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                                 (\<rho>' @ \<tau>' = \<rho> @ \<sigma> \<or> \<rho>' @ \<tau>' = \<rho> @ \<tau>))) \<and>
+                    (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<sigma> \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                    (\<forall>\<rho>''\<in>tocks UNIV. \<rho>'' \<le>\<^sub>C \<rho>' @ \<tau>' \<longrightarrow> \<rho>'' \<le>\<^sub>C \<rho>') \<and>
+                    (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau>' = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                    (\<forall>X. \<tau>' = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                    (\<rho> @ \<tau> = \<rho>' @ \<sigma> \<or> \<rho> @ \<tau> = \<rho>' @ \<tau>'))"
+    apply (rule_tac x="\<rho>'" in bexI, auto simp add: \<rho>'_in_tocks)
+    apply (rule_tac x="\<sigma>'" in exI, auto simp add: in_P)
+    apply (rule_tac x="\<tau>" in exI, auto)
+    apply (rule_tac x="\<rho>" in bexI, auto simp add: \<rho>_in_tocks)
+    apply (rule_tac x="\<tau>'" in exI, auto simp add: in_Q \<rho>_eq_\<rho>' \<rho>'_longest_\<sigma>')
+    apply (rule_tac x="\<tau>" in exI, auto simp add: \<rho>'_longest_\<tau>')
+    using \<rho>_eq_\<rho>' in_R apply blast
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<tau> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>_refusal \<tau>'_refusal apply fastforce
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>'_refusal \<tau>_refusal apply fastforce
+    using \<rho>_eq_\<rho>' \<rho>_longest_\<tau> apply blast
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<sigma>'_refusal \<sigma>_refusal apply fastforce
+    using \<rho>_\<tau>_eq_\<rho>'_\<tau>' \<rho>_eq_\<rho>' \<tau>'_refusal \<tau>_refusal by fastforce
+qed
 
+lemma ExtChoice_idempotent: "P \<box>\<^sub>C P = P"
+  unfolding ExtChoiceTT_def
+proof auto
+  fix x
+  assume assm: "x \<in> P"
+  have "\<exists>s. \<exists>t\<in>tocks UNIV. x = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C x \<longrightarrow> t' \<le>\<^sub>C t)"
+    using split_tocks_longest by blast
+  then obtain s t where "t\<in>tocks UNIV \<and> x = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C x \<longrightarrow> t' \<le>\<^sub>C t)"
+    by auto
+  then show "\<exists>\<rho>\<in>tocks UNIV.
+            \<exists>\<sigma>. \<rho> @ \<sigma> \<in> P \<and>
+                (\<exists>\<tau>. \<rho> @ \<tau> \<in> P \<and>
+                     (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                     (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+                     (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                     (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+                     (x = \<rho> @ \<sigma> \<or> x = \<rho> @ \<tau>))"
+    by (rule_tac x=t in bexI, auto, rule_tac x=s in exI, auto, insert assm, blast, rule_tac x=s in exI, auto)
+qed
+                              
 lemma ExtChoice_Union_dist1:
   "X \<noteq> {} \<Longrightarrow> P \<box>\<^sub>C \<Union>X = \<Union>{R. \<exists>Q. Q \<in> X \<and> R = P \<box>\<^sub>C Q}"
   unfolding ExtChoiceTT_def by auto
@@ -2222,5 +2194,6 @@ lemma ExtChoice_mono1:
 lemma ExtChoice_mono2: 
   "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> R \<box>\<^sub>C P \<sqsubseteq>\<^sub>C R \<box>\<^sub>C Q"
   unfolding RefinesTT_def ExtChoiceTT_def by auto
+
 
 end
