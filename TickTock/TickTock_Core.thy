@@ -1399,7 +1399,7 @@ lemma tocks_subset: "t\<in>tocks X \<Longrightarrow> X \<subseteq> Y \<Longright
 lemma split_tocks:  "ttWF x \<Longrightarrow> \<exists> s. \<exists>t\<in>tocks UNIV. x = t @ s"
   using tocks.empty_in_tocks by (induct x rule:ttWF.induct, auto)
 
-lemma split_tocks_longest:  "ttWF x \<Longrightarrow> \<exists> s. \<exists>t\<in>tocks UNIV. x = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C x \<longrightarrow> t' \<le>\<^sub>C t)"
+lemma split_tocks_longest:  "\<exists> s. \<exists>t\<in>tocks UNIV. x = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C x \<longrightarrow> t' \<le>\<^sub>C t)"
 proof (induct x rule:ttWF.induct, auto)
   show "[] \<in> tocks UNIV" 
     using tocks.empty_in_tocks by auto
@@ -1435,6 +1435,54 @@ next
     show "t \<in> tocks UNIV \<Longrightarrow> [X]\<^sub>R # [Tock]\<^sub>E # t \<in> tocks UNIV"
       by (simp add: tocks.tock_insert_in_tocks)
   qed
+next
+  fix va :: "'a tttrace"
+  show "\<exists>s. \<exists>t\<in>tocks UNIV. [Tock]\<^sub>E # va = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C [Tock]\<^sub>E # va \<longrightarrow> t' \<le>\<^sub>C t)"
+    apply (rule_tac x="[Tock]\<^sub>E # va" in exI, auto simp add: tocks.empty_in_tocks)
+    by (metis tocks.cases tt_prefix_imp_prefix_subset tt_prefix_refl tt_prefix_subset.simps(5))
+next
+  fix v 
+  fix vc :: "'a tttrace"
+  show "\<exists>s. \<exists>t\<in>tocks UNIV. [Tock]\<^sub>E # v # vc = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C [Tock]\<^sub>E # v # vc \<longrightarrow> t' \<le>\<^sub>C t)"
+    apply (rule_tac x="[Tock]\<^sub>E # v # vc" in exI, auto simp add: tocks.empty_in_tocks)
+    by (metis tocks.cases tt_prefix_imp_prefix_subset tt_prefix_refl tt_prefix_subset.simps(5))
+next
+  fix v 
+  fix vc :: "'a tttrace"
+  show "\<exists>s. \<exists>t\<in>tocks UNIV. [Tock]\<^sub>E # v # vc = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C [Tock]\<^sub>E # v # vc \<longrightarrow> t' \<le>\<^sub>C t)"
+    apply (rule_tac x="[Tock]\<^sub>E # v # vc" in exI, auto simp add: tocks.empty_in_tocks)
+    by (metis tocks.cases tt_prefix_imp_prefix_subset tt_prefix_refl tt_prefix_subset.simps(5))
+next
+  fix v 
+  fix vc :: "'a tttrace"
+  show "\<exists>s. \<exists>t\<in>tocks UNIV. [Tick]\<^sub>E # v # vc = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C [Tick]\<^sub>E # v # vc \<longrightarrow> t' \<le>\<^sub>C t)"
+    apply (rule_tac x="[Tick]\<^sub>E # v # vc" in exI, auto simp add: tocks.empty_in_tocks)
+    by (metis tocks.cases tt_prefix_imp_prefix_subset tt_prefix_refl tt_prefix_subset.simps(5))
+next
+  fix v 
+  fix vc :: "'a tttrace"
+  show "\<exists>s. \<exists>t\<in>tocks UNIV. [Tick]\<^sub>E # v # vc = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C [Tick]\<^sub>E # v # vc \<longrightarrow> t' \<le>\<^sub>C t)"
+    apply (rule_tac x="[Tick]\<^sub>E # v # vc" in exI, auto simp add: tocks.empty_in_tocks)
+    by (metis tocks.cases tt_prefix_imp_prefix_subset tt_prefix_refl tt_prefix_subset.simps(5))
+next
+  fix va vd
+  fix vc :: "'a tttrace"
+  show "\<exists>s. \<exists>t\<in>tocks UNIV.
+              [va]\<^sub>R # [Event vd]\<^sub>E # vc = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C [va]\<^sub>R # [Event vd]\<^sub>E # vc \<longrightarrow> t' \<le>\<^sub>C t)"
+    apply (rule_tac x="[va]\<^sub>R # [Event vd]\<^sub>E # vc" in exI, auto simp add: tocks.empty_in_tocks)
+    using tocks.cases by force
+next
+  fix va
+  fix vc :: "'a tttrace"
+  show "\<exists>s. \<exists>t\<in>tocks UNIV. [va]\<^sub>R # [Tick]\<^sub>E # vc = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C [va]\<^sub>R # [Tick]\<^sub>E # vc \<longrightarrow> t' \<le>\<^sub>C t)"
+    apply (rule_tac x="[va]\<^sub>R # [Tick]\<^sub>E # vc" in exI, auto simp add: tocks.empty_in_tocks)
+    using tocks.cases by force
+next
+  fix va v
+  fix vc :: "'a tttrace"
+  show "\<exists>s. \<exists>t\<in>tocks UNIV. [va]\<^sub>R # [v]\<^sub>R # vc = t @ s \<and> (\<forall>t'\<in>tocks UNIV. t' \<le>\<^sub>C [va]\<^sub>R # [v]\<^sub>R # vc \<longrightarrow> t' \<le>\<^sub>C t)"
+    apply (rule_tac x="[va]\<^sub>R # [v]\<^sub>R # vc" in exI, auto simp add: tocks.empty_in_tocks)
+    using tocks.cases by force
 qed
 
 lemma tt_prefix_subset_tocks: "s \<in> tocks X \<Longrightarrow> t \<lesssim>\<^sub>C s \<Longrightarrow> t \<in> {t. \<exists>s\<in>tocks X. t = s \<or> (\<exists>Y. t = s @ [[Y]\<^sub>R] \<and> Y \<subseteq> X)}"
