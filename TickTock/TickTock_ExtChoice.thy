@@ -2309,4 +2309,31 @@ proof -
     using calculation by auto
 qed
 
+lemma ReplicatedExtChoice_induct:
+  "finite Ps \<Longrightarrow> 
+  (\<And>P. P \<in> Ps \<Longrightarrow> Pred P) \<Longrightarrow>
+  Pred (ReplicatedExtChoiceTT {}) \<Longrightarrow>
+  (\<And>P Ps'. finite Ps' \<Longrightarrow> Pred P \<Longrightarrow> Pred (ReplicatedExtChoiceTT Ps') \<Longrightarrow> Pred (ReplicatedExtChoiceTT (insert P Ps'))) \<Longrightarrow>
+  Pred (ReplicatedExtChoiceTT Ps)"
+  by (rule finite_subset_induct[where F=Ps, where P="\<lambda>x. Pred (ReplicatedExtChoiceTT x)", where A="{P. Pred P}"], auto)
+
+lemma ReplicatedExtChoice_wf:
+  assumes "\<And>P. P\<in>Ps \<Longrightarrow> \<forall>x\<in>P. ttWF x" "finite Ps"
+  shows "\<forall>x\<in>ReplicatedExtChoiceTT Ps. ttWF x"
+proof (insert assms, rule ReplicatedExtChoice_induct, auto)
+  fix x :: "'a tttrace"
+  show "x \<in> ReplicatedExtChoiceTT {} \<Longrightarrow> ttWF x"
+    using ReplicatedExtChoice_empty StopTT_wf by blast
+next
+  fix Ps' :: "'a ttprocess set"
+  fix P :: "'a ttprocess"
+  fix x :: "'a tttrace"
+  assume case_assms: "\<forall>x\<in>P. ttWF x" "\<forall>x\<in>ReplicatedExtChoiceTT Ps'. ttWF x" "finite Ps'"
+  assume "x \<in> ReplicatedExtChoiceTT (insert P Ps')"
+  then have "x \<in> P \<box>\<^sub>C ReplicatedExtChoiceTT Ps'"
+    by (simp add: ReplicatedExtChoice_insert case_assms(3))
+  then show "ttWF x"
+    using ExtChoiceTT_wf case_assms(1) case_assms(2) by blast
+qed
+
 end
