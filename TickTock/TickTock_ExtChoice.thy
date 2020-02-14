@@ -2251,4 +2251,62 @@ lemma ExtChoice_mono2:
   "P \<sqsubseteq>\<^sub>C Q \<Longrightarrow> R \<box>\<^sub>C P \<sqsubseteq>\<^sub>C R \<box>\<^sub>C Q"
   unfolding RefinesTT_def ExtChoiceTT_def by auto
 
+
+subsection \<open>Replicated External Choice\<close>
+
+definition ReplicatedExtChoiceTT :: "'e ttprocess set \<Rightarrow> 'e ttprocess" where
+  "ReplicatedExtChoiceTT Ps = Finite_Set.fold (\<box>\<^sub>C) STOP\<^sub>C Ps"
+
+lemma ExtChoice_comp_fun_commute: "comp_fun_commute (\<box>\<^sub>C)"
+  unfolding comp_fun_commute_def by (auto,rule_tac ext, auto, (metis ExtChoice_assoc ExtChoice_comm)+)
+
+lemma ReplicatedExtChoice_empty:
+  "ReplicatedExtChoiceTT {} = STOP\<^sub>C"
+  unfolding ReplicatedExtChoiceTT_def by auto
+
+lemma ReplicatedExtChoice_singleton:
+  assumes "TT1 P" "\<forall>x\<in>P. ttWF x"
+  shows "ReplicatedExtChoiceTT {P} = P"
+    unfolding ReplicatedExtChoiceTT_def apply (subst Finite_Set.comp_fun_commute.fold_insert)
+    by (simp_all add: ExtChoice_comp_fun_commute ExtChoice_left_unit assms)
+
+lemma ReplicatedExtChoice_insert_notin:
+  "finite Ps \<Longrightarrow> P \<notin> Ps \<Longrightarrow> ReplicatedExtChoiceTT (insert P Ps) = P \<box>\<^sub>C (ReplicatedExtChoiceTT Ps)"
+  unfolding ReplicatedExtChoiceTT_def 
+  by (subst Finite_Set.comp_fun_commute.fold_insert, simp_all add: ExtChoice_comp_fun_commute)
+
+lemma ReplicatedExtChoice_insert_idemp:
+  "finite Ps \<Longrightarrow> P \<in> Ps \<Longrightarrow> ReplicatedExtChoiceTT (insert P Ps) = P \<box>\<^sub>C (ReplicatedExtChoiceTT Ps)"
+proof -
+  assume assms: "finite Ps" "P \<in> Ps"
+  have "insert P Ps = insert P {x\<in>Ps. x \<noteq> P}"
+    by auto
+  then have "ReplicatedExtChoiceTT (insert P Ps) = ReplicatedExtChoiceTT (insert P {x\<in>Ps. x \<noteq> P})"
+    by simp
+  also have "... = P \<box>\<^sub>C (ReplicatedExtChoiceTT {x\<in>Ps. x \<noteq> P})"
+    by (simp add: ReplicatedExtChoice_insert_notin assms(1))
+  also have "... = (P \<box>\<^sub>C P) \<box>\<^sub>C (ReplicatedExtChoiceTT {x\<in>Ps. x \<noteq> P})"
+    by (simp add: ExtChoice_idempotent)
+  also have "... = P \<box>\<^sub>C (ReplicatedExtChoiceTT Ps)"
+    by (smt ExtChoice_assoc ExtChoice_idempotent assms(2) calculation insert_absorb)
+  then show ?thesis
+    using calculation by auto
+qed
+
+lemma ReplicatedExtChoice_insert:
+  "finite Ps \<Longrightarrow> ReplicatedExtChoiceTT (insert P Ps) = P \<box>\<^sub>C (ReplicatedExtChoiceTT Ps)"
+  by (cases "P \<in> Ps", simp_all add: ReplicatedExtChoice_insert_idemp ReplicatedExtChoice_insert_notin)
+    
+lemma ReplicatedExtChoice_pair: 
+  assumes "TT1 P" "\<forall>x\<in>P. ttWF x"
+  shows "ReplicatedExtChoiceTT {P, Q} = P \<box>\<^sub>C Q"
+proof -
+  have "ReplicatedExtChoiceTT {P, Q} = P \<box>\<^sub>C (ReplicatedExtChoiceTT {Q})"
+    by (simp add: ReplicatedExtChoice_insert)
+  also have "... = P \<box>\<^sub>C Q"
+    by (smt ExtChoice_assoc ExtChoice_comm ReplicatedExtChoice_insert ReplicatedExtChoice_singleton assms finite.emptyI)
+  then show ?thesis 
+    using calculation by auto
+qed
+
 end
