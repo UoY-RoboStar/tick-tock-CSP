@@ -2336,4 +2336,32 @@ next
     using ExtChoiceTT_wf case_assms(1) case_assms(2) by blast
 qed
 
+lemma TT_ReplicatedExternalChoice:
+  assumes "\<And>P. P\<in>Ps \<Longrightarrow> TT P \<and> TT2 P \<and> TT3 P" "finite Ps"
+  shows "TT (ReplicatedExtChoiceTT Ps) \<and> TT2 (ReplicatedExtChoiceTT Ps) \<and> TT3 (ReplicatedExtChoiceTT Ps)"
+proof (insert assms, rule ReplicatedExtChoice_induct, auto)
+  show "TT (ReplicatedExtChoiceTT {})"
+    by (simp add: ReplicatedExtChoice_empty TT_Stop)
+next
+  show "TT2 (ReplicatedExtChoiceTT {})"
+    by (simp add: ReplicatedExtChoice_empty TT2_Stop)
+next
+  show "TT3 (ReplicatedExtChoiceTT {})"
+    by (simp add: ReplicatedExtChoice_empty TT3_Stop)
+next
+  fix P :: "'a ttprocess" and Ps' :: "'a ttprocess set"
+  show "TT P \<Longrightarrow> TT (ReplicatedExtChoiceTT Ps') \<Longrightarrow> TT (ReplicatedExtChoiceTT (insert P Ps'))"
+    by (metis ReplicatedExtChoiceTT_def ReplicatedExtChoice_insert TT_ExtChoice finite_insert fold_infinite)
+next
+  fix P :: "'a ttprocess" and Ps' :: "'a ttprocess set"
+  show "TT P \<Longrightarrow> TT (ReplicatedExtChoiceTT Ps') \<Longrightarrow> TT2 P \<Longrightarrow> TT2 (ReplicatedExtChoiceTT Ps') \<Longrightarrow>
+      TT2 (ReplicatedExtChoiceTT (insert P Ps'))"
+    by (metis ReplicatedExtChoiceTT_def ReplicatedExtChoice_insert TT2_ExtChoice finite_insert fold_infinite)
+next
+  fix P :: "'a ttprocess" and Ps' :: "'a ttprocess set"
+  show "TT P \<Longrightarrow> TT (ReplicatedExtChoiceTT Ps') \<Longrightarrow> TT3 P \<Longrightarrow> TT3 (ReplicatedExtChoiceTT Ps') \<Longrightarrow>
+      TT3 (ReplicatedExtChoiceTT (insert P Ps'))"
+    by (metis ReplicatedExtChoiceTT_def ReplicatedExtChoice_insert TT3_ExtChoice finite_insert fold_infinite)
+qed
+
 end
