@@ -747,4 +747,341 @@ lemma rtm2fl_FLTick:
 lemma rtm2fl_mono: "P \<sqsubseteq>\<^sub>\<R>\<^sub>\<T> Q \<Longrightarrow> rtm2fl P \<sqsubseteq>\<^sub>\<F>\<^sub>\<L> rtm2fl Q"
   unfolding refinesRT_def rtm2fl_def by auto
 
+section \<open>Galois connection between FL and RTMax\<close>
+
+lemma rtm2fl_fl2rtm_inverse:
+  assumes "FLTick0 TickRT P"
+  shows "rtm2fl (fl2rtm P) = P"
+  using assms unfolding rtm2fl_def fl2rtm_def 
+proof (safe, simp_all)
+  fix \<sigma> :: "'a rtevent fltrace"
+  show "\<And>P. \<sigma> \<in> P \<Longrightarrow>  FLTick0 TickRT P \<Longrightarrow> rtm2fl_trace (fl2rtm_trace \<sigma>) \<in> P"
+  proof (induct \<sigma>, simp_all)
+    fix x and P :: "'a rtevent fltraces"
+    show "\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<Longrightarrow> \<langle>maxref2acc (acc2maxref x)\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P"
+      by (cases x, auto)
+  next
+    fix x1a \<sigma> and P :: "'a rtevent fltraces"
+    assume x1a_\<sigma>_in_P: "x1a #\<^sub>\<F>\<^sub>\<L> \<sigma> \<in> P"
+    assume FLTick0_P: "FLTick0 TickRT P"
+    assume ind_hyp: "\<And>P. \<sigma> \<in> P \<Longrightarrow>  FLTick0 TickRT P \<Longrightarrow> rtm2fl_trace (fl2rtm_trace \<sigma>) \<in> P"
+    have "FLTick0 TickRT {\<sigma>. x1a #\<^sub>\<F>\<^sub>\<L> \<sigma> \<in> P}"
+      unfolding FLTick0_def
+    proof auto
+      fix x
+      have "tickWF TickRT (x1a #\<^sub>\<F>\<^sub>\<L> x) \<Longrightarrow> tickWF TickRT x"
+        by (induct x, auto, (cases x1a, auto, case_tac b, auto, case_tac b, auto)+)
+      then show "x1a #\<^sub>\<F>\<^sub>\<L> x \<in> P \<Longrightarrow> tickWF TickRT x"
+        by (meson FLTick0_P FLTick0_def)
+    qed
+    then have 1: "x1a #\<^sub>\<F>\<^sub>\<L> rtm2fl_trace (fl2rtm_trace \<sigma>) \<in> P"
+      by (metis ind_hyp mem_Collect_eq x1a_\<sigma>_in_P)
+    have 2: "rtm2fl_trace ((acc2maxref (acceptance x1a)) #\<^sub>\<R>\<^sub>\<T> event x1a #\<^sub>\<R>\<^sub>\<T> (fl2rtm_trace \<sigma>)) = x1a #\<^sub>\<F>\<^sub>\<L> rtm2fl_trace (fl2rtm_trace \<sigma>)"
+      apply (cases x1a, auto, case_tac a, auto, case_tac b, auto)
+      apply (metis FLTick0_P FLTick0_def acceptance_set amember.simps(2) tickWF.simps(2) x1a_\<sigma>_in_P)
+      by (smt FLTick0_P FLTick0_def \<open>x1a #\<^sub>\<F>\<^sub>\<L> rtm2fl_trace (fl2rtm_trace \<sigma>) \<in> P\<close> acceptance_event
+          maxref2acc.simps(1) rtevent.exhaust rtm2fl_trace.simps(2) rtm2fl_trace.simps(3) tickWF.simps(2))
+    show "rtm2fl_trace ((acc2maxref (acceptance x1a)) #\<^sub>\<R>\<^sub>\<T> event x1a #\<^sub>\<R>\<^sub>\<T> (fl2rtm_trace \<sigma>)) \<in> P"
+      by (simp add: "1" "2")
+  qed
+next
+  fix \<sigma> :: "'a rtevent fltrace" and \<rho>' y
+  assume fl2rtm_trace_\<sigma>: "fl2rtm_trace \<sigma> = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>"
+  assume \<sigma>_in_P: "\<sigma> \<in> P" 
+  assume FLTick0_P: "FLTick0 TickRT P"
+  have "\<And>\<sigma>. tickWF TickRT \<sigma> \<Longrightarrow> fl2rtm_trace \<sigma> = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<Longrightarrow>
+    rtm2fl_trace (\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) = \<sigma>"
+  proof (induct \<rho>', auto)
+    fix \<sigma>
+    show "tickWF TickRT \<sigma> \<Longrightarrow> fl2rtm_trace \<sigma> = (\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> \<langle>(\<bullet>,TickRT)\<^sub>\<F>\<^sub>\<L>,\<bullet>\<rangle>\<^sub>\<F>\<^sub>\<L> = \<sigma>"
+      by (induct \<sigma>, auto, case_tac x1a, auto)
+  next
+    fix x1 x2 \<rho>' \<sigma>
+    assume ind_hyp: "\<And>\<sigma>. tickWF TickRT \<sigma> \<Longrightarrow>
+             fl2rtm_trace \<sigma> = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<Longrightarrow>
+             rtm2fl_trace (\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) = \<sigma>"
+    assume case_assms: "tickWF TickRT \<sigma>" "fl2rtm_trace \<sigma> = (x1 #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> (\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>))"
+    obtain \<sigma>' where \<sigma>'_assms: "\<sigma> = (maxref2acc x1, x2)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<F>\<^sub>\<L> \<sigma>' \<and> fl2rtm_trace \<sigma>' = (\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<and> \<not> x2 \<in>\<^sub>\<R>\<^sub>\<T> x1"
+      using case_assms(2) by (induct \<sigma>, auto, (case_tac x1a, auto, case_tac a, auto)+)
+    have "tickWF TickRT \<sigma>'"
+      by (metis \<sigma>'_assms amember.simps(1) case_assms(1) tickWF.simps(1) tickWF.simps(2))
+    then have "rtm2fl_trace (\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) = \<sigma>'"
+      using \<sigma>'_assms ind_hyp by blast
+    then show "rtm2fl_trace (x1 #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> (\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>)) = \<sigma>"
+      using \<sigma>'_assms case_assms by (auto, cases x2, auto)
+  qed
+  then show "rtm2fl_trace (\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<in> P"
+    by (metis FLTick0_def \<sigma>_in_P assms fl2rtm_trace_\<sigma>)
+next
+  fix x :: "'a rtevent fltrace"
+  show "\<And>P. x \<in> P \<Longrightarrow> FLTick0 TickRT P \<Longrightarrow>
+         \<exists>xa. x = rtm2fl_trace xa \<and>
+              ((\<exists>\<sigma>\<in>P. xa = fl2rtm_trace \<sigma>) \<or>
+               (\<exists>\<sigma>\<in>P. \<exists>\<rho>'. (\<exists>y. fl2rtm_trace \<sigma> = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<and>
+                            xa = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>))"
+  proof (induct x)
+    fix x :: "'a rtevent acceptance" and P
+    show "\<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> \<in> P \<Longrightarrow> FLTick0 TickRT P \<Longrightarrow>
+           \<exists>xa. \<langle>x\<rangle>\<^sub>\<F>\<^sub>\<L> = rtm2fl_trace xa \<and>
+                ((\<exists>\<sigma>\<in>P. xa = fl2rtm_trace \<sigma>) \<or>
+                 (\<exists>\<sigma>\<in>P. \<exists>\<rho>'. (\<exists>y. fl2rtm_trace \<sigma> = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<and>
+                              xa = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>))"
+     apply (case_tac x, safe, metis acc2maxref.simps(1) fl2rtm_trace.simps(1) maxref2acc.simps(1) rtm2fl_trace.simps(1))
+      by (metis (no_types, lifting) acc2maxref.simps(2) fl2rtm_trace.simps(1) maxref2acc.simps(2) rtm2fl_trace.simps(1) rtmfl_trace_acceptance rtrefusal.inject rttrace.inject(1))
+  next
+    fix x1a :: "'a rtevent aevent" and x P
+    assume case_assms: "x1a #\<^sub>\<F>\<^sub>\<L> x \<in> P" "FLTick0 TickRT P"
+    assume ind_hyp: "\<And>P. x \<in> P \<Longrightarrow> FLTick0 TickRT P \<Longrightarrow>
+             \<exists>xa. x = rtm2fl_trace xa \<and>
+                  ((\<exists>\<sigma>\<in>P. xa = fl2rtm_trace \<sigma>) \<or>
+                   (\<exists>\<sigma>\<in>P. \<exists>\<rho>'. (\<exists>y. fl2rtm_trace \<sigma> = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<and>
+                                xa = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>))"
+    have "FLTick0 TickRT {x. x1a #\<^sub>\<F>\<^sub>\<L> x \<in> P}"
+      unfolding FLTick0_def
+    proof auto
+      fix x
+      have "tickWF TickRT (x1a #\<^sub>\<F>\<^sub>\<L> x) \<Longrightarrow> tickWF TickRT x"
+        by (induct x, auto, (cases x1a, auto, case_tac b, auto, case_tac b, auto)+)
+      then show "x1a #\<^sub>\<F>\<^sub>\<L> x \<in> P \<Longrightarrow> tickWF TickRT x"
+        by (meson FLTick0_def case_assms(2))
+    qed
+    then have "\<exists> xa. x = rtm2fl_trace xa \<and>
+                  ((\<exists>\<sigma>\<in>{x. x1a #\<^sub>\<F>\<^sub>\<L> x \<in> P}. xa = fl2rtm_trace \<sigma>) \<or>
+                   (\<exists>\<sigma>\<in>{x. x1a #\<^sub>\<F>\<^sub>\<L> x \<in> P}. \<exists>\<rho>'. (\<exists>y. fl2rtm_trace \<sigma> = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<and>
+                                xa = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>))"
+      using ind_hyp[where P="{x. x1a #\<^sub>\<F>\<^sub>\<L> x \<in> P}"] case_assms(1) by fastforce
+    then obtain xa where xa_assms: "x = rtm2fl_trace xa \<and>
+                  ((\<exists>\<sigma>\<in>{x. x1a #\<^sub>\<F>\<^sub>\<L> x \<in> P}. xa = fl2rtm_trace \<sigma>) \<or>
+                   (\<exists>\<sigma>\<in>{x. x1a #\<^sub>\<F>\<^sub>\<L> x \<in> P}. \<exists>\<rho>'. (\<exists>y. fl2rtm_trace \<sigma> = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<and>
+                                xa = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>))"
+      by blast
+    show "\<exists>xa. x1a #\<^sub>\<F>\<^sub>\<L> x = rtm2fl_trace xa \<and>
+            ((\<exists>\<sigma>\<in>P. xa = fl2rtm_trace \<sigma>) \<or>
+             (\<exists>\<sigma>\<in>P. \<exists>\<rho>'. (\<exists>y. fl2rtm_trace \<sigma> = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<and>
+                          xa = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>))"
+      apply (rule_tac x="(acc2maxref (acceptance x1a)) #\<^sub>\<R>\<^sub>\<T> (event x1a) #\<^sub>\<R>\<^sub>\<T> xa" in exI, cases x1a, safe, simp_all)
+      apply (case_tac a, auto, case_tac b, auto simp add: xa_assms)
+      apply (metis FLTick0_def acceptance_set amember.simps(2) case_assms(1) case_assms(2) tickWF.simps(2))
+      apply (case_tac a, auto, case_tac b, auto simp add: xa_assms)
+      apply (metis FLTick0_def acceptance_set amember.simps(2) case_assms(1) case_assms(2) tickWF.simps(2))
+      using xa_assms apply auto
+      apply (metis acc2maxref.simps(2) acceptance_event acceptance_set amember.simps(2) fl2rtm_trace.simps(2))
+      apply (metis acc2maxref.simps(2) acceptance_event acceptance_set amember.simps(2) fl2rtm_trace.simps(2) rttrace_with_refusal.simps(1))
+      apply (metis (no_types, hide_lams) FLTick0_def acceptance_event case_assms(1) case_assms(2) maxref2acc.simps(1) rtevent.exhaust rtm2fl_trace.simps(2) rtm2fl_trace.simps(3) tickWF.simps(2))
+      apply (metis (no_types, lifting) FLTick0_def acceptance_event case_assms(1) case_assms(2) maxref2acc.simps(1) rtevent.exhaust rtm2fl_trace.simps(2) rtm2fl_trace.simps(3) tickWF.simps(2))
+      apply (metis acc2maxref.simps(1) acceptance_event acceptance_set fl2rtm_trace.simps(2))
+      by (metis acc2maxref.simps(1) acceptance_event acceptance_set fl2rtm_trace.simps(2) rttrace_with_refusal.simps(1))
+  qed
+qed
+
+lemma RT3_refusal_after_TickRT:
+  "\<And>P. RT3 P \<Longrightarrow> (X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> \<rho>) \<in> P \<Longrightarrow> \<exists> Y. \<rho> = \<langle>Y\<rangle>\<^sub>\<R>\<^sub>\<T>"
+proof (induct \<rho>, auto)
+  fix x1a x2 \<rho> P
+  assume in_P: "(X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<rho>)) \<in> P"
+  assume RT3_P: "RT3 P"
+
+  have "\<exists> \<rho>' x e y. (X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<rho>)) = (RTEventInit X TickRT \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+    apply (induct \<rho>, auto, rule_tac x = RTEmptyInit in exI, auto)
+    by (smt rttrace.inject(2) rttrace_init.exhaust rttrace_with_refusal.simps(1) rttrace_with_refusal.simps(2))
+  then obtain \<rho>' x e y where "(X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<rho>)) = (RTEventInit X TickRT \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+    by blast
+  then have "no_tick (RTEventInit X TickRT \<rho>')"
+    using RT3_P in_P unfolding RT3_def by (auto, metis in_P no_tick.simps(3) rttrace_with_refusal.simps(1))
+  then show "False"
+    by auto
+qed
+
+lemma fl2rtm_rtm2fl_inverse:
+  assumes "\<forall>x\<in>P. rtWF x" "RTM1 P" "RTM2 P" "RT3 P" "RT4 P"
+  shows "fl2rtm (rtm2fl P) = P"
+  using assms unfolding rtm2fl_def fl2rtm_def 
+proof (safe, simp_all)
+  fix xa :: "'a rtevent rttrace"
+  have "\<And>P. RTM1 P \<Longrightarrow> RT3 P \<Longrightarrow> xa \<in> P \<Longrightarrow> rtWF xa \<Longrightarrow> fl2rtm_trace (rtm2fl_trace xa) \<in> P"
+  proof (induct xa, simp_all)
+    fix x :: "'a rtevent rtrefusal" and P
+    show "\<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P \<Longrightarrow> \<langle>acc2maxref (maxref2acc x)\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P"
+      by (case_tac x, simp_all)
+  next
+    fix x1a :: "'a rtevent rtrefusal" and x2 xa P
+    assume in_P: "(x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> xa) \<in> P"
+    assume wf_assms: "\<not> x2 \<in>\<^sub>\<R>\<^sub>\<T> x1a \<and> rtWF xa"
+    assume RTM1_P: "RTM1 P" and RT3_P: "RT3 P"
+    assume ind_hyp: "\<And>P. RTM1 P \<Longrightarrow>  RT3 P \<Longrightarrow> xa \<in> P \<Longrightarrow> fl2rtm_trace (rtm2fl_trace xa) \<in> P"
+
+    have x2_TickRT_refusal: "x2 = TickRT \<Longrightarrow> \<exists> X. xa = \<langle>X\<rangle>\<^sub>\<R>\<^sub>\<T>"
+      using RT3_P RT3_refusal_after_TickRT in_P by blast
+
+    show "fl2rtm_trace (rtm2fl_trace (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> xa)) \<in> P"
+    proof (cases x2, auto)
+      fix x1
+      assume case_assm: "x2 = TickRT"
+      have xa_is_refusal: "\<exists> X. xa = \<langle>X\<rangle>\<^sub>\<R>\<^sub>\<T>"
+        using RT3_P RT3_refusal_after_TickRT in_P case_assm by blast
+      have "(x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<langle>x1\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+        by (cases x1a, auto)
+      then have "(x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<in> P"
+        using RTM1_P in_P xa_is_refusal unfolding RTM1_def
+        by (metis leq_rttrace_max.simps(1) leq_rttrace_max.simps(6) leq_rttrace_max.simps(8) maxref2acc.cases) 
+      then show "((acc2maxref (acceptance (maxref2acc x1a,TickRT)\<^sub>\<F>\<^sub>\<L>)) #\<^sub>\<R>\<^sub>\<T> event (maxref2acc x1a,TickRT)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<in> P"
+        using wf_assms case_assm by (cases x1a, auto)
+    next
+      fix x2a
+      assume case_assm: "x2 = EventRT x2a"
+
+      have 1: "RTM1 {x. (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<in> P}"
+        using RTM1_P unfolding RTM1_def apply auto
+        by (metis in_rtrefusal.elims(3) leq_rttrace_max.simps(6) leq_rttrace_max.simps(8) wf_assms)
+      have 2: "RT3 {x. (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<in> P}"
+        using RT3_P unfolding RT3_def apply auto
+        by (metis case_assm no_tick.simps(2) rttrace_with_refusal.simps(1))
+      
+      have "(x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> (fl2rtm_trace (rtm2fl_trace xa))) \<in> P"
+        using "1" "2" in_P ind_hyp by blast
+      then show "((acc2maxref (acceptance (maxref2acc x1a,EventRT x2a)\<^sub>\<F>\<^sub>\<L>)) #\<^sub>\<R>\<^sub>\<T> event (maxref2acc x1a,EventRT x2a)\<^sub>\<F>\<^sub>\<L> #\<^sub>\<R>\<^sub>\<T> (fl2rtm_trace (rtm2fl_trace xa))) \<in> P"
+        using wf_assms case_assm by (cases x1a, auto)
+    qed
+  qed
+  then show "xa \<in> P \<Longrightarrow> Ball P rtWF \<Longrightarrow> RTM1 P \<Longrightarrow> RT3 P \<Longrightarrow> fl2rtm_trace (rtm2fl_trace xa) \<in> P"
+    by auto
+next
+  fix \<rho>' xa y
+  assume in_P: "xa \<in> P"
+  assume xa_eq: "fl2rtm_trace (rtm2fl_trace xa) = \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>"
+  assume P_wf: "Ball P rtWF" and RTM1_P: "RTM1 P" and RT4_P: "RT4 P"
+
+  have "rtWF xa \<Longrightarrow> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> xa"
+    using xa_eq apply -
+  proof (induct xa \<rho>' rule:leq_rttrace_rttrace_init_max.induct, auto)
+    fix v va vb
+    assume "fl2rtm_trace (rtm2fl_trace (v #\<^sub>\<R>\<^sub>\<T> va #\<^sub>\<R>\<^sub>\<T> vb)) = (\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+    then show "\<not> va \<in>\<^sub>\<R>\<^sub>\<T> v \<Longrightarrow> rtWF vb \<Longrightarrow> (\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> (v #\<^sub>\<R>\<^sub>\<T> va #\<^sub>\<R>\<^sub>\<T> vb)"
+      by (cases va, auto, (cases v, auto)+)
+  next
+    fix v va vb vc vd ve
+    assume ind_hyp: "fl2rtm_trace (rtm2fl_trace vb) = ve @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<Longrightarrow>
+        ve @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> vb"
+    assume case_assm: "fl2rtm_trace (rtm2fl_trace (v #\<^sub>\<R>\<^sub>\<T> va #\<^sub>\<R>\<^sub>\<T> vb)) = (vc #\<^sub>\<R>\<^sub>\<T> vd #\<^sub>\<R>\<^sub>\<T> (ve @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>))"
+    then have "fl2rtm_trace (rtm2fl_trace vb) = ve @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> (TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+      by (cases va, auto, cases ve, auto)
+    then have "ve @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> vb"
+      using ind_hyp by blast
+    then show "\<not> va \<in>\<^sub>\<R>\<^sub>\<T> v \<Longrightarrow> rtWF vb \<Longrightarrow> 
+      (vc #\<^sub>\<R>\<^sub>\<T> vd #\<^sub>\<R>\<^sub>\<T> (ve @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>)) \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> (v #\<^sub>\<R>\<^sub>\<T> va #\<^sub>\<R>\<^sub>\<T> vb)"
+      using case_assm by (cases va, auto, (cases v, auto)+)
+  qed
+  then have "\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P"
+    using in_P P_wf RTM1_P unfolding RTM1_def by auto
+  then show "\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P"
+    using RT4_P unfolding RT4_def by auto
+next
+  fix x :: "'a rtevent rttrace"
+  show "\<And>P. \<forall>x\<in>P. rtWF x \<Longrightarrow> RTM2 P \<Longrightarrow> RT3 P \<Longrightarrow> RT4 P \<Longrightarrow> x \<in> P \<Longrightarrow> 
+      \<forall>\<sigma>. (\<forall>x. \<sigma> = rtm2fl_trace x \<longrightarrow> x \<notin> P) \<or>
+             (\<forall>\<rho>'. (\<forall>y. fl2rtm_trace \<sigma> \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<or>
+                   x \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow>
+      \<exists>\<sigma>. (\<exists>x. \<sigma> = rtm2fl_trace x \<and> x \<in> P) \<and> x = fl2rtm_trace \<sigma>"
+  proof (induct x, auto)
+    fix x :: "'a rtevent rtrefusal" and P
+    assume case_assms: "\<forall>x\<in>P. rtWF x" "\<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P"
+    show "\<exists>\<sigma>. (\<exists>x. \<sigma> = rtm2fl_trace x \<and> x \<in> P) \<and> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> = fl2rtm_trace \<sigma>"
+      using case_assms by (rule_tac x="rtm2fl_trace \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T>" in exI, auto, rule_tac x="\<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T>" in exI, auto, cases x, auto)
+  next
+    fix x1a :: "'a rtevent rtrefusal" and x2 x P
+    assume case_assm: "(x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<in> P"
+    assume P_wf: "\<forall>x\<in>P. rtWF x" and RTM2_P: "RTM2 P" and RT3_P: "RT3 P" and RT4_P: "RT4 P" 
+    assume ind_hyp: "\<And>P. \<forall>x\<in>P. rtWF x \<Longrightarrow> RTM2 P \<Longrightarrow> RT3 P \<Longrightarrow> RT4 P \<Longrightarrow> x \<in> P \<Longrightarrow>
+             \<forall>\<sigma>. (\<forall>x. \<sigma> = rtm2fl_trace x \<longrightarrow> x \<notin> P) \<or>
+                 (\<forall>\<rho>'. (\<forall>y. fl2rtm_trace \<sigma> \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<or>
+                       x \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow>
+             \<exists>\<sigma>. (\<exists>x. \<sigma> = rtm2fl_trace x \<and> x \<in> P) \<and> x = fl2rtm_trace \<sigma>"
+
+    have 1: "\<forall>x\<in>{x. (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<in> P}. rtWF x"
+      using P_wf by (auto)
+    have 2: "RTM2 {x. (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<in> P}"
+      using RTM2_P unfolding RTM2_def by (auto, metis rttrace_with_refusal.simps(1))
+    have 3: "RT3 {x. (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<in> P}"
+      using RT3_P unfolding RT3_def apply auto
+      by (metis no_tick.elims(2) rttrace_init.distinct(1) rttrace_init.inject rttrace_with_refusal.simps(1))
+    have 4: "RT4 {x. (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<in> P}"
+      using RT4_P unfolding RT4_def by (auto, (metis rttrace_with_refusal.simps(1))+)
+    have "\<forall>\<sigma>. (\<forall>x. \<sigma> = rtm2fl_trace x \<longrightarrow> x \<notin> {x. (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<in> P}) \<or>
+                 (\<forall>\<rho>'. (\<forall>y. fl2rtm_trace \<sigma> \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<or>
+                       x \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow>
+             \<exists>\<sigma>. (\<exists>x. \<sigma> = rtm2fl_trace x \<and> x \<in> {x. (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<in> P}) \<and> x = fl2rtm_trace \<sigma>"
+      using 1 2 3 4 case_assm ind_hyp by blast
+    then show "\<forall>\<sigma>. (\<forall>x. \<sigma> = rtm2fl_trace x \<longrightarrow> x \<notin> P) \<or>
+           (\<forall>\<rho>'. (\<forall>y. fl2rtm_trace \<sigma> \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<or>
+                 (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) \<noteq> (\<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>)) \<Longrightarrow>
+       \<exists>\<sigma>. (\<exists>x. \<sigma> = rtm2fl_trace x \<and> x \<in> P) \<and> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> x) = fl2rtm_trace \<sigma>"
+    proof (cases x2, auto)
+      assume case_assms2: "x2 = TickRT"
+      assume "\<forall>\<sigma>. (\<forall>x. \<sigma> = rtm2fl_trace x \<longrightarrow> x \<notin> P) \<or>
+              (\<forall>\<rho>'. (\<forall>y. fl2rtm_trace \<sigma> \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<or>
+                  (x1a #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> x) \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+      then have "\<forall>\<rho>'. (\<forall>y. (\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<or>
+                  (\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> x) \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>"
+        using case_assm case_assms2 apply (erule_tac x="rtm2fl_trace (x1a #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>)" in allE, auto)
+        by (metis RT4_P RT4_def acc2maxref.simps(1) acceptance_event acceptance_set maxref2acc.simps(1) rttrace.inject(2) rttrace_with_refusal.simps(2) rttrace_with_refusal_eq3)    
+      then have "x \<noteq> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>"
+        by (metis rttrace_with_refusal.simps(2))
+      then have "x = \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> \<or> (\<exists>X e. x = \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> \<and> e \<notin> X)"
+        using RT3_P case_assm case_assms2 unfolding RT3_def
+        apply (auto, cases x, auto)
+        apply (erule_tac x="RTEmptyInit" in allE, auto, case_tac x1, auto)
+        apply (erule_tac x="RTEventInit x1a TickRT RTEmptyInit" in allE, auto)
+        using RT3_P RT3_refusal_after_TickRT by blast
+      then have "x = \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>"
+      proof auto
+        fix X and e :: "'a rtevent"
+        assume inner_assms: "x = \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>" "e \<notin> X"
+        then have "(\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<in> P"
+          by (metis RT4_P RT4_def case_assm case_assms2 rttrace_with_refusal.simps(2))
+        then have "(\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> ([X]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> e #\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>)) \<in> P"
+          using RTM2_P inner_assms unfolding RTM2_def
+          by (metis rttrace_with_refusal.simps(1) rttrace_with_refusal.simps(2) rttrace_with_refusal.simps(3))
+        then show False
+          using RT3_P RT3_refusal_after_TickRT by blast
+      qed
+      then show "\<exists>\<sigma>. (\<exists>x. \<sigma> = rtm2fl_trace x \<and> x \<in> P) \<and> (x1a #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> x) = fl2rtm_trace \<sigma>"
+        apply (rule_tac x="rtm2fl_trace (x1a #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> x)" in exI, auto)
+        using case_assm case_assms2 apply force
+        using P_wf case_assm case_assms2 rtm2fl_trace_aevent_prefix by fastforce+
+    next
+      fix x2a
+      assume case_assm2: "x2 = EventRT x2a"
+      assume "\<forall>\<sigma>. (\<forall>x. \<sigma> = rtm2fl_trace x \<longrightarrow> x \<notin> P) \<or>
+               (\<forall>\<rho>'. (\<forall>y. fl2rtm_trace \<sigma> \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<or>
+                     (x1a #\<^sub>\<R>\<^sub>\<T> EventRT x2a #\<^sub>\<R>\<^sub>\<T> x) \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+      then have 1: "\<forall>\<sigma>. (\<forall>x. \<sigma> = rtm2fl_trace x \<longrightarrow> (x1a #\<^sub>\<R>\<^sub>\<T> EventRT x2a #\<^sub>\<R>\<^sub>\<T> x) \<notin> P) \<or>
+                (\<forall>\<rho>'. (\<forall>y. fl2rtm_trace \<sigma> \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<or>
+                      x \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+        using P_wf apply auto
+        apply (erule_tac x="rtm2fl_trace (x1a #\<^sub>\<R>\<^sub>\<T> EventRT x2a #\<^sub>\<R>\<^sub>\<T> x)" in allE, auto)
+        apply (erule_tac x="RTEventInit x1a (EventRT x2a) \<rho>'" in allE, auto)
+        using rtm2fl_trace_aevent_prefix by force+
+      assume "\<forall>\<sigma>. (\<forall>x. \<sigma> = rtm2fl_trace x \<longrightarrow> (x1a #\<^sub>\<R>\<^sub>\<T> EventRT x2a #\<^sub>\<R>\<^sub>\<T> x) \<notin> P) \<or>
+                (\<forall>\<rho>'. (\<forall>y. fl2rtm_trace \<sigma> \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>) \<or>
+                      x \<noteq> \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> TickRT ##\<^sub>\<R>\<^sub>\<T> \<langle>[UNIV]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow>
+            \<exists>\<sigma>. (\<exists>x. \<sigma> = rtm2fl_trace x \<and> (x1a #\<^sub>\<R>\<^sub>\<T> EventRT x2a #\<^sub>\<R>\<^sub>\<T> x) \<in> P) \<and> x = fl2rtm_trace \<sigma>"
+      then have "\<exists>\<sigma>. (\<exists>x. \<sigma> = rtm2fl_trace x \<and> (x1a #\<^sub>\<R>\<^sub>\<T> EventRT x2a #\<^sub>\<R>\<^sub>\<T> x) \<in> P) \<and> x = fl2rtm_trace \<sigma>"
+        using 1 by auto
+      then show "\<exists>\<sigma>. (\<exists>x. \<sigma> = rtm2fl_trace x \<and> x \<in> P) \<and> (x1a #\<^sub>\<R>\<^sub>\<T> EventRT x2a #\<^sub>\<R>\<^sub>\<T> x) = fl2rtm_trace \<sigma>"
+        apply (auto, rule_tac x="rtm2fl_trace (x1a #\<^sub>\<R>\<^sub>\<T> EventRT x2a #\<^sub>\<R>\<^sub>\<T> x)" in exI, auto)
+        using P_wf rtm2fl_trace_aevent_prefix by force+
+    qed
+  qed
+qed
+
+lemma fl2rtm_rtm2fl_Galois:
+  assumes "FLTick0 TickRT A" "RTM B"
+  shows "fl2rtm A \<sqsubseteq>\<^sub>\<R>\<^sub>\<T> B = A \<sqsubseteq>\<^sub>\<F>\<^sub>\<L> rtm2fl B"
+  using assms rtm2fl_mono unfolding RTM_def by (metis fl2rtm_mono fl2rtm_rtm2fl_inverse rtm2fl_fl2rtm_inverse) 
+
+lemma rtm2fl_fl2rtm_Galois:
+  assumes "FLTick0 TickRT B" "RTM A"
+  shows "rtm2fl A \<sqsubseteq>\<^sub>\<F>\<^sub>\<L> B = (A \<sqsubseteq>\<^sub>\<R>\<^sub>\<T> fl2rtm B)"
+  using assms rtm2fl_mono unfolding RTM_def by (metis fl2rtm_mono fl2rtm_rtm2fl_inverse rtm2fl_fl2rtm_inverse) 
+
 end
