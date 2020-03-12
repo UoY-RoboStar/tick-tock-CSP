@@ -53,12 +53,6 @@ proof -
     unfolding MRT0_def by auto
 qed
 
-lemma RTM1_init_event:
-  assumes "RTM1 P"
-  shows "RTM1 {\<rho>. (x #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>) \<in> P}"
-  using assms unfolding RTM1_def apply auto
-  by (metis leq_rttrace_max.simps(6) leq_rttrace_max.simps(8) rtrefusal.exhaust)
-
 lemma fl2rtm_trace_monotonic:
   "(\<rho>' \<le> \<rho>) = (fl2rtm_trace \<rho>' \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> fl2rtm_trace \<rho>)"
   apply (induct \<rho>' \<rho> rule:less_eq_fltrace.induct, auto)
@@ -872,24 +866,6 @@ next
       apply (metis acc2maxref.simps(1) acceptance_event acceptance_set fl2rtm_trace.simps(2))
       by (metis acc2maxref.simps(1) acceptance_event acceptance_set fl2rtm_trace.simps(2) rttrace_with_refusal.simps(1))
   qed
-qed
-
-lemma RT3_refusal_after_TickRT:
-  "\<And>P. RT3 P \<Longrightarrow> (X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> \<rho>) \<in> P \<Longrightarrow> \<exists> Y. \<rho> = \<langle>Y\<rangle>\<^sub>\<R>\<^sub>\<T>"
-proof (induct \<rho>, auto)
-  fix x1a x2 \<rho> P
-  assume in_P: "(X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<rho>)) \<in> P"
-  assume RT3_P: "RT3 P"
-
-  have "\<exists> \<rho>' x e y. (X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<rho>)) = (RTEventInit X TickRT \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>)"
-    apply (induct \<rho>, auto, rule_tac x = RTEmptyInit in exI, auto)
-    by (smt rttrace.inject(2) rttrace_init.exhaust rttrace_with_refusal.simps(1) rttrace_with_refusal.simps(2))
-  then obtain \<rho>' x e y where "(X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<rho>)) = (RTEventInit X TickRT \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>)"
-    by blast
-  then have "no_tick (RTEventInit X TickRT \<rho>')"
-    using RT3_P in_P unfolding RT3_def by (auto, metis in_P no_tick.simps(3) rttrace_with_refusal.simps(1))
-  then show "False"
-    by auto
 qed
 
 lemma fl2rtm_rtm2fl_inverse:

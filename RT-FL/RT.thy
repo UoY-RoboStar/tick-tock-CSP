@@ -110,7 +110,7 @@ lemma rttrace_with_refusal_eq3:
 
 definition RT2 :: "'e rtprocess \<Rightarrow> bool" where
   "RT2 P = (\<forall> \<rho> \<sigma> X Y. 
-    \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> \<sigma> \<in> P \<and> (\<forall>e\<in>Y. \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P) 
+    \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> \<sigma> \<in> P \<and> (\<forall>e\<in>Y. \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> \<notin> P) 
       \<longrightarrow> \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>[X \<union> Y]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> \<sigma> \<in> P)"
 
 subsection \<open>RT3\<close>
@@ -122,6 +122,24 @@ fun no_tick :: "'e rtevent rttrace_init \<Rightarrow> bool" where
 
 definition RT3 :: "'e rtevent rtprocess \<Rightarrow> bool" where
   "RT3 P = (\<forall> \<rho> x y e. \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P \<longrightarrow> no_tick \<rho>)"
+
+lemma RT3_refusal_after_TickRT:
+  "\<And>P. RT3 P \<Longrightarrow> (X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> \<rho>) \<in> P \<Longrightarrow> \<exists> Y. \<rho> = \<langle>Y\<rangle>\<^sub>\<R>\<^sub>\<T>"
+proof (induct \<rho>, auto)
+  fix x1a x2 \<rho> P
+  assume in_P: "(X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<rho>)) \<in> P"
+  assume RT3_P: "RT3 P"
+
+  have "\<exists> \<rho>' x e y. (X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<rho>)) = (RTEventInit X TickRT \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+    apply (induct \<rho>, auto, rule_tac x = RTEmptyInit in exI, auto)
+    by (smt rttrace.inject(2) rttrace_init.exhaust rttrace_with_refusal.simps(1) rttrace_with_refusal.simps(2))
+  then obtain \<rho>' x e y where "(X #\<^sub>\<R>\<^sub>\<T> TickRT #\<^sub>\<R>\<^sub>\<T> (x1a #\<^sub>\<R>\<^sub>\<T> x2 #\<^sub>\<R>\<^sub>\<T> \<rho>)) = (RTEventInit X TickRT \<rho>' @\<^sub>\<R>\<^sub>\<T> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T>)"
+    by blast
+  then have "no_tick (RTEventInit X TickRT \<rho>')"
+    using RT3_P in_P unfolding RT3_def by (auto, metis in_P no_tick.simps(3) rttrace_with_refusal.simps(1))
+  then show "False"
+    by auto
+qed
 
 subsection \<open>RT4\<close>
 
@@ -195,6 +213,12 @@ fun leq_rttrace_rttrace_init_max :: "'e rttrace \<Rightarrow> 'e rttrace_init \<
 
 definition RTM1 :: "'e rtprocess \<Rightarrow> bool" where
   "RTM1 P = (\<forall> \<rho> \<sigma>. \<sigma> \<in> P \<and> \<rho> \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> \<sigma> \<longrightarrow> \<rho> \<in> P)"
+
+lemma RTM1_init_event:
+  assumes "RTM1 P"
+  shows "RTM1 {\<rho>. (x #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>) \<in> P}"
+  using assms unfolding RTM1_def apply auto
+  by (metis leq_rttrace_max.simps(6) leq_rttrace_max.simps(8) rtrefusal.exhaust)
 
 subsection \<open>RTM2 (replaces RT2)\<close>
 
