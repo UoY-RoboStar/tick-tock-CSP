@@ -2257,6 +2257,19 @@ subsection \<open>Replicated External Choice\<close>
 definition ReplicatedExtChoiceTT :: "'e ttprocess set \<Rightarrow> 'e ttprocess" where
   "ReplicatedExtChoiceTT Ps = Finite_Set.fold (\<box>\<^sub>C) STOP\<^sub>C Ps"
 
+abbreviation(input) "ReplicatedExtChoiceTT'_pat X P f \<equiv> ReplicatedExtChoiceTT { P e |e. f e \<in> X}"
+abbreviation(input) "ReplicatedExtChoiceTT' X P \<equiv> ReplicatedExtChoiceTT { P e |e. e \<in> X}"
+
+syntax
+  "_replicated_ext_choice" :: "('e \<Rightarrow> pttrn) \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(\<box>\<^sub>R (_) \<in> _ \<bullet> _)" [1,0,0] 56)
+
+translations
+  "_replicated_ext_choice (f e) X  P" \<rightleftharpoons> "CONST ReplicatedExtChoiceTT'_pat X (\<lambda>e. P) f"
+  "_replicated_ext_choice e X P" \<rightleftharpoons> "CONST ReplicatedExtChoiceTT' X (\<lambda>e. P)"
+
+term "(\<box>\<^sub>R (Event e) \<in> X \<bullet> P e) \<box>\<^sub>C Q"
+term "(\<box>\<^sub>R e \<in> X \<bullet> P e) \<box>\<^sub>C Q"
+
 lemma ExtChoice_comp_fun_commute: "comp_fun_commute (\<box>\<^sub>C)"
   unfolding comp_fun_commute_def by (auto,rule_tac ext, auto, (metis ExtChoice_assoc ExtChoice_comm)+)
 
