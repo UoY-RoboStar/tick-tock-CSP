@@ -13,6 +13,89 @@ definition ExtChoiceTT :: "'e ttobs list set \<Rightarrow> 'e ttobs list set \<R
     (\<forall> X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists> Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall> e. (e \<in> X = (e \<in> Y)) \<or> (e = Tock)))) \<and>
     (t = \<rho> @ \<sigma> \<or> t = \<rho> @ \<tau>)}"
 
+definition initially_stable :: "'e ttprocess \<Rightarrow> bool" where
+  "initially_stable P = (\<exists> t\<in>P. \<exists> X t'. t = [X]\<^sub>R # t')"
+
+lemma left_unstable_ExtChoice_def:
+  assumes P_wf: "\<forall>x\<in>P. ttWF x" and Q_wf: "\<forall>x\<in>Q. ttWF x"
+  assumes TT0_P: "TT0 P" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
+  shows "\<not> initially_stable P \<Longrightarrow> P \<box>\<^sub>C Q = P \<union> {t\<in>Q. \<nexists>t' X. t = [X]\<^sub>R # t'}"
+  unfolding initially_stable_def ExtChoiceTT_def
+proof auto
+  fix \<rho> \<sigma> \<tau> t' :: "'a tttrace" and X
+  assume assm1: "\<forall>t\<in>P. \<forall>X t'. t \<noteq> [X]\<^sub>R # t'"
+  assume assm2: "\<rho> \<in> tocks UNIV"
+  assume assm3: "[X]\<^sub>R # t' \<notin> P"
+  assume assm4: "\<rho> @ \<sigma> \<in> P"
+  assume assm5: "[X]\<^sub>R # t' \<in> Q"
+  assume assm6: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume assm7: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C [X]\<^sub>R # t' \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>"
+  assume assm8: "\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume assm9: "\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+  assume assm10: "\<rho> @ \<tau> = [X]\<^sub>R # t'"
+
+  have "t' = [] \<or> (\<exists> t''. t' = [Tock]\<^sub>E # t'')"
+    using assm5 Q_wf by (cases t' rule:ttWF.cases, simp_all add: notin_tocks, (metis ttWF.simps)+)
+  then show False
+  proof auto
+    assume case_assm: "t' = []"
+    then have "\<rho> = [] \<and> \<sigma> = [[X]\<^sub>R]"
+      by (metis Cons_eq_append_conv append_Cons assm1 assm10 assm4 assm9)
+    then show False
+      using assm3 assm4 case_assm by auto
+  next
+    fix t''
+    assume case_assm: "t' = [Tock]\<^sub>E # t''"
+    then obtain \<rho>' where "\<rho> = [X]\<^sub>R # [Tock]\<^sub>E # \<rho>'"
+      using assm7 tt_prefix_split by (erule_tac x="[[X]\<^sub>R, [Tock]\<^sub>E]" in ballE, fastforce, meson subset_UNIV tocks.simps)
+    then show False
+      using assm1 assm4 by auto
+  qed
+next
+  fix x :: "'a tttrace"
+  assume assm1: "\<forall>t\<in>P. \<forall>X t'. t \<noteq> [X]\<^sub>R # t'"
+  assume assm2: "x \<in> P"
+
+  have 1: "[] \<in> Q"
+    by (simp add: TT0_Q TT0_TT1_empty TT1_Q)
+  have 2: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C x \<longrightarrow> \<rho>' \<le>\<^sub>C []"
+    by (metis append_Cons assm1 assm2 tocks.cases tt_prefix_decompose tt_prefix_refl)
+  have 3: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C [] \<longrightarrow> \<rho>' \<le>\<^sub>C []"
+    by blast
+  have 4: "\<forall>X. x = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. [] = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+    by (simp add: assm1 assm2)
+  have 5: "\<forall>X. [] = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. x = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+    by blast
+  show "\<exists>\<rho>\<in>tocks UNIV. \<exists>\<sigma>. \<rho> @ \<sigma> \<in> P \<and> (\<exists>\<tau>. \<rho> @ \<tau> \<in> Q \<and>
+      (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+      (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+      (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+      (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and> (x = \<rho> @ \<sigma> \<or> x = \<rho> @ \<tau>))"
+    using 1 2 3 4 5 by (rule_tac x="[]" in bexI, auto, insert assm2 tocks.empty_in_tocks, blast+)
+next
+  fix x
+  assume assm1: "\<forall>t\<in>P. \<forall>X t'. t \<noteq> [X]\<^sub>R # t'"
+  assume assm2: "x \<in> Q"
+  assume assm3: "\<forall>t' X. x \<noteq> [X]\<^sub>R # t'"
+
+  obtain y where y_in_P: "y \<in> P"
+    using TT0_P TT0_def by auto
+  have 1: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C y \<longrightarrow> \<rho>' \<le>\<^sub>C []"
+    by (metis y_in_P append_Cons assm1 tocks.simps tt_prefix.simps(1) tt_prefix_split)
+  have 2: "\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C x \<longrightarrow> \<rho>' \<le>\<^sub>C []"
+    by (metis append_Cons assm3 split_tocks_longest tocks.simps)
+  have 3: "\<forall>X. y = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. x = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+    using assm1 y_in_P by blast
+  have 4: "\<forall>X. x = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. y = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))"
+    by (simp add: assm3)
+  show "\<exists>\<rho>\<in>tocks UNIV. \<exists>\<sigma>. \<rho> @ \<sigma> \<in> P \<and> (\<exists>\<tau>. \<rho> @ \<tau> \<in> Q \<and>
+      (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<sigma> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+      (\<forall>\<rho>'\<in>tocks UNIV. \<rho>' \<le>\<^sub>C \<rho> @ \<tau> \<longrightarrow> \<rho>' \<le>\<^sub>C \<rho>) \<and>
+      (\<forall>X. \<sigma> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<tau> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and>
+      (\<forall>X. \<tau> = [[X]\<^sub>R] \<longrightarrow> (\<exists>Y. \<sigma> = [[Y]\<^sub>R] \<and> (\<forall>e. (e \<in> X) = (e \<in> Y) \<or> e = Tock))) \<and> (x = \<rho> @ \<sigma> \<or> x = \<rho> @ \<tau>))"
+    using y_in_P 1 2 3 4 by (rule_tac x="[]" in bexI, auto, insert assm2, blast, meson tocks.simps)
+qed
+
 lemma ExtChoiceTT_wf: "\<forall> t\<in>P. ttWF t \<Longrightarrow> \<forall> t\<in>Q. ttWF t \<Longrightarrow> \<forall> t\<in>P \<box>\<^sub>C Q. ttWF t"
   unfolding ExtChoiceTT_def by auto
 

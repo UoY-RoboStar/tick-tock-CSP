@@ -2,6 +2,7 @@ theory TickTock
   imports 
     TickTock_Basic_Ops
     TickTock_Prefix
+    TickTock_UntimedPrefix
     TickTock_IntChoice
     TickTock_ExtChoice
     TickTock_SeqComp
