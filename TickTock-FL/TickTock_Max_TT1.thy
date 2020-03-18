@@ -338,4 +338,29 @@ lemma mkTT1_TT_closure:
   using assms TT2_mkTT1 apply blast
   using assms ttWFx_mkTT1 apply blast
   using assms TT3w_mkTT1 by blast
+
+lemma unTT1_subseteq:
+  assumes "TT P"
+  shows "unTT1 P \<subseteq> P"
+  using assms apply (simp add:unTT1_def, auto)
+  using TT1_mkTT1 TT1_mkTT1_simp by blast
+
+lemma mkTT1_unTT1_subseteq:
+  assumes "TT P"
+  shows "mkTT1(unTT1 P) \<subseteq> P"
+  by (metis TT1_fixpoint_mkTT1 TT_TT1 assms mkTT1_mono unTT1_subseteq)  
+
+lemma less_eq_unTT1_mkTT1:
+  assumes "TT0 P"
+          "TTwf P"
+          "TT1w P" 
+          "TT2 P" 
+          "ttWFx P" 
+          "TT3w P" 
+          "TTM1 P" 
+          "TTM2 P" 
+          "TTM3 P"
+  shows "P \<subseteq> unTT1(mkTT1 P)"
+  using assms by (simp add:unTT1_def, auto)
+
 end
