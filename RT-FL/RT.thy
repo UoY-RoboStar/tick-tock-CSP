@@ -8,17 +8,55 @@ datatype 'e rtevent = TickRT | EventRT 'e
 
 datatype 'e rtrefusal = RefNil ("\<bullet>\<^sub>\<R>\<^sub>\<T>") | RefSet "'e set" ("[_]\<^sub>\<R>\<^sub>\<T>")
 
-datatype 'e rttrace  = RTRefusal "'e rtrefusal" ("\<langle>_\<rangle>\<^sub>\<R>\<^sub>\<T>") | RTEvent "'e rtrefusal" "'e" "'e rttrace" ("_ #\<^sub>\<R>\<^sub>\<T> _ #\<^sub>\<R>\<^sub>\<T> _")
+lemma rtrefusal_cases2:
+  "(x = (\<bullet>\<^sub>\<R>\<^sub>\<T>, \<bullet>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>Y. x = (\<bullet>\<^sub>\<R>\<^sub>\<T>, [Y]\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X. x = ([X]\<^sub>\<R>\<^sub>\<T>, \<bullet>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X Y. x = ([X]\<^sub>\<R>\<^sub>\<T>, [Y]\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow> P"
+  by (cases x, auto, case_tac a, case_tac b, simp_all, case_tac b, simp_all)
+
+datatype 'e rttrace  = RTRefusal "'e rtrefusal" ("\<langle>_\<rangle>\<^sub>\<R>\<^sub>\<T>") | RTEvent "'e rtrefusal" "'e" "'e rttrace" ("_ #\<^sub>\<R>\<^sub>\<T> _ #\<^sub>\<R>\<^sub>\<T> _" [65,66,67] 65)
 
 fun in_rtrefusal :: "'e \<Rightarrow> 'e rtrefusal \<Rightarrow> bool" (infix "\<in>\<^sub>\<R>\<^sub>\<T>" 50)  where
   "e \<in>\<^sub>\<R>\<^sub>\<T> \<bullet>\<^sub>\<R>\<^sub>\<T> = False" |
   "e \<in>\<^sub>\<R>\<^sub>\<T> [X]\<^sub>\<R>\<^sub>\<T> = (e \<in> X)"
+
+fun subset_refusal :: "'e rtrefusal \<Rightarrow> 'e rtrefusal \<Rightarrow> bool" (infix "\<subseteq>\<^sub>\<R>\<^sub>\<T>" 50)  where
+  "\<bullet>\<^sub>\<R>\<^sub>\<T> \<subseteq>\<^sub>\<R>\<^sub>\<T> y = True" |
+  "[X]\<^sub>\<R>\<^sub>\<T> \<subseteq>\<^sub>\<R>\<^sub>\<T> \<bullet>\<^sub>\<R>\<^sub>\<T> = False" |
+  "[X]\<^sub>\<R>\<^sub>\<T> \<subseteq>\<^sub>\<R>\<^sub>\<T> [Y]\<^sub>\<R>\<^sub>\<T> = (X \<subseteq> Y)"
 
 type_synonym 'e rtprocess = "'e rttrace set"
 
 fun rtWF :: "'e rttrace \<Rightarrow> bool" where
   "rtWF \<langle>X\<rangle>\<^sub>\<R>\<^sub>\<T> = True" |
   "rtWF (X #\<^sub>\<R>\<^sub>\<T> e #\<^sub>\<R>\<^sub>\<T> \<rho>) = (\<not> e \<in>\<^sub>\<R>\<^sub>\<T> X \<and> rtWF \<rho>)"
+
+lemma rttrace_cases:
+  "(x = \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X. x = \<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T> \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>a \<rho>. x = \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho> \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X a \<rho>. x = [X]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho> \<Longrightarrow> P) \<Longrightarrow> P"
+  by (cases x, auto, case_tac x1, auto, case_tac x21, auto)
+
+lemma rttrace_cases2:
+  "(x = (\<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>, \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>Y. x = (\<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>, \<langle>[Y]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>b \<sigma>. x = (\<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>, \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>Y b \<sigma>. x = (\<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>, [Y]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X. x = (\<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>, \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X Y. x = (\<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>, \<langle>[Y]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X b \<sigma>. x = (\<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>, \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X Y b \<sigma>. x = (\<langle>[X]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>, [Y]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>a \<rho>. x = (\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>, \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>a \<rho> Y. x = (\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>, \<langle>[Y]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>a \<rho> b \<sigma>. x = (\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>, \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>a \<rho> Y b \<sigma>. x = (\<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>, [Y]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X a \<rho>. x = ([X]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>, \<langle>\<bullet>\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X a \<rho> Y. x = ([X]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>, \<langle>[Y]\<^sub>\<R>\<^sub>\<T>\<rangle>\<^sub>\<R>\<^sub>\<T>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X a \<rho> b \<sigma>. x = ([X]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>, \<bullet>\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>X a \<rho> Y b \<sigma>. x = ([X]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>, [Y]\<^sub>\<R>\<^sub>\<T> #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>) \<Longrightarrow> P) \<Longrightarrow> P"
+  by (cases x, auto, case_tac a rule:rttrace_cases, simp_all, (case_tac b rule:rttrace_cases, simp_all)+)
 
 section \<open>Healthiness Conditions\<close>
 
@@ -69,7 +107,7 @@ definition RT1 :: "'e rtprocess \<Rightarrow> bool" where
 
 subsection \<open>RT2\<close>
 
-datatype 'e rttrace_tail = RTEmptyTail | RTEventTail 'e "'e rttrace" (infixr "##\<^sub>\<R>\<^sub>\<T>" 65)
+datatype 'e rttrace_tail = RTEmptyTail | RTEventTail 'e "'e rttrace" (infixr "##\<^sub>\<R>\<^sub>\<T>" 67)
 datatype 'e rttrace_init = RTEmptyInit | RTEventInit "'e rtrefusal" 'e "'e rttrace_init"
 
 fun rttrace_init_eq :: "'e rttrace_init \<Rightarrow> 'e rttrace_init \<Rightarrow> bool" where
@@ -82,7 +120,7 @@ fun rttrace2init :: "'e rttrace \<Rightarrow> 'e rttrace_init" where
   "rttrace2init \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> = RTEmptyInit" |
   "rttrace2init (x #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> \<rho>) = RTEventInit x a (rttrace2init \<rho>)"
 
-fun rttrace_with_refusal :: "'e rttrace_init \<Rightarrow> 'e rtrefusal \<Rightarrow> 'e rttrace_tail \<Rightarrow> 'e rttrace" ("_ @\<^sub>\<R>\<^sub>\<T> \<langle>_\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> _" [65, 65, 65] 65) where
+fun rttrace_with_refusal :: "'e rttrace_init \<Rightarrow> 'e rtrefusal \<Rightarrow> 'e rttrace_tail \<Rightarrow> 'e rttrace" ("_ @\<^sub>\<R>\<^sub>\<T> \<langle>_\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> _" [65, 66, 67] 65) where
   "((RTEventInit x a \<rho>) @\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> \<sigma>) = (x #\<^sub>\<R>\<^sub>\<T> a #\<^sub>\<R>\<^sub>\<T> (\<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> \<sigma>))" |
   "(RTEmptyInit @\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> (RTEventTail b \<sigma>)) = (y #\<^sub>\<R>\<^sub>\<T> b #\<^sub>\<R>\<^sub>\<T> \<sigma>)" |
   "(RTEmptyInit @\<^sub>\<R>\<^sub>\<T> \<langle>b\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> RTEmptyTail) = \<langle>b\<rangle>\<^sub>\<R>\<^sub>\<T>"
@@ -93,6 +131,13 @@ fun leq_rttrace_init :: "'e rttrace_init \<Rightarrow> 'e rttrace_init \<Rightar
   "leq_rttrace_init (RTEventInit \<bullet>\<^sub>\<R>\<^sub>\<T> e \<rho>) (RTEventInit Y f \<sigma>) = (e = f \<and> leq_rttrace_init \<rho> \<sigma>)" |
   "leq_rttrace_init (RTEventInit [X]\<^sub>\<R>\<^sub>\<T> e \<rho>) (RTEventInit \<bullet>\<^sub>\<R>\<^sub>\<T> f \<sigma>) = False" |
   "leq_rttrace_init (RTEventInit [X]\<^sub>\<R>\<^sub>\<T> e \<rho>) (RTEventInit [Y]\<^sub>\<R>\<^sub>\<T> f \<sigma>) = (X \<subseteq> Y \<and> e = f \<and> leq_rttrace_init \<rho> \<sigma>)"
+
+fun subset_rttrace_init :: "'e rttrace_init \<Rightarrow> 'e rttrace_init \<Rightarrow> bool" where
+  "subset_rttrace_init RTEmptyInit RTEmptyInit = True" |
+  "subset_rttrace_init (RTEventInit \<bullet>\<^sub>\<R>\<^sub>\<T> e \<rho>) (RTEventInit Y f \<sigma>) = (e = f \<and> subset_rttrace_init \<rho> \<sigma>)" |
+  "subset_rttrace_init (RTEventInit [X]\<^sub>\<R>\<^sub>\<T> e \<rho>) (RTEventInit \<bullet>\<^sub>\<R>\<^sub>\<T> f \<sigma>) = False" |
+  "subset_rttrace_init (RTEventInit [X]\<^sub>\<R>\<^sub>\<T> e \<rho>) (RTEventInit [Y]\<^sub>\<R>\<^sub>\<T> f \<sigma>) = (X \<subseteq> Y \<and> e = f \<and> subset_rttrace_init \<rho> \<sigma>)" |
+  "subset_rttrace_init \<rho> \<sigma> = False"
 
 lemma rttrace_with_refusal_eq1:
   "\<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>X\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> RTEmptyTail = \<sigma> @\<^sub>\<R>\<^sub>\<T> \<langle>Y\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> RTEmptyTail \<Longrightarrow> \<rho> = \<sigma>"
@@ -119,6 +164,14 @@ fun no_tick :: "'e rtevent rttrace_init \<Rightarrow> bool" where
   "no_tick RTEmptyInit = True" |
   "no_tick (RTEventInit x (EventRT e) \<rho>) = no_tick \<rho>" |
   "no_tick (RTEventInit x (TickRT) \<rho>) = False"
+
+lemma subset_rttrace_init_no_tick1:
+  "no_tick \<rho> \<Longrightarrow> subset_rttrace_init \<rho> \<sigma> \<Longrightarrow> no_tick \<sigma>"
+  by (induct \<rho> \<sigma> rule:subset_rttrace_init.induct, auto, (case_tac f, auto)+)
+
+lemma subset_rttrace_init_no_tick2:
+  "no_tick \<sigma> \<Longrightarrow> subset_rttrace_init \<rho> \<sigma> \<Longrightarrow> no_tick \<rho>"
+  by (induct \<rho> \<sigma> rule:subset_rttrace_init.induct, auto, (case_tac f, auto)+)
 
 definition RT3 :: "'e rtevent rtprocess \<Rightarrow> bool" where
   "RT3 P = (\<forall> \<rho> x y e. \<rho> @\<^sub>\<R>\<^sub>\<T> \<langle>x\<rangle>\<^sub>\<R>\<^sub>\<T> @\<^sub>\<R>\<^sub>\<T> e ##\<^sub>\<R>\<^sub>\<T> \<langle>y\<rangle>\<^sub>\<R>\<^sub>\<T> \<in> P \<longrightarrow> no_tick \<rho>)"
@@ -197,6 +250,10 @@ lemma leq_rttrace_max_trans: "\<And>y. x \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> 
 
 lemma leq_rttrace_max_antisym: "x \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> y \<Longrightarrow> y \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> x \<Longrightarrow> x = y"
   by (induct x y rule:leq_rttrace.induct, auto, case_tac \<sigma>, auto, case_tac x1, auto)
+
+lemma leq_rttrace_max_implies_leq_rttrace:
+  "\<rho> \<le>\<^sub>\<R>\<^sub>\<T>\<^sub>\<M> \<sigma> \<Longrightarrow> \<rho> \<le>\<^sub>\<R>\<^sub>\<T> \<sigma>"
+  by (induct \<rho> \<sigma> rule:leq_rttrace_max.induct, auto)
 
 fun leq_rttrace_init_max :: "'e rttrace_init \<Rightarrow> 'e rttrace_init \<Rightarrow> bool" where
   "leq_rttrace_init_max RTEmptyInit \<rho> = True" |
