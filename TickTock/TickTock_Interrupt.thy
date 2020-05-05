@@ -1045,7 +1045,6 @@ qed
 lemma TT2_TimeSyncInterrupt:
   assumes P_wf: "\<forall>x\<in>P. ttWF x" assumes Q_wf: "\<forall>x\<in>Q. ttWF x"
   assumes TT1_P: "TT1 P" and TT1_Q: "TT1 Q"
-  assumes TT2w_P: "TT2w P" and TT2w_Q: "TT2w Q"
   assumes TT2_P: "TT2 P" and TT2_Q: "TT2 Q"
   assumes ttWFx_P: "ttWFx P" and ttWFx_Q: "ttWFx Q"
   shows "TT2 (P \<triangle>\<^sub>T Q)"
@@ -1054,6 +1053,12 @@ proof auto
   fix \<rho> \<sigma> X Y
   assume assm1: "\<rho> @ [X]\<^sub>R # \<sigma> \<in> P \<triangle>\<^sub>T Q"
   assume assm2: "Y \<inter> {e. e \<noteq> Tock \<and> \<rho> @ [[e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q \<or> e = Tock \<and> \<rho> @ [[X]\<^sub>R, [e]\<^sub>E] \<in> P \<triangle>\<^sub>T Q} = {}"
+  
+  have TT2w_P: "TT2w P"
+    by (simp add: TT2_P TT2_imp_TT2w)
+  have TT2w_Q: "TT2w Q"
+    by (simp add: TT2_Q TT2_imp_TT2w)
+
   have "ttWF (\<rho> @ [X]\<^sub>R # \<sigma>)"
     using P_wf Q_wf TimeSyncInterruptTT_wf assm1 by blast
   then have "\<sigma> = [] \<or> (\<exists> \<sigma>'. \<sigma> = [Tock]\<^sub>E # \<sigma>')"
