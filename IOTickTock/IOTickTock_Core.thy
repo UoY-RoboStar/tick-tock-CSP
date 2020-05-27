@@ -77,8 +77,8 @@ fun tttrace_to_event_trace :: "'e tttrace \<Rightarrow> 'e ttevent list" where
 definition tracesTT :: "'e ttprocess \<Rightarrow> 'e ttevent list set" where
   "tracesTT P = {t. \<exists> s\<in>P. t = tttrace_to_event_trace s}"
 
-definition TracesRefinementTT :: "'e ttprocess \<Rightarrow> 'e ttprocess \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>T" 50) where
-  "P \<sqsubseteq>\<^sub>T Q = (tracesTT Q \<subseteq> tracesTT P)"
+definition TracesRefinementTT :: "'e ttprocess \<Rightarrow> 'e ttprocess \<Rightarrow> bool" (infix "\<sqsubseteq>\<^sub>T\<^sub>T\<^sub>T" 50) where
+  "P \<sqsubseteq>\<^sub>T\<^sub>T\<^sub>T Q = (tracesTT Q \<subseteq> tracesTT P)"
 
 subsection \<open>Conformance\<close>
 
@@ -88,7 +88,7 @@ definition ConfTT :: "'e ttprocess \<Rightarrow> 'e ttprocess \<Rightarrow> bool
       {s\<in>Q. tttrace_to_event_trace s = t} \<subseteq> {s\<in>P. tttrace_to_event_trace s = t})"
 
 lemma refines_eq_traces_refines_and_conf:
-  "P \<sqsubseteq>\<^sub>C Q = (P \<sqsubseteq>\<^sub>T Q \<and> P conf\<^sub>C Q)"
+  "P \<sqsubseteq>\<^sub>C Q = (P \<sqsubseteq>\<^sub>T\<^sub>T\<^sub>T Q \<and> P conf\<^sub>C Q)"
   unfolding RefinesTT_def TracesRefinementTT_def ConfTT_def tracesTT_def by auto
 
 end

@@ -150,3 +150,5 @@ next
     using calculation apply (erule_tac x="IOTT0_trace Outs s" in ballE, auto)
     by (erule_tac x="IOTT0_trace Outs \<sigma>" in ballE, auto simp add: IOTT0_trace_append)
 qed
+
+end
