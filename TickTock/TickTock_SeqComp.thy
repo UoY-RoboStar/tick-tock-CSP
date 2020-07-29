@@ -1,5 +1,5 @@
 theory TickTock_SeqComp
-  imports TickTock_Core
+  imports TickTock_Core TickTock_Basic_Ops
 begin
 
 subsection {* Sequential Composition *}
@@ -490,6 +490,26 @@ lemma TT_SeqComp:
   apply (simp add: TT2w_SeqComp assms(1) assms(2) assms(3))
   apply (simp add: ttWFx_SeqComp assms(1) assms(2))
   done
+
+lemma SeqComp_right_unit:
+  assumes "TT1 P"
+  shows "P ;\<^sub>C SKIP\<^sub>C = P"
+  unfolding SkipTT_def SeqCompTT_def
+proof auto
+  fix s
+  show "s @ [[Tick]\<^sub>E] \<in> P \<Longrightarrow> s \<in> P"
+    using TT1_def assms tt_prefix_concat tt_prefix_imp_prefix_subset by blast
+qed
+
+lemma SeqComp_left_unit:
+  assumes "TT0 P" "TT1 P"
+  shows "SKIP\<^sub>C ;\<^sub>C P = P"
+  unfolding SkipTT_def SeqCompTT_def
+proof (safe, simp_all)
+  show "[] \<in> P"
+    by (simp add: TT0_TT1_empty assms(1) assms(2))
+qed
+    
 
 lemma SeqComp_Union_dist1:
   "S \<noteq> {} \<Longrightarrow> P ;\<^sub>C (\<Union>S) = \<Union>{R. \<exists>Q. Q \<in> S \<and> R = P ;\<^sub>C Q}"
