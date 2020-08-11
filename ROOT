@@ -38,7 +38,7 @@ session "TickTock-FL" in "TickTock-FL" = "FL" +
      TickTock_Max_TT1_Pri
      TickTock_FL
      TickTock_FL_Pri
-
+(*
 session "Snippets-TickTock" in "TickTock" = "HOL" +
   options [
     document = "pdf",
@@ -48,3 +48,4 @@ session "Snippets-TickTock" in "TickTock" = "HOL" +
     TickTock_SeqComp
   document_files
     build
+*)

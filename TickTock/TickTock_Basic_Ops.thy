@@ -25,8 +25,8 @@ lemma TT_Div: "TT div\<^sub>C"
 subsection {* Timed Stop *}
 
 definition StopTT :: "'e ttobs list set" ("STOP\<^sub>C") where
-  "STOP\<^sub>C = {t. \<exists> s\<in>tocks({x. x \<noteq> Tock}). t = s \<or> (\<exists> X. t = s @ [[X]\<^sub>R] \<and> Tock \<notin> X)}
-  (*add_pretocks {x. x \<noteq> Tock} ({t. \<exists> Y. Tock \<notin> Y \<and> t = [[Y]\<^sub>R]} \<union> {[]})*)"
+  "STOP\<^sub>C = {t. \<exists> s\<in>tocks({x. x \<noteq> Tock}). t = s \<or> (\<exists> X. t = s @ [[X]\<^sub>R] \<and> Tock \<notin> X)}"
+  (*add_pretocks {x. x \<noteq> Tock} ({t. \<exists> Y. Tock \<notin> Y \<and> t = [[Y]\<^sub>R]} \<union> {[]})*)
 
 lemma StopTT_wf: "\<forall> t\<in>STOP\<^sub>C. ttWF t"
   unfolding StopTT_def apply (auto)
