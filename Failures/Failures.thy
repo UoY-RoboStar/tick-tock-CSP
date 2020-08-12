@@ -424,7 +424,7 @@ proof (rule refines_rule)
       apply (simp add: refines_def subset_eq)
         apply (metis (no_types, lifting) F2_def F4_def assms(4) assms(6) insert_Diff insert_subset refines_def snd_conv traces_def)
         by (smt Un_subset_iff case_prodI2 fst_conv mem_Collect_eq refines_def subset_eq)
-    qed
+qed
 
 lemma sf25f_mkF24_refined:
   assumes "T0 P" "T1 P" "T2 P" "F2 P" "F3 P" "F5 P" "F6 P" 
@@ -442,8 +442,8 @@ text \<open> The following only holds because cardinality of 'a evt, when not ti
        non-zero? Otherwise they would map to the same. \<close>
 
 lemma Stop_not_Skip_mkF24: 
-  shows "\<not> mkF24 (Stop) \<sqsubseteq> mkF24(Skip)"
-  unfolding Skip_def Stop_def intChoice_def
+  shows "\<not> mkF24 (StopF) \<sqsubseteq> mkF24(SkipUF)"
+  unfolding SkipUF_def StopF_def intChoice_def
   unfolding refines_def mkF24_def traces_def by auto
 
 lemma F6_termination_not_F4:
@@ -531,6 +531,13 @@ proof (rule refines_rule)
   qed
 qed
 
+lemma sf25f_mkF24_eq:
+  assumes "T0 P" "T1 P" "T2 P" "F2 P" "F3 P" "F5 P" "F6 P" 
+  shows "sf25f (mkF24 P) = P"
+  apply (rule refines_asym)
+   apply (simp add: assms(1) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) sf25f_mkF24_refined)
+  using assms(1) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) sf25f_mkF24_refines by blast
+
 lemma T0_mkFailuresF5_remTraceTick [simp]:
   assumes "T0 P"
   shows "T0(mkFailuresF5 (fst P),remTraceTick`snd P)"
@@ -600,14 +607,6 @@ lemma F5_mkF5_weak_failure [simp]:
 lemma F6_mkF5_weak_failure [simp]:
   shows "F6 (mkF5_weak_failure (fst P), snd P)"
   unfolding F6_def traces_def mkF5_weak_failure_def by auto
-
-lemma
-  assumes "T0 P" "T1 P" "T2 P" "F2 P" "F3 P" "F4 P" "(a, b) \<notin> fst P" "(a, Y) \<in> fst P" "b \<subseteq> Y\<union>{tick}"
-  shows "\<exists>s. s @ [tick] \<in> snd P \<and> (a = s \<and> b \<subseteq> UNIV - {tick} \<or> a = s @ [tick])"
-proof -
-  have "a @ [tick] \<in> snd P"
-    using assms 
-    oops
 
 lemma mkF24_mkF5_weak_failure:
   assumes "T0 P" "T1 P" "T2 P" "F2 P" "F3 P" "F4 P"
@@ -768,15 +767,6 @@ proof (rule refines_rule)
     qed
   qed
 
-lemma unmkF25_mkF25_refines:
-  assumes "T0 P" "T1 P" "T2 P" "F2 P" "F3 P" "F5 P"
-  shows "P \<sqsubseteq> unmkF25 (mkF25 P)"
-proof (rule refines_rule)
-  show "fst (unmkF25 (mkF25 P)) \<subseteq> fst P"
-    unfolding mkF25_def unmkF25_def IntChoice_def refines_def apply auto
-
-    oops
-
 text \<open> How about the other way around? \<close>
 
 lemma "fst (sf2f (mkF24 (({},{[],[tick]})))) = {}"
@@ -802,65 +792,6 @@ lemma mkF24_dist_intChoice:
   unfolding mkF24_def intChoice_def traces_def refines_def by auto
 
 lemma
-  assumes "T0 P" "T1 P" "T2 P" "F2 P" "F3 P" "T0 Q" "T1 Q" "T2 Q" "F2 Q" "F3 Q" "(mkF24 P) \<sqsubseteq> (mkF24 Q)" "x \<in> (fst Q)"
-  shows "x \<in> fst P"
-  using assms unfolding mkF24_def traces_def apply auto
-  using mkF24_traces_refines 
-  
-
-lemma
-  assumes "T0 P" "T1 P" "T2 P" "F2 P" "F3 P"
-  shows "P \<sqsubseteq> sf2f(mkF24(P))" 
-proof (rule refines_rule)
-  show "snd (sf2f (mkF24 P)) \<subseteq> snd P"
-    by (metis F2_mkF24 F3_mkF24 F4_mkF24 T0_def T1_mkF24 T2_mkF24 assms(1) assms(2) assms(3) assms(4) assms(5) eq_iff traces_def traces_eq_traces_mkF24 traces_sf2f_eq)
-
-
-
-  show "fst (sf2f (mkF24 P)) \<subseteq> fst P"
-    using mkF24_dist_intChoice    sledgehammer
-  proof -
-    have "fst (sf2f (mkF24 P)) = {x. \<exists>Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q) \<and> x \<in> (fst Q)}"
-    proof -
-      have "fst (sf2f (mkF24 P)) = fst (\<Sqinter>{Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q)})"
-        unfolding sf2f_def by auto
-      also have "... = \<Union>(fst`{Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q)})"
-        unfolding IntChoice_def by auto
-      also have "... = \<Union>({y. \<exists>x. x \<in> {Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q)} \<and> y = (fst x)})"
-        by auto
-      also have "... = \<Union>({y. \<exists>Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q) \<and> y = (fst Q)})"
-        by auto (* \<Union>A = {x. \<exists>B \<in> A. x \<in> B} *)
-      also have "... = {x. \<exists>B \<in> {y. \<exists>Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q) \<and> y = (fst Q)}. x \<in> B}"
-        by auto
-      also have "... = {x. \<exists>Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q) \<and> x \<in> (fst Q)}"
-        by auto
-      finally show ?thesis .
-    qed
-
-    have "{x. \<exists>Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q) \<and> x \<in> (fst Q)} \<subseteq> fst P"
-      unfolding mkF24_def traces_def apply auto
-    proof-
-      have "({x. \<exists>Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q) \<and> x \<in> (fst Q)} \<subseteq> fst P)
-            =
-            (\<forall>x. (\<exists>Q. T0 Q \<and> T1 Q \<and> T2 Q \<and> F2 Q \<and> F3 Q \<and> (mkF24 P) \<sqsubseteq> (mkF24 Q) \<and> x \<in> (fst Q)) \<longrightarrow> x \<in> fst P)"
-        by auto
-      also have "... = "
-     unfolding sf2f_def mkF24_def traces_def IntChoice_def   apply auto 
-     apply auto (* I have doubts this is true without F4. If it were, our model
-       would be exactly as expressive as stable failures, but I think
-       it strictly more expressive than that? *)
-
-(*   have "\<And>aa ba. (fst P \<union> {(t, X). \<exists>s. s @ [tick] \<in> snd P \<and> (t = s \<and> X \<subseteq> UNIV - {tick} \<or> t = s @ [tick])}, snd P) \<sqsubseteq>
-       (aa \<union> {(t, X). \<exists>s. s @ [tick] \<in> ba \<and> (t = s \<and> X \<subseteq> UNIV - {tick} \<or> t = s @ [tick])}, ba)
-        \<Longrightarrow> ba \<subseteq> snd P"
-    by (auto simp add: refines_def)
-  then have "\<And>aa ba. (fst P \<union> {(t, X). \<exists>s. s @ [tick] \<in> snd P \<and> (t = s \<and> X \<subseteq> UNIV - {tick} \<or> t = s @ [tick])}, snd P) \<sqsubseteq>
-       (aa \<union> {(t, X). \<exists>s. s @ [tick] \<in> snd P \<and> (t = s \<and> X \<subseteq> UNIV - {tick} \<or> t = s @ [tick])}, snd P)\<Longrightarrow> ba \<subseteq> snd P"
-    apply (auto simp add: refines_def)
-    oops*)
-oops
-
-lemma
   assumes "T0 P" "T1 P" "T2 P" "F2 P" "F3 P"
   shows "sf2f(mkF24(P)) \<sqsubseteq> P"
 proof (rule refines_rule)
@@ -872,28 +803,7 @@ proof (rule refines_rule)
     using assms(1) assms(2) assms(3) assms(4) assms(5) refines_refl by force
 qed
 
-lemma
-  shows "mkF24(sf2f P) = P"
-  apply (rule refines_asym)
-  
-
-lemma 
-  shows "sf2f(mkF24 P) = P"
-  
-
-lemma 
-  shows "sf2f(P) = P"
-  
-
-definition f2sf :: "'a process \<Rightarrow> 'a process"
-  where "f2sf P = (fst P \<union> \<Union>{x | x \<subseteq> UNIV-{tick} \<and> s@[tick] \<in> traces(P) \<and> (\<exists>X. (s,X) \<in> (fst P))},traces(P))"
-
-definition sf2f :: "'a process \<Rightarrow> 'a process"
-  where "sf2f P \<equiv> "
-
 (* Old below *)
-
-
 
 definition D1 :: "'a process \<Rightarrow> bool"
  where "D1 P \<equiv> \<forall>s t. s \<in> (snd P) \<longrightarrow> (s@t) \<in> (snd P)"
