@@ -350,8 +350,11 @@ definition RenamingF :: "'a process \<Rightarrow> ('a \<Rightarrow> 'b) \<Righta
 
 subsection \<open> Hiding \<close>
 
-definition HideF :: "'a process \<Rightarrow> 'a set \<Rightarrow> 'a process" (infix "\\\<^sub>F" 57)
-  where "P \\\<^sub>F X = ({(t,Y). \<exists>s. (s,Y \<union> evt`X) \<in> fst P \<and> t = filter (\<lambda>e. e \<notin> evt`X) s},
-                    {t. \<exists>z. t = filter (\<lambda>e. e \<notin> evt`X) z \<and> z \<in> snd P})"
+text \<open> To allow a fair comparison with tick-tock, I've allowed the event set to also include
+       tick. Although clearly this is impossible in FDR, removing termination via hiding. \<close>
+
+definition HideF :: "'a process \<Rightarrow> 'a evt set \<Rightarrow> 'a process" (infix "\<setminus>\<^sub>F" 57)
+  where "P \<setminus>\<^sub>F X = ({(t,Y). \<exists>s. (s,Y \<union> X) \<in> fst P \<and> t = filter (\<lambda>e. e \<notin> X) s},
+                    {t. \<exists>z. t = filter (\<lambda>e. e \<notin> X) z \<and> z \<in> snd P})"
 
 end
