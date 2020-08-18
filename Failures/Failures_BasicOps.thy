@@ -354,7 +354,7 @@ text \<open> To allow a fair comparison with tick-tock, I've allowed the event s
        tick. Although clearly this is impossible in FDR, removing termination via hiding. \<close>
 
 definition HideF :: "'a process \<Rightarrow> 'a evt set \<Rightarrow> 'a process" (infix "\<setminus>\<^sub>F" 57)
-  where "P \<setminus>\<^sub>F X = ({(t,Y). \<exists>s. (s,Y \<union> X) \<in> fst P \<and> t = filter (\<lambda>e. e \<notin> X) s},
+  where "P \<setminus>\<^sub>F X = ({(t,Y). \<exists>s. (s,Y \<union> X) \<in> fst P  \<and> t = filter (\<lambda>e. e \<notin> X) s},
                     {t. \<exists>z. t = filter (\<lambda>e. e \<notin> X) z \<and> z \<in> snd P})"
 
 end

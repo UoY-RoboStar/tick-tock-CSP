@@ -396,7 +396,7 @@ qed
 lemma ttproc2F_HidingTT_failures_subseteq_HideF:
   assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
       and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
-  shows "fst (ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS))) \<subseteq>  fst ((ttproc2F P) \<setminus>\<^sub>F HS)" 
+  shows "fst (ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS))) \<subseteq> fst ((ttproc2F P) \<setminus>\<^sub>F HS)" 
   using assms unfolding ttproc2F_def HidingTT_def HideF_def
 proof (auto)
   fix a b y p
@@ -404,11 +404,11 @@ proof (auto)
   and    assm2:"y \<in> hide_trace (ttevt2F ` HS) p"
   and    assm3:"p \<in> P"
 
-  (* "\<exists>z. z \<in> hide_trace (ttevt2F ` HS) y \<and> Some (filter (\<lambda>e. e \<notin> HS) s, b) = tt2F z" *)
-
-  
-
-  have "\<exists>s. (Some (s, b \<union> HS) = tt2F p) \<and> a = filter (\<lambda>e. e \<notin> HS) s"
+  text \<open> Key to doing this proof without using p \<in> P is to use p
+         and focus on showing that some prefix of it exists that
+         satisfies the condition. \<close>
+ 
+  have "\<exists>s. (\<exists>r. Some (s, b \<union> HS) = tt2F r \<and> r \<lesssim>\<^sub>C p) \<and> a = filter (\<lambda>e. e \<notin> HS) s"
     using assm1 assm2
   proof (induct "(ttevt2F ` HS)" p arbitrary:y a b rule:hide_trace.induct)
     case (1 X)
@@ -422,15 +422,30 @@ proof (auto)
         by (metis (no_types, hide_lams) evt.exhaust imageE ttevent.inject ttevent.simps(5) ttevt2F.simps(1) ttevt2F.simps(2))
       then have "s \<in> hide_trace (ttevt2F ` HS) e"
         using 2 True by auto
-      then have "\<exists>s. Some (s, b \<union> HS) = tt2F e \<and> a = filter (\<lambda>e. e \<notin> HS) s"
+      then have "\<exists>s. (\<exists>r.  Some (s, b \<union> HS) = tt2F r \<and> r \<lesssim>\<^sub>C e) \<and> a = filter (\<lambda>e. e \<notin> HS) s"
         using 2 by auto
-      then have "\<exists>s. Some (evt X # s, b \<union> HS) = tt2F ([Event X]\<^sub>E # e) \<and> a = filter (\<lambda>e. e \<notin> HS) (evt X # s)"
+      then have "\<exists>s. (\<exists>r. Some (evt X # s, b \<union> HS) = tt2F ([Event X]\<^sub>E # r) \<and> r \<lesssim>\<^sub>C e) \<and> a = filter (\<lambda>e. e \<notin> HS) (evt X # s)"
         using True evt_X apply auto
         by (metis (no_types, lifting) fst_conv option.simps(5) snd_conv)
-      then show ?thesis by auto
+      then show ?thesis 
+        using tt_prefix_subset.simps(3) by blast
     next
-      case False
-      then show ?thesis sorry
+      case False 
+      then have "evt X \<notin> HS"
+        using image_iff by fastforce
+      then have tl_s:"(tl s) \<in> hide_trace (ttevt2F ` HS) e"
+        using 2 False by auto
+
+      then obtain ax where ax_bx:"Some (ax, b) = tt2F (tl s) \<and> evt X # ax = a"
+        using "2.prems"(1) "2.prems"(2) False Some_tt2F_event_tl
+        by (smt Some_tt2F_imp_tt2T' hide_trace.simps(2) list.sel(3) mem_Collect_eq tt2T.simps(2))
+      then have "\<exists>s. (\<exists>r. Some (s, b \<union> HS) = tt2F r \<and> r \<lesssim>\<^sub>C e) \<and> ax = filter (\<lambda>e. e \<notin> HS) s"
+        using 2 tl_s by auto
+      then have "\<exists>s. (\<exists>r. Some (s, b \<union> HS) = tt2F ([Event X]\<^sub>E # r) \<and> r \<lesssim>\<^sub>C e) \<and> (evt X # ax) = filter (\<lambda>e. e \<notin> HS) s"
+        using 2 False
+        by (smt \<open>evt X \<notin> HS\<close> filter.simps(2) fst_conv option.simps(5) snd_conv tt2F.simps(2))
+      then show ?thesis using ax_bx
+        using tt_prefix_subset.simps(3) by blast
     qed
   next
     case (3 X)
@@ -446,7 +461,29 @@ proof (auto)
       using 4 by auto
   next
     case (5 X Y)
-    then show ?case by auto
+    then have "a = []"
+      using 5 by auto
+    then obtain Z where Z:"Y = [[Z]\<^sub>R] \<and> ttevt2F`(b) \<subseteq> Z" (* {t. \<exists> Z\<subseteq>Y. X \<subseteq> Y \<and> t = [[Z]\<^sub>R]} *)
+      using 5 apply simp
+      apply safe 
+      by auto
+    then show ?case using 5
+    proof (cases "(ttevt2F ` HS) \<subseteq> X")
+      case True
+      have "(ttevt2F ` (b \<union> HS)) \<subseteq> X"
+        using 5 Z by auto
+      have "Some (a, b) = tt2F [[Z]\<^sub>R] \<and> a = filter (\<lambda>e. e \<notin> HS) a"
+        using 5 Z by auto
+      then have "Some (a, (b \<union> HS)) = tt2F [[Z \<union> ttevt2F`HS]\<^sub>R] \<and> a = filter (\<lambda>e. e \<notin> HS) a"
+       using 5 Z apply auto
+       using Some_tt2F_set by fastforce
+      then show ?thesis using 5 Z
+        apply auto
+        by (metis (no_types, lifting) \<open>Some (a, b \<union> HS) = tt2F [[Z \<union> ttevt2F ` HS]\<^sub>R] \<and> a = filter (\<lambda>e. e \<notin> HS) a\<close> sup.absorb_iff2 sup_assoc tt_prefix_subset.simps(2) tt_prefix_subset_refl)
+    next
+      case False
+      then show ?thesis using 5 by auto
+    qed  
   next
     case (6 X t)
     then show ?case by auto
@@ -465,7 +502,185 @@ proof (auto)
   qed
 
   then show "\<exists>s. (\<exists>y. Some (s, b \<union> HS) = tt2F y \<and> y \<in> P) \<and> a = filter (\<lambda>e. e \<notin> HS) s"
-    using assm3 by blast
+    using assm3 TT1_P TT1_def by blast
 qed
+
+lemma ttproc2F_HideF_traces_subseteq_HidingTT:
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
+      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  shows "snd ((ttproc2F P) \<setminus>\<^sub>F HS) \<subseteq> snd (ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS)))" 
+  using assms unfolding ttproc2F_def HidingTT_def HideF_def
+proof(auto)
+  fix y
+  assume assm1:"y \<in> P"
+
+  have "ttWF y"
+    using TTwf_P TTwf_def assm1 by blast
+
+  then have "\<exists>z r. filter (\<lambda>e. e \<notin> HS) (tt2T y) = tt2T z \<and> z \<in> hide_trace (ttevt2F ` HS) r \<and> r \<lesssim>\<^sub>C y"
+  proof (induct "(ttevt2F `HS)" y rule:hide_trace.induct)
+    case 1
+    then show ?case   
+      by (rule_tac x="[]" in exI, auto)+
+  next
+    case (2 e s)
+    then have hyp:"\<exists>z r. filter (\<lambda>e. e \<notin> HS) (tt2T s) = tt2T z \<and> z \<in> hide_trace (ttevt2F ` HS) r \<and> r \<lesssim>\<^sub>C s"
+      by auto
+      
+    then show ?case
+    proof (cases "Event e \<in> (ttevt2F ` HS)")
+      case True
+      then have "\<exists>z r. filter (\<lambda>e. e \<notin> HS) (tt2T s) = tt2T z \<and> z \<in> hide_trace (ttevt2F ` HS) ([Event e]\<^sub>E # r) \<and> [Event e]\<^sub>E # r \<lesssim>\<^sub>C [Event e]\<^sub>E # s"
+        using hyp by auto
+      then have "\<exists>z r. filter (\<lambda>e. e \<notin> HS) (tt2T ([Event e]\<^sub>E # s)) = tt2T z \<and> z \<in> hide_trace (ttevt2F ` HS) ([Event e]\<^sub>E # r) \<and> [Event e]\<^sub>E # r \<lesssim>\<^sub>C [Event e]\<^sub>E # s"
+        using True
+        by (smt evt.exhaust filter.simps(2) imageE tt2T.simps(2) ttevent.distinct(3) ttevt2F.simps(1) ttevt2F.simps(2))
+      then show ?thesis using 2 by blast
+    next
+      case False
+      then have "\<exists>z r. filter (\<lambda>e. e \<notin> HS) (tt2T ([Event e]\<^sub>E # s)) = tt2T ([Event e]\<^sub>E # z) \<and> ([Event e]\<^sub>E # z) \<in> hide_trace (ttevt2F ` HS) ([Event e]\<^sub>E # r) \<and> [Event e]\<^sub>E # r \<lesssim>\<^sub>C [Event e]\<^sub>E # s"
+        using hyp apply auto
+        by (simp add: rev_image_eqI)
+      then show ?thesis by blast
+    qed
+  next
+    case 3
+    then show ?case
+      apply auto
+      apply (smt evt.exhaust hide_trace.simps(3) image_iff mem_Collect_eq tt2T.simps(1) tt_prefix_subset_refl ttevent.distinct(3) ttevt2F.simps(1))
+      by (metis filter.simps(1) hide_trace.simps(1) lists.Nil lists_empty tt2T.simps(3) tt_prefix_subset.simps(1))
+    
+  next
+    case (4 Y s)
+    then show ?case
+    proof (cases "Tock \<in> (ttevt2F ` HS)")
+      case True
+      then show ?thesis
+        by (metis evt.exhaust image_iff ttevent.distinct(1) ttevent.distinct(5) ttevt2F.simps(1) ttevt2F.simps(2))
+    next
+      case False
+      then show ?thesis 
+        using 4 False apply auto
+        apply (rule_tac x="[]" in exI, simp)
+        by (rule_tac x="[]" in exI, simp)
+    qed
+    
+  next
+    case (5 Y)
+    then show ?case
+      by (rule_tac x="[]" in exI, simp)+
+  next
+    case (6 t)
+    then show ?case by auto
+  next
+    case (7 Y e t)
+    then show ?case by auto
+  next
+    case (8 Y t)
+    then show ?case by auto
+  next
+    case (9 Y Z t)
+    then show ?case by auto
+  next
+    case (10 x t)
+    then show ?case by auto
+  qed
+
+  then show "\<exists>ya. filter (\<lambda>e. e \<notin> HS) (tt2T y) = tt2T ya \<and> (\<exists>x. (\<exists>p. x = hide_trace (ttevt2F ` HS) p \<and> p \<in> P) \<and> ya \<in> x)"
+    using assm1  
+    using TT1_P TT1_def by blast
+qed   
+
+lemma ttproc2F_HidingTT_traces_subseteq_HideF:
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
+      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  shows "snd (ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS))) \<subseteq> snd ((ttproc2F P) \<setminus>\<^sub>F HS)" 
+  using assms unfolding ttproc2F_def HidingTT_def HideF_def
+proof (auto)
+  fix y p
+  assume assm1:"y \<in> hide_trace (ttevt2F ` HS) p"
+    and  assm2:"p \<in> P"
+
+  have "\<exists>r. tt2T y = filter (\<lambda>e. e \<notin> HS) (tt2T r) \<and> r \<lesssim>\<^sub>C p"
+    using assm1
+  proof (induct "(ttevt2F ` HS)" p arbitrary:y rule:hide_trace.induct)
+    case 1
+    then show ?case
+      apply auto
+      by (rule_tac x="[]" in exI, auto)+
+  next
+    case (2 e s)
+    then show ?case
+    proof (cases "Event e \<in> (ttevt2F ` HS)")
+      case True
+      then have evt_HS:"evt e \<in> HS"
+        by (metis (no_types, hide_lams) evt.exhaust imageE ttevent.inject ttevent.simps(5) ttevt2F.simps(1) ttevt2F.simps(2))
+      then have "y \<in> hide_trace (ttevt2F ` HS) s"
+        using 2 True by auto
+ 
+      then have "\<exists>r. tt2T y = filter (\<lambda>e. e \<notin> HS) (tt2T r) \<and> r \<lesssim>\<^sub>C s"
+        using 2 by auto
+      then have "\<exists>r. tt2T y = filter (\<lambda>e. e \<notin> HS) (tt2T ([Event e]\<^sub>E # r)) \<and> ([Event e]\<^sub>E # r) \<lesssim>\<^sub>C [Event e]\<^sub>E # s"
+        by (simp add: evt_HS)
+      then show ?thesis by blast
+    next
+      case False
+      then have evt_no_HS:"evt e \<notin> HS"
+        using image_iff by fastforce
+      then have tl_s:"(tl y) \<in> hide_trace (ttevt2F ` HS) s"
+        using 2 False by auto
+      then have "\<exists>r. tt2T (tl y) = filter (\<lambda>e. e \<notin> HS) (tt2T r) \<and> r \<lesssim>\<^sub>C s"
+        using 2 by auto
+      then have "\<exists>r. tt2T ([Event e]\<^sub>E # (tl y)) = filter (\<lambda>e. e \<notin> HS) (tt2T ([Event e]\<^sub>E # r)) \<and> ([Event e]\<^sub>E # r) \<lesssim>\<^sub>C ([Event e]\<^sub>E # s)"
+        by (simp add: evt_no_HS)
+      then show ?thesis
+      proof -
+        have "y = [Event e]\<^sub>E # tl y"
+          using "2.prems" False by auto
+        then show ?thesis
+          by (metis (full_types) \<open>\<exists>r. tt2T ([Event e]\<^sub>E # tl y) = filter (\<lambda>e. e \<notin> HS) (tt2T ([Event e]\<^sub>E # r)) \<and> [Event e]\<^sub>E # r \<lesssim>\<^sub>C [Event e]\<^sub>E # s\<close>)
+      qed
+    qed
+  next
+    case 3
+    then show ?case
+      by (smt filter.simps(1) filter.simps(2) hide_trace.simps(3) image_eqI mem_Collect_eq tt2T.simps(1) tt2T.simps(3) tt_prefix_subset.simps(1) tt_prefix_subset_refl ttevt2F.simps(2))
+  next
+    case (4 Y s)
+    then show ?case
+      apply auto
+       apply (metis evt.exhaust ttevent.distinct(1) ttevent.distinct(5) ttevt2F.simps(1) ttevt2F.simps(2))
+      by (rule_tac x="[]" in exI, auto)
+  next
+    case (5 Y)
+    then show ?case
+      apply auto
+      by (rule_tac x="[]" in exI, auto)
+  next
+    case (6 t)
+    then show ?case by auto
+  next
+    case (7 Y e t)
+    then show ?case by auto
+  next
+    case (8 Y t)
+    then show ?case by auto
+  next
+    case (9 Y Z t)
+    then show ?case by auto
+  next
+    case (10 x t)
+    then show ?case by auto
+  qed
+
+  then show "\<exists>z. tt2T y = filter (\<lambda>e. e \<notin> HS) z \<and> (\<exists>y. z = tt2T y \<and> y \<in> P)"
+    using TT1_P TT1_def assm2 by blast
+qed
+
+lemma ttproc2F_HidingTT_eq_HideF:
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
+      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+    shows "ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS)) = (ttproc2F P) \<setminus>\<^sub>F HS" 
+  by (metis (no_types, lifting) HideF_def TT0_P TT1_P TT2_P TT3_P TTwf_P fst_conv snd_conv subset_antisym ttproc2F_HideF_failures_subseteq_HidingTT ttproc2F_HideF_traces_subseteq_HidingTT ttproc2F_HidingTT_failures_subseteq_HideF ttproc2F_HidingTT_traces_subseteq_HideF ttproc2F_def)
 
 end
