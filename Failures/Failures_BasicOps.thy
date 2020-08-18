@@ -179,8 +179,8 @@ text \<open> Note that the following definition of parallel composition differs 
 definition ParCompF :: "'a process \<Rightarrow> ('a set) \<Rightarrow> 'a process \<Rightarrow> 'a process" (infix "\<lbrakk>_\<rbrakk>\<^sub>F" 55)
   where "(P \<lbrakk>X\<rbrakk>\<^sub>F Q) = ({(u,F). \<exists>Y Z. F = Y \<union> Z \<and> Y-(evt`X\<union>{tick}) = Z-(evt`X\<union>{tick}) 
                         \<and> (\<exists>s t. (s,Y) \<in> fst P \<and> (t,Z) \<in> fst Q \<and> u \<in> s \<lbrakk>evt`X\<union>{tick}\<rbrakk>\<^sup>T\<^sub>F t)}
-                      \<union> {(u,F). \<exists>s t. u \<in> s \<lbrakk>evt`X\<union>{tick}\<rbrakk>\<^sup>T\<^sub>F t \<and> (s@[tick]) \<in> snd P \<and> (t,F) \<in> fst Q}
-                      \<union> {(u,F). \<exists>s t. u \<in> s \<lbrakk>evt`X\<union>{tick}\<rbrakk>\<^sup>T\<^sub>F t \<and> (t@[tick]) \<in> snd Q \<and> (s,F) \<in> fst P},
+                      \<union> {(u,F). \<exists>s t A G. A \<subseteq> X \<and> F = G \<union> evt ` A \<and> u \<in> (s \<lbrakk>evt`X\<union>{tick}\<rbrakk>\<^sup>T\<^sub>F t) \<and> (s@[tick]) \<in> snd P \<and> (t,G) \<in> fst Q}
+                      \<union> {(u,F). \<exists>s t A G. A \<subseteq> X \<and> F = G \<union> evt ` A \<and> u \<in> (s \<lbrakk>evt`X\<union>{tick}\<rbrakk>\<^sup>T\<^sub>F t) \<and> (t@[tick]) \<in> snd Q \<and> (s,G) \<in> fst P},
                       (\<Union>{z. \<exists>s t. z = (s \<lbrakk>evt`X\<union>{tick}\<rbrakk>\<^sup>T\<^sub>F t) \<and> s \<in> snd P \<and> t \<in> snd Q}))"
 
 lemma merge_traceF_empty:
@@ -331,6 +331,8 @@ lemma ParCompF_assoc: "(P \<lbrakk>X\<rbrakk>\<^sub>F (Q \<lbrakk>X\<rbrakk>\<^s
 
 lemma ParCompF_dist: "(P \<lbrakk>X\<rbrakk>\<^sub>F (Q \<sqinter> R)) = (P \<lbrakk>X\<rbrakk>\<^sub>F Q) \<sqinter> (P \<lbrakk>X\<rbrakk>\<^sub>F R)"
   unfolding ParCompF_def intChoice_def apply auto
+  apply fastforce
+  apply fastforce
   by blast
 
 subsection \<open> Interrupt \<close>
