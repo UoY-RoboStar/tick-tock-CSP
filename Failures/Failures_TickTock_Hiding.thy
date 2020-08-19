@@ -28,8 +28,7 @@ proof -
 
 
 lemma ttproc2F_HideF_failures_subseteq_HidingTT:
-  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" 
   shows "fst ((ttproc2F P) \<setminus>\<^sub>F HS) \<subseteq> fst (ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS)))" 
   using assms unfolding ttproc2F_def HidingTT_def HideF_def
 proof (auto)
@@ -166,8 +165,7 @@ proof (auto)
 qed
 
 lemma ttproc2F_HidingTT_failures_subseteq_HideF:
-  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
   shows "fst (ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS))) \<subseteq> fst ((ttproc2F P) \<setminus>\<^sub>F HS)" 
   using assms unfolding ttproc2F_def HidingTT_def HideF_def
 proof (auto)
@@ -210,7 +208,13 @@ proof (auto)
 
       then obtain ax where ax_bx:"Some (ax, b) = tt2F (tl s) \<and> evt X # ax = a"
         using "2.prems"(1) "2.prems"(2) False Some_tt2F_event_tl
-        by (smt Some_tt2F_imp_tt2T' hide_trace.simps(2) list.sel(3) mem_Collect_eq tt2T.simps(2))
+        proof -
+          assume a1: "\<And>ax. Some (ax, b) = tt2F (tl s) \<and> evt X # ax = a \<Longrightarrow> thesis"
+          have "tt2T s = a"
+            using "2.prems"(1) Some_tt2F_imp_tt2T' by blast
+          then show ?thesis
+            using a1 "2.prems"(1) "2.prems"(2) False Some_tt2F_event_tl by fastforce
+        qed
       then have "\<exists>s. (\<exists>r. Some (s, b \<union> HS) = tt2F r \<and> r \<lesssim>\<^sub>C e) \<and> ax = filter (\<lambda>e. e \<notin> HS) s"
         using 2 tl_s by auto
       then have "\<exists>s. (\<exists>r. Some (s, b \<union> HS) = tt2F ([Event X]\<^sub>E # r) \<and> r \<lesssim>\<^sub>C e) \<and> (evt X # ax) = filter (\<lambda>e. e \<notin> HS) s"
@@ -278,8 +282,7 @@ proof (auto)
 qed
 
 lemma ttproc2F_HideF_traces_subseteq_HidingTT:
-  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
   shows "snd ((ttproc2F P) \<setminus>\<^sub>F HS) \<subseteq> snd (ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS)))" 
   using assms unfolding ttproc2F_def HidingTT_def HideF_def
 proof(auto)
@@ -364,8 +367,7 @@ proof(auto)
 qed   
 
 lemma ttproc2F_HidingTT_traces_subseteq_HideF:
-  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
   shows "snd (ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS))) \<subseteq> snd ((ttproc2F P) \<setminus>\<^sub>F HS)" 
   using assms unfolding ttproc2F_def HidingTT_def HideF_def
 proof (auto)
@@ -450,9 +452,8 @@ proof (auto)
 qed
 
 lemma ttproc2F_HidingTT_eq_HideF:
-  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
-    shows "ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS)) = (ttproc2F P) \<setminus>\<^sub>F HS" 
-  by (metis (no_types, lifting) HideF_def TT0_P TT1_P TT2_P TT3_P TTwf_P fst_conv snd_conv subset_antisym ttproc2F_HideF_failures_subseteq_HidingTT ttproc2F_HideF_traces_subseteq_HidingTT ttproc2F_HidingTT_failures_subseteq_HideF ttproc2F_HidingTT_traces_subseteq_HideF ttproc2F_def)
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
+  shows "ttproc2F (P \<setminus>\<^sub>C (ttevt2F`HS)) = (ttproc2F P) \<setminus>\<^sub>F HS" 
+  by (metis (no_types, lifting) HideF_def TT0_P TT1_P TTwf_P fst_conv snd_conv subset_antisym ttproc2F_HideF_failures_subseteq_HidingTT ttproc2F_HideF_traces_subseteq_HidingTT ttproc2F_HidingTT_failures_subseteq_HideF ttproc2F_HidingTT_traces_subseteq_HideF ttproc2F_def)
 
 end

@@ -27,8 +27,8 @@ lemma Some_tt2F_no_prev_refusals:
   by (metis (no_types, hide_lams) Some_tt2F_tail append_Cons append_Nil list.sel(3) neq_Nil_conv tt2F_some_exists)
 
 lemma ttproc2F_SeqCompTT_failures_subseteq_SeqCompF:
-  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
+      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
   shows "fst (ttproc2F (P ;\<^sub>C Q)) \<subseteq>  fst ((ttproc2F P) ;\<^sub>F (ttproc2F Q))" 
   using assms unfolding ttproc2F_def SeqCompTT_def SeqCompF_def
 proof (auto)
@@ -160,8 +160,8 @@ lemma Some_concat_extend':
   by blast
 
 lemma ttproc2F_SeqCompF_failures_subseteq_SeqCompTT:
-  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
+      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
   shows "fst ((ttproc2F P) ;\<^sub>F (ttproc2F Q)) \<subseteq> fst (ttproc2F (P ;\<^sub>C Q))" 
   using assms unfolding ttproc2F_def SeqCompTT_def SeqCompF_def
 proof (auto)
@@ -186,5 +186,139 @@ next
     apply (rule_tac x="z@ya" in exI, auto simp add:z)
     using Some_concat_extend Some_tt2F_imp_tt2T' Some_concat_extend' tt2T_tick_butlast by fastforce
 qed
+
+lemma Tick_no_eq:
+  assumes "[Tick]\<^sub>E \<notin> set y" 
+  shows "\<forall>s. y \<noteq> s @ [[Tick]\<^sub>E]"
+  using assms by (induct y rule:rev_induct, auto)
+
+lemma Tick_set_tt2T_in:
+  assumes "tick \<in> set (tt2T y)"
+  shows "[Tick]\<^sub>E \<in> set y" 
+  using assms apply (induct y, auto)
+  apply (case_tac a, auto)
+  by (case_tac x1, auto)
+
+lemma Tick_set_ends_in_Tick:
+  assumes "[Tick]\<^sub>E \<in> set y" "ttWF y"
+  shows "\<exists>xs. y = xs@[[Tick]\<^sub>E]"
+  using assms apply (induct y, auto)
+  using ttWF.elims(2) apply auto[1]
+  by (metis append_Cons append_Nil list.exhaust_sel split_list ttWF.simps(8) ttWF_dist_notTock_cons ttevent.distinct(5))
+
+lemma Tock_in_trace_Tick_no_Tick:
+  assumes "[Tock]\<^sub>E \<in> set s"  "ttWF (s @ [[Tick]\<^sub>E])"
+  shows "tick \<notin> set (tt2T (s @ t))"
+  using assms by (induct s rule:tt2T.induct, auto)
+
+lemma Tock_in_trace_Refusal_no_Tick:
+  assumes "(\<exists>R. [R]\<^sub>R \<in> set s)"  "ttWF (s @ [[Tick]\<^sub>E])"
+  shows "tick \<notin> set (tt2T (s @ t))"
+  using assms by (induct s rule:tt2T.induct, auto)
+
+lemma Tock_in_concat_lhs:
+  assumes "[Tock]\<^sub>E \<in> set s"
+  shows "tt2T (s @ t) = tt2T s"
+  using assms by (induct s rule:tt2T.induct, auto)
+
+lemma Ref_in_concat_lhs:
+  assumes "(\<exists>R. [R]\<^sub>R \<in> set s)"
+  shows "tt2T (s @ t) = tt2T s"
+  using assms by (induct s rule:tt2T.induct, auto)
+
+lemma ttproc2F_SeqCompTT_traces_subseteq_SeqCompF:
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" 
+      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
+  shows "snd (ttproc2F (P ;\<^sub>C Q)) \<subseteq> snd ((ttproc2F P) ;\<^sub>F (ttproc2F Q))" 
+  using assms unfolding ttproc2F_def SeqCompTT_def SeqCompF_def
+proof (auto)
+  fix y
+  assume assm1:"\<forall>s t. tt2T y = s @ t \<longrightarrow> (\<forall>y. s @ [tick] = tt2T y \<longrightarrow> y \<notin> P) \<or> (\<forall>y. t = tt2T y \<longrightarrow> y \<notin> Q)"
+    and  assm2:"y \<in> P"
+    and  assm3:"\<forall>s. y \<noteq> s @ [[Tick]\<^sub>E]"
+    and  assm4:"tick \<in> set (tt2T y)"
+  have ttWF_y:"ttWF y"
+    using TTwf_P TTwf_def assm2 by blast
+  have Tick_set:"[Tick]\<^sub>E \<in> set y"
+    using assm4 Tick_set_tt2T_in by blast
+
+  show "False"
+    using assm1 assm2 assm3 assm4
+  proof (cases "y = []")
+    case True
+    then show ?thesis using assm1 assm2 assm3 assm4 by auto
+  next
+    case False
+    then obtain xs where xs:"y = xs@[[Tick]\<^sub>E]"
+      using False ttWF_y Tick_set Tick_set_ends_in_Tick by blast
+    then show ?thesis using assm3 by auto
+  qed
+next
+  fix s t
+  assume assm1:"\<forall>sa ta. tt2T (s @ t) = sa @ ta \<longrightarrow> (\<forall>y. sa @ [tick] = tt2T y \<longrightarrow> y \<notin> P) \<or> (\<forall>y. ta = tt2T y \<longrightarrow> y \<notin> Q)"
+    and  assm2:"s @ [[Tick]\<^sub>E] \<in> P"
+    and  assm3:"t \<in> Q"
+    and  assm4:"tick \<in> set (tt2T (s @ t))"
+  have "[Tick]\<^sub>E \<notin> set s"
+    using TTwf_P TTwf_concat_prefix_set_no_Tick assm2 by blast
+  then show "False"
+    using assm1 assm2 assm3 Tock_in_trace_Tick_no_Tick Tock_in_trace_Refusal_no_Tick
+    by (metis TTwf_P TTwf_def assm4 tt2T.simps(1) tt2T_concat_dist)
+next
+  fix s t
+  assume assm1:"\<forall>sa ta. tt2T (s @ t) = sa @ ta \<longrightarrow> (\<forall>y. sa @ [tick] = tt2T y \<longrightarrow> y \<notin> P) \<or> (\<forall>y. ta = tt2T y \<longrightarrow> y \<notin> Q)"
+    and  assm2:"s @ [[Tick]\<^sub>E] \<in> P"
+    and  assm3:"t \<in> Q"
+  have "[Tick]\<^sub>E \<notin> set s"
+    using TTwf_P TTwf_concat_prefix_set_no_Tick assm2 by blast
+
+  text \<open> It's basically by case analysis on whether Tock or Refs exist in s. \<close>
+
+  show "\<exists>y. tt2T (s @ t) = tt2T y \<and> y \<in> P"
+    using assm1 assm2 assm3
+    by (metis Ref_in_concat_lhs Tock_in_concat_lhs \<open>[Tick]\<^sub>E \<notin> set s\<close> tt2T.simps(1) tt2T_concat_dist)
+qed
+
+lemma
+  assumes "tick \<notin> set (tt2T y)" "ttWF y" "[Tock]\<^sub>E \<notin> set y"
+  shows "[Tick]\<^sub>E \<notin> set y"
+  using assms apply (induct y rule:tt2T.induct, auto)
+  apply (smt hd_in_set list.distinct(1) list.inject list.sel(1) list.set_cases ttWF.elims(2) ttobs.distinct(1))
+  using ttWF.elims(2) by auto
+
+lemma ttproc2F_SeqCompF_traces_subseteq_SeqCompTT:
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" 
+      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" 
+  shows "snd ((ttproc2F P) ;\<^sub>F (ttproc2F Q)) \<subseteq> snd (ttproc2F (P ;\<^sub>C Q))" 
+  unfolding ttproc2F_def SeqCompTT_def SeqCompF_def
+proof (auto)
+  fix y x 
+  assume assm1:"tick \<notin> set (tt2T y)"
+  and    assm2:"y \<in> P"
+  have "\<exists>ya. tt2T y = tt2T ya \<and> (ya \<lesssim>\<^sub>C y \<and> (\<forall>s. ya \<noteq> s @ [[Tick]\<^sub>E]) \<or> ya @ [[Tick]\<^sub>E] \<lesssim>\<^sub>C y)"
+    using assm1
+    apply (induct y rule:tt2T.induct, auto)
+       apply (metis (no_types, hide_lams) Cons_eq_append_conv tt2T.simps(2) tt_prefix_subset.simps(3) ttevent.distinct(3))
+      apply (metis (no_types, hide_lams) Cons_eq_append_conv tt2T.simps(2) tt_prefix_subset.simps(3) ttevent.distinct(3))
+  by (rule_tac x="[]" in exI, auto)+
+  then show "\<exists>ya. tt2T y = tt2T ya \<and> (ya \<in> P \<and> (\<forall>s. ya \<noteq> s @ [[Tick]\<^sub>E]) \<or> (\<exists>s. s @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>t. t \<in> Q \<and> ya = s @ t)))"
+    by (metis TT0_Q TT0_TT1_empty TT1_P TT1_Q TT1_def append.right_neutral assm2)
+next
+  fix s y ya
+  assume assm1:"s @ [tick] = tt2T y"
+  and    assm2:"y \<in> P"
+  and    assm3:"ya \<in> Q"
+  then show "\<exists>y. s @ tt2T ya = tt2T y \<and> (y \<in> P \<and> (\<forall>s. y \<noteq> s @ [[Tick]\<^sub>E]) \<or> (\<exists>s. s @ [[Tick]\<^sub>E] \<in> P \<and> (\<exists>t. t \<in> Q \<and> y = s @ t)))"
+    using assm1 assm2 assm3 apply (rule_tac x="butlast y@ya" in exI, auto)
+    apply (smt Nil_is_append_conv TTwf_P TTwf_def Tick_set_ends_in_Tick Tick_set_tt2T_in append_butlast_last_id last_in_set last_snoc not_Cons_self2 tt2T_concat_Tick_no_Ref_set tt2T_concat_Tick_no_Tick_set tt2T_concat_Tick_no_Tock_set tt2T_concat_dist tt2T_tick_butlast)
+    using tt2T_tick_exists_Cons by force+
+qed
+
+lemma ttproc2F_SeqCompTT_eq_SeqCompF:
+  assumes TTwf_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" 
+      and TTwf_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
+  shows "(ttproc2F (P ;\<^sub>C Q)) = ((ttproc2F P) ;\<^sub>F (ttproc2F Q))" 
+  using assms
+  by (simp add: refines_asym refines_def ttproc2F_SeqCompF_failures_subseteq_SeqCompTT ttproc2F_SeqCompF_traces_subseteq_SeqCompTT ttproc2F_SeqCompTT_failures_subseteq_SeqCompF ttproc2F_SeqCompTT_traces_subseteq_SeqCompF)
 
 end

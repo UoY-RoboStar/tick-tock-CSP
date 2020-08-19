@@ -75,7 +75,7 @@ subsection \<open> Sequential composition \<close>
 
 definition SeqCompF :: "'a process \<Rightarrow> 'a process \<Rightarrow> 'a process" (infix ";\<^sub>F" 57)
   where "P ;\<^sub>F Q = ({(s,X). tick \<notin> set s \<and> (s,X) \<in> fst P} \<union> {(z,X). \<exists>s t. z = s@t \<and> s@[tick] \<in> snd P \<and> (t,X) \<in> fst Q},
-                   {z. \<exists>s. tick \<notin> set s \<and> s \<in> snd P} \<union> {z. \<exists>s t. z = s@t \<and> s@[tick] \<in> snd P \<and> t \<in> snd Q})"
+                   {z. tick \<notin> set z \<and> z \<in> snd P} \<union> {z. \<exists>s t. z = s@t \<and> s@[tick] \<in> snd P \<and> t \<in> snd Q})"
 
 subsection \<open> Parallel composition \<close>
 
