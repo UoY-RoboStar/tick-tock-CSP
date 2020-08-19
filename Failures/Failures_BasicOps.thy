@@ -347,7 +347,7 @@ term List.map
 term evt.map_evt
 
 definition RenamingF :: "'a process \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b process" ("_\<lbrakk>_\<rbrakk>\<^sub>F" 57)
-  where "P\<lbrakk>R\<rbrakk>\<^sub>F = ({(s',X). \<exists>s. map (evt.map_evt R) s = s' \<and> (s,(inv (evt.map_evt R))`X) \<in> fst P},
+  where "P\<lbrakk>R\<rbrakk>\<^sub>F = ({(s',X). \<exists>s. map (evt.map_evt R) s = s' \<and> (s,((evt.map_evt R)) -` X) \<in> fst P},
                  {s'. \<exists>s. map (evt.map_evt R) s = s' \<and> s \<in> snd P})"
 
 subsection \<open> Hiding \<close>
