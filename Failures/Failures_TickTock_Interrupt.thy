@@ -58,8 +58,8 @@ lemma tt2T_Tick_concat_lhs:
   using Ref_in_concat_lhs Tock_in_concat_lhs assms tt2T_concat_dist by fastforce
 
 lemma ttproc2F_InterruptF_failures_subseteq_TimeSyncInterruptTT:
-  assumes ttWF_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and ttWF_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes ttWF_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
+      and ttWF_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
   shows "fst ((ttproc2F P) \<triangle>\<^sub>F (ttproc2F Q)) \<subseteq> fst (ttproc2F (P \<triangle>\<^sub>T Q))" 
   using assms unfolding ttproc2F_def TimeSyncInterruptTT_def InterruptF_def 
 proof (auto)
@@ -148,8 +148,8 @@ lemma tt2F_refusal_minus_Tock:
   by (metis evt.exhaust ttevent.distinct(1) ttevent.distinct(5) ttevt2F.simps(1) ttevt2F.simps(2))
 
 lemma ttproc2F_TimeSyncInterruptTT_failures_subseteq_InterruptF:
-  assumes TTWF_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and TTWF_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes TTWF_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
+      and TTWF_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
   shows "fst (ttproc2F (P \<triangle>\<^sub>T Q)) \<subseteq> fst ((ttproc2F P) \<triangle>\<^sub>F (ttproc2F Q))" 
   using assms unfolding ttproc2F_def TimeSyncInterruptTT_def InterruptF_def 
 proof (simp_all, safe, blast)
@@ -319,8 +319,8 @@ next
 
 
 lemma ttproc2F_TimeSyncInterruptTT_traces_subseteq_InterruptF:
-  assumes TTWF_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and TTWF_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes TTWF_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
+      and TTWF_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
   shows "snd (ttproc2F (P \<triangle>\<^sub>T Q)) \<subseteq> snd ((ttproc2F P) \<triangle>\<^sub>F (ttproc2F Q))" 
   using assms unfolding ttproc2F_def TimeSyncInterruptTT_def InterruptF_def 
 proof (simp_all, safe, blast)
@@ -362,8 +362,8 @@ lemma last_Ref_prefix_in_set:
   by (metis list.exhaust list.set_intros(1) tt_prefix_subset.simps(1) tt_prefix_subset.simps(5) tt_prefix_subset_antisym ttobs.exhaust)
 
 lemma ttproc2F_InterruptF_traces_subseteq_TimeSyncInterruptTT:
-  assumes ttWF_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P" and TT2_P: "TT2 P" and TT3_P: "TT3 P"
-      and ttWF_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q" and TT2_Q: "TT2 Q" and TT3_Q: "TT3 Q"
+  assumes ttWF_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
+      and ttWF_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
   shows "snd ((ttproc2F P) \<triangle>\<^sub>F (ttproc2F Q)) \<subseteq> snd (ttproc2F (P \<triangle>\<^sub>T Q))" 
   using assms unfolding ttproc2F_def TimeSyncInterruptTT_def InterruptF_def 
 proof (auto)
@@ -494,5 +494,12 @@ next
     apply (simp_all)
     using TT1_def by smt+
 qed
+
+lemma ttproc2F_InterruptF_eq_TimeSyncInterruptTT:
+  assumes ttWF_P: "TTwf P" and TT0_P: "TT0 P" and TT1_P: "TT1 P"
+      and ttWF_Q: "TTwf Q" and TT0_Q: "TT0 Q" and TT1_Q: "TT1 Q"
+  shows "((ttproc2F P) \<triangle>\<^sub>F (ttproc2F Q)) = (ttproc2F (P \<triangle>\<^sub>T Q))" 
+  using assms 
+  by (metis dual_order.antisym prod.collapse ttproc2F_InterruptF_failures_subseteq_TimeSyncInterruptTT ttproc2F_InterruptF_traces_subseteq_TimeSyncInterruptTT ttproc2F_TimeSyncInterruptTT_failures_subseteq_InterruptF ttproc2F_TimeSyncInterruptTT_traces_subseteq_InterruptF)
 
 end
