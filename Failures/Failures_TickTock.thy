@@ -513,6 +513,140 @@ proof -
   then show ?thesis
     by (metis Pair_inject \<open>Some (tt2T xs, b \<union> HS) = tt2F (xs @ [[X]\<^sub>R])\<close> \<open>xs @ [[ttevt2F ` b]\<^sub>R] \<lesssim>\<^sub>C xs @ [[X]\<^sub>R]\<close> assms option.inject xs_X)
 qed
-  
+
+lemma Some_no_tick_trace[simp]:
+  assumes "Some (a, b) = tt2F y" 
+  shows "tick \<notin> set a"
+  using assms apply (induct a arbitrary:b y, auto)
+  using Some_no_tt2F_tick apply blast
+  using Some_tt2F_tail by blast
+
+lemma tt2T_concat_dist:
+  assumes "[Tick]\<^sub>E \<notin> set s" "[Tock]\<^sub>E \<notin> set s" "\<not>(\<exists>R. [R]\<^sub>R \<in> set s)"
+  shows "tt2T (s @ t) = (tt2T s) @ (tt2T t)"
+  using assms apply (induct s arbitrary: t, auto)
+  apply (case_tac a, auto)
+  by (case_tac x1, auto)
+
+lemma Some_tt2F_no_prev_refusals:
+  assumes "Some (a, b) = tt2F (s @ [[R]\<^sub>R])"
+  shows "\<not>(\<exists>R. [R]\<^sub>R \<in> set s)"
+  using assms apply (induct s arbitrary:a b R, auto)
+   apply (metis list.exhaust_sel option.distinct(1) snoc_eq_iff_butlast tt2F.simps(8))
+  by (metis (no_types, hide_lams) Some_tt2F_tail append_Cons append_Nil list.sel(3) neq_Nil_conv tt2F_some_exists)
+
+lemma tt2T_tick_butlast:
+  assumes "s @ [tick] = tt2T y"
+  shows "tt2T (butlast y) = s"
+  using assms apply (induct y arbitrary:s, auto)
+   apply (case_tac a, auto)
+   apply (case_tac x1, auto)
+  apply (case_tac a, auto)
+   apply (case_tac x1, auto)
+   apply (metis (no_types, lifting) append_eq_Cons_conv evt.distinct(1) list.inject)
+  by (metis list.exhaust_sel snoc_eq_iff_butlast tt2T.simps(7))
+
+lemma tt2T_tick_exists_Cons:
+  assumes "s @ [tick] = tt2T y"
+  shows "\<exists>z. z@[[Tick]\<^sub>E] = y"
+  using assms apply (induct y arbitrary:s, auto)
+  apply (case_tac a, auto)
+  apply (case_tac x1, auto)
+   apply (metis Cons_eq_append_conv evt.distinct(1) list.inject)
+  by (metis append_Nil list.exhaust_sel snoc_eq_iff_butlast tt2T.simps(7))
+
+
+lemma
+  assumes "s @ [tick] = tt2T (z @ [[Tick]\<^sub>E])"
+  shows "s = tt2T z"
+  using assms
+  using tt2T_tick_butlast by fastforce
+
+lemma tick_tt2T_concat_TickE[intro?]:
+  assumes "[tick] = tt2T (za @ [[Tick]\<^sub>E])"
+  shows "za = []"
+  using assms apply (induct za, auto)
+  apply (case_tac a, auto)
+  apply (case_tac x1, auto)
+  by (metis list.distinct(1) list.exhaust_sel snoc_eq_iff_butlast tt2T.simps(7))
+
+lemma Some_concat_extend:
+  assumes "Some (t, b) = tt2F ya" "[Tick]\<^sub>E \<notin> set z" "[Tock]\<^sub>E \<notin> set z" "\<not>(\<exists>R. [R]\<^sub>R \<in> set z)" (* *)
+  shows "Some (tt2T z @ t, b) = tt2F (z @ ya)"
+  using assms apply (induct z arbitrary:t ya b rule:tt2F.induct , auto)
+  by (smt fst_conv option.simps(5) snd_conv)
+
+lemma tt2T_concat_Tick_no_Tick_set:
+  assumes "s @ [tick] = tt2T (z @ [[Tick]\<^sub>E])"
+  shows "[Tick]\<^sub>E \<notin> set z"
+  using assms apply (induct z arbitrary:s, auto)
+   apply (metis list.exhaust_sel snoc_eq_iff_butlast tt2T.simps(7))
+  apply (case_tac a, auto)
+  apply (case_tac x1, auto)
+   apply (metis append_Nil evt.distinct(1) list.sel(1) list.sel(3) tl_append2)
+  by (metis list.exhaust_sel snoc_eq_iff_butlast tt2T.simps(7))
+
+lemma tt2T_concat_Tick_no_Ref_set:
+  assumes "s @ [tick] = tt2T (z @ [[Tick]\<^sub>E])"
+  shows "\<not>(\<exists>R. [R]\<^sub>R \<in> set z)"
+  using assms apply (induct z arbitrary:s, auto)
+  apply (case_tac a, auto)
+  apply (case_tac x1, auto)
+   apply (metis append_Nil evt.distinct(1) list.sel(1) list.sel(3) tl_append2)
+  by (metis list.exhaust_sel snoc_eq_iff_butlast tt2T.simps(7))
+
+lemma tt2T_concat_Tick_no_Tock_set:
+  assumes "s @ [tick] = tt2T (z @ [[Tick]\<^sub>E])"
+  shows "[Tock]\<^sub>E \<notin> set z"
+  using assms apply (induct z arbitrary:s, auto)
+  apply (case_tac a, auto)
+  apply (case_tac x1, auto)
+   apply (metis append_Nil evt.distinct(1) list.sel(1) list.sel(3) tl_append2)
+  by (metis list.exhaust_sel snoc_eq_iff_butlast tt2T.simps(7))
+
+lemma Some_concat_extend':
+  assumes "Some (t, b) = tt2F ya" "s @ [tick] = tt2T (z @ [[Tick]\<^sub>E])"
+  shows "Some (tt2T z @ t, b) = tt2F (z @ ya)"
+  using assms Some_concat_extend tt2T_concat_Tick_no_Tick_set tt2T_concat_Tick_no_Ref_set tt2T_concat_Tick_no_Tock_set
+  by blast
+
+lemma Tick_no_eq:
+  assumes "[Tick]\<^sub>E \<notin> set y" 
+  shows "\<forall>s. y \<noteq> s @ [[Tick]\<^sub>E]"
+  using assms by (induct y rule:rev_induct, auto)
+
+lemma Tick_set_tt2T_in:
+  assumes "tick \<in> set (tt2T y)"
+  shows "[Tick]\<^sub>E \<in> set y" 
+  using assms apply (induct y, auto)
+  apply (case_tac a, auto)
+  by (case_tac x1, auto)
+
+lemma Tick_set_ends_in_Tick:
+  assumes "[Tick]\<^sub>E \<in> set y" "ttWF y"
+  shows "\<exists>xs. y = xs@[[Tick]\<^sub>E]"
+  using assms apply (induct y, auto)
+  using ttWF.elims(2) apply auto[1]
+  by (metis append_Cons append_Nil list.exhaust_sel split_list ttWF.simps(8) ttWF_dist_notTock_cons ttevent.distinct(5))
+
+lemma Tock_in_trace_Tick_no_Tick:
+  assumes "[Tock]\<^sub>E \<in> set s"  "ttWF (s @ [[Tick]\<^sub>E])"
+  shows "tick \<notin> set (tt2T (s @ t))"
+  using assms by (induct s rule:tt2T.induct, auto)
+
+lemma Tock_in_trace_Refusal_no_Tick:
+  assumes "(\<exists>R. [R]\<^sub>R \<in> set s)"  "ttWF (s @ [[Tick]\<^sub>E])"
+  shows "tick \<notin> set (tt2T (s @ t))"
+  using assms by (induct s rule:tt2T.induct, auto)
+
+lemma Tock_in_concat_lhs:
+  assumes "[Tock]\<^sub>E \<in> set s"
+  shows "tt2T (s @ t) = tt2T s"
+  using assms by (induct s rule:tt2T.induct, auto)
+
+lemma Ref_in_concat_lhs:
+  assumes "(\<exists>R. [R]\<^sub>R \<in> set s)"
+  shows "tt2T (s @ t) = tt2T s"
+  using assms by (induct s rule:tt2T.induct, auto)
 
 end

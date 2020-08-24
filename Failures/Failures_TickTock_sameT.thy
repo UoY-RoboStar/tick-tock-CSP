@@ -1,4 +1,4 @@
-theory Failures_TickTock
+theory Failures_TickTock_sameT
 
 imports
   Failures_BasicOps
@@ -9,21 +9,9 @@ text \<open> In calculating the failures, we drop tock events, both in the trace
        and the refusals? We could still include it as part of the refusals
        considering it as a regular event.. but that's probably unnecessary? \<close>
 
-primrec ttevt2F :: "'e evt \<Rightarrow> 'e ttevent" where
-"ttevt2F (evt a) = Event a" |
-"ttevt2F tick = Tick"
-
-lemma
-  "ttevt2F`(A \<union> B) = ttevt2F`A \<union> ttevt2F`B"
-  by auto
-
-lemma ttevt2F_evt_set:
-  "ttevt2F`evt ` A = (Event`A)"
-  by (auto simp add: image_iff)
-
-fun tt2T :: "'a tttrace \<Rightarrow> 'a trace" where
-"tt2T [[Tick]\<^sub>E] = [tick]" |
-"tt2T ([Event e]\<^sub>E # \<sigma>) = evt e # tt2T \<sigma>" |
+fun tt2T :: "'a tttrace \<Rightarrow> 'a tttrace" where
+"tt2T [[Tick]\<^sub>E] = [[Tick]\<^sub>E]" |
+"tt2T ([Event e]\<^sub>E # \<sigma>) = [Event e]\<^sub>E # tt2T \<sigma>" |
 "tt2T \<sigma> = []"
 
 lemma tt2T_tocks_simp [simp]:

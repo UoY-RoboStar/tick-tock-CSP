@@ -337,8 +337,11 @@ lemma ParCompF_dist: "(P \<lbrakk>X\<rbrakk>\<^sub>F (Q \<sqinter> R)) = (P \<lb
 
 subsection \<open> Interrupt \<close>
 
+text \<open> Notice the predicate tick \<notin> set z, which is missing from the definition in the book. \<close>
+
 definition InterruptF :: "'a process \<Rightarrow> 'a process \<Rightarrow> 'a process" (infix "\<triangle>\<^sub>F" 57)
-  where "P \<triangle>\<^sub>F Q = ({(s,X). (s,X) \<in> fst P \<and> ([],X) \<in> fst Q} \<union> {(z,X). \<exists>s t. z = s@t \<and> s \<in> snd P \<and> (t,X) \<in> fst Q \<and> t \<noteq> []},
+  where "P \<triangle>\<^sub>F Q = ({(s,X). (s,X) \<in> fst P \<and> ([],X) \<in> fst Q} 
+                 \<union> {(z,X). \<exists>s t. z = s@t \<and> s \<in> snd P \<and> (t,X) \<in> fst Q \<and> t \<noteq> [] \<and> tick \<notin> set s},
                    snd P \<union> {z. \<exists>s t. z = s@t \<and> s \<in> snd P \<and> t \<in> snd Q})"
 
 subsection \<open> Renaming \<close>
