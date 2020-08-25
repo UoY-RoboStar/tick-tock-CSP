@@ -649,4 +649,126 @@ lemma Ref_in_concat_lhs:
   shows "tt2T (s @ t) = tt2T s"
   using assms by (induct s rule:tt2T.induct, auto)
 
+fun F2tt_trace :: "'a failure \<Rightarrow> 'a tttrace set" where
+  "F2tt_trace ([], X) = {[[ttevt2F ` X]\<^sub>R], [[(ttevt2F ` X) \<union> {Tock}]\<^sub>R]}" |
+  "F2tt_trace (e # t, X) = {s. \<exists>s'. s = [ttevt2F e]\<^sub>E # s' \<and> s' \<in> F2tt_trace (t, X)}"
+
+definition "F2tt" :: "'a process \<Rightarrow> 'a ttprocess" where
+  "F2tt P = \<Union>(F2tt_trace ` (fst P)) \<union> map (\<lambda>e. [ttevt2F e]\<^sub>E) ` (snd P)"
+
+lemma F2tt_ttproc2F_no_tocks:
+  assumes P_no_tock: "\<forall>t\<in>P. [Tock]\<^sub>E \<notin> set t" and P_wf: "\<forall>x\<in>P. ttWF x" and TT1_P: "TT1 P" and TT2_P: "TT2 P"
+  shows "P = F2tt (ttproc2F P)"
+  unfolding F2tt_def ttproc2F_def image_def
+proof auto
+  fix x :: "'a tttrace"
+  have "\<And>P. ttWF x \<Longrightarrow> [Tock]\<^sub>E \<notin> set x \<Longrightarrow> x \<in> P \<Longrightarrow> \<forall>xa. (\<forall>a b. (\<forall>y. Some (a, b) = tt2F y \<longrightarrow> y \<notin> P) \<or> xa \<noteq> F2tt_trace (a, b)) \<or> x \<notin> xa \<Longrightarrow>
+         \<exists>xa. (\<exists>y. xa = tt2T y \<and> y \<in> P) \<and> x = map (\<lambda>e. [ttevt2F e]\<^sub>E) xa"
+  proof (induct x rule:ttWF.induct, auto)
+    fix P :: "'a ttprocess"
+    show "[] \<in> P \<Longrightarrow> \<exists>y. [] = tt2T y \<and> y \<in> P"
+      by (rule_tac x="[]" in exI, auto)
+  next
+    fix X and P :: "'a ttprocess"
+    show "[[X]\<^sub>R] \<in> P \<Longrightarrow>
+           \<forall>xa. (\<forall>a b. (\<forall>y. Some (a, b) = tt2F y \<longrightarrow> y \<notin> P) \<or> xa \<noteq> F2tt_trace (a, b)) \<or> [[X]\<^sub>R] \<notin> xa \<Longrightarrow>
+           \<exists>xa. (\<exists>y. xa = tt2T y \<and> y \<in> P) \<and> [[X]\<^sub>R] = map (\<lambda>e. [ttevt2F e]\<^sub>E) xa"
+      apply (erule_tac x="{[[X\<union>{Tock}]\<^sub>R], [[{e\<in>X. e \<noteq> Tock}]\<^sub>R]}" in allE, auto)
+    proof (erule_tac x="[]" in allE, erule_tac x="{e. ttevt2F e \<in> X}" in allE, safe, simp_all)
+      have "insert Tock X = insert Tock (ttevt2F ` {e. ttevt2F e \<in> X})"
+        by (auto, smt image_eqI mem_Collect_eq ttevent.exhaust ttevt2F.simps(1) ttevt2F.simps(2))
+      then show "insert Tock X = ttevt2F ` {e. ttevt2F e \<in> X} \<or> insert Tock X = insert Tock (ttevt2F ` {e. ttevt2F e \<in> X})"
+        by auto
+    next
+      have "{e \<in> X. e \<noteq> Tock} = ttevt2F ` {e. ttevt2F e \<in> X}"
+        apply (auto, metis (no_types, lifting) image_iff mem_Collect_eq ttevent.exhaust ttevt2F.simps(1) ttevt2F.simps(2))
+        by (metis evt.exhaust ttevent.distinct(1) ttevent.distinct(5) ttevt2F.simps(1) ttevt2F.simps(2))
+      then show "{e \<in> X. e \<noteq> Tock} = ttevt2F ` {e. ttevt2F e \<in> X} \<or> {e \<in> X. e \<noteq> Tock} = insert Tock (ttevt2F ` {e. ttevt2F e \<in> X})"
+        by auto
+    next
+      fix x
+      assume "x = [[ttevt2F ` {e. ttevt2F e \<in> X}]\<^sub>R] \<or> x = [[insert Tock (ttevt2F ` {e. ttevt2F e \<in> X})]\<^sub>R]"
+      then show "x \<noteq> [[insert Tock X]\<^sub>R] \<Longrightarrow> x = [[{e \<in> X. e \<noteq> Tock}]\<^sub>R]"
+        by (auto, (smt image_iff mem_Collect_eq ttevent.exhaust ttevt2F.simps(1) ttevt2F.simps(2))+)
+    qed
+  next
+    fix e \<sigma> and P :: "'a ttprocess"
+    assume case_assms: "ttWF \<sigma>" "[Event e]\<^sub>E # \<sigma> \<in> P"
+    assume ind_hyp: "\<And>P. \<sigma> \<in> P \<Longrightarrow>
+             \<forall>xa. (\<forall>a b. (\<forall>y. Some (a, b) = tt2F y \<longrightarrow> y \<notin> P) \<or> xa \<noteq> F2tt_trace (a, b)) \<or> \<sigma> \<notin> xa \<Longrightarrow>
+             \<exists>xa. (\<exists>y. xa = tt2T y \<and> y \<in> P) \<and> \<sigma> = map (\<lambda>e. [ttevt2F e]\<^sub>E) xa"
+    assume "\<forall>xa. (\<forall>a b. (\<forall>y. Some (a, b) = tt2F y \<longrightarrow> y \<notin> P) \<or> xa \<noteq> F2tt_trace (a, b)) \<or> [Event e]\<^sub>E # \<sigma> \<notin> xa"
+    then have "\<forall>xa. (\<forall>a b. (\<forall>y. Some (a, b) = tt2F y \<longrightarrow> y \<notin> {t. [Event e]\<^sub>E # t \<in> P}) \<or> xa \<noteq> F2tt_trace (a, b)) \<or> \<sigma> \<notin> xa"
+      apply (auto, erule_tac x="F2tt_trace (evt e # a, b)" in allE, auto)
+      apply (erule_tac x="evt e # a" in allE, erule_tac x=b in allE, auto)
+      by (erule_tac x="[Event e]\<^sub>E # y" in allE, auto, case_tac "tt2F y", auto)
+    then have "\<exists>xa. (\<exists>y. xa = tt2T y \<and> y \<in> {t. [Event e]\<^sub>E # t \<in> P}) \<and> \<sigma> = map (\<lambda>e. [ttevt2F e]\<^sub>E) xa"
+      using ind_hyp[where P="{t. [Event e]\<^sub>E # t \<in> P}"] case_assms by auto
+    then show "\<exists>xa. (\<exists>y. xa = tt2T y \<and> y \<in> P) \<and> [Event e]\<^sub>E # \<sigma> = map (\<lambda>e. [ttevt2F e]\<^sub>E) xa"
+      by auto
+  qed
+  then show "x \<in> P \<Longrightarrow>
+         \<forall>xa. (\<forall>a b. (\<forall>y. Some (a, b) = tt2F y \<longrightarrow> y \<notin> P) \<or> xa \<noteq> F2tt_trace (a, b)) \<or> x \<notin> xa \<Longrightarrow>
+         \<exists>xa. (\<exists>y. xa = tt2T y \<and> y \<in> P) \<and> x = map (\<lambda>e. [ttevt2F e]\<^sub>E) xa"
+    by (simp add: P_no_tock P_wf)
+next
+  fix a b and x y :: "'a tttrace"
+  have "\<And> P x a. ttWF y \<Longrightarrow> y @ [[Tock]\<^sub>E] \<notin> P \<Longrightarrow> TT1 P \<Longrightarrow> TT2 P \<Longrightarrow> x \<in> F2tt_trace (a, b) \<Longrightarrow>
+      Some (a, b) = tt2F y \<Longrightarrow> y \<in> P \<Longrightarrow> x \<in> P"
+  proof (induct y rule:ttWF.induct, auto)
+    fix X and P :: "'a ttprocess"
+    show "TT1 P \<Longrightarrow> [[X]\<^sub>R] \<in> P \<Longrightarrow> [[ttevt2F ` {x. ttevt2F x \<in> X}]\<^sub>R] \<in> P"
+      unfolding TT1_def apply auto
+      by (metis (no_types, lifting) image_Collect_subsetI tt_prefix_subset.simps(1) tt_prefix_subset.simps(2))
+  next
+    fix X and P :: "'a ttprocess"
+    assume "TT2 P" "[[X]\<^sub>R] \<in> P" "[[X]\<^sub>R, [Tock]\<^sub>E] \<notin> P"
+    then have "[[insert Tock X]\<^sub>R] \<in> P"
+      unfolding TT2_def
+      apply (erule_tac x="[]" in allE, erule_tac x="[]" in allE)
+      by (erule_tac x=X in allE, erule_tac x="{Tock}" in allE, auto)
+    also have "insert Tock (ttevt2F ` {x. ttevt2F x \<in> X}) = insert Tock X"
+      unfolding image_def by (auto, case_tac x, auto, metis ttevt2F.simps(1), metis ttevt2F.simps(2))
+    then show "[[insert Tock (ttevt2F ` {x. ttevt2F x \<in> X})]\<^sub>R] \<in> P"
+      using calculation by auto
+  next
+    fix e \<sigma> x a and P :: "'a ttprocess"
+    assume case_assms: "ttWF \<sigma>" "[Event e]\<^sub>E # \<sigma> @ [[Tock]\<^sub>E] \<notin> P" "TT1 P" "TT2 P" "x \<in> F2tt_trace (a, b)"
+       "Some (a, b) = (case tt2F \<sigma> of None \<Rightarrow> None | Some fl \<Rightarrow> Some (evt e # fst fl, snd fl))" "[Event e]\<^sub>E # \<sigma> \<in> P"
+    assume ind_hyp: "\<And>P x a. \<sigma> @ [[Tock]\<^sub>E] \<notin> P \<Longrightarrow> TT1 P \<Longrightarrow> TT2 P \<Longrightarrow> x \<in> F2tt_trace (a, b) \<Longrightarrow> Some (a, b) = tt2F \<sigma> \<Longrightarrow> \<sigma> \<in> P \<Longrightarrow> x \<in> P"
+
+    obtain a' where a'_assms: "Some (a', b) = tt2F \<sigma> \<and> a = evt e # a'"
+      using case_assms(6) by (cases "tt2F \<sigma>", safe, simp_all)
+    obtain x' where x'_assms: "x = [Event e]\<^sub>E # x' \<and> x' \<in> F2tt_trace (a', b)"
+      using case_assms(5) a'_assms by auto
+
+    thm ind_hyp[where P="{t. [Event e]\<^sub>E # t \<in> P}", where x=x, where a=a']
+    have 1:  "\<sigma> @ [[Tock]\<^sub>E] \<notin> {t. [Event e]\<^sub>E # t \<in> P}"
+      using case_assms(2) by blast
+    have 2: "TT1 {t. [Event e]\<^sub>E # t \<in> P}"
+      by (simp add: TT1_init_event case_assms(3))
+    have 3: "TT2 {t. [Event e]\<^sub>E # t \<in> P}"
+      by (simp add: TT2_init_event case_assms(4))
+
+    have "x' \<in> {t. [Event e]\<^sub>E # t \<in> P}"
+      using ind_hyp[where P="{t. [Event e]\<^sub>E # t \<in> P}"] 1 2 3 case_assms x'_assms a'_assms by auto
+    then show "x \<in> P"
+      using x'_assms by blast
+  qed
+  then show "x \<in> F2tt_trace (a, b) \<Longrightarrow> Some (a, b) = tt2F y \<Longrightarrow> y \<in> P \<Longrightarrow> x \<in> P"
+    by (meson P_no_tock P_wf TT1_P TT2_P in_set_conv_decomp)
+next
+  fix y :: "'a tttrace"
+  have "ttWF y \<Longrightarrow> map (\<lambda>e. [ttevt2F e]\<^sub>E) (tt2T y) \<lesssim>\<^sub>C y"
+    by (induct y rule:ttWF.induct, auto)
+  then show "y \<in> P \<Longrightarrow> map (\<lambda>e. [ttevt2F e]\<^sub>E) (tt2T y) \<in> P"
+    using P_wf TT1_P TT1_def by blast
+qed
+
+lemma ttproc2F_eq_no_tocks_imp_F2tt_eq:
+  assumes "ttproc2F P = Q"
+  assumes "\<forall>t\<in>P. [Tock]\<^sub>E \<notin> set t" "\<forall>x\<in>P. ttWF x" "TT1 P" "TT2 P"
+  shows "P = F2tt Q"
+  using assms F2tt_ttproc2F_no_tocks by auto
+
 end
