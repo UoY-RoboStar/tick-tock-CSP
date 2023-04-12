@@ -43,9 +43,13 @@
 -- CHANGE LOG
 ---------------------------------------------------------------------------
 --
+-- 12-Apr-2023 : Added TimedInterruptSeq(e,d,Q), a version of
+--				TimedInterrupt(e -> SKIP,d,Q) that can be used for processes
+--				where Q leads to a recursion.
+--
 -- 7-Sep-2022 : Included revised versions of the following operators:
 --
---				* 	TimedInterrupt operator now admits terminating
+--				* TimedInterrupt operator now admits terminating
 --					processes in the first operand.
 --				*	Added TCHAOS, the bottom of the refinement order in
 --					tick-tock.
