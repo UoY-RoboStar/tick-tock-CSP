@@ -11,7 +11,7 @@
 ---------------------------------------------------------------------------
 --
 -- This file contains the source for the examples included in the paper:
--- Baxter, J. and Ribeiro, P. and Cavalcanti. A. Reasoning in tock-CSP with 
+-- Baxter, J. and Ribeiro, P. and Cavalcanti. A. Reasoning in tock-CSP with
 -- FDR.
 --
 
@@ -50,7 +50,7 @@ Timed(et) {
 	-- No zeno
 	assert timed_priority(Z \{a}) :[divergence free]
 	-- Zeno once event 'b' is hidden.
-	assert not timed_priority(Z \{a,b}) :[divergence free] 
+	assert not timed_priority(Z \{a,b}) :[divergence free]
 
 	R1 = (a -> SKIP [] b -> SKIP) |~| STOP
 	S1 = (a -> SKIP) |~| STOP
@@ -61,7 +61,7 @@ Timed(et) {
 
 	assert M::C3(timed_priority(S1)) 	[T= M::C3(S)
 	assert M::C3(S)						[T= M::C3(timed_priority(S1))
-	
+
 	-- R1 is not refined by S1
 	assert not M::C3(timed_priority(R1)) [T= M::C3(timed_priority(S1))
 
@@ -102,7 +102,7 @@ Timed(et) {
 	assert M::C3(timed_priority(pT)) [T= M::C3(timed_priority(pS))
 
 	pX = timed_priority(pD)
-	
+
 	pD = ((a -> STOP |~| WAIT(1)) [] (b -> STOP |~| WAIT(1))) ; pD
 
 	pD0 = ((a -> STOP |~| WAIT(1) ; pD0) [] (b -> STOP |~| WAIT(1) ; pD0))
@@ -110,7 +110,13 @@ Timed(et) {
 	assert M::C3(timed_priority(pT)) [T= M::C3(timed_priority(pD))
 	assert M::C3(timed_priority(pD)) [T= M::C3(timed_priority(pT))
 
-	assert M::CRT(timed_priority(pT)) [T= M::CRT(timed_priority(pD))
+	assert not M::CRT(timed_priority(pT)) [T= M::CRT(timed_priority(pD))
 	assert M::CRT(timed_priority(pD)) [T= M::CRT(timed_priority(pT))
+
+	TT0 = TimedInterruptSeq(a,2,b -> c -> SKIP)
+	TT1 = TimedInterrupt(a -> SKIP, 2, b -> c -> SKIP)
+
+	assert M::C3(timed_priority(TT0)) [T= M::C3(timed_priority(TT1))
+	assert M::C3(timed_priority(TT1)) [T= M::C3(timed_priority(TT0))
 
 }

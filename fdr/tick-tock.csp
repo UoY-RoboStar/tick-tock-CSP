@@ -150,6 +150,12 @@ Timed(et) {
          [| Events |]
        RT__(d__,Q__)) \ {finishedp__, finishedq__, timeout__}); SKIP
 
+	TimedInterruptSeq(e__,d__,Q__) =
+			let
+				TT(n__) = if n__ < d__ then TimeOut_1(e__ -> SKIP,TT(n__ + 1)) else Q__
+			within
+				TT(0)
+
 	-- Timeout process:
 	--
 	-- Initially behaves as P__, and if no event from P__ is communicated
