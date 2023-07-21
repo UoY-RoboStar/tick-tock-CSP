@@ -85,6 +85,21 @@ Timed(et) {
 	-- In general, it is not the case that T [TT= U (refinement in tick-tock)
 	assert not M::C3(timed_priority(T)) [T= M::C3(timed_priority(U))
 
+	-- Examples that exercise use in parallel compositions
+	T2Spec = timed_priority(Deadline(a -> SKIP,2) ||| c -> SKIP)
+	T2Impl = timed_priority(WAIT(2) ; Deadline(a -> SKIP,0) ; c -> SKIP)
+
+	assert T2Spec [T= T2Impl
+
+	T3Spec = timed_priority(StartBy(a -> SKIP,2) ||| c -> SKIP)
+	T3Impl = timed_priority(WAIT(2) ; Deadline(a -> SKIP,0) ; c -> SKIP)
+
+	assert T3Spec [T= T3Impl
+
+	T4Spec = timed_priority(TimedInterrupt(a -> SKIP,2,b->SKIP) ||| c -> SKIP)
+	T4Impl = timed_priority(WAIT(2); (b -> SKIP ||| c -> SKIP))
+
+	assert T4Spec [T= T4Impl
 }
 ---------------------------------------------------------------------------
 
@@ -118,5 +133,7 @@ Timed(et) {
 
 	assert M::C3(timed_priority(TT0)) [T= M::C3(timed_priority(TT1))
 	assert M::C3(timed_priority(TT1)) [T= M::C3(timed_priority(TT0))
+
+
 
 }
