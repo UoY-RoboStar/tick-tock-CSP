@@ -1,6 +1,6 @@
 #!/bin/bash
 
-output=$( refines --brief --quiet fdr/examples.csp )
+output="$( refines --brief --quiet fdr/examples.csp )"
 
 echo $output
 

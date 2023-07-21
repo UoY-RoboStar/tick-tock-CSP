@@ -43,6 +43,12 @@
 -- CHANGE LOG
 ---------------------------------------------------------------------------
 --
+-- 21-Jul-2023 : Made EndBy(_,_) compositional wrt. termination, that is,
+-- 				 so that after it terminates there is the possibility to
+--				 perform tock. This is required, for example, when it is
+--				 used in a parallel composition whose other branch may not
+--				 be prepared to terminate immediately.
+--
 -- 12-Apr-2023 : Added TimedInterruptSeq(e,d,Q), a version of
 --				TimedInterrupt(e -> SKIP,d,Q) that can be used for processes
 --				where Q leads to a recursion.
@@ -133,7 +139,7 @@ Timed(et) {
 	TSTOP = STOP
 
 	-- Deadlines on processes to terminate
-	EndBy(P__,d__) = P__ /\ (WAIT(d__) ; USTOP)
+	EndBy(P__,d__) = (P__ /\ (WAIT(d__) ; USTOP));SKIP
 	Deadline(P__,d__) = EndBy(P__,d__)
 
 	-- Deadline on processes to start
