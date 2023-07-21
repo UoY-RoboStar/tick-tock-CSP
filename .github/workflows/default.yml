@@ -37,4 +37,4 @@ jobs:
           email: 'robotool@gmail.com'
 
       - name: Run FDR tests
-        run: refines -q fdr/examples.csp
+        run: ./fdr/run-tests.sh
